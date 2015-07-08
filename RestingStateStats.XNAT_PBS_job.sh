@@ -252,18 +252,18 @@ main()
 	retrieval_cmd+="-s ${g_jsession} "
 	retrieval_cmd+="-m GET "
 	retrieval_cmd+="-r ${struct_preproc_uri} "
-	retrieval_cmd+="-o Structural_preproc.zip"
+	retrieval_cmd+="-o ${g_subject}_Structural_preproc.zip"
 
 	pushd ${g_working_dir}
 
 	echo "retrieval_cmd: ${retrieval_cmd}"
 	${retrieval_cmd}
 
-	unzip Structural_preproc.zip
+	unzip ${g_subject}_Structural_preproc.zip
 	mkdir -p ${g_subject}
 	rsync -auv ${g_session}/resources/Structural_preproc/files/* ${g_subject}
 	rm -rf ${g_session}
-	rm Structural_preproc.zip
+	rm ${g_subject}_Structural_preproc.zip
 
 	popd
 
@@ -289,13 +289,13 @@ main()
 	pushd ${g_working_dir}
 
 	echo "retrieval_cmd: ${retrieval_cmd}"
-	${retrieval_cmd} > Functional_preproc.zip
+	${retrieval_cmd} > ${g_subject}_${g_scan}_Functional_preproc.zip
 
-	unzip Functional_preproc.zip
+	unzip ${g_subject}_${g_scan}_Functional_preproc.zip
 	mkdir -p ${g_subject}
 	rsync -auv ${g_session}/resources/${g_scan}_preproc/files/* ${g_subject}
 	rm -rf ${g_session}
-	rm Functional_preproc.zip
+	rm ${g_subject}_${g_scan}_Functional_preproc.zip
 
 	popd
 
@@ -320,13 +320,13 @@ main()
 
 	pushd ${g_working_dir}
 	echo "retrieval_cmd: ${retrieval_cmd}"
-	${retrieval_cmd} > FIX_preproc.zip
+	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip
 
-	unzip FIX_preproc.zip
+	unzip ${g_subject}_${g_scan}_FIX_preproc.zip
 	mkdir -p ${g_subject}
 	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}
 	rm -rf ${g_session}
-	rm FIX_preproc.zip
+	rm ${g_subject}_${g_scan}_FIX_preproc.zip
 
 	popd 
 
@@ -377,7 +377,11 @@ main()
 	update_xnat_workflow ${workflowID} 8 "Remove files not newly created or modified" 80
 
 	echo "NOT Newly created/modified files:"
-	find ${g_working_dir} -type f not -newer ${start_time_file}
+	# may need to touch the script file to keep it from being deleted
+	find ${g_working_dir} -type f not -newer ${start_time_file} #-delete 
+
+	# include removal of any empty directories
+	find ${g_working_dir} -type d -empty -delete
 
 	# Step 9 - Push new data back into DB
 	update_xnat_workflow ${workflowID} 9 "Push new data back into DB" 90
@@ -403,7 +407,7 @@ main()
 	echo "NOT EXECUTED YET"
 	#${push_data_cmd}
 
-	# Step 10 - Cleanup
+	# Step 10 - Cleanup?
 
 
 	# Step 11 - Complete Workflow
