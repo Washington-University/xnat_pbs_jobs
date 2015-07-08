@@ -259,7 +259,7 @@ main()
 	echo "retrieval_cmd: ${retrieval_cmd}"
 	${retrieval_cmd}
 
-	unzip -uv Structural_preproc.zip
+	unzip Structural_preproc.zip
 	mkdir -p ${g_subject}
 	rsync -auv ${g_session}/resources/Structural_preproc/files/* ${g_subject}
 	rm -rf ${g_session}
@@ -291,7 +291,7 @@ main()
 	echo "retrieval_cmd: ${retrieval_cmd}"
 	${retrieval_cmd} > Functional_preproc.zip
 
-	unzip -uv Functional_preproc.zip
+	unzip Functional_preproc.zip
 	mkdir -p ${g_subject}
 	rsync -auv ${g_session}/resources/${g_scan}_preproc/files/* ${g_subject}
 	rm -rf ${g_session}
@@ -322,7 +322,7 @@ main()
 	echo "retrieval_cmd: ${retrieval_cmd}"
 	${retrieval_cmd} > FIX_preproc.zip
 
-	unzip -uv FIX_preproc.zip
+	unzip FIX_preproc.zip
 	mkdir -p ${g_subject}
 	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}
 	rm -rf ${g_session}
@@ -379,7 +379,6 @@ main()
 	echo "NOT Newly created/modified files:"
 	find ${g_working_dir} -type f not -newer ${start_time_file}
 
-
 	# Step 9 - Push new data back into DB
 	update_xnat_workflow ${workflowID} 9 "Push new data back into DB" 90
 
@@ -401,7 +400,8 @@ main()
 	push_data_cmd="-remote ${resting_state_stats_uri}"
 	
 	echo "push_data_cmd: ${push_data_cmd}"
-	${push_data_cmd}
+	echo "NOT EXECUTED YET"
+	#${push_data_cmd}
 
 	# Step 10 - Cleanup
 
