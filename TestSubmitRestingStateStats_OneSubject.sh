@@ -66,6 +66,6 @@ for scan in ${scans} ; do
 	echo "  --jsession=\"${jsession}\" " >> ${script_file_to_submit}
 
 	qsub ${script_file_to_submit}
-	sleep 30s
+	sleep 10s
 
 done
