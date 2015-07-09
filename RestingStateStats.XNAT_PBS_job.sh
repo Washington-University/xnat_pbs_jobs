@@ -324,7 +324,7 @@ main()
 
 	unzip ${g_subject}_${g_scan}_FIX_preproc.zip
 	mkdir -p ${g_subject}
-	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}
+	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results
 	rm -rf ${g_session}
 	rm ${g_subject}_${g_scan}_FIX_preproc.zip
 
