@@ -473,16 +473,16 @@ main()
 	update_xnat_workflow ${workflowID} 7 "Show newly created/modified files" 70
 
 	echo "Newly created/modified files:"
-	find ${g_working_dir} -type f -newer ${start_time_file}
+	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
 
 	# Step 8 - Remove any files that are not newly created or modified
 	update_xnat_workflow ${workflowID} 8 "Remove files not newly created or modified" 80
 
 	echo "NOT Newly created/modified files:"
-	find ${g_working_dir} -type f not -newer ${start_time_file} #-delete 
+	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -delete 
 
 	# include removal of any empty directories
-	find ${g_working_dir} -type d -empty -delete
+	find ${g_working_dir}/${g_subject} -type d -empty -delete
 
 	# Step 9 - Push new data back into DB
 	update_xnat_workflow ${workflowID} 9 "Push new data back into DB" 90
@@ -505,10 +505,9 @@ main()
 	push_data_cmd="-remote ${resting_state_stats_uri}"
 	
 	echo "push_data_cmd: ${push_data_cmd}"
-	echo "TBD: NOT EXECUTED YET"
-	#${push_data_cmd}
+	${push_data_cmd}
 
-	# Step 10 - Cleanup?
+	# Step 10 - Cleanup
 	# TBD
 
 
