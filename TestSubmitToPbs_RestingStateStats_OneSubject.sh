@@ -51,8 +51,6 @@ for scan in ${scans} ; do
 	echo "#PBS -q dque" >> ${script_file_to_submit}
 	echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
-	#echo "#PBS -o /HCP/hcpdb/build_hds/chpc/logs_mpp/pbs" >> ${script_file_to_submit}
-	#echo "#PBS -e /HCP/hcpdb/build_hds/chpc/logs_mpp/pbs" >> ${script_file_to_submit}
 	echo ""
 	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats.XNAT.sh \\" >> ${script_file_to_submit}
 	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
@@ -63,7 +61,8 @@ for scan in ${scans} ; do
 	echo "  --session=\"${session}\" \\" >> ${script_file_to_submit}
 	echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
-	echo "  --jsession=\"${jsession}\" " >> ${script_file_to_submit}
+	echo "  --jsession=\"${jsession}\" \\" >> ${script_file_to_submit}
+	echo "  --notify=tbbrown@wustl.edu"  >> ${script_file_to_submit}
 
 	qsub ${script_file_to_submit}
 	# make sure working directories don't have the same name based on the 
