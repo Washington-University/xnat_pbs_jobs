@@ -32,33 +32,28 @@ working_directory_name="/HCP/hcpdb/build_ssd/chpc/BUILD/${project}/${current_sec
 echo "Making working directory: ${working_directory_name}"
 mkdir -p ${working_directory_name}
 
-# Create script file to submit
-script_file_to_submit=${working_directory_name}/${subject}.RestingStateStats.${project}.${session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+# Create script file to run
+script_file_to_run=${working_directory_name}/${subject}.RestingStateStats.${project}.${session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
 
-if [ -e "${script_file_to_submit}" ]; then
-	rm -f "${script_file_to_submit}"
+if [ -e "${script_file_to_run}" ]; then
+	rm -f "${script_file_to_run}"
 fi
 
 # Get JSESSION ID
 jsession=`curl -u ${userid}:${password} https://${server}/data/JSESSION`
 echo "jsession: ${jsession}"
 
-touch ${script_file_to_submit}
-echo "#PBS -l nodes=1:ppn=1,walltime=10:00:00,vmem=16000mb" >> ${script_file_to_submit}
-echo "#PBS -q dque" >> ${script_file_to_submit}
-echo "#PBS -o /HCP/hcpdb/build_hds/chpc/logs_mpp/pbs" >> ${script_file_to_submit}
-echo "#PBS -e /HCP/hcpdb/build_hds/chpc/logs_mpp/pbs" >> ${script_file_to_submit}
-echo ""
-echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats.XNAT_PBS_job.sh \\" >> ${script_file_to_submit}
-echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
-echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
-echo "  --host=\"${server}\" \\" >> ${script_file_to_submit}
-echo "  --project=\"${project}\" \\" >> ${script_file_to_submit}
-echo "  --subject=\"${subject}\" \\" >> ${script_file_to_submit}
-echo "  --session=\"${session}\" \\" >> ${script_file_to_submit}
-echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
-echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
-echo "  --jsession=\"${jsession}\" " >> ${script_file_to_submit}
+touch ${script_file_to_run}
+echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats.XNAT.sh \\" >> ${script_file_to_run}
+echo "  --user=\"${token_username}\" \\" >> ${script_file_to_run}
+echo "  --password=\"${token_password}\" \\" >> ${script_file_to_run}
+echo "  --host=\"${server}\" \\" >> ${script_file_to_run}
+echo "  --project=\"${project}\" \\" >> ${script_file_to_run}
+echo "  --subject=\"${subject}\" \\" >> ${script_file_to_run}
+echo "  --session=\"${session}\" \\" >> ${script_file_to_run}
+echo "  --scan=\"${scan}\" \\" >> ${script_file_to_run}
+echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_run}
+echo "  --jsession=\"${jsession}\" " >> ${script_file_to_run}
 
-chmod +x ${script_file_to_submit}
-${script_file_to_submit}
+chmod +x ${script_file_to_run}
+${script_file_to_run}
