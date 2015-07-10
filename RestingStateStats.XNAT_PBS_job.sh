@@ -238,97 +238,97 @@ main()
 	echo "XNAT workflow ID: ${workflowID}"
 	show_xnat_workflow ${workflowID}
 	
-	# Step 1 - Get structurally preprocessed data from DB
-	update_xnat_workflow ${workflowID} 1 "Get structurally preprocessed data from DB" 10
+ 	# Step 1 - Get structurally preprocessed data from DB
+ 	update_xnat_workflow ${workflowID} 1 "Get structurally preprocessed data from DB" 10
 
-	struct_preproc_uri="https://${g_host}"
-	struct_preproc_uri+="/REST/projects/${g_project}"
-	struct_preproc_uri+="/subjects/${g_subject}"
-	struct_preproc_uri+="/experiments/${sessionID}"
-	struct_preproc_uri+="/resources/Structural_preproc"
-	struct_preproc_uri+="/files?format=zip"
+ 	struct_preproc_uri="https://${g_host}"
+ 	struct_preproc_uri+="/REST/projects/${g_project}"
+ 	struct_preproc_uri+="/subjects/${g_subject}"
+ 	struct_preproc_uri+="/experiments/${sessionID}"
+ 	struct_preproc_uri+="/resources/Structural_preproc"
+ 	struct_preproc_uri+="/files?format=zip"
 
-	retrieval_cmd="${xnat_data_client_cmd} "
-	retrieval_cmd+="-s ${g_jsession} "
-	retrieval_cmd+="-m GET "
-	retrieval_cmd+="-r ${struct_preproc_uri} "
-	retrieval_cmd+="-o ${g_subject}_Structural_preproc.zip"
+ 	retrieval_cmd="${xnat_data_client_cmd} "
+ 	retrieval_cmd+="-s ${g_jsession} "
+ 	retrieval_cmd+="-m GET "
+ 	retrieval_cmd+="-r ${struct_preproc_uri} "
+ 	retrieval_cmd+="-o ${g_subject}_Structural_preproc.zip"
 
-	pushd ${g_working_dir}
+ 	pushd ${g_working_dir}
 
-	echo "retrieval_cmd: ${retrieval_cmd}"
-	${retrieval_cmd}
+ 	echo "retrieval_cmd: ${retrieval_cmd}"
+ 	${retrieval_cmd}
 
-	unzip ${g_subject}_Structural_preproc.zip
-	mkdir -p ${g_subject}
-	rsync -auv ${g_session}/resources/Structural_preproc/files/* ${g_subject}
-	rm -rf ${g_session}
-	rm ${g_subject}_Structural_preproc.zip
+ 	unzip ${g_subject}_Structural_preproc.zip
+ 	mkdir -p ${g_subject}
+ 	rsync -auv ${g_session}/resources/Structural_preproc/files/* ${g_subject}
+ 	rm -rf ${g_session}
+ 	rm ${g_subject}_Structural_preproc.zip
 
-	popd
+ 	popd
 
-	# Step 2 - Get functionally preprocessed data from DB
-	update_xnat_workflow ${workflowID} 2 "Get functionally preprocessed data from DB" 20
+ 	# Step 2 - Get functionally preprocessed data from DB
+ 	update_xnat_workflow ${workflowID} 2 "Get functionally preprocessed data from DB" 20
 
-	rest_client_host="https://${g_host}"
+ 	rest_client_host="https://${g_host}"
 
-	func_preproc_uri="REST/projects/${g_project}"
-	func_preproc_uri+="/subjects/${g_subject}"
-	func_preproc_uri+="/experiments/${sessionID}"
-	func_preproc_uri+="/resources/${g_scan}_preproc"
-	func_preproc_uri+="/files?format=zip"
+ 	func_preproc_uri="REST/projects/${g_project}"
+ 	func_preproc_uri+="/subjects/${g_subject}"
+ 	func_preproc_uri+="/experiments/${sessionID}"
+ 	func_preproc_uri+="/resources/${g_scan}_preproc"
+ 	func_preproc_uri+="/files?format=zip"
 
-	retrieval_cmd="${xnat_rest_client_cmd} "
-	retrieval_cmd+="-host ${rest_client_host} "
-    #retrieval_cmd+="-user_session ${g_jsession} "
-	retrieval_cmd+="-u ${g_user} "
-	retrieval_cmd+="-p ${g_password} "
-	retrieval_cmd+="-m GET "
-	retrieval_cmd+="-remote ${func_preproc_uri}"
-
-	pushd ${g_working_dir}
-
-	echo "retrieval_cmd: ${retrieval_cmd}"
-	${retrieval_cmd} > ${g_subject}_${g_scan}_Functional_preproc.zip
-
-	unzip ${g_subject}_${g_scan}_Functional_preproc.zip
-	mkdir -p ${g_subject}
-	rsync -auv ${g_session}/resources/${g_scan}_preproc/files/* ${g_subject}
-	rm -rf ${g_session}
-	rm ${g_subject}_${g_scan}_Functional_preproc.zip
-
-	popd
-
-	# Step 3 - Get FIX processed data from DB
-	update_xnat_workflow ${workflowID} 3 "Get FIX processed data from DB" 30
-
-	rest_client_host="https://${g_host}"
-
-	fix_proc_uri="REST/projects/${g_project}"
-	fix_proc_uri+="/subjects/${g_subject}"
-	fix_proc_uri+="/experiments/${sessionID}"
-	fix_proc_uri+="/resources/${g_scan}_FIX"
-	fix_proc_uri+="/files?format=zip"
-
-	retrieval_cmd="${xnat_rest_client_cmd} "
-	retrieval_cmd+="-host ${rest_client_host} "
+ 	retrieval_cmd="${xnat_rest_client_cmd} "
+ 	retrieval_cmd+="-host ${rest_client_host} "
 	#retrieval_cmd+="-user_session ${g_jsession} "
-	retrieval_cmd+="-u ${g_user} "
-	retrieval_cmd+="-p ${g_password} "
-	retrieval_cmd+="-m GET "
-	retrieval_cmd+="-remote ${fix_proc_uri}"
+ 	retrieval_cmd+="-u ${g_user} "
+ 	retrieval_cmd+="-p ${g_password} "
+ 	retrieval_cmd+="-m GET "
+ 	retrieval_cmd+="-remote ${func_preproc_uri}"
 
-	pushd ${g_working_dir}
-	echo "retrieval_cmd: ${retrieval_cmd}"
-	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip
+ 	pushd ${g_working_dir}
 
-	unzip ${g_subject}_${g_scan}_FIX_preproc.zip
-	mkdir -p ${g_subject}
-	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results
-	rm -rf ${g_session}
-	rm ${g_subject}_${g_scan}_FIX_preproc.zip
+ 	echo "retrieval_cmd: ${retrieval_cmd}"
+ 	${retrieval_cmd} > ${g_subject}_${g_scan}_Functional_preproc.zip
 
-	popd 
+ 	unzip ${g_subject}_${g_scan}_Functional_preproc.zip
+ 	mkdir -p ${g_subject}
+ 	rsync -auv ${g_session}/resources/${g_scan}_preproc/files/* ${g_subject}
+ 	rm -rf ${g_session}
+ 	rm ${g_subject}_${g_scan}_Functional_preproc.zip
+
+ 	popd
+
+ 	# Step 3 - Get FIX processed data from DB
+ 	update_xnat_workflow ${workflowID} 3 "Get FIX processed data from DB" 30
+
+ 	rest_client_host="https://${g_host}"
+
+ 	fix_proc_uri="REST/projects/${g_project}"
+ 	fix_proc_uri+="/subjects/${g_subject}"
+ 	fix_proc_uri+="/experiments/${sessionID}"
+ 	fix_proc_uri+="/resources/${g_scan}_FIX"
+ 	fix_proc_uri+="/files?format=zip"
+
+ 	retrieval_cmd="${xnat_rest_client_cmd} "
+ 	retrieval_cmd+="-host ${rest_client_host} "
+ 	#retrieval_cmd+="-user_session ${g_jsession} "
+ 	retrieval_cmd+="-u ${g_user} "
+ 	retrieval_cmd+="-p ${g_password} "
+ 	retrieval_cmd+="-m GET "
+ 	retrieval_cmd+="-remote ${fix_proc_uri}"
+
+ 	pushd ${g_working_dir}
+ 	echo "retrieval_cmd: ${retrieval_cmd}"
+ 	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip
+
+ 	unzip ${g_subject}_${g_scan}_FIX_preproc.zip
+ 	mkdir -p ${g_subject}
+ 	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results
+ 	rm -rf ${g_session}
+ 	rm ${g_subject}_${g_scan}_FIX_preproc.zip
+
+ 	popd 
 
 	# Step 4 - Create a start_time file
 	update_xnat_workflow ${workflowID} 4 "Create a start_time file" 40
@@ -356,6 +356,7 @@ main()
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSM_All.sh
 
 	# Run RestingStateStats.sh script
+	# TBD - use env variable instead of Pipelines_MSM_All
 	${PIPELINE_TOOLS}/Pipelines_MSM_All/RestingStateStats/RestingStateStats.sh \
 		--path=${g_working_dir} \
 		--subject=${g_subject} \
@@ -403,17 +404,18 @@ main()
 	push_data_cmd="-remote ${resting_state_stats_uri}"
 	
 	echo "push_data_cmd: ${push_data_cmd}"
-	echo "NOT EXECUTED YET"
+	echo "TBD: NOT EXECUTED YET"
 	#${push_data_cmd}
 
 	# Step 10 - Cleanup?
+	# TBD
 
 
 	# Step 11 - Complete Workflow
 	complete_xnat_workflow ${workflowID}
 
 	# Step 12 - Send email notification?
-		
+	# TBD
 
 }
 
