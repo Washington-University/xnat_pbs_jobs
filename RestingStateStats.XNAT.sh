@@ -1,27 +1,97 @@
 #!/bin/bash
+
+#~ND~FORMAT~MARKDOWN~
+#~ND~START~
+#
+# # RestingStateStats.XNAT.sh
+#
+# ## Copyright Notice
+#
+# Copyright (C) 2015 The Human Connectome Project
+#
+# * Washington University in St. Louis
+# * University of Minnesota
+# * Oxford University
+#
+# ## Author(s)
+#
+# * Timothy B. Brown, Neuroinformatics Research Group, 
+#   Washington University in St. Louis
+#
+# ## Description
+#
+# This script runs the RestingStateStats pipeline script from the Human 
+# Connectome Project for a specified project, subject, session, and scan 
+# in the ConnectomeDB (db.humanconnectome.org) XNAT database.
+#
+# The script is run not as an XNAT pipeline (under the control of the
+# XNAT Pipeline Engine), but in an "XNAT-aware" and "pipeline-like" manner.
+# 
+# * The data to be processed is retrieved from the specified XNAT database.
+# * A new XNAT workflow ID is created to keep track of the processing steps.
+# * That workflow ID is updated as processing steps occur, and marked as 
+#   complete when the processing is finished.
+# * The results of processing are placed back in the specified XNAT database.
+# 
+# This script can be invoked by a job submitted to a worker or execution
+# node in a cluster, e.g. a Sun Grid Engine (SGE) managed or Portable Batch
+# System (PBS) managed cluster. Alternatively, if the machine being used
+# has adequate resources (RAM, CPU power, storage space), this script can 
+# simply be invoked interactively.
+#
+#~ND~END~
+
+# If any commands exit with a non-zero value, this script exits
 set -e
 
 echo "Job started on `hostname` at `date`"
 
+# home directory for scripts to be sourced to setup the environment
 SCRIPTS_HOME=/home/HCPpipeline/SCRIPTS
 echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
 
-PIPELINE_TOOLS=/home/HCPpipeline/pipeline_tools
-echo "PIPELINE_TOOLS: ${PIPELINE_TOOLS}"
-
+# home directory for XNAT related utilities
+# - for updating XNAT workflows
 XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
+# home directory for XNAT pipeline engine installation
+# - for utilities used to get XNAT session information,
+#   retrieve XNAT data, and create an XNAT workflow
 XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 
+# Show script usage information 
 usage()
 {
     echo ""
-    echo "Usage TBW"
+    echo "  Run the HCP RestingStateStats.sh pipeline script in an"
+	echo "  XNAT-aware and XNAT-pipeline-like manner."
+	echo ""
+	echo "  Usage: RestingStateStats <options>"
+	echo ""
+	echo "  Options: [ ] = optional, < > = user-supplied-value"
+	echo ""
+	echo "   [--help] : show usage information and exit"
+	echo ""
+	echo "    --user=<username>     : XNAT DB username"
+	echo "    --password=<password> : XNAT DB password"
+	echo "    --host=<server>       : XNAT DB web server (e.g. db.humanconnectome.org)"
+	echo "    --project=<project>   : XNAT project (e.g. HCP_500)"
+	echo "    --subject=<subject>   : XNAT subject ID within project (e.g. 100307)"
+	echo "    --session=<session>   : XNAT session ID within project (e.g. 100307_3T)"
+	echo "    --scan=<scan>         : Scan ID (e.g. rfMRI_REST1_LR)"
+	echo "    --working-dir=<dir>   : Working directory in which to place retrieved data"
+	echo "                            and in which to produce results"
+	echo "    --jsession=<jsession> : Session ID for already establish web session on"
+	echo "                            the server"
+	echo "   [--notify=<email>]     : Email address to which to send completion notification"
+	echo "                            If not specified, no completion notification email is sent"
     echo ""
 }
 
+# Parse specified command line options and verify that required options are
+# specified. "Return" the options to use in global variables.
 get_options()
 {
 	local arguments=($@)
@@ -36,6 +106,8 @@ get_options()
 	unset g_scan
 	unset g_working_dir
 	unset g_jsession
+	unset g_notify_email
+	g_notify_email="NOBODY"
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -84,6 +156,10 @@ get_options()
 				;;
 			--jsession=*)
 				g_jsession=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--notify=*)
+				g_notify_email=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -161,23 +237,29 @@ get_options()
 		echo "g_jsession: ${g_jsession}"
 	fi
 
+	echo "g_notify_email: ${g_notify_email}"
+
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
 		exit 1
 	fi
 }
 
+# Show information about a specified XNAT Workflow
 show_xnat_workflow()
 {
 	local workflow_id=${1}
 	
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
+		--server="${g_host}" \
 		--username="${g_user}" \
 		--password="${g_password}" \
 		--workflow-id="${workflow_id}" \
 		show
 }
 
+# Update information (step id, step description, and percent complete)
+# for a specified XNAT Workflow
 update_xnat_workflow()
 {
 	local workflow_id=${1}
@@ -191,6 +273,7 @@ update_xnat_workflow()
 	echo "update_xnat_workflow - percent_complete: ${percent_complete}"
 
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
+		--server="${g_host}" \
 		--username="${g_user}" \
 		--password="${g_password}" \
 		--workflow-id="${workflow_id}" \
@@ -200,29 +283,49 @@ update_xnat_workflow()
 		--percent-complete="${percent_complete}"
 }
 
+# Mark the specified XNAT Workflow as complete
 complete_xnat_workflow()
 {
 	local workflow_id=${1}
 
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
+		--server="${g_host}" \
 		--username="${g_user}" \
 		--password="${g_password}" \
 		--workflow-id="${workflow_id}" \
 		complete
 }
 
+# Main processing 
+#   Carry out the necessary steps to: 
+#   - get prerequisite data for RestingStateStats.sh
+#   - run the script
+#   - push only newly created or modified data back to the DB
+#   - cleanup the working directory
+#   - send an completion notification email if requested
 main()
 {
 	get_options $@
 
+	# Command for running the XNAT Data Client
 	xnat_data_client_cmd="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
+
+	# Command for running the XNAT REST Client
+	# Note: XNAT Data Client should be used, but the version currently available for HCP use,
+	# as specified above, seems to have a bug in it and doesn't allow downloading of the 
+	# functionally preprocessed data or the ICA FIX processed data. Thus the use of the 
+	# XNAT REST Client.  The XNAT REST Client takes much longer to download resources and
+	# the time it takes to download the functionally preprocessed data is long enough that
+	# the specified jsession expires during the download. Thus the use of the username 
+	# and password in the downloading of data via the XNAT REST Client and the uploading
+	# of data at the end.
 	xnat_rest_client_cmd="java -Xmx2048m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-rest-client-1.6.2-SNAPSHOT.jar"
 
 	# Set up to run Python
 	echo "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-	# Get XNAT Session ID (subject session)
+	# Get XNAT Session ID (a.k.a. the experiment ID, e.g ConnectomeDB_E1234)
 	echo "Getting XNAT Session ID"
 	sessionID=`python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=${g_host} --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}`
 	echo "XNAT session ID: ${sessionID}"
@@ -280,7 +383,6 @@ main()
 
  	retrieval_cmd="${xnat_rest_client_cmd} "
  	retrieval_cmd+="-host ${rest_client_host} "
-	#retrieval_cmd+="-user_session ${g_jsession} "
  	retrieval_cmd+="-u ${g_user} "
  	retrieval_cmd+="-p ${g_password} "
  	retrieval_cmd+="-m GET "
@@ -312,7 +414,6 @@ main()
 
  	retrieval_cmd="${xnat_rest_client_cmd} "
  	retrieval_cmd+="-host ${rest_client_host} "
- 	#retrieval_cmd+="-user_session ${g_jsession} "
  	retrieval_cmd+="-u ${g_user} "
  	retrieval_cmd+="-p ${g_password} "
  	retrieval_cmd+="-m GET "
@@ -352,12 +453,12 @@ main()
 	# Step 6 - Run RestingStateStats.sh script
 	update_xnat_workflow ${workflowID} 6 "Run RestingStateStats.sh script" 60
 
-	# Source setup script to setup environment
+	# Source setup script to setup environment for running the script
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSM_All.sh
 
 	# Run RestingStateStats.sh script
 	# TBD - use env variable instead of Pipelines_MSM_All
-	${PIPELINE_TOOLS}/Pipelines_MSM_All/RestingStateStats/RestingStateStats.sh \
+	${HCPPIPEDIR}/RestingStateStats/RestingStateStats.sh \
 		--path=${g_working_dir} \
 		--subject=${g_subject} \
 		--fmri-name=${g_scan} \
@@ -414,9 +515,17 @@ main()
 	# Step 11 - Complete Workflow
 	complete_xnat_workflow ${workflowID}
 
-	# Step 12 - Send email notification?
-	# TBD
-
+	# Step 12 - Send notification email
+	if [ "${g_notify_email}" -ne "NOBODY" ]; then
+		mail -s "RestingStateStats Completion for ${g_subject}" ${g_notify_email} <<EOF
+The RestingStateStats.XNAT.sh run has completed for:
+Project: ${g_project}
+Subject: ${g_subject}
+Session: ${g_session}
+Scan:    ${g_scan}
+EOF
+	fi
 }
 
+# Invoke the main function to get things started
 main $@

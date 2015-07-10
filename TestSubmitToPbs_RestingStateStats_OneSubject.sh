@@ -54,7 +54,7 @@ for scan in ${scans} ; do
 	#echo "#PBS -o /HCP/hcpdb/build_hds/chpc/logs_mpp/pbs" >> ${script_file_to_submit}
 	#echo "#PBS -e /HCP/hcpdb/build_hds/chpc/logs_mpp/pbs" >> ${script_file_to_submit}
 	echo ""
-	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats.XNAT_PBS_job.sh \\" >> ${script_file_to_submit}
+	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats.XNAT.sh \\" >> ${script_file_to_submit}
 	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 	echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 	echo "  --host=\"${server}\" \\" >> ${script_file_to_submit}
@@ -66,6 +66,8 @@ for scan in ${scans} ; do
 	echo "  --jsession=\"${jsession}\" " >> ${script_file_to_submit}
 
 	qsub ${script_file_to_submit}
+	# make sure working directories don't have the same name based on the 
+	# same start time by sleeping a few seconds
 	sleep 10s
 
 done
