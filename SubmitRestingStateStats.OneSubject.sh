@@ -142,7 +142,8 @@ main()
 		fi
 
 		# Get JSESSION ID
-		jsession=`curl -u ${token_username}:${token_password} https://${g_server}/data/JSESSION`
+		#jsession=`curl -u ${g_user}:${g_password} https://${g_server}/data/JSESSION`
+		jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
 		echo "jsession: ${jsession}"
 
 		touch ${script_file_to_submit}

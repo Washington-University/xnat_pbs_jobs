@@ -27,8 +27,14 @@ shadow_number=${start_shadow_number}
 
 for subject in ${subjects} ; do
 
-	server="db-shadow${shadow_number}.nrg.mir:8080"
-	echo "Submitting to server: ${server}"
+	#server="db-shadow${shadow_number}.nrg.mir:8080"
+	server="db.humanconnectome.org"
+
+	echo ""
+	echo "--------------------------------------------------------------------------------"
+	echo " Submitting RestingStateStats job for subject: ${subject}"
+	echo " On server: ${server}"
+	echo "--------------------------------------------------------------------------------"
 
 	./SubmitRestingStateStats.OneSubject.sh \
 		--user=${userid} \
