@@ -386,7 +386,7 @@ main()
  	retrieval_cmd+="-u ${g_user} "
  	retrieval_cmd+="-p ${g_password} "
  	retrieval_cmd+="-m GET "
- 	retrieval_cmd+="-remote ${func_preproc_uri}"
+ 	retrieval_cmd+="-r ${func_preproc_uri}"
 
  	pushd ${g_working_dir}
 
