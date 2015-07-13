@@ -422,7 +422,7 @@ main()
 		retrieval_cmd+="-u ${g_user} "
 		retrieval_cmd+="-p ${g_password} "
 		retrieval_cmd+="-m GET "
-		retrieval_cmd+="-r ${func_preproc_uri}"
+		retrieval_cmd+="-remote ${func_preproc_uri}"
 		
 		pushd ${g_working_dir}
 		
@@ -587,7 +587,7 @@ main()
 		push_data_cmd="-u ${g_user} "
 		push_data_cmd="-p ${g_password} "
 		push_data_cmd="-m PUT "
-		push_data_cmd="-remote ${resting_state_stats_uri}"
+		push_data_cmd="-r ${resting_state_stats_uri}"
 		
 		echo "push_data_cmd: ${push_data_cmd}"
 		${push_data_cmd}
