@@ -578,6 +578,10 @@ main()
 
 		update_xnat_workflow ${workflowID} ${current_step} "Push new data back into DB" ${step_percent}
 
+		db_working_dir=${g_working_dir/HCP/data}
+		echo "g_working_dir:  ${g_working_dir}"
+		echo "db_working_dir: ${db_working_dir}"
+
 		resting_state_stats_uri="http://${g_server}"
 		resting_state_stats_uri+="/REST/projects/${g_project}"
 		resting_state_stats_uri+="/subjects/${g_subject}"
@@ -585,9 +589,9 @@ main()
 		resting_state_stats_uri+="/resources/${g_scan}_RSS"
 		resting_state_stats_uri+="/files"
 		resting_state_stats_uri+="?overwrite=true"
-		resting_state_stats_uri+="&replace=true"
-		resting_state_stats_uri+="&event_reason=RestingStateStatsPipeline"
-		resting_state_stats_uri+="&reference=${g_working_dir}"
+		resting_state_stats_uri+="\&replace=true"
+		resting_state_stats_uri+="\&event_reason=RestingStateStatsPipeline"
+		resting_state_stats_uri+="\&reference=${db_working_dir}"
 		
 		push_data_cmd="${xnat_data_client_cmd} "
 		push_data_cmd+="-u ${g_user} "
