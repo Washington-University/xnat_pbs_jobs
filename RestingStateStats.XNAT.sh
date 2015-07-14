@@ -584,10 +584,10 @@ main()
 		resting_state_stats_uri+="&reference=${g_working_dir}"
 		
 		push_data_cmd="${xnat_data_client_cmd} "
-		push_data_cmd="-u ${g_user} "
-		push_data_cmd="-p ${g_password} "
-		push_data_cmd="-m PUT "
-		push_data_cmd="-r ${resting_state_stats_uri}"
+		push_data_cmd+="-u ${g_user} "
+		push_data_cmd+="-p ${g_password} "
+		push_data_cmd+="-m PUT "
+		push_data_cmd+="-r ${resting_state_stats_uri}"
 		
 		echo "push_data_cmd: ${push_data_cmd}"
 		${push_data_cmd}
@@ -603,7 +603,9 @@ main()
 		
 		update_xnat_workflow ${workflowID} ${current_step} "Cleanup" ${step_percent}
 
+		echo "----------"
 		echo "Cleanup not yet implemented"
+		echo "----------"
 
 	fi
 
