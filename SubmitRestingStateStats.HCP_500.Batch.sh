@@ -27,25 +27,36 @@ shadow_number=${start_shadow_number}
 
 for subject in ${subjects} ; do
 
-	#server="db-shadow${shadow_number}.nrg.mir:8080"
-	server="db.humanconnectome.org"
+	if [[ ${subject} != \#* ]]; then
 
-	echo ""
-	echo "--------------------------------------------------------------------------------"
-	echo " Submitting RestingStateStats job for subject: ${subject}"
-	echo " On server: ${server}"
-	echo "--------------------------------------------------------------------------------"
+		server="db-shadow${shadow_number}.nrg.mir:8080"
 
-	./SubmitRestingStateStats.OneSubject.sh \
-		--user=${userid} \
-		--password=${password} \
-		--server=${server} \
-		--project=${project} \
-		--subject=${subject}
+		echo ""
+		echo "--------------------------------------------------------------------------------"
+		echo " Submitting RestingStateStats job for subject: ${subject}"
+		echo " Using data server: ${data_server}"
+		echo "--------------------------------------------------------------------------------"
 		
-	shadow_number=$((shadow_number+1))
+		./SubmitRestingStateStats.OneSubject.sh \
+			--user=${userid} \
+			--password=${password} \
+			--server=${server} \
+			--project=${project} \
+			--subject=${subject}
+		
+		shadow_number=$((shadow_number+1))
+		
+		if [ "${shadow_number}" -gt "${max_shadow_number}" ]; then
+			shadow_number=${start_shadow_number}
+		fi
 
-	if [ "${shadow_number}" -gt "${max_shadow_number}" ]; then
-		shadow_number=${start_shadow_number}
+	else
+
+		echo ""
+		echo "--------------------------------------------------------------------------------"
+		echo " Skipping subject: ${subject}"
+		echo "--------------------------------------------------------------------------------"
+
 	fi
+
 done

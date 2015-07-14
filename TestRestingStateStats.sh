@@ -40,7 +40,7 @@ if [ -e "${script_file_to_run}" ]; then
 fi
 
 # Get JSESSION ID
-jsession=`curl -u ${userid}:${password} https://${server}/data/JSESSION`
+jsession=`curl -u ${userid}:${password} https://db.humanconnectome.org/data/JSESSION`
 echo "jsession: ${jsession}"
 
 touch ${script_file_to_run}

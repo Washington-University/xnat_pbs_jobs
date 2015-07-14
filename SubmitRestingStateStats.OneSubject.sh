@@ -80,6 +80,7 @@ get_options()
 	if [ -z "${g_server}" ]; then
 		g_server="db.humanconnectome.org"
 	fi
+	echo "Connectome DB Server: ${g_server}"
 
 	if [ -z "${g_project}" ]; then
 		g_project="HCP_500"
@@ -117,9 +118,14 @@ main()
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 	echo "Getting token user id and password"
-	new_tokens=`${XNAT_UTILS_HOME}/xnat_get_tokens --username=${g_user} --password=${g_password}`
+	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user}"
+	echo "get_token_cmd: ${get_token_cmd}"
+	get_token_cmd+=" --password=${g_password}"
+	new_tokens=`${get_token_cmd}`
 	token_username=${new_tokens% *}
 	token_password=${new_tokens#* }
+	echo "token_username: ${token_username}"
+	echo "token_password: ${token_password}"
 
 	for scan in ${g_scans} ; do
 
@@ -142,7 +148,6 @@ main()
 		fi
 
 		# Get JSESSION ID
-		#jsession=`curl -u ${g_user}:${g_password} https://${g_server}/data/JSESSION`
 		jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
 		echo "jsession: ${jsession}"
 
@@ -155,7 +160,7 @@ main()
 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats.XNAT.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 		echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
-		echo "  --host=\"${g_server}\" \\" >> ${script_file_to_submit}
+		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
 		echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
 		echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
 		echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}

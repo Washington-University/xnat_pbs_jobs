@@ -68,26 +68,26 @@ usage()
     echo "  Run the HCP RestingStateStats.sh pipeline script in an"
 	echo "  XNAT-aware and XNAT-pipeline-like manner."
 	echo ""
-	echo "  Usage: RestingStateStats <options>"
+	echo "  Usage: RestingStateStats.XNAT.sh <options>"
 	echo ""
 	echo "  Options: [ ] = optional, < > = user-supplied-value"
 	echo ""
 	echo "   [--help] : show usage information and exit"
 	echo ""
-	echo "    --user=<username>     : XNAT DB username"
-	echo "    --password=<password> : XNAT DB password"
-	echo "    --host=<server>       : XNAT DB web server (e.g. db.humanconnectome.org)"
-	echo "    --project=<project>   : XNAT project (e.g. HCP_500)"
-	echo "    --subject=<subject>   : XNAT subject ID within project (e.g. 100307)"
-	echo "    --session=<session>   : XNAT session ID within project (e.g. 100307_3T)"
-	echo "    --scan=<scan>         : Scan ID (e.g. rfMRI_REST1_LR)"
-	echo "    --working-dir=<dir>   : Working directory in which to place retrieved data"
-	echo "                            and in which to produce results"
-	echo "    --jsession=<jsession> : Session ID for already establish web session on"
-	echo "                            the server"
-	echo "   [--notify=<email>]     : Email address to which to send completion notification"
-	echo "                            If not specified, no completion notification email is sent"
-	echo "   [--start-step=<stepno> : Step number at which to start. Defaults to 1" 
+	echo "    --user=<username>      : XNAT DB username"
+	echo "    --password=<password>  : XNAT DB password"
+	echo "    --server=<server>      : XNAT server (e.g. db.humanconnectome.org)"
+	echo "    --project=<project>    : XNAT project (e.g. HCP_500)"
+	echo "    --subject=<subject>    : XNAT subject ID within project (e.g. 100307)"
+	echo "    --session=<session>    : XNAT session ID within project (e.g. 100307_3T)"
+	echo "    --scan=<scan>          : Scan ID (e.g. rfMRI_REST1_LR)"
+	echo "    --working-dir=<dir>    : Working directory in which to place retrieved data"
+	echo "                             and in which to produce results"
+	echo "    --jsession=<jsession>  : Session ID for already establish web session on"
+	echo "                             the server"
+	echo "   [--notify=<email>]      : Email address to which to send completion notification"
+	echo "                             If not specified, no completion notification email is sent"
+	echo "   [--start-step=<stepno>  : Step number at which to start. Defaults to 1" 
 	echo ""
 }
 
@@ -100,7 +100,7 @@ get_options()
 	# initialize global output variables
 	unset g_user
 	unset g_password
-	unset g_host
+	unset g_server
 	unset g_project
 	unset g_subject
 	unset g_session
@@ -133,8 +133,8 @@ get_options()
 				g_password=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--host=*)
-				g_host=${argument/*=/""}
+			--server=*)
+				g_server=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--project=*)
@@ -195,11 +195,11 @@ get_options()
 		echo "g_password: *******"
 	fi
 
-	if [ -z "${g_host}" ]; then
-		echo "ERROR: host (--host=) required"
+	if [ -z "${g_server}" ]; then
+		echo "ERROR: server (--server=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		echo "g_host: ${g_host}"
+		echo "g_server: ${g_server}"
 	fi
 
 	if [ -z "${g_project}" ]; then
@@ -271,7 +271,7 @@ show_xnat_workflow()
 	local workflow_id=${1}
 	
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_host}" \
+		--server="${g_server}" \
 		--username="${g_user}" \
 		--password="${g_password}" \
 		--workflow-id="${workflow_id}" \
@@ -293,7 +293,7 @@ update_xnat_workflow()
 	echo "update_xnat_workflow - percent_complete: ${percent_complete}"
 
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_host}" \
+		--server="${g_server}" \
 		--username="${g_user}" \
 		--password="${g_password}" \
 		--workflow-id="${workflow_id}" \
@@ -309,7 +309,7 @@ complete_xnat_workflow()
 	local workflow_id=${1}
 
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_host}" \
+		--server="${g_server}" \
 		--username="${g_user}" \
 		--password="${g_password}" \
 		--workflow-id="${workflow_id}" \
@@ -351,13 +351,17 @@ main()
 
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g ConnectomeDB_E1234)
 	echo "Getting XNAT Session ID"
-	sessionID=`python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=${g_host} --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}`
+	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
+	echo "get_session_id_cmd: ${get_session_id_cmd}"
+	sessionID=`${get_session_id_cmd}`
 	echo "XNAT session ID: ${sessionID}"
 
 	# Get XNAT Workflow ID
-	server="https://${g_host}/"
+	server="https://db.humanconnectome.org/"
 	echo "Getting XNAT workflow ID for this job from server: ${server}"
-	workflowID=`python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Password ${g_password} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline RestingStateStats -Status Queued -JSESSION ${g_jsession}`
+	get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Password ${g_password} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline RestingStateStats -Status Queued -JSESSION ${g_jsession}"
+	echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
+	workflowID=`${get_workflow_id_cmd}`
 	if [ $? -ne 0 ]; then
 		echo "Fetching workflow failed. Aborting"
 		exit 1
@@ -373,7 +377,7 @@ main()
 
 		update_xnat_workflow ${workflowID} ${current_step} "Get structurally preprocessed data from DB" ${step_percent}
 
-		struct_preproc_uri="https://${g_host}"
+		struct_preproc_uri="http://${g_server}"
 		struct_preproc_uri+="/REST/projects/${g_project}"
 		struct_preproc_uri+="/subjects/${g_subject}"
 		struct_preproc_uri+="/experiments/${sessionID}"
@@ -381,7 +385,9 @@ main()
 		struct_preproc_uri+="/files?format=zip"
 		
 		retrieval_cmd="${xnat_data_client_cmd} "
-		retrieval_cmd+="-s ${g_jsession} "
+		#retrieval_cmd+="-s ${g_jsession} "
+		retrieval_cmd+="-u ${g_user} "
+		retrieval_cmd+="-p ${g_password} "
 		retrieval_cmd+="-m GET "
 		retrieval_cmd+="-r ${struct_preproc_uri} "
 		retrieval_cmd+="-o ${g_subject}_Structural_preproc.zip"
@@ -409,7 +415,7 @@ main()
 
 		update_xnat_workflow ${workflowID} ${current_step} "Get functionally preprocessed data from DB" ${step_percent}
 
-		rest_client_host="https://${g_host}"
+		rest_client_host="http://${g_server}"
 
 		func_preproc_uri="REST/projects/${g_project}"
 		func_preproc_uri+="/subjects/${g_subject}"
@@ -447,7 +453,7 @@ main()
 
 		update_xnat_workflow ${workflowID} ${current_step} "Get FIX processed data from DB" ${step_percent}
 		
-		rest_client_host="https://${g_host}"
+		rest_client_host="http://${g_server}"
 		
 		fix_proc_uri="REST/projects/${g_project}"
 		fix_proc_uri+="/subjects/${g_subject}"
@@ -572,7 +578,7 @@ main()
 
 		update_xnat_workflow ${workflowID} ${current_step} "Push new data back into DB" ${step_percent}
 
-		resting_state_stats_uri="https://${g_host}"
+		resting_state_stats_uri="http://${g_server}"
 		resting_state_stats_uri+="/REST/projects/${g_project}"
 		resting_state_stats_uri+="/subjects/${g_subject}"
 		resting_state_stats_uri+="/experiments/${sessionID}"
