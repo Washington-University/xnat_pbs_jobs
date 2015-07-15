@@ -87,7 +87,7 @@ usage()
 	echo "                             the server"
 	echo "   [--notify=<email>]      : Email address to which to send completion notification"
 	echo "                             If not specified, no completion notification email is sent"
-	echo "   [--start-step=<stepno>  : Step number at which to start. Defaults to 1" 
+	echo "   [--start-step=<stepno>] : Step number at which to start. Defaults to 1" 
 	echo ""
 }
 
@@ -325,7 +325,7 @@ main()
 {
 	get_options $@
 
-	# Setup Step counters
+	# Set up step counters
 	total_steps=12
 	current_step=0
 
@@ -545,7 +545,7 @@ main()
 
 	if [ "${current_step}" -ge "${g_start_step}" ]; then
 
-		update_xnat_workflow ${workflowID} ${current_step} "Show newly created/modified files" ${step_percent}
+		update_xnat_workflow ${workflowID} ${current_step} "Show newly created or modified files" ${step_percent}
 
 		echo "Newly created/modified files:"
 		find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
