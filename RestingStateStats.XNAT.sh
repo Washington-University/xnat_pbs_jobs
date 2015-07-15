@@ -108,7 +108,6 @@ get_options()
 	unset g_working_dir
 	unset g_jsession
 	unset g_notify_email
-	g_notify_email="NOBODY"
 	unset g_start_step
 	g_start_step=1
 
@@ -245,7 +244,6 @@ get_options()
 	fi
 
 	echo "g_notify_email: ${g_notify_email}"
-
 
 	if [ -z "${g_start_step}" ]; then
 		echo "ERROR: starting step (--start-step=) required"
@@ -589,15 +587,15 @@ main()
 		resting_state_stats_uri+="/resources/${g_scan}_RSS"
 		resting_state_stats_uri+="/files"
 		resting_state_stats_uri+="?overwrite=true"
-		resting_state_stats_uri+="\&replace=true"
-		resting_state_stats_uri+="\&event_reason=RestingStateStatsPipeline"
-		resting_state_stats_uri+="\&reference=${db_working_dir}"
+		resting_state_stats_uri+="&replace=true"
+		resting_state_stats_uri+="&event_reason=RestingStateStatsPipeline"
+		resting_state_stats_uri+="&reference=${db_working_dir}"
 		
 		push_data_cmd="${xnat_data_client_cmd} "
 		push_data_cmd+="-u ${g_user} "
 		push_data_cmd+="-p ${g_password} "
 		push_data_cmd+="-m PUT "
-		push_data_cmd+="-r ${resting_state_stats_uri}"
+		push_data_cmd+="-r \"${resting_state_stats_uri}\""
 		
 		echo "push_data_cmd: ${push_data_cmd}"
 		${push_data_cmd}
@@ -635,7 +633,7 @@ main()
 
 	if [ "${current_step}" -ge "${g_start_step}" ]; then
 
-		if [ "${g_notify_email}" -ne "NOBODY" ]; then
+		if [ -n "${g_notify_email}" ]; then
 			mail -s "RestingStateStats Completion for ${g_subject}" ${g_notify_email} <<EOF
 The RestingStateStats.XNAT.sh run has completed for:
 Project: ${g_project}
