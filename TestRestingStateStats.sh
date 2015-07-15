@@ -19,7 +19,7 @@ new_tokens=`${XNAT_UTILS_HOME}/xnat_get_tokens --username=${userid} --password=$
 token_username=${new_tokens% *}
 token_password=${new_tokens#* }
 
-server="db.humanconnectome.org"
+server="db-shadow1.nrg.mir:8080"
 project="HCP_500"
 subject="100307"
 session="100307_3T"
