@@ -87,7 +87,6 @@ usage()
 	echo "                             the server"
 	echo "   [--notify=<email>]      : Email address to which to send completion notification"
 	echo "                             If not specified, no completion notification email is sent"
-	echo "   [--start-step=<stepno>] : Step number at which to start. Defaults to 1" 
 	echo ""
 }
 
@@ -108,8 +107,6 @@ get_options()
 	unset g_working_dir
 	unset g_jsession
 	unset g_notify_email
-	unset g_start_step
-	g_start_step=1
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -162,10 +159,6 @@ get_options()
 				;;
 			--notify=*)
 				g_notify_email=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--start-step=*)
-				g_start_step=${argument/*=""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -245,18 +238,6 @@ get_options()
 
 	echo "g_notify_email: ${g_notify_email}"
 
-	if [ -z "${g_start_step}" ]; then
-		echo "ERROR: starting step (--start-step=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		if ! [[ ${g_start_step} =~ ^[0-9]+$ ]]; then
-			echo "ERROR: starting step must be numeric"
-			error_count=$(( error_count + 1 ))
-		else
-			echo "g_start_step: ${g_start_step}"
-		fi
-	fi
-
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
 		exit 1
@@ -284,6 +265,13 @@ update_xnat_workflow()
 	local step_id=${2}
 	local step_desc=${3}
 	local percent_complete=${4}
+
+	echo ""
+	echo ""
+	echo "---------- Step: ${step_id} "
+	echo "---------- Desc: ${step_desc} "
+	echo ""
+	echo ""
 
 	echo "update_xnat_workflow - workflow_id: ${workflow_id}"
 	echo "update_xnat_workflow - step_id: ${step_id}"
@@ -367,282 +355,200 @@ main()
 	echo "XNAT workflow ID: ${workflowID}"
 	show_xnat_workflow ${workflowID}
 	
- 	# Step 1 - Get structurally preprocessed data from DB
+ 	# Step - Get structurally preprocessed data from DB
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		update_xnat_workflow ${workflowID} ${current_step} "Get structurally preprocessed data from DB" ${step_percent}
-
-		struct_preproc_uri="http://${g_server}"
-		struct_preproc_uri+="/REST/projects/${g_project}"
-		struct_preproc_uri+="/subjects/${g_subject}"
-		struct_preproc_uri+="/experiments/${sessionID}"
-		struct_preproc_uri+="/resources/Structural_preproc"
-		struct_preproc_uri+="/files?format=zip"
+	update_xnat_workflow ${workflowID} ${current_step} "Get structurally preprocessed data from DB" ${step_percent}
+	
+	struct_preproc_uri="http://${g_server}"
+	struct_preproc_uri+="/REST/projects/${g_project}"
+	struct_preproc_uri+="/subjects/${g_subject}"
+	struct_preproc_uri+="/experiments/${sessionID}"
+	struct_preproc_uri+="/resources/Structural_preproc"
+	struct_preproc_uri+="/files?format=zip"
+	
+	retrieval_cmd="${xnat_data_client_cmd} "
+	retrieval_cmd+="-u ${g_user} "
+	retrieval_cmd+="-p ${g_password} "
+	retrieval_cmd+="-m GET "
+	retrieval_cmd+="-r ${struct_preproc_uri} "
+	retrieval_cmd+="-o ${g_subject}_Structural_preproc.zip"
 		
-		retrieval_cmd="${xnat_data_client_cmd} "
-		#retrieval_cmd+="-s ${g_jsession} "
-		retrieval_cmd+="-u ${g_user} "
-		retrieval_cmd+="-p ${g_password} "
-		retrieval_cmd+="-m GET "
-		retrieval_cmd+="-r ${struct_preproc_uri} "
-		retrieval_cmd+="-o ${g_subject}_Structural_preproc.zip"
-		
-		pushd ${g_working_dir}
-		
-		echo "retrieval_cmd: ${retrieval_cmd}"
-		${retrieval_cmd}
+	pushd ${g_working_dir}
+	
+	echo "retrieval_cmd: ${retrieval_cmd}"
+	${retrieval_cmd}
+	
+	unzip ${g_subject}_Structural_preproc.zip
+	mkdir -p ${g_subject}
+	rsync -auv ${g_session}/resources/Structural_preproc/files/* ${g_subject}
+	rm -rf ${g_session}
+	rm ${g_subject}_Structural_preproc.zip
+	
+	popd
+	
+ 	# Step - Get functionally preprocessed data from DB
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
 
-		unzip ${g_subject}_Structural_preproc.zip
-		mkdir -p ${g_subject}
-		rsync -auv ${g_session}/resources/Structural_preproc/files/* ${g_subject}
-		rm -rf ${g_session}
-		rm ${g_subject}_Structural_preproc.zip
-		
-		popd
+	update_xnat_workflow ${workflowID} ${current_step} "Get functionally preprocessed data from DB" ${step_percent}
+	
+	rest_client_host="http://${g_server}"
+	
+	func_preproc_uri="REST/projects/${g_project}"
+	func_preproc_uri+="/subjects/${g_subject}"
+	func_preproc_uri+="/experiments/${sessionID}"
+	func_preproc_uri+="/resources/${g_scan}_preproc"
+	func_preproc_uri+="/files?format=zip"
+	
+	retrieval_cmd="${xnat_rest_client_cmd} "
+	retrieval_cmd+="-host ${rest_client_host} "
+	retrieval_cmd+="-u ${g_user} "
+	retrieval_cmd+="-p ${g_password} "
+	retrieval_cmd+="-m GET "
+	retrieval_cmd+="-remote ${func_preproc_uri}"
+	
+	pushd ${g_working_dir}
+	
+	echo "retrieval_cmd: ${retrieval_cmd}"
+	${retrieval_cmd} > ${g_subject}_${g_scan}_Functional_preproc.zip
+	
+	unzip ${g_subject}_${g_scan}_Functional_preproc.zip
+	mkdir -p ${g_subject}
+	rsync -auv ${g_session}/resources/${g_scan}_preproc/files/* ${g_subject}
+	rm -rf ${g_session}
+	rm ${g_subject}_${g_scan}_Functional_preproc.zip
+	
+	popd
 
+ 	# Step - Get FIX processed data from DB
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	update_xnat_workflow ${workflowID} ${current_step} "Get FIX processed data from DB" ${step_percent}
+	
+	rest_client_host="http://${g_server}"
+	
+	fix_proc_uri="REST/projects/${g_project}"
+	fix_proc_uri+="/subjects/${g_subject}"
+	fix_proc_uri+="/experiments/${sessionID}"
+	fix_proc_uri+="/resources/${g_scan}_FIX"
+	fix_proc_uri+="/files?format=zip"
+	
+	retrieval_cmd="${xnat_rest_client_cmd} "
+	retrieval_cmd+="-host ${rest_client_host} "
+	retrieval_cmd+="-u ${g_user} "
+	retrieval_cmd+="-p ${g_password} "
+	retrieval_cmd+="-m GET "
+	retrieval_cmd+="-remote ${fix_proc_uri}"
+	
+	pushd ${g_working_dir}
+	
+	echo "retrieval_cmd: ${retrieval_cmd}"
+	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip
+	
+	unzip ${g_subject}_${g_scan}_FIX_preproc.zip
+	mkdir -p ${g_subject}
+	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results
+	rm -rf ${g_session}
+	rm ${g_subject}_${g_scan}_FIX_preproc.zip
+	
+	popd 
+
+	# Step - Create a start_time file
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	update_xnat_workflow ${workflowID} ${current_step} "Create a start_time file" ${step_percent}
+	
+	start_time_file="${g_working_dir}/RestingStateStats.starttime"
+	if [ -e "${start_time_file}" ]; then
+		echo "Removing old ${start_time_file}"
+		rm -f ${start_time_file}
 	fi
-
- 	# Step 2 - Get functionally preprocessed data from DB
+	
+	echo "Creating start time file: ${start_time_file}"
+	touch ${start_time_file}
+	ls -l ${start_time_file}
+	
+	# Step - Sleep for 1 minute to make sure any files created or modified
+	#        by the RestingStateStats.sh script are created at least 1 
+	#        minute after the start_time file
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
+	update_xnat_workflow ${workflowID} ${current_step} "Sleep for 1 minute" ${step_percent}
+	sleep 1m
 
-		update_xnat_workflow ${workflowID} ${current_step} "Get functionally preprocessed data from DB" ${step_percent}
-
-		rest_client_host="http://${g_server}"
-
-		func_preproc_uri="REST/projects/${g_project}"
-		func_preproc_uri+="/subjects/${g_subject}"
-		func_preproc_uri+="/experiments/${sessionID}"
-		func_preproc_uri+="/resources/${g_scan}_preproc"
-		func_preproc_uri+="/files?format=zip"
-		
-		retrieval_cmd="${xnat_rest_client_cmd} "
-		retrieval_cmd+="-host ${rest_client_host} "
-		retrieval_cmd+="-u ${g_user} "
-		retrieval_cmd+="-p ${g_password} "
-		retrieval_cmd+="-m GET "
-		retrieval_cmd+="-remote ${func_preproc_uri}"
-		
-		pushd ${g_working_dir}
-		
-		echo "retrieval_cmd: ${retrieval_cmd}"
-		${retrieval_cmd} > ${g_subject}_${g_scan}_Functional_preproc.zip
-
-		unzip ${g_subject}_${g_scan}_Functional_preproc.zip
-		mkdir -p ${g_subject}
-		rsync -auv ${g_session}/resources/${g_scan}_preproc/files/* ${g_subject}
-		rm -rf ${g_session}
-		rm ${g_subject}_${g_scan}_Functional_preproc.zip
-		
-		popd
-
-	fi
-
- 	# Step 3 - Get FIX processed data from DB
+	# Step - Run RestingStateStats.sh script
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		update_xnat_workflow ${workflowID} ${current_step} "Get FIX processed data from DB" ${step_percent}
+	update_xnat_workflow ${workflowID} ${current_step} "Run RestingStateStats.sh script" ${step_percent}
+	
+	# Source setup script to setup environment for running the script
+	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSM_All.sh
 		
-		rest_client_host="http://${g_server}"
+	# Run RestingStateStats.sh script
+	${HCPPIPEDIR}/RestingStateStats/RestingStateStats.sh \
+		--path=${g_working_dir} \
+		--subject=${g_subject} \
+		--fmri-name=${g_scan} \
+		--high-pass=2000 \
+		--low-res-mesh=32 \
+		--final-fmri-res=2 \
+		--brain-ordinates-res=2 \
+		--smoothing-fwhm=2 \
+		--output-proc-string="_hp2000_clean"
 		
-		fix_proc_uri="REST/projects/${g_project}"
-		fix_proc_uri+="/subjects/${g_subject}"
-		fix_proc_uri+="/experiments/${sessionID}"
-		fix_proc_uri+="/resources/${g_scan}_FIX"
-		fix_proc_uri+="/files?format=zip"
-		
-		retrieval_cmd="${xnat_rest_client_cmd} "
-		retrieval_cmd+="-host ${rest_client_host} "
-		retrieval_cmd+="-u ${g_user} "
-		retrieval_cmd+="-p ${g_password} "
-		retrieval_cmd+="-m GET "
-		retrieval_cmd+="-remote ${fix_proc_uri}"
-		
-		pushd ${g_working_dir}
-
-		echo "retrieval_cmd: ${retrieval_cmd}"
-		${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip
-		
-		unzip ${g_subject}_${g_scan}_FIX_preproc.zip
-		mkdir -p ${g_subject}
-		rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results
-		rm -rf ${g_session}
-		rm ${g_subject}_${g_scan}_FIX_preproc.zip
-		
-		popd 
-
-	fi
-
-	# Step 4 - Create a start_time file
+	# Step - Show any newly created or modified files
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		update_xnat_workflow ${workflowID} ${current_step} "Create a start_time file" ${step_percent}
-		
-		start_time_file="${g_working_dir}/RestingStateStats.starttime"
-		if [ -e "${start_time_file}" ]; then
-			echo "Removing old ${start_time_file}"
-			rm -f ${start_time_file}
-		fi
-		
-		echo "Creating start time file: ${start_time_file}"
-		touch ${start_time_file}
-		ls -l ${start_time_file}
-		
-	fi
-
-	# Step 5 - Sleep for 1 minute to make sure any files created or modified
-	#          by the RestingStateStats.sh script are created at least 1 
-	#          minute after the start_time file
+	update_xnat_workflow ${workflowID} ${current_step} "Show newly created or modified files" ${step_percent}
+	
+	echo "Newly created/modified files:"
+	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
+	
+	# Step - Remove any files that are not newly created or modified
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
+	update_xnat_workflow ${workflowID} ${current_step} "Remove files not newly created or modified" ${step_percent}
+	
+	echo "NOT Newly created/modified files:"
+	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -delete 
+	
+	# include removal of any empty directories
+	find ${g_working_dir}/${g_subject} -type d -empty -delete
 
-		update_xnat_workflow ${workflowID} ${current_step} "Sleep for 1 minute" ${step_percent}
-		sleep 1m
-
-	fi
-
-	# Step 6 - Run RestingStateStats.sh script
+	# Step - Complete Workflow
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
+	complete_xnat_workflow ${workflowID}
 
-		update_xnat_workflow ${workflowID} ${current_step} "Run RestingStateStats.sh script" ${step_percent}
-		
-		# Source setup script to setup environment for running the script
-		source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSM_All.sh
-		
-		# Run RestingStateStats.sh script
-		${HCPPIPEDIR}/RestingStateStats/RestingStateStats.sh \
-			--path=${g_working_dir} \
-			--subject=${g_subject} \
-			--fmri-name=${g_scan} \
-			--high-pass=2000 \
-			--low-res-mesh=32 \
-			--final-fmri-res=2 \
-			--brain-ordinates-res=2 \
-			--smoothing-fwhm=2 \
-			--output-proc-string="_hp2000_clean"
-		
-	fi
-
-	# Step 7 - Show any newly created or modified files
+	# Step - Send notification email
+	echo "About to think about sending email"
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
-
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		update_xnat_workflow ${workflowID} ${current_step} "Show newly created or modified files" ${step_percent}
-
-		echo "Newly created/modified files:"
-		find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
-
-	fi
-
-	# Step 8 - Remove any files that are not newly created or modified
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		update_xnat_workflow ${workflowID} ${current_step} "Remove files not newly created or modified" ${step_percent}
-
-		echo "NOT Newly created/modified files:"
-		find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -delete 
-
-		# include removal of any empty directories
-		find ${g_working_dir}/${g_subject} -type d -empty -delete
-
-	fi
-
-	# Step 9 - Push new data back into DB
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		update_xnat_workflow ${workflowID} ${current_step} "Push new data back into DB" ${step_percent}
-
-		db_working_dir=${g_working_dir/HCP/data}
-		echo "g_working_dir:  ${g_working_dir}"
-		echo "db_working_dir: ${db_working_dir}"
-
-		resting_state_stats_uri="http://${g_server}"
-		resting_state_stats_uri+="/REST/projects/${g_project}"
-		resting_state_stats_uri+="/subjects/${g_subject}"
-		resting_state_stats_uri+="/experiments/${sessionID}"
-		resting_state_stats_uri+="/resources/${g_scan}_RSS"
-		resting_state_stats_uri+="/files"
-		resting_state_stats_uri+="?overwrite=true"
-		resting_state_stats_uri+="&replace=true"
-		resting_state_stats_uri+="&event_reason=RestingStateStatsPipeline"
-		resting_state_stats_uri+="&reference=${db_working_dir}"
-		
-		push_data_cmd="${xnat_data_client_cmd} "
-		push_data_cmd+="-u ${g_user} "
-		push_data_cmd+="-p ${g_password} "
-		push_data_cmd+="-m PUT "
-		push_data_cmd+="-r \"${resting_state_stats_uri}\""
-		
-		echo "push_data_cmd: ${push_data_cmd}"
-		${push_data_cmd}
-
-	fi
-
-	# Step 10 - Cleanup
-	# TBD
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-		
-		update_xnat_workflow ${workflowID} ${current_step} "Cleanup" ${step_percent}
-
-		echo "----------"
-		echo "Cleanup not yet implemented"
-		echo "----------"
-
-	fi
-
-	# Step 11 - Complete Workflow
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		complete_xnat_workflow ${workflowID}
-
-	fi
-
-	# Step 12 - Send notification email
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		if [ -n "${g_notify_email}" ]; then
-			mail -s "RestingStateStats Completion for ${g_subject}" ${g_notify_email} <<EOF
+	
+	echo "current_step: ${current_step}"
+	echo "step_percent: ${step_percent}"
+	echo "g_start_step: ${g_start_step}"
+	
+	echo "Should do this step"
+	echo "g_notify_email: ${g_notify_email}"
+	if [ -n "${g_notify_email}" ]; then
+		echo "should be sending the mail now"
+		mail -s "RestingStateStats Completion for ${g_subject}" ${g_notify_email} <<EOF
 The RestingStateStats.XNAT.sh run has completed for:
 Project: ${g_project}
 Subject: ${g_subject}
 Session: ${g_session}
 Scan:    ${g_scan}
 EOF
-		fi
-
 	fi
 }
 
