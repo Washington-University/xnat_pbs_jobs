@@ -44,7 +44,7 @@ jsession=`curl -u ${userid}:${password} https://db.humanconnectome.org/data/JSES
 echo "jsession: ${jsession}"
 
 touch ${script_file_to_run}
-echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats.XNAT.sh \\" >> ${script_file_to_run}
+echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats/RestingStateStats.XNAT.sh \\" >> ${script_file_to_run}
 echo "  --user=\"${token_username}\" \\" >> ${script_file_to_run}
 echo "  --password=\"${token_password}\" \\" >> ${script_file_to_run}
 echo "  --server=\"${server}\" \\" >> ${script_file_to_run}

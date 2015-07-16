@@ -188,7 +188,7 @@ main()
 # 		echo "#PBS -o ${working_directory_name}" >> ${put_script_file_to_submit}
 # 		echo "#PBS -e ${working_directory_name}" >> ${put_script_file_to_submit}
 # 		echo ""
-# 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/RestingStateStats.XNAT_PUT.sh \\" >> ${put_script_file_to_submit}
+# 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/PostFix.XNAT_PUT.sh \\" >> ${put_script_file_to_submit}
 # 		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
 # 		echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
 # 		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
