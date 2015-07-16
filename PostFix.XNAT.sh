@@ -31,7 +31,6 @@
 # * A new XNAT workflow ID is created to keep track of the processing steps.
 # * That workflow ID is updated as processing steps occur, and marked as 
 #   complete when the processing is finished.
-# * The results of processing are placed back in the specified XNAT database.
 # 
 # This script can be invoked by a job submitted to a worker or execution
 # node in a cluster, e.g. a Sun Grid Engine (SGE) managed or Portable Batch
@@ -87,7 +86,6 @@ usage()
 	echo "                             the server"
 	echo "   [--notify=<email>]      : Email address to which to send completion notification"
 	echo "                             If not specified, no completion notification email is sent"
-	echo "   [--start-step=<stepno>  : Step number at which to start. Defaults to 1" 
 	echo ""
 }
 
@@ -108,8 +106,6 @@ get_options()
 	unset g_working_dir
 	unset g_jsession
 	unset g_notify_email
-	unset g_start_step
-	g_start_step=1
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -162,10 +158,6 @@ get_options()
 				;;
 			--notify=*)
 				g_notify_email=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--start-step=*)
-				g_start_step=${argument/*=""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -244,18 +236,6 @@ get_options()
 	fi
 
 	echo "g_notify_email: ${g_notify_email}"
-
-	if [ -z "${g_start_step}" ]; then
-		echo "ERROR: starting step (--start-step=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		if ! [[ ${g_start_step} =~ ^[0-9]+$ ]]; then
-			echo "ERROR: starting step must be numeric"
-			error_count=$(( error_count + 1 ))
-		else
-			echo "g_start_step: ${g_start_step}"
-		fi
-	fi
 
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
@@ -360,10 +340,50 @@ main()
 	echo "XNAT workflow ID: ${workflowID}"
 	show_xnat_workflow ${workflowID}
 
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Get FIX processed data from DB
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	update_xnat_workflow ${workflowID} ${current_step} "Get FIX processed data from DB" ${step_percent}
+	
+	rest_client_host="http://${g_server}"
+	
+	fix_proc_uri="REST/projects/${g_project}"
+	fix_proc_uri+="/subjects/${g_subject}"
+	fix_proc_uri+="/experiments/${sessionID}"
+	fix_proc_uri+="/resources/${g_scan}_FIX"
+	fix_proc_uri+="/files?format=zip"
+	
+	retrieval_cmd="${xnat_rest_client_cmd} "
+	retrieval_cmd+="-host ${rest_client_host} "
+	retrieval_cmd+="-u ${g_user} "
+	retrieval_cmd+="-p ${g_password} "
+	retrieval_cmd+="-m GET "
+	retrieval_cmd+="-remote ${fix_proc_uri}"
+	
+	pushd ${g_working_dir}
+	
+	echo "retrieval_cmd: ${retrieval_cmd}"
+	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip
+	
+	unzip ${g_subject}_${g_scan}_FIX_preproc.zip
+	mkdir -p ${g_subject}
+	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results
+	rm -rf ${g_session}
+	rm ${g_subject}_${g_scan}_FIX_preproc.zip
+	
+	popd 
 
 
 
+
+
+
+	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
@@ -383,9 +403,11 @@ main()
 		
 	fi
 
+	# ----------------------------------------------------------------------------------------------
 	# Step - Sleep for 1 minute to make sure any files created or modified
 	#        by the PostFix.sh script are created at least 1 
 	#        minute after the start_time file
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
@@ -396,7 +418,9 @@ main()
 
 	fi
 
+	# ----------------------------------------------------------------------------------------------
 	# Step - Run PostFix.sh script
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
@@ -421,7 +445,9 @@ main()
 
 
 
+	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
@@ -436,7 +462,9 @@ main()
 
 
 
+	# ----------------------------------------------------------------------------------------------
 	# Step - Send notification email
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
