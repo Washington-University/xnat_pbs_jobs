@@ -31,7 +31,6 @@
 # * A new XNAT workflow ID is created to keep track of the processing steps.
 # * That workflow ID is updated as processing steps occur, and marked as 
 #   complete when the processing is finished.
-# * The results of processing are placed back in the specified XNAT database.
 # 
 # This script can be invoked by a job submitted to a worker or execution
 # node in a cluster, e.g. a Sun Grid Engine (SGE) managed or Portable Batch
@@ -314,7 +313,7 @@ main()
 	get_options $@
 
 	# Set up step counters
-	total_steps=12
+	total_steps=10
 	current_step=0
 
 	# Command for running the XNAT Data Client
@@ -355,7 +354,9 @@ main()
 	echo "XNAT workflow ID: ${workflowID}"
 	show_xnat_workflow ${workflowID}
 	
+	# ----------------------------------------------------------------------------------------------
  	# Step - Get structurally preprocessed data from DB
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
@@ -388,7 +389,9 @@ main()
 	
 	popd
 	
+	# ----------------------------------------------------------------------------------------------
  	# Step - Get functionally preprocessed data from DB
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
@@ -422,7 +425,9 @@ main()
 	
 	popd
 
+	# ----------------------------------------------------------------------------------------------
  	# Step - Get FIX processed data from DB
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
@@ -456,7 +461,9 @@ main()
 	
 	popd 
 
+	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
@@ -472,16 +479,20 @@ main()
 	touch ${start_time_file}
 	ls -l ${start_time_file}
 	
+	# ----------------------------------------------------------------------------------------------
 	# Step - Sleep for 1 minute to make sure any files created or modified
 	#        by the RestingStateStats.sh script are created at least 1 
 	#        minute after the start_time file
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
 	update_xnat_workflow ${workflowID} ${current_step} "Sleep for 1 minute" ${step_percent}
 	sleep 1m
 
+	# ----------------------------------------------------------------------------------------------
 	# Step - Run RestingStateStats.sh script
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
@@ -502,7 +513,9 @@ main()
 		--smoothing-fwhm=2 \
 		--output-proc-string="_hp2000_clean"
 		
+	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
@@ -511,7 +524,9 @@ main()
 	echo "Newly created/modified files:"
 	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
 	
+	# ----------------------------------------------------------------------------------------------
 	# Step - Remove any files that are not newly created or modified
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
@@ -523,13 +538,17 @@ main()
 	# include removal of any empty directories
 	find ${g_working_dir}/${g_subject} -type d -empty -delete
 
+	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
+	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
 	complete_xnat_workflow ${workflowID}
 
+	# ----------------------------------------------------------------------------------------------
 	# Step - Send notification email
+	# ----------------------------------------------------------------------------------------------
 	echo "About to think about sending email"
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
