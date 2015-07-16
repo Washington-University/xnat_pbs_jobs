@@ -34,7 +34,7 @@ for subject in ${subjects} ; do
 		echo ""
 		echo "--------------------------------------------------------------------------------"
 		echo " Submitting RestingStateStats job for subject: ${subject}"
-		echo " Using data server: ${data_server}"
+		echo " Using server: ${server}"
 		echo "--------------------------------------------------------------------------------"
 		
 		./SubmitPostFix.OneSubject.sh \
