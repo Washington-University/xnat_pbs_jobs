@@ -411,7 +411,11 @@ main()
 		${HCPPIPEDIR}/PostFix/PostFix.sh \
 			--path=${g_working_dir} \
 			--subject=${g_subject} \
-			--fmri-name=${g_scan}
+			--fmri-name=${g_scan} \
+			--high-pass=2000 \
+			--template-scene-dual-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_DualScreenTemplate.scene \
+			--template-scene-single-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_SingleScreenTemplate.scene
+
 	fi
 
 
