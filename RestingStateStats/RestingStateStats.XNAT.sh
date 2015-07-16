@@ -454,7 +454,7 @@ main()
 	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip
 	
 	unzip ${g_subject}_${g_scan}_FIX_preproc.zip
-	mkdir -p ${g_subject}
+	mkdir -p ${g_subject}/MNINonLinear/Results
 	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results
 	rm -rf ${g_session}
 	rm ${g_subject}_${g_scan}_FIX_preproc.zip

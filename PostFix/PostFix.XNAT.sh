@@ -316,6 +316,17 @@ main()
 	total_steps=5
 	current_step=0
 
+	# Command for running the XNAT REST Client
+	# Note: XNAT Data Client should be used, but the version currently available for HCP use,
+	# as specified above, seems to have a bug in it and doesn't allow downloading of the 
+	# functionally preprocessed data or the ICA FIX processed data. Thus the use of the 
+	# XNAT REST Client.  The XNAT REST Client takes much longer to download resources and
+	# the time it takes to download the functionally preprocessed data is long enough that
+	# the specified jsession expires during the download. Thus the use of the username 
+	# and password in the downloading of data via the XNAT REST Client and the uploading
+	# of data at the end.
+	xnat_rest_client_cmd="java -Xmx2048m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-rest-client-1.6.2-SNAPSHOT.jar"
+
 	# Set up to run Python
 	echo "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
@@ -369,7 +380,7 @@ main()
 	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip
 	
 	unzip ${g_subject}_${g_scan}_FIX_preproc.zip
-	mkdir -p ${g_subject}
+	mkdir -p ${g_subject}/MNINonLinear/Results
 	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results
 	rm -rf ${g_session}
 	rm ${g_subject}_${g_scan}_FIX_preproc.zip
@@ -387,21 +398,18 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		update_xnat_workflow ${workflowID} ${current_step} "Create a start_time file" ${step_percent}
+	update_xnat_workflow ${workflowID} ${current_step} "Create a start_time file" ${step_percent}
 		
-		start_time_file="${g_working_dir}/PostFix.starttime"
-		if [ -e "${start_time_file}" ]; then
-			echo "Removing old ${start_time_file}"
-			rm -f ${start_time_file}
-		fi
-		
-		echo "Creating start time file: ${start_time_file}"
-		touch ${start_time_file}
-		ls -l ${start_time_file}
-		
+	start_time_file="${g_working_dir}/PostFix.starttime"
+	if [ -e "${start_time_file}" ]; then
+		echo "Removing old ${start_time_file}"
+		rm -f ${start_time_file}
 	fi
+	
+	echo "Creating start time file: ${start_time_file}"
+	touch ${start_time_file}
+	ls -l ${start_time_file}
+	
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Sleep for 1 minute to make sure any files created or modified
@@ -411,12 +419,8 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		update_xnat_workflow ${workflowID} ${current_step} "Sleep for 1 minute" ${step_percent}
-		sleep 1m
-
-	fi
+	update_xnat_workflow ${workflowID} ${current_step} "Sleep for 1 minute" ${step_percent}
+	sleep 1m
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run PostFix.sh script
@@ -424,23 +428,20 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		update_xnat_workflow ${workflowID} ${current_step} "Run PostFix.sh script" ${step_percent}
-		
-		# Source setup script to setup environment for running the script
-		source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSM_All.sh
-		
-		# Run PostFix.sh script
-		${HCPPIPEDIR}/PostFix/PostFix.sh \
-			--path=${g_working_dir} \
-			--subject=${g_subject} \
-			--fmri-name=${g_scan} \
-			--high-pass=2000 \
-			--template-scene-dual-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_DualScreenTemplate.scene \
-			--template-scene-single-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_SingleScreenTemplate.scene
-
-	fi
+	update_xnat_workflow ${workflowID} ${current_step} "Run PostFix.sh script" ${step_percent}
+	
+	# Source setup script to setup environment for running the script
+	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSM_All.sh
+	
+	# Run PostFix.sh script
+	${HCPPIPEDIR}/PostFix/PostFix.sh \
+		--path=${g_working_dir} \
+		--subject=${g_subject} \
+		--fmri-name=${g_scan} \
+		--high-pass=2000 \
+		--template-scene-dual-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_DualScreenTemplate.scene \
+		--template-scene-single-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_SingleScreenTemplate.scene
+	
 
 
 
@@ -451,16 +452,32 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
+	update_xnat_workflow ${workflowID} ${current_step} "Show newly created or modified files" ${step_percent}
+	
+	echo "Newly created/modified files:"
+	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
+	
+	# ----------------------------------------------------------------------------------------------
+	# Step - Remove any files that are not newly created or modified
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
 
-		update_xnat_workflow ${workflowID} ${current_step} "Show newly created or modified files" ${step_percent}
+	update_xnat_workflow ${workflowID} ${current_step} "Remove files not newly created or modified" ${step_percent}
+	
+#	echo "NOT Newly created/modified files:"
+#	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -delete 
+	
+	# include removal of any empty directories
+#	find ${g_working_dir}/${g_subject} -type d -empty -delete
 
-		echo "Newly created/modified files:"
-		find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
+	# ----------------------------------------------------------------------------------------------
+	# Step - Complete Workflow
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
 
-	fi
-
-
+	complete_xnat_workflow ${workflowID}
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Send notification email
@@ -468,18 +485,14 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	if [ "${current_step}" -ge "${g_start_step}" ]; then
-
-		if [ -n "${g_notify_email}" ]; then
-			mail -s "PostFix Completion for ${g_subject}" ${g_notify_email} <<EOF
+	if [ -n "${g_notify_email}" ]; then
+		mail -s "PostFix Completion for ${g_subject}" ${g_notify_email} <<EOF
 The PostFix.XNAT.sh run has completed for:
 Project: ${g_project}
 Subject: ${g_subject}
 Session: ${g_session}
 Scan:    ${g_scan}
 EOF
-		fi
-
 	fi
 }
 
