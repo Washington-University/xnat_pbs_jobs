@@ -143,7 +143,7 @@ main()
 		echo "jsession: ${jsession}"
 
 		# Submit job to actually do the work
-		script_file_to_submit=${working_directory_name}/${g_subject}.PostFix.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+		script_file_to_submit=${working_directory_name}/${g_subject}.PostFix.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
 		if [ -e "${script_file_to_submit}" ]; then
 			rm -f "${script_file_to_submit}"
 		fi
@@ -173,7 +173,7 @@ main()
 		echo "processing_job_no: ${processing_job_no}"
 
 		# Submit job to put the results in the DB
-		put_script_file_to_submit=${working_directory_name}/${g_subject}.RestingStateStats.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+		put_script_file_to_submit=${working_directory_name}/${g_subject}.RestingStateStats.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 		if [ -e "${put_script_file_to_submit}" ]; then
 			rm -f "${put_script_file_to_submit}"
 		fi
