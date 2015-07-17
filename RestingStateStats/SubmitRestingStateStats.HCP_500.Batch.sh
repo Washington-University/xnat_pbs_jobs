@@ -51,13 +51,6 @@ for subject in ${subjects} ; do
 			shadow_number=${start_shadow_number}
 		fi
 
-	else
-
-		echo ""
-		echo "--------------------------------------------------------------------------------"
-		echo " Skipping subject: ${subject}"
-		echo "--------------------------------------------------------------------------------"
-
 	fi
 
 done

@@ -489,7 +489,7 @@ main()
 	update_xnat_workflow ${workflowID} ${current_step} "Run RestingStateStats.sh script" ${step_percent}
 	
 	# Source setup script to setup environment for running the script
-	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSM_All.sh
+	source ${SCRIPTS_HOME}/SetUpHCPPipeline_Resting_State_Stats.sh
 		
 	# Run RestingStateStats.sh script
 	${HCPPIPEDIR}/RestingStateStats/RestingStateStats.sh \
