@@ -52,7 +52,7 @@ get_options()
 				index=$(( index + 1 ))
 				;;
 			--notify=*)
-				g_notify_email=${argument/*=/""}
+				g_notify=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -103,8 +103,8 @@ get_options()
 	fi
 	echo "Connectome DB Scans: ${g_scans}"
 
-	if [ -z "${g_notify_email}" ]; then
-		g_notify_email="tbbrown@wustl.edu"
+	if [ -z "${g_notify}" ]; then
+		g_notify="tbbrown@wustl.edu"
 	fi
 }
 
@@ -156,6 +156,8 @@ main()
 		echo "#PBS -q dque" >> ${script_file_to_submit}
 		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
+		echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
+		echo "#PBS -m abe" >> ${script_file_to_submit}
 		echo ""
 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats/RestingStateStats.XNAT.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
@@ -166,8 +168,7 @@ main()
 		echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
 		echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
-		echo "  --jsession=\"${jsession}\" \\" >> ${script_file_to_submit}
-		echo "  --notify=tbbrown@wustl.edu"  >> ${script_file_to_submit}
+		echo "  --jsession=\"${jsession}\" " >> ${script_file_to_submit}
 		
 		processing_job_no=`qsub ${script_file_to_submit}`
 		echo "processing_job_no: ${processing_job_no}"
@@ -183,6 +184,8 @@ main()
 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
 		echo "#PBS -o ${working_directory_name}" >> ${put_script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${put_script_file_to_submit}
+		echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
+		echo "#PBS -m abe" >> ${script_file_to_submit}
 		echo ""
 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats/RestingStateStats.XNAT_PUT.sh \\" >> ${put_script_file_to_submit}
 		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
@@ -193,7 +196,6 @@ main()
 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
 		echo "  --scan=\"${scan}\" \\" >> ${put_script_file_to_submit}
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-		echo "  --notify=tbbrown@wustl.edu"  >> ${put_script_file_to_submit}
 
 		qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}
 	done

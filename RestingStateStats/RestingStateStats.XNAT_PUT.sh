@@ -59,8 +59,6 @@ usage()
 	echo "    --session=<session>    : XNAT session ID within project (e.g. 100307_3T)"
 	echo "    --scan=<scan>          : Scan ID (e.g. rfMRI_REST1_LR)"
 	echo "    --working-dir=<dir>    : Working directory from which to push data"
-	echo "   [--notify=<email>]      : Email address to which to send completion notification"
-	echo "                             If not specified, no completion notification email is sent"
 	echo ""
 }
 
@@ -79,7 +77,6 @@ get_options()
 	unset g_session
 	unset g_scan
 	unset g_working_dir
-	unset g_notify_email
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -124,10 +121,6 @@ get_options()
 				;;
 			--working-dir=*)
 				g_working_dir=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--notify=*)
-				g_notify_email=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -198,8 +191,6 @@ get_options()
 		echo "g_working_dir: ${g_working_dir}"
 	fi
 
-	echo "g_notify_email: ${g_notify_email}"
-
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
 		exit 1
@@ -244,21 +235,6 @@ main()
 	echo "----------"
 	echo "Cleanup not yet implemented"
 	echo "----------"
-	
-	# Step - Send notification email
-	echo "About to think about sending email"
-
-	echo "g_notify_email: ${g_notify_email}"
-	if [ -n "${g_notify_email}" ]; then
-		echo "should be sending the mail now"
-		mail -s "RestingStateStats PUT Completion for ${g_subject}" ${g_notify_email} <<EOF
-The RestingStateStats.XNAT_PUT.sh run has completed for:
-Project: ${g_project}
-Subject: ${g_subject}
-Session: ${g_session}
-Scan:    ${g_scan}
-EOF
-	fi
 }
 
 # Invoke the main function to get things started
