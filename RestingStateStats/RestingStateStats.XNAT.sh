@@ -521,13 +521,25 @@ main()
 	step_percent=$(( (current_step * 100) / total_steps ))
 
 	update_xnat_workflow ${workflowID} ${current_step} "Remove files not newly created or modified" ${step_percent}
-	
-	echo "NOT Newly created/modified files:"
-	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -delete 
+
+	echo "The following files are being removed"
+	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete 
 	
 	# include removal of any empty directories
-	find ${g_working_dir}/${g_subject} -type d -empty -delete
+	echo "The following empty directories are being removed"
+	find ${g_working_dir}/${g_subject} -type d -empty -print -delete
 
+	# ----------------------------------------------------------------------------------------------
+	# Step - Remove unneeded intermediate files
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	update_xnat_workflow ${workflowID} ${current_step} "Remove unneeded intermediate files" ${step_percent}
+
+	echo "The following unneeded intermediate files are being removed"
+	find ${g_working_dir}/${g_subject} -type f -name "BiasField*" -delete 
+	
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
 	# ----------------------------------------------------------------------------------------------
