@@ -58,7 +58,7 @@ usage()
 	echo "    --subject=<subject>    : XNAT subject ID within project (e.g. 100307)"
 	echo "    --session=<session>    : XNAT session ID within project (e.g. 100307_3T)"
 	echo "    --scan=<scan>          : Scan ID (e.g. rfMRI_REST1_LR)"
-	echo "    --push-dir=<dir>       : Directory from which to push data"
+	echo "    --working-dir=<dir>    : Working directory from which to push data"
 	echo "   [--notify=<email>]      : Email address to which to send completion notification"
 	echo "                             If not specified, no completion notification email is sent"
 	echo ""
@@ -78,7 +78,7 @@ get_options()
 	unset g_subject
 	unset g_session
 	unset g_scan
-	unset g_push_dir
+	unset g_working_dir
 	unset g_notify_email
 
 	# parse arguments
@@ -122,8 +122,8 @@ get_options()
 				g_scan=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--push-dir=*)
-				g_push_dir=${argument/*=/""}
+			--working-dir=*)
+				g_working_dir=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--notify=*)
@@ -191,11 +191,11 @@ get_options()
 		echo "g_scan: ${g_scan}"
 	fi
 
-	if [ -z "${g_push_dir}" ]; then
-		echo "ERROR: push directory (--push-dir=) required"
+	if [ -z "${g_working_dir}" ]; then
+		echo "ERROR: working directory (--working-dir=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		echo "g_push_dir: ${g_push_dir}"
+		echo "g_working_dir: ${g_working_dir}"
 	fi
 
 	echo "g_notify_email: ${g_notify_email}"
@@ -228,11 +228,15 @@ main()
 		-u ${g_user} -p ${g_password} -m DELETE \
 		-r http://${g_server}/REST/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/resources/${g_scan}_RSS/
 
+	# Make processing job log files readable so they can be pushed into the database
+	chmod a+r ${g_working_dir}/*
+
 	# Push the data into the DB
-	echo "Putting new data into DB"
+	db_working_dir=${g_working_dir/HCP/data}
+	echo "Putting new data into DB from db_working_dir: ${db_working_dir}"
 	java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar \
 		-u ${g_user} -p ${g_password} -m PUT \
-		-r http://${g_server}/REST/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/resources/${g_scan}_RSS/files?overwrite=true\&replace=true\&event_reason=RestingStateStatsPipeline\&reference=${g_push_dir}
+		-r http://${g_server}/REST/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/resources/${g_scan}_RSS/files?overwrite=true\&replace=true\&event_reason=RestingStateStatsPipeline\&reference=${db_working_dir}
 	
 	echo "Cleanup"
 	# TBD

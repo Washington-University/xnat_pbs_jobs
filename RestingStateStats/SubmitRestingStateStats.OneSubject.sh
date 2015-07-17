@@ -178,9 +178,6 @@ main()
 			rm -f "${put_script_file_to_submit}"
 		fi
 		
-		db_working_dir=${working_directory_name/HCP/data}
-		echo "db_working_dir: ${db_working_dir}"
-
 		touch ${put_script_file_to_submit}
 		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
@@ -195,7 +192,7 @@ main()
 		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
 		echo "  --scan=\"${scan}\" \\" >> ${put_script_file_to_submit}
-		echo "  --push-dir=\"${db_working_dir}\" \\" >> ${put_script_file_to_submit}
+		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
 		echo "  --notify=tbbrown@wustl.edu"  >> ${put_script_file_to_submit}
 
 		qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}
