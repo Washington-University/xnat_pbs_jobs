@@ -102,10 +102,6 @@ get_options()
 		g_scans="rfMRI_REST1_LR rfMRI_REST1_RL rfMRI_REST2_LR rfMRI_REST2_RL"
 	fi
 	echo "Connectome DB Scans: ${g_scans}"
-
-	if [ -z "${g_notify}" ]; then
-		g_notify="tbbrown@wustl.edu"
-	fi
 }
 
 main()
@@ -156,8 +152,10 @@ main()
 		echo "#PBS -q dque" >> ${script_file_to_submit}
 		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
-		echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
-		echo "#PBS -m abe" >> ${script_file_to_submit}
+		if [ -n "${g_notify}" ]; then
+			echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
+			echo "#PBS -m abe" >> ${script_file_to_submit}
+		fi
 		echo ""
 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats/RestingStateStats.XNAT.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
@@ -184,8 +182,10 @@ main()
 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
 		echo "#PBS -o ${working_directory_name}" >> ${put_script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${put_script_file_to_submit}
-		echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
-		echo "#PBS -m abe" >> ${script_file_to_submit}
+		if [ -n "${g_notify}" ]; then
+			echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
+			echo "#PBS -m abe" >> ${script_file_to_submit}
+		fi
 		echo ""
 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats/RestingStateStats.XNAT_PUT.sh \\" >> ${put_script_file_to_submit}
 		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}

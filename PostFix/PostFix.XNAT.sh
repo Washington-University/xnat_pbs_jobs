@@ -84,8 +84,6 @@ usage()
 	echo "                             and in which to produce results"
 	echo "    --jsession=<jsession>  : Session ID for already establish web session on"
 	echo "                             the server"
-	echo "   [--notify=<email>]      : Email address to which to send completion notification"
-	echo "                             If not specified, no completion notification email is sent"
 	echo ""
 }
 
@@ -105,7 +103,6 @@ get_options()
 	unset g_scan
 	unset g_working_dir
 	unset g_jsession
-	unset g_notify_email
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -154,10 +151,6 @@ get_options()
 				;;
 			--jsession=*)
 				g_jsession=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--notify=*)
-				g_notify_email=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -235,8 +228,6 @@ get_options()
 		echo "g_jsession: ${g_jsession}"
 	fi
 
-	echo "g_notify_email: ${g_notify_email}"
-
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
 		exit 1
@@ -307,7 +298,6 @@ complete_xnat_workflow()
 #   - run the script
 #   - push only newly created or modified data back to the DB
 #   - cleanup the working directory
-#   - send an completion notification email if requested
 main()
 {
 	get_options $@
@@ -478,22 +468,6 @@ main()
 	step_percent=$(( (current_step * 100) / total_steps ))
 
 	complete_xnat_workflow ${workflowID}
-
-	# ----------------------------------------------------------------------------------------------
-	# Step - Send notification email
-	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	if [ -n "${g_notify_email}" ]; then
-		mail -s "PostFix Completion for ${g_subject}" ${g_notify_email} <<EOF
-The PostFix.XNAT.sh run has completed for:
-Project: ${g_project}
-Subject: ${g_subject}
-Session: ${g_session}
-Scan:    ${g_scan}
-EOF
-	fi
 }
 
 # Invoke the main function to get things started

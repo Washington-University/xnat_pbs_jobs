@@ -52,7 +52,7 @@ get_options()
 				index=$(( index + 1 ))
 				;;
 			--notify=*)
-				g_notify_email=${argument/*=/""}
+				g_notify=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -103,10 +103,6 @@ get_options()
 		g_scans="rfMRI_REST1_LR"
 	fi
 	echo "Connectome DB Scans: ${g_scans}"
-
-	if [ -z "${g_notify_email}" ]; then
-		g_notify_email="tbbrown@wustl.edu"
-	fi
 }
 
 main()
@@ -157,6 +153,10 @@ main()
 		echo "#PBS -q dque" >> ${script_file_to_submit}
 		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
+		if [ -n "${g_notify}" ]; then
+			echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
+			echo "#PBS -m abe" >> ${script_file_to_submit}
+		fi
 		echo ""
 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/PostFix.XNAT.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
@@ -167,8 +167,7 @@ main()
 		echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
 		echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
-		echo "  --jsession=\"${jsession}\" \\" >> ${script_file_to_submit}
-		echo "  --notify=tbbrown@wustl.edu"  >> ${script_file_to_submit}
+		echo "  --jsession=\"${jsession}\" " >> ${script_file_to_submit}
 		
 		processing_job_no=`qsub ${script_file_to_submit}`
 		echo "processing_job_no: ${processing_job_no}"
@@ -187,6 +186,10 @@ main()
 # 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
 # 		echo "#PBS -o ${working_directory_name}" >> ${put_script_file_to_submit}
 # 		echo "#PBS -e ${working_directory_name}" >> ${put_script_file_to_submit}
+#		if [ -n "${g_notify}" ]; then
+#			echo "#PBS -M ${g_notify}" >> ${put_script_file_to_submit}
+#			echo "#PBS -m abe" >> ${put_script_file_to_submit}
+#		fi
 # 		echo ""
 # 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/PostFix.XNAT_PUT.sh \\" >> ${put_script_file_to_submit}
 # 		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}

@@ -298,7 +298,6 @@ complete_xnat_workflow()
 #   - run the script
 #   - push only newly created or modified data back to the DB
 #   - cleanup the working directory
-#   - send an completion notification email if requested
 main()
 {
 	get_options $@
