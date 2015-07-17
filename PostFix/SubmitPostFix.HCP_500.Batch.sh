@@ -42,7 +42,8 @@ for subject in ${subjects} ; do
 			--password=${password} \
 			--server=${server} \
 			--project=${project} \
-			--subject=${subject}
+			--subject=${subject} \
+			--notify=WUSTL_Pipeline_Notifications@tbb.fastmail.fm
 		
 		shadow_number=$((shadow_number+1))
 		
