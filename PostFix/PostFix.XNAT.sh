@@ -399,7 +399,6 @@ main()
 	echo "Creating start time file: ${start_time_file}"
 	touch ${start_time_file}
 	ls -l ${start_time_file}
-	
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Sleep for 1 minute to make sure any files created or modified
@@ -421,7 +420,7 @@ main()
 	update_xnat_workflow ${workflowID} ${current_step} "Run PostFix.sh script" ${step_percent}
 	
 	# Source setup script to setup environment for running the script
-	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSM_All.sh
+	source ${SCRIPTS_HOME}/SetUpHCPPipeline_PostFix.sh
 	
 	# Run PostFix.sh script
 	${HCPPIPEDIR}/PostFix/PostFix.sh \
@@ -455,10 +454,11 @@ main()
 
 	update_xnat_workflow ${workflowID} ${current_step} "Remove files not newly created or modified" ${step_percent}
 	
-#	echo "NOT Newly created/modified files:"
-#	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -delete 
+#	echo "The following files are being removed"
+#	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete 
 	
 	# include removal of any empty directories
+#	echo "The following empty directories are being removed"
 #	find ${g_working_dir}/${g_subject} -type d -empty -delete
 
 	# ----------------------------------------------------------------------------------------------
