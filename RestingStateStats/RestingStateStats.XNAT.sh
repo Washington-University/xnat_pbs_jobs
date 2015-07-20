@@ -530,17 +530,6 @@ main()
 	find ${g_working_dir}/${g_subject} -type d -empty -print -delete
 
 	# ----------------------------------------------------------------------------------------------
-	# Step - Remove unneeded intermediate files
-	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	update_xnat_workflow ${workflowID} ${current_step} "Remove unneeded intermediate files" ${step_percent}
-
-	echo "The following unneeded intermediate files are being removed"
-	find ${g_working_dir}/${g_subject} -type f -name "BiasField*" -delete 
-	
-	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
