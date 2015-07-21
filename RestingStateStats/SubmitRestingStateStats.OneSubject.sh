@@ -4,6 +4,14 @@
 XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 
+# home directory for XNAT utilities
+XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
+echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
+
+# main build directory
+BUILD_HOME="/HCP/hcpdb/build_ssd/chpc/BUILD"
+echo "BUILD_HOME: ${BUILD_HOME}"
+
 get_options() 
 {
 	local arguments=($@)
@@ -112,8 +120,6 @@ main()
 {
 	get_options $@
 
-	XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
-
 	# Get token user id and password
 	echo "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
@@ -135,19 +141,19 @@ main()
 		sleep 5s
 
 		current_seconds_since_epoch=`date +%s`
-		working_directory_name="/HCP/hcpdb/build_ssd/chpc/BUILD/${g_project}/${current_seconds_since_epoch}_${g_subject}"
+		working_directory_name="${BUILD_HOME}/${g_project}/${current_seconds_since_epoch}_${g_subject}"
 
 		# Make the working directory
 		echo "Making working directory: ${working_directory_name}"
 		mkdir -p ${working_directory_name}
 
 		# Get JSESSION ID
+		echo "Getting JSESSION ID"
 		jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
 		echo "jsession: ${jsession}"
 
 		# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
 		echo "Getting XNAT Session ID"
-		
 		get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
 		#echo "get_session_id_cmd: ${get_session_id_cmd}"
 		sessionID=`${get_session_id_cmd}`
@@ -220,7 +226,7 @@ main()
 			echo "#PBS -m abe" >> ${put_script_file_to_submit}
 		fi
 		echo ""
-		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats/RestingStateStats.XNAT_PUT.sh \\" >> ${put_script_file_to_submit}
+		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
 		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
 		echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
 		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
@@ -229,6 +235,7 @@ main()
 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
 		echo "  --scan=\"${scan}\" \\" >> ${put_script_file_to_submit}
 		echo "  --working-dir=\"${working_directory_name}\" " >> ${put_script_file_to_submit}
+		echo "  --resource-suffix=\"RSS\" " >> ${put_script_file_to_submit} 
 
 		qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}
 	done
