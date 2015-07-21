@@ -27,11 +27,6 @@
 # The script is run not as an XNAT pipeline (under the control of the
 # XNAT Pipeline Engine), but in an "XNAT-aware" and "pipeline-like" manner.
 # 
-# * The data to be processed is retrieved from the specified XNAT database.
-# * A new XNAT workflow ID is created to keep track of the processing steps.
-# * That workflow ID is updated as processing steps occur, and marked as 
-#   complete when the processing is finished.
-# 
 # This script can be invoked by a job submitted to a worker or execution
 # node in a cluster, e.g. a Sun Grid Engine (SGE) managed or Portable Batch
 # System (PBS) managed cluster. Alternatively, if the machine being used
@@ -47,13 +42,10 @@ SCRIPTS_HOME=/home/HCPpipeline/SCRIPTS
 echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
 
 # home directory for XNAT related utilities
-# - for updating XNAT workflows
 XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
 # home directory for XNAT pipeline engine installation
-# - for utilities used to get XNAT session information,
-#   retrieve XNAT data, and create an XNAT workflow
 XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 
@@ -97,8 +89,10 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
+	unset g_session_id
 	unset g_scan
 	unset g_working_dir
+	unset g_workflow_id
 	unset g_jsession
 
 	# parse arguments
@@ -138,12 +132,20 @@ get_options()
 				g_session=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
+			--session-id=*)
+				g_session_id=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
 			--scan=*)
 				g_scan=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--working-dir=*)
 				g_working_dir=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--workflow-id=*)
+				g_workflow_id=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--jsession=*)
@@ -204,6 +206,13 @@ get_options()
 		echo "g_session: ${g_session}"
 	fi
 
+	if [ -z "${g_session_id}" ]; then
+		echo "ERROR: session ID (--session-id=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "g_session_id: ${g_session_id}"
+	fi
+
 	if [ -z "${g_scan}" ]; then
 		echo "ERROR: scan (--scan=) required"
 		error_count=$(( error_count + 1 ))
@@ -216,6 +225,13 @@ get_options()
 		error_count=$(( error_count + 1 ))
 	else
 		echo "g_working_dir: ${g_working_dir}"
+	fi
+
+	if [ -z "${g_workflow_id}" ]; then
+		echo "ERROR: workflow ID (--workflow-id=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "g_workflow_id: ${g_workflow_id}"
 	fi
 
 	if [ -z "${g_jsession}" ]; then
@@ -231,27 +247,24 @@ get_options()
 	fi
 }
 
-# Show information about a specified XNAT Workflow
+# Show information about the XNAT Workflow
 show_xnat_workflow()
 {
-	local workflow_id=${1}
-	
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
 		--server="${g_server}" \
 		--username="${g_user}" \
 		--password="${g_password}" \
-		--workflow-id="${workflow_id}" \
+		--workflow-id="${g_workflow_id}" \
 		show
 }
 
 # Update information (step id, step description, and percent complete)
-# for a specified XNAT Workflow
+# for the XNAT Workflow
 update_xnat_workflow()
 {
-	local workflow_id=${1}
-	local step_id=${2}
-	local step_desc=${3}
-	local percent_complete=${4}
+	local step_id=${1}
+	local step_desc=${2}
+	local percent_complete=${3}
 
 	echo ""
 	echo ""
@@ -260,7 +273,7 @@ update_xnat_workflow()
 	echo ""
 	echo ""
 
-	echo "update_xnat_workflow - workflow_id: ${workflow_id}"
+	echo "update_xnat_workflow - workflow_id: ${g_workflow_id}"
 	echo "update_xnat_workflow - step_id: ${step_id}"
 	echo "update_xnat_workflow - set_desc: ${step_desc}"
 	echo "update_xnat_workflow - percent_complete: ${percent_complete}"
@@ -269,31 +282,27 @@ update_xnat_workflow()
 		--server="${g_server}" \
 		--username="${g_user}" \
 		--password="${g_password}" \
-		--workflow-id="${workflow_id}" \
+		--workflow-id="${g_workflow_id}" \
 		update \
 		--step-id="${step_id}" \
 		--step-description="${step_desc}" \
 		--percent-complete="${percent_complete}"
 }
 
-# Mark the specified XNAT Workflow as complete
+# Mark the XNAT Workflow as complete
 complete_xnat_workflow()
 {
-	local workflow_id=${1}
-
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
 		--server="${g_server}" \
 		--username="${g_user}" \
 		--password="${g_password}" \
-		--workflow-id="${workflow_id}" \
+		--workflow-id="${g_workflow_id}" \
 		complete
 }
 
-# Mark the specified XNAT Workflow as failed
+# Mark the XNAT Workflow as failed
 fail_xnat_workflow()
 {
-	local workflow_id=${1}
-
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
 		--server="${g_server}" \
 		--username="${g_user}" \
@@ -302,11 +311,9 @@ fail_xnat_workflow()
 		fail
 }
 
-# Update specified XNAT Workflow to Failed status and exit this script
+# Update the XNAT Workflow to Failed status and exit this script
 die()
 {
-	local workflow_id=${1}
-	
 	fail_xnat_workflow ${workflow_id}
 	exit 1
 }
@@ -339,24 +346,6 @@ main()
 	echo "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-	# Get XNAT Session ID (a.k.a. the experiment ID, e.g ConnectomeDB_E1234)
-	echo "Getting XNAT Session ID"
-	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
-	echo "get_session_id_cmd: ${get_session_id_cmd}"
-	sessionID=`${get_session_id_cmd}`
-	echo "XNAT session ID: ${sessionID}"
-
-	# Get XNAT Workflow ID
-	server="https://db.humanconnectome.org/"
-	echo "Getting XNAT workflow ID for this job from server: ${server}"
-	get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Password ${g_password} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline PostFix -Status Queued -JSESSION ${g_jsession}"
-	echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
-	workflowID=`${get_workflow_id_cmd}`
-	if [ $? -ne 0 ]; then
-		echo "Fetching workflow failed. Aborting"
-		exit 1
-	fi
-	echo "XNAT workflow ID: ${workflowID}"
 	show_xnat_workflow ${workflowID}
 
 	# ----------------------------------------------------------------------------------------------
@@ -365,7 +354,7 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${workflowID} ${current_step} "Get FIX processed data from DB" ${step_percent}
+	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
 	
 	rest_client_host="http://${g_server}"
 	
@@ -385,13 +374,13 @@ main()
 	pushd ${g_working_dir}
 	
 	echo "retrieval_cmd: ${retrieval_cmd}"
-	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip || die ${workflowID}
+	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip || die 
 	
-	unzip ${g_subject}_${g_scan}_FIX_preproc.zip || die ${workflowID}
-	mkdir -p ${g_subject}/MNINonLinear/Results || die ${workflowID}
-	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results || die ${workflowID}
-	rm -rf ${g_session} || die ${workflowID}
-	rm ${g_subject}_${g_scan}_FIX_preproc.zip || die ${workflowID}
+	unzip ${g_subject}_${g_scan}_FIX_preproc.zip || die 
+	mkdir -p ${g_subject}/MNINonLinear/Results || die 
+	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results || die 
+	rm -rf ${g_session} || die 
+	rm ${g_subject}_${g_scan}_FIX_preproc.zip || die 
 	
 	popd 
 
@@ -401,7 +390,7 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${workflowID} ${current_step} "Create a start_time file" ${step_percent}
+	update_xnat_workflow ${current_step} "Create a start_time file" ${step_percent}
 		
 	start_time_file="${g_working_dir}/PostFix.starttime"
 	if [ -e "${start_time_file}" ]; then
@@ -410,7 +399,7 @@ main()
 	fi
 	
 	echo "Creating start time file: ${start_time_file}"
-	touch ${start_time_file} || die ${workflowID}
+	touch ${start_time_file} || die 
 	ls -l ${start_time_file}
 
 	# ----------------------------------------------------------------------------------------------
@@ -421,8 +410,8 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${workflowID} ${current_step} "Sleep for 1 minute" ${step_percent}
-	sleep 1m || die ${workflowID}
+	update_xnat_workflow ${current_step} "Sleep for 1 minute" ${step_percent}
+	sleep 1m || die 
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run PostFix.sh script
@@ -430,7 +419,7 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${workflowID} ${current_step} "Run PostFix.sh script" ${step_percent}
+	update_xnat_workflow ${current_step} "Run PostFix.sh script" ${step_percent}
 	
 	# Source setup script to setup environment for running the script
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_PostFix.sh
@@ -445,7 +434,7 @@ main()
 		--template-scene-single-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_SingleScreenTemplate.scene
 	
 	if [ $? -ne 0 ]; then
-		die ${workflowID}
+		die 
 	fi
 
 	# ----------------------------------------------------------------------------------------------
@@ -454,7 +443,7 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${workflowID} ${current_step} "Show newly created or modified files" ${step_percent}
+	update_xnat_workflow ${current_step} "Show newly created or modified files" ${step_percent}
 	
 	echo "Newly created/modified files:"
 	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
@@ -465,14 +454,14 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${workflowID} ${current_step} "Remove files not newly created or modified" ${step_percent}
+	update_xnat_workflow ${current_step} "Remove files not newly created or modified" ${step_percent}
 	
 #	echo "The following files are being removed"
-#	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete || die ${workflowID}
+#	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete || die 
 	
 	# include removal of any empty directories
 #	echo "The following empty directories are being removed"
-#	find ${g_working_dir}/${g_subject} -type d -empty -delete || die ${workflowID}
+#	find ${g_working_dir}/${g_subject} -type d -empty -delete || die 
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
