@@ -229,9 +229,11 @@ main()
 		-u ${g_user} -p ${g_password} -m PUT \
 		-r http://${g_server}/REST/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/resources/${g_scan}_RSS/files?overwrite=true\&replace=true\&event_reason=RestingStateStatsPipeline\&reference=${db_working_dir}
 	
+	# Cleanup
 	echo "Cleanup"
-	# TBD
-	
+	echo "Removing g_working_dir: ${g_working_dir}"
+	#rm -rf ${g_working_dir}
+
 	echo "----------"
 	echo "Cleanup not yet implemented"
 	echo "----------"
