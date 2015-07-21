@@ -49,8 +49,6 @@ XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
 # home directory for XNAT pipeline engine installation
-# - for utilities used to get XNAT session information
-#   and retrieve XNAT data
 XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 

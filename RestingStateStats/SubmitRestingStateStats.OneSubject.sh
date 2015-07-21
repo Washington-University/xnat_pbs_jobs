@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# home directory for XNAT pipeline engine installation
+XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
+echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
+
 get_options() 
 {
 	local arguments=($@)
@@ -116,7 +120,7 @@ main()
 
 	echo "Getting token user id and password"
 	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user}"
-	echo "get_token_cmd: ${get_token_cmd}"
+	#echo "get_token_cmd: ${get_token_cmd}"
 	get_token_cmd+=" --password=${g_password}"
 	new_tokens=`${get_token_cmd}`
 	token_username=${new_tokens% *}
@@ -152,8 +156,10 @@ main()
 		# Get XNAT Workflow ID
 		server="https://db.humanconnectome.org/"
 		echo "Getting XNAT workflow ID for this job from server: ${server}"
-		get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Password ${g_password} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline RestingStateStats -Status Queued -JSESSION ${jsession}"
-		echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
+		get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline RestingStateStats -Status Queued -JSESSION ${jsession}"
+		#echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
+		get_workflow_id_cmd+=" -Password ${g_password}"
+
 		workflowID=`${get_workflow_id_cmd}`
 		if [ $? -ne 0 ]; then
 			echo "Fetching workflow failed. Aborting"
