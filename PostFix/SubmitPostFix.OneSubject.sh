@@ -173,32 +173,33 @@ main()
 		echo "processing_job_no: ${processing_job_no}"
 
 		# Submit job to put the results in the DB
-		put_script_file_to_submit=${working_directory_name}/${g_subject}.RestingStateStats.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+		put_script_file_to_submit=${working_directory_name}/${g_subject}.PostFix.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 		if [ -e "${put_script_file_to_submit}" ]; then
 			rm -f "${put_script_file_to_submit}"
 		fi
 		
-# 		touch ${put_script_file_to_submit}
-# 		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
-# 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
-# 		echo "#PBS -o ${working_directory_name}" >> ${put_script_file_to_submit}
-# 		echo "#PBS -e ${working_directory_name}" >> ${put_script_file_to_submit}
-#		if [ -n "${g_notify}" ]; then
-#			echo "#PBS -M ${g_notify}" >> ${put_script_file_to_submit}
-#			echo "#PBS -m abe" >> ${put_script_file_to_submit}
-#		fi
-# 		echo ""
-# 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/PostFix.XNAT_PUT.sh \\" >> ${put_script_file_to_submit}
-# 		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
-# 		echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
-# 		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
-# 		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
-# 		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
-# 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
-# 		echo "  --scan=\"${scan}\" \\" >> ${put_script_file_to_submit}
-#		echo "  --working-dir=\"${working_directory_name}\" " >> ${put_script_file_to_submit}
+ 		touch ${put_script_file_to_submit}
+ 		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
+ 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
+ 		echo "#PBS -o ${working_directory_name}" >> ${put_script_file_to_submit}
+ 		echo "#PBS -e ${working_directory_name}" >> ${put_script_file_to_submit}
+		if [ -n "${g_notify}" ]; then
+			echo "#PBS -M ${g_notify}" >> ${put_script_file_to_submit}
+			echo "#PBS -m abe" >> ${put_script_file_to_submit}
+		fi
+ 		echo ""
+ 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
+ 		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --scan=\"${scan}\" \\" >> ${put_script_file_to_submit}
+		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
+		echo "  --resource-suffix=\"PostFix\" " >> ${put_script_file_to_submit} 
 
-# 		qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}
+ 		qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}
 	done
 }
 

@@ -40,9 +40,6 @@
 #
 #~ND~END~
 
-# If any commands exit with a non-zero value, this script exits
-set -e
-
 echo "Job started on `hostname` at `date`"
 
 # home directory for scripts to be sourced to setup the environment
@@ -292,12 +289,32 @@ complete_xnat_workflow()
 		complete
 }
 
+# Mark the specified XNAT Workflow as failed
+fail_xnat_workflow()
+{
+	local workflow_id=${1}
+
+	${XNAT_UTILS_HOME}/xnat_workflow_info \
+		--server="${g_server}" \
+		--username="${g_user}" \
+		--password="${g_password}" \
+		--workflow-id="${workflow_id}" \
+		fail
+}
+
+# Update specified XNAT Workflow to Failed status and exit this script
+die()
+{
+	local workflow_id=${1}
+	
+	fail_xnat_workflow ${workflow_id}
+	exit 1
+}
+
 # Main processing 
 #   Carry out the necessary steps to: 
 #   - get prerequisite data for PostFix.sh
 #   - run the script
-#   - push only newly created or modified data back to the DB
-#   - cleanup the working directory
 main()
 {
 	get_options $@
@@ -307,6 +324,7 @@ main()
 	current_step=0
 
 	# Command for running the XNAT REST Client
+	#
 	# Note: XNAT Data Client should be used, but the version currently available for HCP use,
 	# as specified above, seems to have a bug in it and doesn't allow downloading of the 
 	# functionally preprocessed data or the ICA FIX processed data. Thus the use of the 
@@ -367,20 +385,15 @@ main()
 	pushd ${g_working_dir}
 	
 	echo "retrieval_cmd: ${retrieval_cmd}"
-	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip
+	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip || die ${workflowID}
 	
-	unzip ${g_subject}_${g_scan}_FIX_preproc.zip
-	mkdir -p ${g_subject}/MNINonLinear/Results
-	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results
-	rm -rf ${g_session}
-	rm ${g_subject}_${g_scan}_FIX_preproc.zip
+	unzip ${g_subject}_${g_scan}_FIX_preproc.zip || die ${workflowID}
+	mkdir -p ${g_subject}/MNINonLinear/Results || die ${workflowID}
+	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results || die ${workflowID}
+	rm -rf ${g_session} || die ${workflowID}
+	rm ${g_subject}_${g_scan}_FIX_preproc.zip || die ${workflowID}
 	
 	popd 
-
-
-
-
-
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
@@ -397,7 +410,7 @@ main()
 	fi
 	
 	echo "Creating start time file: ${start_time_file}"
-	touch ${start_time_file}
+	touch ${start_time_file} || die ${workflowID}
 	ls -l ${start_time_file}
 
 	# ----------------------------------------------------------------------------------------------
@@ -409,7 +422,7 @@ main()
 	step_percent=$(( (current_step * 100) / total_steps ))
 
 	update_xnat_workflow ${workflowID} ${current_step} "Sleep for 1 minute" ${step_percent}
-	sleep 1m
+	sleep 1m || die ${workflowID}
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run PostFix.sh script
@@ -431,9 +444,9 @@ main()
 		--template-scene-dual-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_DualScreenTemplate.scene \
 		--template-scene-single-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_SingleScreenTemplate.scene
 	
-
-
-
+	if [ $? -ne 0 ]; then
+		die ${workflowID}
+	fi
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files
@@ -455,11 +468,11 @@ main()
 	update_xnat_workflow ${workflowID} ${current_step} "Remove files not newly created or modified" ${step_percent}
 	
 #	echo "The following files are being removed"
-#	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete 
+#	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete || die ${workflowID}
 	
 	# include removal of any empty directories
 #	echo "The following empty directories are being removed"
-#	find ${g_working_dir}/${g_subject} -type d -empty -delete
+#	find ${g_working_dir}/${g_subject} -type d -empty -delete || die ${workflowID}
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
