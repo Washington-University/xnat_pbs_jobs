@@ -111,6 +111,7 @@ main()
 	XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
 
 	# Get token user id and password
+	echo "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 	echo "Getting token user id and password"
@@ -136,10 +137,34 @@ main()
 		echo "Making working directory: ${working_directory_name}"
 		mkdir -p ${working_directory_name}
 
-
 		# Get JSESSION ID
 		jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
 		echo "jsession: ${jsession}"
+
+		# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
+		echo "Getting XNAT Session ID"
+		
+		get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
+		#echo "get_session_id_cmd: ${get_session_id_cmd}"
+		sessionID=`${get_session_id_cmd}`
+		echo "XNAT session ID: ${sessionID}"
+
+		# Get XNAT Workflow ID
+		server="https://db.humanconnectome.org/"
+		echo "Getting XNAT workflow ID for this job from server: ${server}"
+		get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Password ${g_password} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline RestingStateStats -Status Queued -JSESSION ${jsession}"
+		echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
+		workflowID=`${get_workflow_id_cmd}`
+		if [ $? -ne 0 ]; then
+			echo "Fetching workflow failed. Aborting"
+			echo "workflowID: ${workflowID}"
+			exit 1
+		elif [[ ${workflowID} == HTTP* ]]; then
+			echo "Fetching workflow failed. Aborting"
+			echo "worflowID: ${workflowID}"
+			exit 1
+		fi
+		echo "XNAT workflow ID: ${workflowID}"
 
 		# Submit job to actually do the work
 		script_file_to_submit=${working_directory_name}/${g_subject}.RestingStateStats.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
@@ -164,8 +189,10 @@ main()
 		echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
 		echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
 		echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
+		echo "  --session-id=\"${sessionID}\" \\" >> ${script_file_to_submit}
 		echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
+		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
 		echo "  --jsession=\"${jsession}\" " >> ${script_file_to_submit}
 		
 		processing_job_no=`qsub ${script_file_to_submit}`
