@@ -360,7 +360,7 @@ main()
 	
 	fix_proc_uri="REST/projects/${g_project}"
 	fix_proc_uri+="/subjects/${g_subject}"
-	fix_proc_uri+="/experiments/${sessionID}"
+	fix_proc_uri+="/experiments/${g_session_id}"
 	fix_proc_uri+="/resources/${g_scan}_FIX"
 	fix_proc_uri+="/files?format=zip"
 	
