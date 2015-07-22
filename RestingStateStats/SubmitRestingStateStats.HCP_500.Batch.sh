@@ -14,6 +14,9 @@ read password
 echo ""
 stty echo
 
+printf "Run Delay in Minutes: "
+read delay_minutes
+
 project="HCP_500"
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.RestingStateStats.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
@@ -43,7 +46,8 @@ for subject in ${subjects} ; do
 			--server=${server} \
 			--project=${project} \
 			--subject=${subject} \
-			--notify=WUSTL_Pipeline_Notifications@tbb.fastmail.fm 
+			--notify=WUSTL_Pipeline_Notifications@tbb.fastmail.fm \
+			--delay-minutes=${delay_minutes}
 		
 		shadow_number=$((shadow_number+1))
 		

@@ -25,6 +25,7 @@ get_options()
 	unset g_session
 	unset g_scans
 	unset g_notify
+	unset g_delay_minutes
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -65,6 +66,10 @@ get_options()
 				;;
 			--notify=*)
 				g_notify=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--delay-minutes=*)
+				g_delay_minutes=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -114,6 +119,18 @@ get_options()
 		g_scans="rfMRI_REST1_LR rfMRI_REST1_RL rfMRI_REST2_LR rfMRI_REST2_RL"
 	fi
 	echo "Connectome DB Scans: ${g_scans}"
+
+	echo "Notification Email: ${g_notify}"
+	
+	if [ -z "${g_delay_minutes}" ]; then
+		g_delay_minutes=5
+	fi
+
+	if [ "${g_delay_minutes}" -lt 5 ]; then
+		g_delay_minutes=5
+	fi
+
+	echo "Delay Minutes: ${g_delay_minutes}"
 }
 
 main()
@@ -206,8 +223,13 @@ main()
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
 		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
 		echo "  --jsession=\"${jsession}\" " >> ${script_file_to_submit}
+
+		delay_to_time=`date --date='${g_delay_minutes} minutes' +%Y%m%d%H%M`
+		submit_cmd="qsub -a ${delay_to_time} ${script_file_to_submit}"
+		echo "submit_cmd: ${submit_cmd}"
 		
-		processing_job_no=`qsub ${script_file_to_submit}`
+		processing_job_no=`${submit_cmd}`
+		#processing_job_no=`qsub -a ${} ${script_file_to_submit}`
 		echo "processing_job_no: ${processing_job_no}"
 
 		# Submit job to put the results in the DB

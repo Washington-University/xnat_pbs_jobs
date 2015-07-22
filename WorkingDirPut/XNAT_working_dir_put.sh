@@ -217,18 +217,24 @@ main()
 	get_options $@
 	
 	# Set up to run Python
+	echo "-------------------------------------------------"
 	echo "Setting up to run Python"
+	echo "-------------------------------------------------"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g ConnectomeDB_E1234)
+	echo "-------------------------------------------------"
 	echo "Getting XNAT Session ID"
+	echo "-------------------------------------------------"
 	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
 	echo "get_session_id_cmd: ${get_session_id_cmd}"
 	sessionID=`${get_session_id_cmd}`
 	echo "XNAT session ID: ${sessionID}"
 
 	# Delete any previous resource
+	echo "-------------------------------------------------"
 	echo "Deleting previous resource"	
+	echo "-------------------------------------------------"
 	java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar \
 		-u ${g_user} -p ${g_password} -m DELETE \
 		-r http://${g_server}/REST/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/resources/${g_scan}_${g_resource_suffix}/
@@ -238,19 +244,19 @@ main()
 
 	# Push the data into the DB
 	db_working_dir=${g_working_dir/HCP/data}
+	echo "-------------------------------------------------"
 	echo "Putting new data into DB from db_working_dir: ${db_working_dir}"
+	echo "-------------------------------------------------"
 	java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar \
 		-u ${g_user} -p ${g_password} -m PUT \
 		-r http://${g_server}/REST/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/resources/${g_scan}_${g_resource_suffix}/files?overwrite=true\&replace=true\&event_reason=RestingStateStatsPipeline\&reference=${db_working_dir}
 	
 	# Cleanup
+	echo "-------------------------------------------------"
 	echo "Cleanup"
+	echo "-------------------------------------------------"
 	echo "Removing g_working_dir: ${g_working_dir}"
-	#rm -rf ${g_working_dir}
-
-	echo "----------"
-	echo "Cleanup not yet implemented"
-	echo "----------"
+	rm -rf ${g_working_dir}
 }
 
 # Invoke the main function to get things started
