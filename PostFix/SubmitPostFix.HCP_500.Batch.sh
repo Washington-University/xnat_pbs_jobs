@@ -14,6 +14,13 @@ read password
 echo ""
 stty echo
 
+printf "Run Delay in Hours: "
+read delay_hours
+if [ -z "${delay_hours}" ]; then
+	delay_hours=0
+fi
+delay_minutes=$(( delay_hours * 60 ))
+
 project="HCP_500"
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.PostFix.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
@@ -33,7 +40,7 @@ for subject in ${subjects} ; do
 
 		echo ""
 		echo "--------------------------------------------------------------------------------"
-		echo " Submitting RestingStateStats job for subject: ${subject}"
+		echo " Submitting PostFix job for subject: ${subject}"
 		echo " Using server: ${server}"
 		echo "--------------------------------------------------------------------------------"
 		
@@ -43,7 +50,8 @@ for subject in ${subjects} ; do
 			--server=${server} \
 			--project=${project} \
 			--subject=${subject} \
-			--notify=WUSTL_Pipeline_Notifications@tbb.fastmail.fm
+			--notify=WUSTL_Pipeline_Notifications@tbb.fastmail.fm \
+			--delay-minutes=${delay_minutes}
 		
 		shadow_number=$((shadow_number+1))
 		

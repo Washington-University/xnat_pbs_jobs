@@ -229,7 +229,6 @@ main()
 		echo "submit_cmd: ${submit_cmd}"
 		
 		processing_job_no=`${submit_cmd}`
-		#processing_job_no=`qsub -a ${} ${script_file_to_submit}`
 		echo "processing_job_no: ${processing_job_no}"
 
 		# Submit job to put the results in the DB
@@ -259,7 +258,9 @@ main()
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
 		echo "  --resource-suffix=\"RSS\" " >> ${put_script_file_to_submit} 
 
-		qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}
+		submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
+		echo "submit_cmd: ${submit_cmd}"
+		${submit_cmd}
 	done
 }
 
