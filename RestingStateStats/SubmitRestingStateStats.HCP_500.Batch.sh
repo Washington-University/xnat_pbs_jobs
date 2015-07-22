@@ -14,8 +14,12 @@ read password
 echo ""
 stty echo
 
-printf "Run Delay in Minutes: "
-read delay_minutes
+printf "Run Delay in Hours: "
+read delay_hours
+if [ -z "${delay_hours}" ]; then
+	delay_hours=0
+fi
+delay_minutes=$(( delay_hours * 60 ))
 
 project="HCP_500"
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.RestingStateStats.subjects"

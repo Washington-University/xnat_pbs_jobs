@@ -224,7 +224,7 @@ main()
 		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
 		echo "  --jsession=\"${jsession}\" " >> ${script_file_to_submit}
 
-		delay_to_time=`date --date='${g_delay_minutes} minutes' +%Y%m%d%H%M`
+		delay_to_time=`date --date="${g_delay_minutes} minutes" +%Y%m%d%H%M`
 		submit_cmd="qsub -a ${delay_to_time} ${script_file_to_submit}"
 		echo "submit_cmd: ${submit_cmd}"
 		
