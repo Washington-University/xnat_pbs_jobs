@@ -240,8 +240,11 @@ main()
 		touch ${put_script_file_to_submit}
 		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
-		echo "#PBS -o ${working_directory_name}" >> ${put_script_file_to_submit}
-		echo "#PBS -e ${working_directory_name}" >> ${put_script_file_to_submit}
+		#echo "#PBS -o ${working_directory_name}" >> ${put_script_file_to_submit}
+		#echo "#PBS -e ${working_directory_name}" >> ${put_script_file_to_submit}
+		echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
+		echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
+
 		if [ -n "${g_notify}" ]; then
 			echo "#PBS -M ${g_notify}" >> ${put_script_file_to_submit}
 			echo "#PBS -m abe" >> ${put_script_file_to_submit}
