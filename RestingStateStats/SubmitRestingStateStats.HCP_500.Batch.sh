@@ -14,13 +14,6 @@ read password
 echo ""
 stty echo
 
-printf "Run Delay in Hours: "
-read delay_hours
-if [ -z "${delay_hours}" ]; then
-	delay_hours=0
-fi
-delay_minutes=$(( delay_hours * 60 ))
-
 project="HCP_500"
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.RestingStateStats.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
@@ -38,10 +31,11 @@ for subject in ${subjects} ; do
 
 		server="db-shadow${shadow_number}.nrg.mir:8080"
 
-		echo ""
+ 		echo ""
 		echo "--------------------------------------------------------------------------------"
 		echo " Submitting RestingStateStats job for subject: ${subject}"
 		echo " Using server: ${server}"
+		echo " Depend on job: ${depend_on_job}"
 		echo "--------------------------------------------------------------------------------"
 		
 		./SubmitRestingStateStats.OneSubject.sh \
@@ -50,9 +44,9 @@ for subject in ${subjects} ; do
 			--server=${server} \
 			--project=${project} \
 			--subject=${subject} \
-			--notify=WUSTL_Pipeline_Notifications@tbb.fastmail.fm \
-			--delay-minutes=${delay_minutes}
-		
+			--notify=WUSTL_Pipeline_Notifications@tbb.fastmail.fm 
+		echo "depend_on_job: ${depend_on_job}"
+
 		shadow_number=$((shadow_number+1))
 		
 		if [ "${shadow_number}" -gt "${max_shadow_number}" ]; then

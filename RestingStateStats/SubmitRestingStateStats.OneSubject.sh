@@ -25,7 +25,7 @@ get_options()
 	unset g_session
 	unset g_scans
 	unset g_notify
-	unset g_delay_minutes
+	unset g_serial
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -68,8 +68,8 @@ get_options()
 				g_notify=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--delay-minutes=*)
-				g_delay_minutes=${argument/*=/""}
+			--serial)
+				g_serial="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -121,16 +121,8 @@ get_options()
 	echo "Connectome DB Scans: ${g_scans}"
 
 	echo "Notification Email: ${g_notify}"
-	
-	if [ -z "${g_delay_minutes}" ]; then
-		g_delay_minutes=5
-	fi
 
-	if [ "${g_delay_minutes}" -lt 5 ]; then
-		g_delay_minutes=5
-	fi
-
-	echo "Delay Minutes: ${g_delay_minutes}"
+	echo "Serial Submission: ${g_serial}"
 }
 
 main()
@@ -152,6 +144,8 @@ main()
 	echo "token_password: ${token_password}"
 
 	for scan in ${g_scans} ; do
+
+		unset depend_on_job
 
 		# make sure working directories don't have the same name based on the 
 		# same start time by sleeping a few seconds
@@ -224,8 +218,11 @@ main()
 		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
 		echo "  --jsession=\"${jsession}\" " >> ${script_file_to_submit}
 
-		delay_to_time=`date --date="${g_delay_minutes} minutes" +%Y%m%d%H%M`
-		submit_cmd="qsub -a ${delay_to_time} ${script_file_to_submit}"
+		if [ -z "${depend_on_job}" ]; then
+			submit_cmd="qsub ${script_file_to_submit}"
+		else
+			submit_cmd="qsub -W depend=afterok:${depend_on_job} ${script_file_to_submit}"
+		fi
 		echo "submit_cmd: ${submit_cmd}"
 		
 		processing_job_no=`${submit_cmd}`
@@ -240,8 +237,6 @@ main()
 		touch ${put_script_file_to_submit}
 		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
-		#echo "#PBS -o ${working_directory_name}" >> ${put_script_file_to_submit}
-		#echo "#PBS -e ${working_directory_name}" >> ${put_script_file_to_submit}
 		echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
 		echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
 
@@ -263,7 +258,12 @@ main()
 
 		submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
 		echo "submit_cmd: ${submit_cmd}"
-		${submit_cmd}
+		if [ "${g_serial}" = "TRUE" ]; then
+			depend_on_job=`${submit_cmd}`
+		else
+			`${submit_cmd}`
+		fi
+
 	done
 }
 
