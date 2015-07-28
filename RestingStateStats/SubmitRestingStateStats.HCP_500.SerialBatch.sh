@@ -49,11 +49,25 @@ source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 scans="rfMRI_REST1_LR rfMRI_REST1_RL rfMRI_REST2_LR rfMRI_REST2_RL"
 
+subject_count=0
+
 for subject in ${subjects} ; do
 
 	session=${subject}_3T
 
 	if [[ ${subject} != \#* ]]; then
+
+		subject_count=$(( subject_count + 1 ))
+		echo "subject_count: ${subject_count}"
+
+		if [ "${subject_count}" -gt 2 ]; then
+			echo "resetting subject_count"
+			subject_count=1
+			echo "subject_count: ${subject_count}"
+			echo "unsetting put_job_no"
+			unset put_job_no
+			echo "put_job_no: ${put_job_no}"
+		fi
 
 		server="db-shadow${shadow_number}.nrg.mir:8080"
 
