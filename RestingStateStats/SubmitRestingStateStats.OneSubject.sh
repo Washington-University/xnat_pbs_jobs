@@ -261,7 +261,7 @@ main()
 		if [ "${g_serial}" = "TRUE" ]; then
 			depend_on_job=`${submit_cmd}`
 		else
-			`${submit_cmd}`
+			${submit_cmd}
 		fi
 
 	done

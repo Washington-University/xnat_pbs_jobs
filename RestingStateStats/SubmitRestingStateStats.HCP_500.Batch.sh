@@ -35,7 +35,6 @@ for subject in ${subjects} ; do
 		echo "--------------------------------------------------------------------------------"
 		echo " Submitting RestingStateStats job for subject: ${subject}"
 		echo " Using server: ${server}"
-		echo " Depend on job: ${depend_on_job}"
 		echo "--------------------------------------------------------------------------------"
 		
 		./SubmitRestingStateStats.OneSubject.sh \
@@ -45,7 +44,6 @@ for subject in ${subjects} ; do
 			--project=${project} \
 			--subject=${subject} \
 			--notify=WUSTL_Pipeline_Notifications@tbb.fastmail.fm 
-		echo "depend_on_job: ${depend_on_job}"
 
 		shadow_number=$((shadow_number+1))
 		
