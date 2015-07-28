@@ -327,7 +327,7 @@ main()
 	get_options $@
 
 	# Set up step counters
-	total_steps=5
+	total_steps=7
 	current_step=0
 
 	# Command for running the XNAT REST Client
@@ -346,7 +346,7 @@ main()
 	echo "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-	show_xnat_workflow ${workflowID}
+	show_xnat_workflow 
 
 	# ----------------------------------------------------------------------------------------------
  	# Step - Get FIX processed data from DB
@@ -456,12 +456,12 @@ main()
 
 	update_xnat_workflow ${current_step} "Remove files not newly created or modified" ${step_percent}
 	
-#	echo "The following files are being removed"
-#	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete || die 
+	echo "The following files are being removed"
+	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete || die 
 	
 	# include removal of any empty directories
-#	echo "The following empty directories are being removed"
-#	find ${g_working_dir}/${g_subject} -type d -empty -delete || die 
+	echo "The following empty directories are being removed"
+	find ${g_working_dir}/${g_subject} -type d -empty -delete || die 
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
@@ -469,7 +469,7 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	complete_xnat_workflow ${workflowID}
+	complete_xnat_workflow 
 }
 
 # Invoke the main function to get things started

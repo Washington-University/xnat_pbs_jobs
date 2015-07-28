@@ -33,7 +33,7 @@ printf "Start Shadow Number (1-8): "
 read start_shadow_number
 
 project="HCP_500"
-subject_file_name="${SUBJECT_FILES_DIR}/${project}.RestingStateStats.subjects"
+subject_file_name="${SUBJECT_FILES_DIR}/${project}.PostFix.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
@@ -83,7 +83,7 @@ for subject in ${subjects} ; do
 
 		echo ""
         echo "--------------------------------------------------------------------------------"
-        echo " Submitting RestingStateStats job for subject: ${subject}"
+        echo " Submitting PostFix job for subject: ${subject}"
         echo " Using server: ${server}"
         echo "--------------------------------------------------------------------------------"
 		
@@ -94,7 +94,7 @@ for subject in ${subjects} ; do
 			sleep 5s
 
 			current_seconds_since_epoch=`date +%s`
-			working_directory_name="${BUILD_HOME}/${project}/${current_seconds_since_epoch}_${subject}"
+			working_directory_name="${BUILD_HOME}/${project}/PostFix_${current_seconds_since_epoch}_${subject}"
 
 	        # Make the working directory
 			echo "Making working directory: ${working_directory_name}"
@@ -130,7 +130,7 @@ for subject in ${subjects} ; do
 			echo "XNAT workflow ID: ${workflowID}"
 
 			# Submit job to actually do the work
-			script_file_to_submit=${working_directory_name}/${subject}.RestingStateStats.${project}.${session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+			script_file_to_submit=${working_directory_name}/${subject}.PostFix.${project}.${session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
 			if [ -e "${script_file_to_submit}" ]; then
 				rm -f "${script_file_to_submit}"
 			fi
@@ -145,7 +145,7 @@ for subject in ${subjects} ; do
 				echo "#PBS -m abe" >> ${script_file_to_submit}
 			fi
 			echo ""
-			echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats/RestingStateStats.XNAT.sh \\" >> ${script_file_to_submit}
+			echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/PostFix.XNAT.sh \\" >> ${script_file_to_submit}
 			echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 			echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 			echo "  --server=\"${server}\" \\" >> ${script_file_to_submit}
@@ -169,7 +169,7 @@ for subject in ${subjects} ; do
 			echo "processing_job_no: ${processing_job_no}"
 
 			# Submit job to put the results in the DB
-			put_script_file_to_submit=${working_directory_name}/${subject}.RestingStateStats.${project}.${session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+			put_script_file_to_submit=${working_directory_name}/${subject}.PostFix.${project}.${session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 			if [ -e "${put_script_file_to_submit}" ]; then
 				rm -f "${put_script_file_to_submit}"
 			fi
@@ -194,7 +194,7 @@ for subject in ${subjects} ; do
 			echo "  --session=\"${session}\" \\" >> ${put_script_file_to_submit}
 			echo "  --scan=\"${scan}\" \\" >> ${put_script_file_to_submit}
 			echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-			echo "  --resource-suffix=\"RSS\" " >> ${put_script_file_to_submit}
+			echo "  --resource-suffix=\"PostFix\" " >> ${put_script_file_to_submit}
 
 			submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
 			echo "submit_cmd: ${submit_cmd}"

@@ -325,7 +325,6 @@ die()
 #   Carry out the necessary steps to: 
 #   - get prerequisite data for RestingStateStats.sh
 #   - run the script
-#   - push only newly created or modified data back to the DB
 main()
 {
 	get_options $@
