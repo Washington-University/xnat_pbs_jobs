@@ -49,6 +49,7 @@ for subject in ${subjects} ; do
 		echo "--------------------------------------------------------------------------------"
 		echo " Submitting RestingStateStats job for subject: ${subject}"
 		echo " Using server: ${server}"
+		echo " Submission delayed until ${delay} minutes from now"
 		echo "--------------------------------------------------------------------------------"
 
 		at now + ${delay} minutes <<EOF 
