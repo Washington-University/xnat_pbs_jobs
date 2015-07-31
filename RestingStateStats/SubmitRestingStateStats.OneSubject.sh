@@ -196,8 +196,7 @@ main()
 		fi
 
 		touch ${script_file_to_submit}
-		#echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=16000mb" >> ${script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=12:00:00,vmem=16000mb" >> ${script_file_to_submit}
+		echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=16000mb" >> ${script_file_to_submit}
 		echo "#PBS -q dque" >> ${script_file_to_submit}
 		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
