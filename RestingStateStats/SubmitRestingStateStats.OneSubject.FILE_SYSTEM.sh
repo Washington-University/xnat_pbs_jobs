@@ -23,7 +23,7 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
-	unset g_scans
+	unset g_scan
 	unset g_notify
 	unset g_serial
 
@@ -60,8 +60,8 @@ get_options()
 				g_session=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--scans=*)
-				g_scans=${argument/*=/""}
+			--scan=*)
+				g_scan=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--notify=*)
@@ -115,10 +115,10 @@ get_options()
 	fi
 	echo "Connectome DB Session: ${g_session}"
 
-	if [ -z "${g_scans}" ]; then
-		g_scans="rfMRI_REST1_LR rfMRI_REST1_RL rfMRI_REST2_LR rfMRI_REST2_RL"
+	if [ -z "${g_scan}" ]; then
+		g_scan="rfMRI_REST1_LR rfMRI_REST1_RL rfMRI_REST2_LR rfMRI_REST2_RL"
 	fi
-	echo "Connectome DB Scans: ${g_scans}"
+	echo "Connectome DB Scans: ${g_scan}"
 
 	echo "Notification Email: ${g_notify}"
 
@@ -145,7 +145,7 @@ main()
 
 	unset depend_on_job
 
-	for scan in ${g_scans} ; do
+	for scan in ${g_scan} ; do
 
 		# make sure working directories don't have the same name based on the 
 		# same start time by sleeping a few seconds
