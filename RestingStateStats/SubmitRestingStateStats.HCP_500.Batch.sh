@@ -47,7 +47,7 @@ for subject in ${subjects} ; do
 
  		echo ""
 		echo "--------------------------------------------------------------------------------"
-		echo " Submitting RestingStateStats job for subject: ${subject}"
+		echo " Submitting RestingStateStats jobs for subject: ${subject}"
 		echo " Using server: ${server}"
 		echo " Submission delayed until ${delay} minutes from now"
 		echo "--------------------------------------------------------------------------------"
@@ -59,6 +59,7 @@ for subject in ${subjects} ; do
 			--server=${server} \
 			--project=${project} \
 			--subject=${subject} \
+			--serial \
 			--notify=WUSTL_Pipeline_Notifications@tbb.fastmail.fm 
 EOF
 
