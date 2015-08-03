@@ -3,7 +3,7 @@
 #~ND~FORMAT~MARKDOWN~
 #~ND~START~
 #
-# # PostFix.XNAT.sh
+# # RestingStateStats.XNAT.FILE_SYSTEM.sh
 #
 # ## Copyright Notice
 #
@@ -20,15 +20,15 @@
 #
 # ## Description
 #
-# This script runs the PostFix pipeline script from the Human 
+# This script runs the RestingStateStats pipeline script from the Human 
 # Connectome Project for a specified project, subject, session, and scan 
 # in the ConnectomeDB (db.humanconnectome.org) XNAT database.
 #
 # The script is run not as an XNAT pipeline (under the control of the
 # XNAT Pipeline Engine), but in an "XNAT-aware" and "pipeline-like" manner.
-#
-# The data to be processed is retrieved via file system operations instead
-# of using REST API calls to retrieve the data. So the database archive 
+# 
+# The data to be processed is retrieved via filesystem operations instead
+# of using REST API calls to retrieve that data. So the database archive
 # and resource directory structure is "known and used" by this script.
 # 
 # This script can be invoked by a job submitted to a worker or execution
@@ -46,6 +46,7 @@ SCRIPTS_HOME=/home/HCPpipeline/SCRIPTS
 echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
 
 # home directory for XNAT related utilities
+# - for updating XNAT workflows
 XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
@@ -69,10 +70,10 @@ echo "DATABASE_RESOURCES_ROOT: ${DATABASE_RESOURCES_ROOT}"
 usage()
 {
     echo ""
-    echo "  Run the HCP PostFix.sh pipeline script in an"
+    echo "  Run the HCP RestingStateStats.sh pipeline script in an"
 	echo "  XNAT-aware and XNAT-pipeline-like manner."
 	echo ""
-	echo "  Usage: PostFix.XNAT.sh <options>"
+	echo "  Usage: RestingStateStats.XNAT.sh <options>"
 	echo ""
 	echo "  Options: [ ] = optional, < > = user-supplied-value"
 	echo ""
@@ -107,7 +108,7 @@ get_options()
 	unset g_scan
 	unset g_working_dir
 	unset g_workflow_id
-
+	
 	# parse arguments
 	local num_args=${#arguments[@]}
 	local argument
@@ -238,7 +239,7 @@ get_options()
 	fi
 }
 
-# Show information about the XNAT Workflow
+# Show information about a specified XNAT Workflow
 show_xnat_workflow()
 {
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
@@ -250,7 +251,7 @@ show_xnat_workflow()
 }
 
 # Update information (step id, step description, and percent complete)
-# for the XNAT Workflow
+# for a specified XNAT Workflow
 update_xnat_workflow()
 {
 	local step_id=${1}
@@ -280,7 +281,7 @@ update_xnat_workflow()
 		--percent-complete="${percent_complete}"
 }
 
-# Mark the XNAT Workflow as complete
+# Mark the specified XNAT Workflow as complete
 complete_xnat_workflow()
 {
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
@@ -291,37 +292,103 @@ complete_xnat_workflow()
 		complete
 }
 
-# Mark the XNAT Workflow as failed
+# Mark the specified XNAT Workflow as failed
 fail_xnat_workflow()
 {
 	${XNAT_UTILS_HOME}/xnat_workflow_info \
 		--server="${g_server}" \
 		--username="${g_user}" \
 		--password="${g_password}" \
-		--workflow-id="${workflow_id}" \
+		--workflow-id="${g_workflow_id}" \
 		fail
 }
 
-# Update the XNAT Workflow to Failed status and exit this script
+# Update specified XNAT Workflow to Failed status and exit this script
 die()
 {
-	fail_xnat_workflow ${workflow_id}
+	fail_xnat_workflow ${g_workflow_id}
 	exit 1
 }
 
 # Main processing 
 #   Carry out the necessary steps to: 
-#   - get prerequisite data for PostFix.sh
+#   - get prerequisite data for RestingStateStats.sh
 #   - run the script
 main()
 {
 	get_options $@
 
 	# Set up step counters
-	total_steps=7
+	total_steps=9
 	current_step=0
 
 	show_xnat_workflow 
+	
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Get structurally preprocessed data from DB
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	update_xnat_workflow ${current_step} "Get structurally preprocessed data from DB" ${step_percent}
+
+	pushd ${g_working_dir}
+	mkdir -p ${g_subject} || die 
+
+	# copy data from archive to working directory
+	copy_from="${DATABASE_ARCHIVE_ROOT}"
+	copy_from+="/${g_project}"
+	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	copy_from+="/${g_session}"
+	copy_from+="/${DATABASE_RESOURCES_ROOT}"
+	copy_from+="/Structural_preproc/*"
+
+	copy_to="${g_working_dir}/${g_subject}"
+
+	echo ""
+	echo "----------"
+	echo "Copy data from: ${copy_from} to ${copy_to}"
+	echo "----------"
+	echo ""
+
+	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+	echo "rsync_cmd: ${rsync_cmd}"
+	${rsync_cmd} || die
+
+	popd
+	
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Get functionally preprocessed data from DB
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	update_xnat_workflow ${current_step} "Get functionally preprocessed data from DB" ${step_percent}
+	
+	pushd ${g_working_dir}
+	mkdir -p ${g_subject} || die 
+
+	# copy data from archive to working directory
+	copy_from="${DATABASE_ARCHIVE_ROOT}"
+	copy_from+="/${g_project}"
+	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	copy_from+="/${g_session}"
+	copy_from+="/${DATABASE_RESOURCES_ROOT}"
+	copy_from+="/${g_scan}_preproc/*"
+
+	copy_to="${g_working_dir}/${g_subject}"
+	
+	echo ""
+	echo "----------"
+	echo "Copy data from: ${copy_from} to ${copy_to}"
+	echo "----------"
+	echo ""
+
+	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+	echo "rsync_cmd: ${rsync_cmd}"
+	${rsync_cmd} || die
+
+	popd
 
 	# ----------------------------------------------------------------------------------------------
  	# Step - Get FIX processed data from DB
@@ -363,8 +430,8 @@ main()
 	step_percent=$(( (current_step * 100) / total_steps ))
 
 	update_xnat_workflow ${current_step} "Create a start_time file" ${step_percent}
-		
-	start_time_file="${g_working_dir}/PostFix.starttime"
+	
+	start_time_file="${g_working_dir}/RestingStateStats.starttime"
 	if [ -e "${start_time_file}" ]; then
 		echo "Removing old ${start_time_file}"
 		rm -f ${start_time_file}
@@ -373,10 +440,10 @@ main()
 	echo "Creating start time file: ${start_time_file}"
 	touch ${start_time_file} || die 
 	ls -l ${start_time_file}
-
+	
 	# ----------------------------------------------------------------------------------------------
 	# Step - Sleep for 1 minute to make sure any files created or modified
-	#        by the PostFix.sh script are created at least 1 
+	#        by the RestingStateStats.sh script are created at least 1 
 	#        minute after the start_time file
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
@@ -386,29 +453,32 @@ main()
 	sleep 1m || die 
 
 	# ----------------------------------------------------------------------------------------------
-	# Step - Run PostFix.sh script
+	# Step - Run RestingStateStats.sh script
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Run PostFix.sh script" ${step_percent}
+	update_xnat_workflow ${current_step} "Run RestingStateStats.sh script" ${step_percent}
 	
 	# Source setup script to setup environment for running the script
-	source ${SCRIPTS_HOME}/SetUpHCPPipeline_PostFix.sh
-	
-	# Run PostFix.sh script
-	${HCPPIPEDIR}/PostFix/PostFix.sh \
+	source ${SCRIPTS_HOME}/SetUpHCPPipeline_Resting_State_Stats.sh
+		
+	# Run RestingStateStats.sh script
+	${HCPPIPEDIR}/RestingStateStats/RestingStateStats.sh \
 		--path=${g_working_dir} \
 		--subject=${g_subject} \
 		--fmri-name=${g_scan} \
 		--high-pass=2000 \
-		--template-scene-dual-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_DualScreenTemplate.scene \
-		--template-scene-single-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_SingleScreenTemplate.scene
-	
+		--low-res-mesh=32 \
+		--final-fmri-res=2 \
+		--brain-ordinates-res=2 \
+		--smoothing-fwhm=2 \
+		--output-proc-string="_hp2000_clean"
+
 	if [ $? -ne 0 ]; then
 		die 
 	fi
-
+		
 	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files
 	# ----------------------------------------------------------------------------------------------
@@ -427,13 +497,13 @@ main()
 	step_percent=$(( (current_step * 100) / total_steps ))
 
 	update_xnat_workflow ${current_step} "Remove files not newly created or modified" ${step_percent}
-	
+
 	echo "The following files are being removed"
 	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete || die 
 	
 	# include removal of any empty directories
 	echo "The following empty directories are being removed"
-	find ${g_working_dir}/${g_subject} -type d -empty -delete || die 
+	find ${g_working_dir}/${g_subject} -type d -empty -print -delete || die 
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow

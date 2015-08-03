@@ -23,7 +23,7 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
-	unset g_scans
+	unset g_scan
 	unset g_notify
 	unset g_serial
 
@@ -60,8 +60,8 @@ get_options()
 				g_session=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--scans=*)
-				g_scans=${argument/*=/""}
+			--scan=*)
+				g_scan=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--notify=*)
@@ -115,8 +115,8 @@ get_options()
 	fi
 	echo "Connectome DB Session: ${g_session}"
 
-	if [ -z "${g_scans}" ]; then
-		g_scans="rfMRI_REST1_LR rfMRI_REST1_RL rfMRI_REST2_LR rfMRI_REST2_RL"
+	if [ -z "${g_scan}" ]; then
+		g_scan="rfMRI_REST1_LR rfMRI_REST1_RL rfMRI_REST2_LR rfMRI_REST2_RL"
 	fi
 	echo "Connectome DB Scans: ${g_scans}"
 
@@ -143,9 +143,9 @@ main()
 	echo "token_username: ${token_username}"
 	echo "token_password: ${token_password}"
 
-	for scan in ${g_scans} ; do
+	unset depend_on_job
 
-		unset depend_on_job
+	for scan in ${g_scan} ; do
 
 		# make sure working directories don't have the same name based on the 
 		# same start time by sleeping a few seconds
@@ -196,7 +196,7 @@ main()
 		fi
 
 		touch ${script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=10:00:00,vmem=16000mb" >> ${script_file_to_submit}
+		echo "#PBS -l nodes=1:ppn=1,walltime=12:00:00,vmem=16000mb" >> ${script_file_to_submit}
 		echo "#PBS -q dque" >> ${script_file_to_submit}
 		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
@@ -212,11 +212,9 @@ main()
 		echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
 		echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
 		echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
-		echo "  --session-id=\"${sessionID}\" \\" >> ${script_file_to_submit}
 		echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
-		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
-		echo "  --jsession=\"${jsession}\" " >> ${script_file_to_submit}
+		echo "  --workflow-id=\"${workflowID}\" " >> ${script_file_to_submit}
 
 		if [ -z "${depend_on_job}" ]; then
 			submit_cmd="qsub ${script_file_to_submit}"
