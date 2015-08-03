@@ -143,9 +143,9 @@ main()
 	echo "token_username: ${token_username}"
 	echo "token_password: ${token_password}"
 
-	for scan in ${g_scans} ; do
+	unset depend_on_job
 
-		unset depend_on_job
+	for scan in ${g_scans} ; do
 
 		# make sure working directories don't have the same name based on the 
 		# same start time by sleeping a few seconds
