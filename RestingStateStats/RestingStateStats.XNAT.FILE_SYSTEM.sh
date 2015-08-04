@@ -322,6 +322,10 @@ main()
 	total_steps=9
 	current_step=0
 
+	# Set up to run Python
+	echo "Setting up to run Python"
+	source ${SCRIPTS_HOME}/epd-python_setup.sh
+
 	show_xnat_workflow 
 	
 	# ----------------------------------------------------------------------------------------------
@@ -399,7 +403,7 @@ main()
 	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
 
 	pushd ${g_working_dir}
-	mkdir -p ${g_subject}/MNINonLinear/Results || dir
+	mkdir -p ${g_subject}/MNINonLinear/Results || die
 
 	# copy data from archive to working directory
 	copy_from="${DATABASE_ARCHIVE_ROOT}"

@@ -321,6 +321,10 @@ main()
 	total_steps=7
 	current_step=0
 
+	# Set up to run Python
+	echo "Setting up to run Python"
+	source ${SCRIPTS_HOME}/epd-python_setup.sh
+
 	show_xnat_workflow 
 
 	# ----------------------------------------------------------------------------------------------
