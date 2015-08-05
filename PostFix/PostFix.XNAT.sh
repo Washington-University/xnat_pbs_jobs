@@ -49,6 +49,10 @@ echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
 XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
+# home directory for these XNAT PBS job scripts
+XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
+echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
+
 # home directory for XNAT pipeline engine installation
 XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
@@ -317,6 +321,8 @@ main()
 {
 	get_options $@
 
+	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
+
 	# Set up step counters
 	total_steps=7
 	current_step=0
@@ -335,30 +341,32 @@ main()
 
 	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
 
-	pushd ${g_working_dir}
-	mkdir -p ${g_subject}/MNINonLinear/Results || die
+	get_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_session}" "${g_scan}" "${g_working_dir}"
 
-	# copy data from archive to working directory
-	copy_from="${DATABASE_ARCHIVE_ROOT}"
-	copy_from+="/${g_project}"
-	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
-	copy_from+="/${g_session}"
-	copy_from+="/${DATABASE_RESOURCES_ROOT}"
-	copy_from+="/${g_scan}_FIX/*"
-	
-	copy_to="${g_working_dir}/${g_subject}/MNINonLinear/Results"
-
-	echo ""
-	echo "----------"
-	echo "Copy data from: ${copy_from} to ${copy_to}"
-	echo "----------"
-	echo ""
-
-	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
-	echo "rsync_cmd: ${rsync_cmd}"
-	${rsync_cmd} || die
-
-	popd
+#	pushd ${g_working_dir}
+#	mkdir -p ${g_subject}/MNINonLinear/Results || die
+#
+#	# copy data from archive to working directory
+#	copy_from="${DATABASE_ARCHIVE_ROOT}"
+#	copy_from+="/${g_project}"
+#	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+#	copy_from+="/${g_session}"
+#	copy_from+="/${DATABASE_RESOURCES_ROOT}"
+#	copy_from+="/${g_scan}_FIX/*"
+#	
+#	copy_to="${g_working_dir}/${g_subject}/MNINonLinear/Results"
+#
+#	echo ""
+#	echo "----------"
+#	echo "Copy data from: ${copy_from} to ${copy_to}"
+#	echo "----------"
+#	echo ""
+#
+#	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+#	echo "rsync_cmd: ${rsync_cmd}"
+#	${rsync_cmd} || die
+#
+#	popd
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
