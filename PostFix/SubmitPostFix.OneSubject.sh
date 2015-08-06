@@ -173,7 +173,7 @@ main()
 		# Get XNAT Workflow ID
 		server="https://db.humanconnectome.org/"
 		echo "Getting XNAT workflow ID for this job from server: ${server}"
-		get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline RestingStateStats -Status Queued -JSESSION ${jsession}"
+		get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline PostFix -Status Queued -JSESSION ${jsession}"
 		#echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
 		get_workflow_id_cmd+=" -Password ${g_password}"
 
