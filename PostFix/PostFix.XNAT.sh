@@ -341,32 +341,7 @@ main()
 
 	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
 
-	get_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_session}" "${g_scan}" "${g_working_dir}"
-
-#	pushd ${g_working_dir}
-#	mkdir -p ${g_subject}/MNINonLinear/Results || die
-#
-#	# copy data from archive to working directory
-#	copy_from="${DATABASE_ARCHIVE_ROOT}"
-#	copy_from+="/${g_project}"
-#	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
-#	copy_from+="/${g_session}"
-#	copy_from+="/${DATABASE_RESOURCES_ROOT}"
-#	copy_from+="/${g_scan}_FIX/*"
-#	
-#	copy_to="${g_working_dir}/${g_subject}/MNINonLinear/Results"
-#
-#	echo ""
-#	echo "----------"
-#	echo "Copy data from: ${copy_from} to ${copy_to}"
-#	echo "----------"
-#	echo ""
-#
-#	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
-#	echo "rsync_cmd: ${rsync_cmd}"
-#	${rsync_cmd} || die
-#
-#	popd
+	get_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
