@@ -27,7 +27,9 @@
 # The script is run not as an XNAT pipeline (under the control of the
 # XNAT Pipeline Engine), but in an "XNAT-aware" and "pipeline-like" manner.
 # 
-# * The data to be processed is retrieved from the specified XNAT database.
+# The data to be processed is retrieved via filesystem operations instead
+# of using REST API calls to retrieve that data. So the database archive
+# and resource directory structure is "known and used" by this script.
 # 
 # This script can be invoked by a job submitted to a worker or execution
 # node in a cluster, e.g. a Sun Grid Engine (SGE) managed or Portable Batch
@@ -52,6 +54,18 @@ echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 
+# root directory of the XNAT database archive
+DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
+echo "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
+
+# database project root directory name
+DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+echo "DATABASE_ARCHIVE_PROJECT_ROOT: ${DATABASE_ARCHIVE_PROJECT_ROOT}"
+
+# database resources root directory name
+DATABASE_RESOURCES_ROOT="RESOURCES"
+echo "DATABASE_RESOURCES_ROOT: ${DATABASE_RESOURCES_ROOT}"
+
 # Show script usage information 
 usage()
 {
@@ -74,8 +88,7 @@ usage()
 	echo "    --scan=<scan>          : Scan ID (e.g. rfMRI_REST1_LR)"
 	echo "    --working-dir=<dir>    : Working directory in which to place retrieved data"
 	echo "                             and in which to produce results"
-	echo "    --jsession=<jsession>  : Session ID for already establish web session on"
-	echo "                             the server"
+	echo "    --workflow-id=<id>     : XNAT Workflow ID to update as steps are completed"
 	echo ""
 }
 
@@ -92,11 +105,9 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
-	unset g_session_id
 	unset g_scan
 	unset g_working_dir
 	unset g_workflow_id
-	unset g_jsession
 	
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -135,10 +146,6 @@ get_options()
 				g_session=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--session-id=*)
-				g_session_id=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
 			--scan=*)
 				g_scan=${argument/*=/""}
 				index=$(( index + 1 ))
@@ -149,10 +156,6 @@ get_options()
 				;;
 			--workflow-id=*)
 				g_workflow_id=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--jsession=*)
-				g_jsession=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -209,13 +212,6 @@ get_options()
 		echo "g_session: ${g_session}"
 	fi
 
-	if [ -z "${g_session_id}" ]; then
-		echo "ERROR: session ID (--session-id=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		echo "g_session_id: ${g_session_id}"
-	fi
-
 	if [ -z "${g_scan}" ]; then
 		echo "ERROR: scan (--scan=) required"
 		error_count=$(( error_count + 1 ))
@@ -235,13 +231,6 @@ get_options()
 		error_count=$(( error_count + 1 ))
 	else
 		echo "g_workflow_id: ${g_workflow_id}"
-	fi
-
-	if [ -z "${g_jsession}" ]; then
-		echo "ERROR: jsession (--jsession=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		echo "g_jsession: ${g_jsession}"
 	fi
 
 	if [ ${error_count} -gt 0 ]; then
@@ -333,29 +322,6 @@ main()
 	total_steps=9
 	current_step=0
 
-	# Command for running the XNAT Data Client
-	xnat_data_client_cmd="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
-
-	# Command for running the XNAT REST Client
-	#
-	# Note: XNAT Data Client should be used, but the version currently available for HCP use,
-	# as specified above, seems to have a bug in it and doesn't allow downloading of the 
-	# functionally preprocessed data or the ICA FIX processed data. Thus the use of the 
-	# XNAT REST Client.  The XNAT REST Client takes much longer to download resources and
-	# the time it takes to download the functionally preprocessed data is long enough that
-	# the specified jsession expires during the download. Thus the use of the username 
-	# and password in the downloading of data via the XNAT REST Client and the uploading
-	# of data at the end.
-	#
-	# Note: For some subjects (e.g. 102816) the XNAT Data Client is behaving as above 
-	# even for the downloading of the Structurally Preprocessed data. (It downloads what
-	# appears to be the entire resource in a zip file, then once the zip file appears 
-	# to be completely downloaded, it errors out with a message like: "No contents
-	# found in response body, no output file generated. So now the XNAT REST Client
-	# is being used throughout this script for downloading date.
-	#
-	xnat_rest_client_cmd="java -Xmx2048m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-rest-client-1.6.2-SNAPSHOT.jar"
-
 	# Set up to run Python
 	echo "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
@@ -369,33 +335,30 @@ main()
 	step_percent=$(( (current_step * 100) / total_steps ))
 
 	update_xnat_workflow ${current_step} "Get structurally preprocessed data from DB" ${step_percent}
-	
-	rest_client_host="http://${g_server}"
-
- 	struct_preproc_uri="REST/projects/${g_project}"
- 	struct_preproc_uri+="/subjects/${g_subject}"
- 	struct_preproc_uri+="/experiments/${g_session_id}"
- 	struct_preproc_uri+="/resources/Structural_preproc"
- 	struct_preproc_uri+="/files?format=zip"
-
-	retrieval_cmd="${xnat_rest_client_cmd} "
-	retrieval_cmd+="-host ${rest_client_host} "
-	retrieval_cmd+="-u ${g_user} "
-	retrieval_cmd+="-p ${g_password} "
-	retrieval_cmd+="-m GET "
-	retrieval_cmd+="-remote ${struct_preproc_uri}"
 
 	pushd ${g_working_dir}
-	
-	echo "retrieval_cmd: ${retrieval_cmd}"
-	${retrieval_cmd} > ${g_subject}_Structural_preproc.zip || die 
-	
-	unzip ${g_subject}_Structural_preproc.zip || die 
 	mkdir -p ${g_subject} || die 
-	rsync -auv ${g_session}/resources/Structural_preproc/files/* ${g_subject} || die 
-	rm -rf ${g_session} || die 
-	rm ${g_subject}_Structural_preproc.zip || die 
-	
+
+	# copy data from archive to working directory
+	copy_from="${DATABASE_ARCHIVE_ROOT}"
+	copy_from+="/${g_project}"
+	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	copy_from+="/${g_session}"
+	copy_from+="/${DATABASE_RESOURCES_ROOT}"
+	copy_from+="/Structural_preproc/*"
+
+	copy_to="${g_working_dir}/${g_subject}"
+
+	echo ""
+	echo "----------"
+	echo "Copy data from: ${copy_from} to ${copy_to}"
+	echo "----------"
+	echo ""
+
+	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+	echo "rsync_cmd: ${rsync_cmd}"
+	${rsync_cmd} || die
+
 	popd
 	
 	# ----------------------------------------------------------------------------------------------
@@ -406,32 +369,29 @@ main()
 
 	update_xnat_workflow ${current_step} "Get functionally preprocessed data from DB" ${step_percent}
 	
-	rest_client_host="http://${g_server}"
-	
-	func_preproc_uri="REST/projects/${g_project}"
-	func_preproc_uri+="/subjects/${g_subject}"
-	func_preproc_uri+="/experiments/${g_session_id}"
-	func_preproc_uri+="/resources/${g_scan}_preproc"
-	func_preproc_uri+="/files?format=zip"
-	
-	retrieval_cmd="${xnat_rest_client_cmd} "
-	retrieval_cmd+="-host ${rest_client_host} "
-	retrieval_cmd+="-u ${g_user} "
-	retrieval_cmd+="-p ${g_password} "
-	retrieval_cmd+="-m GET "
-	retrieval_cmd+="-remote ${func_preproc_uri}"
-	
 	pushd ${g_working_dir}
-	
-	echo "retrieval_cmd: ${retrieval_cmd}"
-	${retrieval_cmd} > ${g_subject}_${g_scan}_Functional_preproc.zip || die 
-	
-	unzip ${g_subject}_${g_scan}_Functional_preproc.zip || die 
 	mkdir -p ${g_subject} || die 
-	rsync -auv ${g_session}/resources/${g_scan}_preproc/files/* ${g_subject} || die 
-	rm -rf ${g_session} || die 
-	rm ${g_subject}_${g_scan}_Functional_preproc.zip || die 
+
+	# copy data from archive to working directory
+	copy_from="${DATABASE_ARCHIVE_ROOT}"
+	copy_from+="/${g_project}"
+	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	copy_from+="/${g_session}"
+	copy_from+="/${DATABASE_RESOURCES_ROOT}"
+	copy_from+="/${g_scan}_preproc/*"
+
+	copy_to="${g_working_dir}/${g_subject}"
 	
+	echo ""
+	echo "----------"
+	echo "Copy data from: ${copy_from} to ${copy_to}"
+	echo "----------"
+	echo ""
+
+	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+	echo "rsync_cmd: ${rsync_cmd}"
+	${rsync_cmd} || die
+
 	popd
 
 	# ----------------------------------------------------------------------------------------------
@@ -441,34 +401,31 @@ main()
 	step_percent=$(( (current_step * 100) / total_steps ))
 
 	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
-	
-	rest_client_host="http://${g_server}"
-	
-	fix_proc_uri="REST/projects/${g_project}"
-	fix_proc_uri+="/subjects/${g_subject}"
-	fix_proc_uri+="/experiments/${g_session_id}"
-	fix_proc_uri+="/resources/${g_scan}_FIX"
-	fix_proc_uri+="/files?format=zip"
-	
-	retrieval_cmd="${xnat_rest_client_cmd} "
-	retrieval_cmd+="-host ${rest_client_host} "
-	retrieval_cmd+="-u ${g_user} "
-	retrieval_cmd+="-p ${g_password} "
-	retrieval_cmd+="-m GET "
-	retrieval_cmd+="-remote ${fix_proc_uri}"
-	
+
 	pushd ${g_working_dir}
+	mkdir -p ${g_subject}/MNINonLinear/Results || die
+
+	# copy data from archive to working directory
+	copy_from="${DATABASE_ARCHIVE_ROOT}"
+	copy_from+="/${g_project}"
+	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	copy_from+="/${g_session}"
+	copy_from+="/${DATABASE_RESOURCES_ROOT}"
+	copy_from+="/${g_scan}_FIX/*"
 	
-	echo "retrieval_cmd: ${retrieval_cmd}"
-	${retrieval_cmd} > ${g_subject}_${g_scan}_FIX_preproc.zip || die 
-	
-	unzip ${g_subject}_${g_scan}_FIX_preproc.zip || die 
-	mkdir -p ${g_subject}/MNINonLinear/Results || die 
-	rsync -auv ${g_session}/resources/${g_scan}_FIX/files/* ${g_subject}/MNINonLinear/Results || die 
-	rm -rf ${g_session} || die 
-	rm ${g_subject}_${g_scan}_FIX_preproc.zip || die 
-	
-	popd 
+	copy_to="${g_working_dir}/${g_subject}/MNINonLinear/Results"
+
+	echo ""
+	echo "----------"
+	echo "Copy data from: ${copy_from} to ${copy_to}"
+	echo "----------"
+	echo ""
+
+	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+	echo "rsync_cmd: ${rsync_cmd}"
+	${rsync_cmd} || die
+
+	popd
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file

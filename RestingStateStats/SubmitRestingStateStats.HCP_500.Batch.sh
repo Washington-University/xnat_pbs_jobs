@@ -59,7 +59,6 @@ for subject in ${subjects} ; do
 			--server=${server} \
 			--project=${project} \
 			--subject=${subject} \
-			--serial \
 			--notify=WUSTL_Pipeline_Notifications@tbb.fastmail.fm 
 EOF
 
