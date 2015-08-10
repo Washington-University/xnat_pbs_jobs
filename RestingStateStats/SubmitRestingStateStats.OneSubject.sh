@@ -152,7 +152,7 @@ main()
 		sleep 5s
 
 		current_seconds_since_epoch=`date +%s`
-		working_directory_name="${BUILD_HOME}/${g_project}/${current_seconds_since_epoch}_${g_subject}"
+		working_directory_name="${BUILD_HOME}/${g_project}/RestingStateStats.${current_seconds_since_epoch}_${g_subject}"
 
 		# Make the working directory
 		echo "Making working directory: ${working_directory_name}"
