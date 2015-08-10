@@ -118,7 +118,7 @@ get_options()
 	if [ -z "${g_scan}" ]; then
 		g_scan="rfMRI_REST1_LR rfMRI_REST1_RL rfMRI_REST2_LR rfMRI_REST2_RL"
 	fi
-	echo "Connectome DB Scans: ${g_scans}"
+	echo "Connectome DB Scans: ${g_scan}"
 
 	echo "Notification Email: ${g_notify}"
 
