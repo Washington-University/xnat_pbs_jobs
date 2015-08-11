@@ -87,7 +87,6 @@ usage()
 	echo "    --project=<project>    : XNAT project (e.g. HCP_500)"
 	echo "    --subject=<subject>    : XNAT subject ID within project (e.g. 100307)"
 	echo "    --session=<session>    : XNAT session ID within project (e.g. 100307_3T)"
-	echo "    --scan=<scan>          : Scan ID (e.g. rfMRI_REST1_LR)"
 	echo "    --working-dir=<dir>    : Working directory in which to place retrieved data"
 	echo "                             and in which to produce results"
 	echo "    --workflow-id=<id>     : XNAT Workflow ID to update as steps are completed"
@@ -107,7 +106,6 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
-	unset g_scan
 	unset g_working_dir
 	unset g_workflow_id
 	
@@ -146,10 +144,6 @@ get_options()
 				;;
 			--session=*)
 				g_session=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--scan=*)
-				g_scan=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--working-dir=*)
@@ -212,13 +206,6 @@ get_options()
 		error_count=$(( error_count + 1 ))
 	else
 		echo "g_session: ${g_session}"
-	fi
-
-	if [ -z "${g_scan}" ]; then
-		echo "ERROR: scan (--scan=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		echo "g_scan: ${g_scan}"
 	fi
 
 	if [ -z "${g_working_dir}" ]; then
@@ -335,6 +322,31 @@ main()
 # 	update_xnat_workflow ${current_step} "Get structurally preprocessed data from DB" ${step_percent}
 #
 # 	get_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Figure out what resting state scans are available for this
+	#        subject/session that have RestingStateStats computed for them
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	update_xnat_workflow ${current_step} "Figure out what resting state scans should be used" ${step_percent}
+
+	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES
+
+	scan_names=""
+	resting_state_scan_dirs=`ls -d rfMRI_REST*_RSS`
+	for resting_state_scan_dir in ${resting_state_scan_dirs} ; do
+		#echo "resting_state_scan_dir: ${resting_state_scan_dir}"
+		scan_name=${resting_state_scan_dir%%_RSS}
+		#echo "scan_name: ${scan_name}"
+		scan_names+="${scan_name} "
+	done
+	scan_names=${scan_names% } # remove trailing space
+	
+	echo "Found the following resting state scans: ${scan_names}"
+
+	popd
 	
 #	# ----------------------------------------------------------------------------------------------
 # 	# Step - Get functionally preprocessed data from DB
@@ -346,25 +358,29 @@ main()
 #
 #	get_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
 
-#	# ----------------------------------------------------------------------------------------------
-# 	# Step - Get FIX processed data from DB
-#	# ----------------------------------------------------------------------------------------------
-#	current_step=$(( current_step + 1 ))
-#	step_percent=$(( (current_step * 100) / total_steps ))
-#
-#	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
-#
-#	get_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
-
 	# ----------------------------------------------------------------------------------------------
- 	# Step - Get RestingStateStats data from DB
+ 	# Step - Get FIX processed data from DB
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Get Resting State Stats data from DB" ${step_percent}
+	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
 
-	get_hcp_resting_state_stats_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
+	for scan_name in ${scan_names} ; do
+		get_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
+	done
+
+ 	# ----------------------------------------------------------------------------------------------
+  	# Step - Get RestingStateStats data from DB
+ 	# ----------------------------------------------------------------------------------------------
+ 	current_step=$(( current_step + 1 ))
+ 	step_percent=$(( (current_step * 100) / total_steps ))
+
+ 	update_xnat_workflow ${current_step} "Get Resting State Stats data from DB" ${step_percent}
+
+	for scan_name in ${scan_names} ; do
+		get_hcp_resting_state_stats_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
+	done
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
@@ -405,18 +421,17 @@ main()
 	
 	# Source setup script to setup environment for running the script
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSMAll.sh
+
+	scan_names=`echo "${scan_names}" | sed s/" "/"@"/g`
+	echo "scan_names: ${scan_names}"
 		
-	# Run RestingStateStats.sh script
+	# Run MSMAllPipeline.sh script
 	${HCPPIPEDIR}/MSMAll/MSMAllPipeline.sh \
-		--path=${g_working_dir} #\
-#		--subject=${g_subject} \
-#		--fmri-name=${g_scan} \
-#		--high-pass=2000 \
-#		--low-res-mesh=32 \
-#		--final-fmri-res=2 \
-#		--brain-ordinates-res=2 \
-#		--smoothing-fwhm=2 \
-#		--output-proc-string="_hp2000_clean"
+		--path=${g_working_dir} \
+		--subject=${g_subject} \
+		--fmri-names-list=${scan_names} \
+		--output-fmri-name="rfMRI_REST" \
+		--fmri-proc-string="_Atlas_hp2000_clean" 
 
 	if [ $? -ne 0 ]; then
 		die 

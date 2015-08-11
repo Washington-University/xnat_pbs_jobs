@@ -27,9 +27,7 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
-	unset g_scan
 	unset g_notify
-	unset g_serial
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -64,16 +62,8 @@ get_options()
 				g_session=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--scan=*)
-				g_scan=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
 			--notify=*)
 				g_notify=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--serial)
-				g_serial="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -119,14 +109,7 @@ get_options()
 	fi
 	echo "Connectome DB Session: ${g_session}"
 
-	if [ -z "${g_scan}" ]; then
-		g_scan="rfMRI_REST1_LR rfMRI_REST1_RL rfMRI_REST2_LR rfMRI_REST2_RL"
-	fi
-	echo "Connectome DB Scans: ${g_scans}"
-
 	echo "Notification Email: ${g_notify}"
-
-	echo "Serial Submission: ${g_serial}"
 }
 
 main()
@@ -144,128 +127,113 @@ main()
 	echo "token_username: ${token_username}"
 	echo "token_password: ${token_password}"
 
-	unset depend_on_job
+	# make sure working directories don't have the same name based on the 
+	# same start time by sleeping a few seconds
+	sleep 5s
 
-	for scan in ${g_scan} ; do
+	current_seconds_since_epoch=`date +%s`
+	working_directory_name="${BUILD_HOME}/${g_project}/MSMAll_${current_seconds_since_epoch}_${g_subject}"
 
-		# make sure working directories don't have the same name based on the 
-		# same start time by sleeping a few seconds
-		sleep 5s
+	# Make the working directory
+	echo "Making working directory: ${working_directory_name}"
+	mkdir -p ${working_directory_name}
 
-		current_seconds_since_epoch=`date +%s`
-		working_directory_name="${BUILD_HOME}/${g_project}/MSMAll_${current_seconds_since_epoch}_${g_subject}"
+	# Get JSESSION ID
+	echo "Getting JSESSION ID"
+	jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
+	echo "jsession: ${jsession}"
 
-		# Make the working directory
-		echo "Making working directory: ${working_directory_name}"
-		mkdir -p ${working_directory_name}
+	# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
+	echo "Getting XNAT Session ID"
+	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --project=${g_project} --subject=${g_subject} --session=${g_session}"
+	echo "get_session_id_cmd: ${get_session_id_cmd}"
+	get_session_id_cmd+=" --password=${g_password}"
 
-		# Get JSESSION ID
-		echo "Getting JSESSION ID"
-		jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
-		echo "jsession: ${jsession}"
+	sessionID=`${get_session_id_cmd}`
+	echo "XNAT session ID: ${sessionID}"
 
-		# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
-		echo "Getting XNAT Session ID"
-		get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --project=${g_project} --subject=${g_subject} --session=${g_session}"
-		echo "get_session_id_cmd: ${get_session_id_cmd}"
-		get_session_id_cmd+=" --password=${g_password}"
+	# Get XNAT Workflow ID
+	server="https://db.humanconnectome.org/"
+	echo "Getting XNAT workflow ID for this job from server: ${server}"
+	get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline MSMAllRegistration -Status Queued -JSESSION ${jsession}"
+	echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
+	get_workflow_id_cmd+=" -Password ${g_password}"
 
-		sessionID=`${get_session_id_cmd}`
-		echo "XNAT session ID: ${sessionID}"
+	workflowID=`${get_workflow_id_cmd}`
+	if [ $? -ne 0 ]; then
+		echo "Fetching workflow failed. Aborting"
+		echo "workflowID: ${workflowID}"
+		exit 1
+	elif [[ ${workflowID} == HTTP* ]]; then
+		echo "Fetching workflow failed. Aborting"
+		echo "worflowID: ${workflowID}"
+		exit 1
+	fi
+	echo "XNAT workflow ID: ${workflowID}"
 
-		# Get XNAT Workflow ID
-		server="https://db.humanconnectome.org/"
-		echo "Getting XNAT workflow ID for this job from server: ${server}"
-		get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline MSMAllRegistration -Status Queued -JSESSION ${jsession}"
-		echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
-		get_workflow_id_cmd+=" -Password ${g_password}"
+	# Submit job to actually do the work
+	script_file_to_submit=${working_directory_name}/${g_subject}.MSMAllRegistration.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+	if [ -e "${script_file_to_submit}" ]; then
+		rm -f "${script_file_to_submit}"
+	fi
 
-		workflowID=`${get_workflow_id_cmd}`
-		if [ $? -ne 0 ]; then
-			echo "Fetching workflow failed. Aborting"
-			echo "workflowID: ${workflowID}"
-			exit 1
-		elif [[ ${workflowID} == HTTP* ]]; then
-			echo "Fetching workflow failed. Aborting"
-			echo "worflowID: ${workflowID}"
-			exit 1
-		fi
-		echo "XNAT workflow ID: ${workflowID}"
-
-		# Submit job to actually do the work
-		script_file_to_submit=${working_directory_name}/${g_subject}.MSMAllRegistration.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
-		if [ -e "${script_file_to_submit}" ]; then
-			rm -f "${script_file_to_submit}"
-		fi
-
-		touch ${script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=16000mb" >> ${script_file_to_submit}
-		echo "#PBS -q dque" >> ${script_file_to_submit}
-		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
-		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
-		if [ -n "${g_notify}" ]; then
-			echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
-			echo "#PBS -m abe" >> ${script_file_to_submit}
-		fi
-		echo ""
-		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MSMAllRegistration/MSMAllRegistration.XNAT.sh \\" >> ${script_file_to_submit}
-		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
-		echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
-		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
-		echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
-		echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
-		echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
-		echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
-		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
-		echo "  --workflow-id=\"${workflowID}\" " >> ${script_file_to_submit}
-
-		if [ -z "${depend_on_job}" ]; then
-			submit_cmd="qsub ${script_file_to_submit}"
-		else
-			submit_cmd="qsub -W depend=afterok:${depend_on_job} ${script_file_to_submit}"
-		fi
-		echo "submit_cmd: ${submit_cmd}"
-
-		processing_job_no=`${submit_cmd}`
-		echo "processing_job_no: ${processing_job_no}"
-
-		# Submit job to put the results in the DB
-		put_script_file_to_submit=${working_directory_name}/${g_subject}.MSMAllRegistration.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
-		if [ -e "${put_script_file_to_submit}" ]; then
-			rm -f "${put_script_file_to_submit}"
-		fi
+	touch ${script_file_to_submit}
+	echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=16000mb" >> ${script_file_to_submit}
+	echo "#PBS -q dque" >> ${script_file_to_submit}
+	echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
+	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
+	if [ -n "${g_notify}" ]; then
+		echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
+		echo "#PBS -m abe" >> ${script_file_to_submit}
+	fi
+	echo ""
+	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MSMAllRegistration/MSMAllRegistration.XNAT.sh \\" >> ${script_file_to_submit}
+	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
+	echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
+	echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
+	echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
+	echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
+	echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
+	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
+	echo "  --workflow-id=\"${workflowID}\" " >> ${script_file_to_submit}
+	
+	submit_cmd="qsub ${script_file_to_submit}"
+	echo "submit_cmd: ${submit_cmd}"
+	
+	processing_job_no=`${submit_cmd}`
+	echo "processing_job_no: ${processing_job_no}"
+	
+	# Submit job to put the results in the DB
+	put_script_file_to_submit=${working_directory_name}/${g_subject}.MSMAllRegistration.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+	if [ -e "${put_script_file_to_submit}" ]; then
+		rm -f "${put_script_file_to_submit}"
+	fi
 		
- 		touch ${put_script_file_to_submit}
- 		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
- 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
- 		echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
- 		echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
-
-		if [ -n "${g_notify}" ]; then
-			echo "#PBS -M ${g_notify}" >> ${put_script_file_to_submit}
-			echo "#PBS -m abe" >> ${put_script_file_to_submit}
-		fi
- 		echo ""
- 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
- 		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
- 		echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
- 		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
- 		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
- 		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
- 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
- 		echo "  --scan=\"${scan}\" \\" >> ${put_script_file_to_submit}
-		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-		echo "  --resource-suffix=\"MSMAllReg\" " >> ${put_script_file_to_submit} 
-
-		submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
-		echo "submit_cmd: ${submit_cmd}"
-		if [ "${g_serial}" = "TRUE" ]; then
-			depend_on_job=`${submit_cmd}`
-		else
-			${submit_cmd}
-		fi
-
-	done
+	touch ${put_script_file_to_submit}
+	echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
+	echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
+	echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
+	echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
+	
+	if [ -n "${g_notify}" ]; then
+		echo "#PBS -M ${g_notify}" >> ${put_script_file_to_submit}
+		echo "#PBS -m abe" >> ${put_script_file_to_submit}
+	fi
+	echo ""
+	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
+	echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
+	echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
+	echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
+	echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
+	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
+	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
+	echo "  --scan=\"rfMRI_REST\" \\" >> ${put_script_file_to_submit}
+	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
+	echo "  --resource-suffix=\"MSMAllReg\" " >> ${put_script_file_to_submit} 
+	
+	submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
+	echo "submit_cmd: ${submit_cmd}"
+	${submit_cmd}
 }
 
 # Invoke the main function to get things started
