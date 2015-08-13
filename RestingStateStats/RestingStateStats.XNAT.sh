@@ -46,9 +46,12 @@ SCRIPTS_HOME=/home/HCPpipeline/SCRIPTS
 echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
 
 # home directory for XNAT related utilities
-# - for updating XNAT workflows
 XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
+
+# home directory for these XNAT PBS job scripts
+XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
+echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
 
 # home directory for XNAT pipeline engine installation
 XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
@@ -59,12 +62,12 @@ DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
 echo "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
 
 # database project root directory name
-DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
-echo "DATABASE_ARCHIVE_PROJECT_ROOT: ${DATABASE_ARCHIVE_PROJECT_ROOT}"
+#DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+#echo "DATABASE_ARCHIVE_PROJECT_ROOT: ${DATABASE_ARCHIVE_PROJECT_ROOT}"
 
 # database resources root directory name
-DATABASE_RESOURCES_ROOT="RESOURCES"
-echo "DATABASE_RESOURCES_ROOT: ${DATABASE_RESOURCES_ROOT}"
+#DATABASE_RESOURCES_ROOT="RESOURCES"
+#echo "DATABASE_RESOURCES_ROOT: ${DATABASE_RESOURCES_ROOT}"
 
 # Show script usage information 
 usage()
@@ -318,6 +321,8 @@ main()
 {
 	get_options $@
 
+	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
+
 	# Set up step counters
 	total_steps=9
 	current_step=0
@@ -329,103 +334,34 @@ main()
 	show_xnat_workflow 
 	
 	# ----------------------------------------------------------------------------------------------
- 	# Step - Get structurally preprocessed data from DB
+ 	# Step - Link structurally preprocessed data from DB
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Get structurally preprocessed data from DB" ${step_percent}
+	update_xnat_workflow ${current_step} "Link structurally preprocessed data from DB" ${step_percent}
 
-	pushd ${g_working_dir}
-	mkdir -p ${g_subject} || die 
+	link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
 
-	# copy data from archive to working directory
-	copy_from="${DATABASE_ARCHIVE_ROOT}"
-	copy_from+="/${g_project}"
-	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
-	copy_from+="/${g_session}"
-	copy_from+="/${DATABASE_RESOURCES_ROOT}"
-	copy_from+="/Structural_preproc/*"
-
-	copy_to="${g_working_dir}/${g_subject}"
-
-	echo ""
-	echo "----------"
-	echo "Copy data from: ${copy_from} to ${copy_to}"
-	echo "----------"
-	echo ""
-
-	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
-	echo "rsync_cmd: ${rsync_cmd}"
-	${rsync_cmd} || die
-
-	popd
-	
 	# ----------------------------------------------------------------------------------------------
- 	# Step - Get functionally preprocessed data from DB
+ 	# Step - Link functionally preprocessed data from DB
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Get functionally preprocessed data from DB" ${step_percent}
+	update_xnat_workflow ${current_step} "Link functionally preprocessed data from DB" ${step_percent}
 	
-	pushd ${g_working_dir}
-	mkdir -p ${g_subject} || die 
-
-	# copy data from archive to working directory
-	copy_from="${DATABASE_ARCHIVE_ROOT}"
-	copy_from+="/${g_project}"
-	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
-	copy_from+="/${g_session}"
-	copy_from+="/${DATABASE_RESOURCES_ROOT}"
-	copy_from+="/${g_scan}_preproc/*"
-
-	copy_to="${g_working_dir}/${g_subject}"
-	
-	echo ""
-	echo "----------"
-	echo "Copy data from: ${copy_from} to ${copy_to}"
-	echo "----------"
-	echo ""
-
-	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
-	echo "rsync_cmd: ${rsync_cmd}"
-	${rsync_cmd} || die
-
-	popd
+	link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
- 	# Step - Get FIX processed data from DB
+ 	# Step - Link FIX processed data from DB
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
+	update_xnat_workflow ${current_step} "Link FIX processed data from DB" ${step_percent}
 
-	pushd ${g_working_dir}
-	mkdir -p ${g_subject}/MNINonLinear/Results || die
-
-	# copy data from archive to working directory
-	copy_from="${DATABASE_ARCHIVE_ROOT}"
-	copy_from+="/${g_project}"
-	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
-	copy_from+="/${g_session}"
-	copy_from+="/${DATABASE_RESOURCES_ROOT}"
-	copy_from+="/${g_scan}_FIX/*"
-	
-	copy_to="${g_working_dir}/${g_subject}/MNINonLinear/Results"
-
-	echo ""
-	echo "----------"
-	echo "Copy data from: ${copy_from} to ${copy_to}"
-	echo "----------"
-	echo ""
-
-	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
-	echo "rsync_cmd: ${rsync_cmd}"
-	${rsync_cmd} || die
-
-	popd
+	link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
@@ -503,11 +439,11 @@ main()
 	update_xnat_workflow ${current_step} "Remove files not newly created or modified" ${step_percent}
 
 	echo "The following files are being removed"
-	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete || die 
+	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete || die 
 	
 	# include removal of any empty directories
-	echo "The following empty directories are being removed"
-	find ${g_working_dir}/${g_subject} -type d -empty -print -delete || die 
+	#echo "The following empty directories are being removed"
+	#find ${g_working_dir}/${g_subject} -type d -empty -print -delete || die 
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
