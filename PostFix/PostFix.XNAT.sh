@@ -324,7 +324,7 @@ main()
 	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
 
 	# Set up step counters
-	total_steps=7
+	total_steps=6
 	current_step=0
 
 	# Set up to run Python
@@ -334,7 +334,7 @@ main()
 	show_xnat_workflow 
 
 	# ----------------------------------------------------------------------------------------------
- 	# Step - Get FIX processed data from DB
+ 	# Step - Link FIX processed data from DB
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
@@ -342,6 +342,16 @@ main()
 	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
 
 	link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
+
+	# get files that are opened for reading and writing 
+	filtered_func_data_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_scan}/${g_scan}_hp2000.ica/filtered_func_data.ica"
+	filtered_mask_files="${filtered_func_data_dir}/mask*"
+	echo "filtered_mask_files: ${filtered_mask_files}"
+	rm ${filtered_mask_files}
+
+	cp -a --preserve=timestamps \
+		${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${g_scan}_FIX/${g_scan}/${g_scan}_hp2000.ica/filtered_func_data.ica/mask* \
+		${filtered_func_data_dir}
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
@@ -356,20 +366,19 @@ main()
 		echo "Removing old ${start_time_file}"
 		rm -f ${start_time_file}
 	fi
+
+	# Sleep for 1 minute to make sure start_time file is created at least a
+	# minute after any files copied above.
+	echo "Sleep for 1 minute before creating start_time file."
+	sleep 1m || die
 	
 	echo "Creating start time file: ${start_time_file}"
 	touch ${start_time_file} || die 
 	ls -l ${start_time_file}
 
-	# ----------------------------------------------------------------------------------------------
-	# Step - Sleep for 1 minute to make sure any files created or modified
-	#        by the PostFix.sh script are created at least 1 
-	#        minute after the start_time file
-	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	update_xnat_workflow ${current_step} "Sleep for 1 minute" ${step_percent}
+	# Sleep for 1 minute to make sure any files created or modified by the PostFix.sh
+	# script are created at least 1 minute after the start_time file
+	echo "Sleep for 1 minute after creating start_time file."
 	sleep 1m || die 
 
 	# ----------------------------------------------------------------------------------------------
