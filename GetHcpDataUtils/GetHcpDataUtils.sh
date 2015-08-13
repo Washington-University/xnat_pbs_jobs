@@ -29,7 +29,7 @@ link_hcp_struct_preproc_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-    link_from+="/Structural_preproc/*"
+    link_from+="/Structural_preproc/"
 
     local link_to=""
     link_to="${to_study_dir}/${subject}"
@@ -120,7 +120,7 @@ link_hcp_func_preproc_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-    link_from+="/${scan}_preproc/*"
+    link_from+="/${scan}_preproc/"
 
     local link_to=""
     link_to="${to_study_dir}/${subject}"
@@ -213,7 +213,7 @@ link_hcp_fix_proc_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-    link_from+="/${scan}_FIX/*"
+    link_from+="/${scan}_FIX/"
 
     local link_to=""
     link_to="${to_study_dir}/${subject}/MNINonLinear/Results"
