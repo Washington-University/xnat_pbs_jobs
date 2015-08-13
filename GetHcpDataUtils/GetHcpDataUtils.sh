@@ -34,7 +34,7 @@ link_hcp_struct_preproc_data()
     link_to="${to_study_dir}/${subject}"
 
 	local lndir_cmd=""
-	lndir_cmd="lndir ${link_from} ${link_to}"
+	lndir_cmd="/export/lndir-1.0.1/lndir ${link_from} ${link_to}"
 	echo "lndir_cmd: ${lndir_cmd}"
 
 	echo "----------" `date` "----------"
@@ -125,7 +125,7 @@ link_hcp_func_preproc_data()
     link_to="${to_study_dir}/${subject}"
 
     local lndir_cmd=""
-    lndir_cmd="lndir ${link_from} ${link_to}"
+    lndir_cmd="/export/lndir-1.0.1/lndir ${link_from} ${link_to}"
     echo "lndir_cmd: ${lndir_cmd}"
 
 	echo "----------" `date` "----------"
@@ -218,7 +218,7 @@ link_hcp_fix_proc_data()
     link_to="${to_study_dir}/${subject}/MNINonLinear/Results"
 
     local lndir_cmd=""
-    lndir_cmd="lndir ${link_from} ${link_to}"
+    lndir_cmd="/export/lndir-1.0.1/lndir ${link_from} ${link_to}"
     echo "lndir_cmd: ${lndir_cmd}"
 	echo "----------" `date` "----------"
 	echo ""
@@ -310,7 +310,7 @@ link_hcp_postfix_data()
     link_to="${to_study_dir}/${subject}/MNINonLinear/Results"
 
     local lndir_cmd=""
-    lndir_cmd="lndir ${link_from} ${link_to}"
+    lndir_cmd="/export/lndir-1.0.1/lndir ${link_from} ${link_to}"
     echo "lndir_cmd: ${lndir_cmd}"
 	echo "----------" `date` "----------"
 	echo ""
@@ -402,7 +402,7 @@ link_hcp_resting_state_stats_data()
     link_to="${to_study_dir}/${subject}/MNINonLinear/Results"
 
     local lndir_cmd=""
-    lndir_cmd="lndir ${link_from} ${link_to}"
+    lndir_cmd="/export/lndir-1.0.1/lndir ${link_from} ${link_to}"
     echo "lndir_cmd: ${lndir_cmd}"
 	echo "----------" `date` "----------"
 	echo ""
