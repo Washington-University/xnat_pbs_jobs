@@ -341,7 +341,7 @@ main()
 
 	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
 
-	get_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
+	link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
