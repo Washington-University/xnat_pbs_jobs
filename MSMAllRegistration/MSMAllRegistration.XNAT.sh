@@ -312,16 +312,6 @@ main()
 	current_step=0
 
 	show_xnat_workflow 
-	
-# 	# ----------------------------------------------------------------------------------------------
-#  	# Step - Get structurally preprocessed data from DB
-# 	# ----------------------------------------------------------------------------------------------
-# 	current_step=$(( current_step + 1 ))
-# 	step_percent=$(( (current_step * 100) / total_steps ))
-#
-# 	update_xnat_workflow ${current_step} "Get structurally preprocessed data from DB" ${step_percent}
-#
-# 	get_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Figure out what resting state scans are available for this
@@ -348,27 +338,38 @@ main()
 
 	popd
 	
-#	# ----------------------------------------------------------------------------------------------
-# 	# Step - Get functionally preprocessed data from DB
-#	# ----------------------------------------------------------------------------------------------
-#	current_step=$(( current_step + 1 ))
-#	step_percent=$(( (current_step * 100) / total_steps ))
-#
-#	update_xnat_workflow ${current_step} "Get functionally preprocessed data from DB" ${step_percent}
-#
-#	get_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
+	# VERY IMPORTANT NOTE:
+	# 
+	# Since ConnectomeDB resources may contain overlapping files (e.g the functionally preprocessed 
+	# data resource may contain some of the exact same files as the structurally preprocessed
+	# data resource) extra care must be taken with the order in which data is linked in to the
+	# working directory.  
+	#
+	# If, for example, a file named ${g_subject}/subdir1/subdir2/this_file.nii.gz exists in both
+	# the structurally preprocessed data resource and in the functionally preprocessed data 
+	# resource, whichever resource we link in to the working directory _first_ will take 
+	# precedence.  (This is due to the behavior of the lndir command used by the link_hcp...
+	# functions, and is unlike the behavior of the rsync command used by the get_hcp...
+	# functions. The rsync command will copy/update the newer version of the file from its
+	# source.) 
+	#
+	# The lndir command will report to stderr any links that it could not (would not) create 
+	# because they already exist in the destination directories.
+	# 
+	# So if we link in the structurally preprocessed data first and then link in the functionally
+	# preprocessed data second, the file ${g_subject}/subdir1/subdir2/this_file.nii.gz in the 
+	# working directory will be linked back to the structurally preprocessed version of the file.
+	#
+	# Since functional preprocessing comes _after_ structural preprocessing, this is not likely
+	# to be what we want.  Instead, we want the file as it exists after functional preprocessing
+	# to be the one that is linked in to the working directory.
+	#
+	# Therefore, it is important to consider the order in which we call the link_hcp... functions
+	# below.  We should call them in order from the results of the latest prerequisite pipelines 
+	# to the earliest prerequisite pipelines.
 
-	# ----------------------------------------------------------------------------------------------
- 	# Step - Get FIX processed data from DB
-	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
-
-	for scan_name in ${scan_names} ; do
-		get_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
-	done
+	# For this pipeline, we first link in the RestingStateStats data then link in the earlier
+	# results of the FIX processing pipeline
 
  	# ----------------------------------------------------------------------------------------------
   	# Step - Get RestingStateStats data from DB
@@ -379,7 +380,19 @@ main()
  	update_xnat_workflow ${current_step} "Get Resting State Stats data from DB" ${step_percent}
 
 	for scan_name in ${scan_names} ; do
-		get_hcp_resting_state_stats_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
+		link_hcp_resting_state_stats_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
+	done
+
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Link FIX processed data from DB
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
+
+	for scan_name in ${scan_names} ; do
+		link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
 	done
 
 	# ----------------------------------------------------------------------------------------------
@@ -396,19 +409,18 @@ main()
 		rm -f ${start_time_file}
 	fi
 	
+	# Sleep for 1 minute to make sure start_time file is created at least a
+	# minute after any files copied or linked above.
+	echo "Sleep for 1 minute before creating start_time file."
+	sleep 1m || die
+
 	echo "Creating start time file: ${start_time_file}"
 	touch ${start_time_file} || die 
 	ls -l ${start_time_file}
-	
-	# ----------------------------------------------------------------------------------------------
-	# Step - Sleep for 1 minute to make sure any files created or modified
-	#        by the MSMAllPipeline.sh script are created at least 1 
-	#        minute after the start_time file
-	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Sleep for 1 minute" ${step_percent}
+	# Sleep for 1 minute to make sure any files created or modified by the script below
+	# are created at least 1 minute after the start_time file
+	echo "Sleep for 1 minute after creating start_time file."
 	sleep 1m || die 
 
 	# ----------------------------------------------------------------------------------------------
@@ -457,12 +469,8 @@ main()
 	update_xnat_workflow ${current_step} "Remove files not newly created or modified" ${step_percent}
 
 	echo "The following files are being removed"
-	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete || die 
+	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete || die 
 	
-	# include removal of any empty directories
-	echo "The following empty directories are being removed"
-	find ${g_working_dir}/${g_subject} -type d -empty -print -delete || die 
-
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
 	# ----------------------------------------------------------------------------------------------
