@@ -324,7 +324,7 @@ main()
 	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
 
 	# Set up step counters
-	total_steps=9
+	total_steps=8
 	current_step=0
 
 	# Set up to run Python
@@ -332,26 +332,40 @@ main()
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 	show_xnat_workflow 
-	
-	# ----------------------------------------------------------------------------------------------
- 	# Step - Link structurally preprocessed data from DB
-	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Link structurally preprocessed data from DB" ${step_percent}
-
-	link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
-
-	# ----------------------------------------------------------------------------------------------
- 	# Step - Link functionally preprocessed data from DB
-	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	update_xnat_workflow ${current_step} "Link functionally preprocessed data from DB" ${step_percent}
-	
-	link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
+	# VERY IMPORTANT NOTE:
+	# 
+	# Since ConnectomeDB resources contain overlapping files (e.g the functionally preprocessed 
+	# data resource may contain some of the exact same files as the structurally preprocessed
+	# data resource) extra care must be taken with the order in which data is linked in to the
+	# working directory.  
+	#
+	# If, for example, a file named ${g_subject}/subdir1/subdir2/this_file.nii.gz exists in both
+	# the structurally preprocessed data resource and in the functionally preprocessed data 
+	# resource, whichever resource we link in to the working directory _first_ will take 
+	# precedence.  (This is due to the behavior of the lndir command used by the link_hcp...
+	# functions, and is unlike the behavior of the rsync command used by the get_hcp...
+	# functions. The rsync command will copy/update the newer version of the file from its
+	# source.) 
+	#
+	# The lndir command will report to stderr any links that it could not (would not) create 
+	# because they already exist in the destination directories.
+	# 
+	# So if we link in the structurally preprocessed data first and then link in the functionally
+	# preprocessed data second, the file ${g_subject}/subdir1/subdir2/this_file.nii.gz in the 
+	# working directory will be linked back to the structurally preprocessed version of the file.
+	#
+	# Since functional preprocessing comes _after_ structural preprocessing, this is not likely
+	# to be what we want.  Instead, we want the file as it exists after functional preprocessing
+	# to be the one that is linked in to the working directory.
+	#
+	# Therefore, it is important to consider the order in which we call the link_hcp... functions
+	# below.  We should call them in order from the results of the latest prerequisite pipelines 
+	# to the earliest prerequisite pipelines.
+	#
+	# Thus, we first link in the FIX processed data from the DB, followed by the functionally
+	# preprocessed data from the DB, followed by the structurally preprocessed data from the 
+	# DB.
 
 	# ----------------------------------------------------------------------------------------------
  	# Step - Link FIX processed data from DB
@@ -362,6 +376,26 @@ main()
 	update_xnat_workflow ${current_step} "Link FIX processed data from DB" ${step_percent}
 
 	link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
+
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Link functionally preprocessed data from DB
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	update_xnat_workflow ${current_step} "Link functionally preprocessed data from DB" ${step_percent}
+	
+	link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
+	
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Link structurally preprocessed data from DB
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	update_xnat_workflow ${current_step} "Link structurally preprocessed data from DB" ${step_percent}
+
+	link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
@@ -376,20 +410,19 @@ main()
 		echo "Removing old ${start_time_file}"
 		rm -f ${start_time_file}
 	fi
+
+	# Sleep for 1 minute to make sure start_time file is created at least a
+	# minute after any files copied or linked above.
+	echo "Sleep for 1 minute before creating start_time file."
+	sleep 1m || die
 	
 	echo "Creating start time file: ${start_time_file}"
 	touch ${start_time_file} || die 
 	ls -l ${start_time_file}
-	
-	# ----------------------------------------------------------------------------------------------
-	# Step - Sleep for 1 minute to make sure any files created or modified
-	#        by the RestingStateStats.sh script are created at least 1 
-	#        minute after the start_time file
-	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Sleep for 1 minute" ${step_percent}
+	# Sleep for 1 minute to make sure any files created or modified by the RestingStateStats.sh
+	# script are created at least 1 minute after the start_time file
+	echo "Sleep for 1 minute after creating start_time file."
 	sleep 1m || die 
 
 	# ----------------------------------------------------------------------------------------------
@@ -442,8 +475,8 @@ main()
 	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete || die 
 	
 	# include removal of any empty directories
-	#echo "The following empty directories are being removed"
-	#find ${g_working_dir}/${g_subject} -type d -empty -print -delete || die 
+	echo "The following empty directories are being removed"
+	find ${g_working_dir}/${g_subject} -type d -empty -print -delete || die 
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow

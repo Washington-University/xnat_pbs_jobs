@@ -333,17 +333,53 @@ main()
 
 	show_xnat_workflow 
 
+	# VERY IMPORTANT NOTE:
+	# 
+	# Since ConnectomeDB resources contain overlapping files (e.g the functionally preprocessed 
+	# data resource may contain some of the exact same files as the structurally preprocessed
+	# data resource) extra care must be taken with the order in which data is linked in to the
+	# working directory.  
+	#
+	# If, for example, a file named ${g_subject}/subdir1/subdir2/this_file.nii.gz exists in both
+	# the structurally preprocessed data resource and in the functionally preprocessed data 
+	# resource, whichever resource we link in to the working directory _first_ will take 
+	# precedence.  (This is due to the behavior of the lndir command used by the link_hcp...
+	# functions, and is unlike the behavior of the rsync command used by the get_hcp...
+	# functions. The rsync command will copy/update the newer version of the file from its
+	# source.) 
+	#
+	# The lndir command will report to stderr any links that it could not (would not) create 
+	# because they already exist in the destination directories.
+	# 
+	# So if we link in the structurally preprocessed data first and then link in the functionally
+	# preprocessed data second, the file ${g_subject}/subdir1/subdir2/this_file.nii.gz in the 
+	# working directory will be linked back to the structurally preprocessed version of the file.
+	#
+	# Since functional preprocessing comes _after_ structural preprocessing, this is not likely
+	# to be what we want.  Instead, we want the file as it exists after functional preprocessing
+	# to be the one that is linked in to the working directory.
+	#
+	# Therefore, it is important to consider the order in which we call the link_hcp... functions
+	# below.  We should call them in order from the results of the latest prerequisite pipelines 
+	# to the earliest prerequisite pipelines.
+	#
+	# Thus, we would first link in the FIX processed data from the DB, followed by the functionally
+	# preprocessed data from the DB, followed by the structurally preprocessed data from the 
+	# DB. For this work, only the FIX processed data is needed.
+
 	# ----------------------------------------------------------------------------------------------
  	# Step - Link FIX processed data from DB
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
+	update_xnat_workflow ${current_step} "Link FIX processed data from DB" ${step_percent}
 
 	link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
 
-	# get files that are opened for reading and writing 
+	# get files that are opened for writing
+	# Whether they are actually written to or not, if a file is opened in write mode,
+	# that open will fail due to the read-only nature of the files in the DB archive.
 	filtered_func_data_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_scan}/${g_scan}_hp2000.ica/filtered_func_data.ica"
 	filtered_mask_files="${filtered_func_data_dir}/mask*"
 	echo "filtered_mask_files: ${filtered_mask_files}"
@@ -368,7 +404,7 @@ main()
 	fi
 
 	# Sleep for 1 minute to make sure start_time file is created at least a
-	# minute after any files copied above.
+	# minute after any files copied or linked above.
 	echo "Sleep for 1 minute before creating start_time file."
 	sleep 1m || die
 	
