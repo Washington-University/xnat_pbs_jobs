@@ -463,10 +463,6 @@ main()
 	echo "The following files are being removed"
 	find ${g_working_dir}/${g_subject} -type f -not -newer ${start_time_file} -print -delete || die 
 	
-	# include removal of any empty directories
-	echo "The following empty directories are being removed"
-	find ${g_working_dir}/${g_subject} -type d -empty -delete || die 
-
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
 	# ----------------------------------------------------------------------------------------------
