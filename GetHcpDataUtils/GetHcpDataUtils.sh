@@ -397,7 +397,7 @@ link_hcp_resting_state_stats_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-    link_from+="/${scan}_RSS/${subject}/MNINonLinear/Results/${scan}"
+    link_from+="/${scan}_RSS/MNINonLinear/Results/${scan}"
 
     local link_to=""
     link_to="${to_study_dir}/${subject}/MNINonLinear/Results"
@@ -443,7 +443,7 @@ get_hcp_resting_state_stats_data()
     copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     copy_from+="/${session}"
     copy_from+="/${DATABASE_RESOURCES_ROOT}"
-    copy_from+="/${scan}_RSS/${subject}/MNINonLinear/Results/${scan}"
+    copy_from+="/${scan}_RSS/MNINonLinear/Results/${scan}"
 
     local copy_to=""
     copy_to="${to_study_dir}/${subject}/MNINonLinear/Results"
