@@ -400,7 +400,7 @@ link_hcp_resting_state_stats_data()
     link_from+="/${scan}_RSS/MNINonLinear/Results/${scan}"
 
     local link_to=""
-    link_to="${to_study_dir}/${subject}/MNINonLinear/Results"
+    link_to="${to_study_dir}/${subject}/MNINonLinear/Results/${scan}"
 
     local lndir_cmd=""
     lndir_cmd="${PATH_TO_LNDIR} ${link_from} ${link_to}"
@@ -446,7 +446,7 @@ get_hcp_resting_state_stats_data()
     copy_from+="/${scan}_RSS/MNINonLinear/Results/${scan}"
 
     local copy_to=""
-    copy_to="${to_study_dir}/${subject}/MNINonLinear/Results"
+    copy_to="${to_study_dir}/${subject}/MNINonLinear/Results/${scan}"
 
     local rsync_cmd=""
     rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
