@@ -237,7 +237,7 @@ main()
 	echo "-------------------------------------------------"
 	java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar \
 		-u ${g_user} -p ${g_password} -m DELETE \
-		-r http://${g_server}/REST/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/resources/${g_scan}_${g_resource_suffix}/
+		-r http://${g_server}/REST/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/resources/${g_scan}_${g_resource_suffix}?removeFiles=true
 
 	# Make processing job log files readable so they can be pushed into the database
 	chmod a+r ${g_working_dir}/*
@@ -247,8 +247,6 @@ main()
 	echo "Moving resulting files up one level out of the ${g_subject} directory in ${g_working_dir}"
 	echo "-------------------------------------------------"
 	mv ${g_working_dir}/${g_subject}/* ${g_working_dir}
-	mv ${g_working_dir}/${g_subject}/.* ${g_working_dir}
-
 	rm -rf ${g_working_dir}/${g_subject}
 
 	# Push the data into the DB
