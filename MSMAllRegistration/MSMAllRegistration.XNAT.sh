@@ -89,7 +89,7 @@ usage()
 	echo "    --session=<session>    : XNAT session ID within project (e.g. 100307_3T)"
 	echo "    --working-dir=<dir>    : Working directory in which to place retrieved data"
 	echo "                             and in which to produce results"
-	echo "    --workflow-id=<id>     : XNAT Workflow ID to update as steps are completed"
+	echo "   [--workflow-id=<id>]    : XNAT Workflow ID to update as steps are completed"
 	echo ""
 }
 
@@ -215,10 +215,7 @@ get_options()
 		echo "g_working_dir: ${g_working_dir}"
 	fi
 
-	if [ -z "${g_workflow_id}" ]; then
-		echo "ERROR: workflow ID (--workflow-id=) required"
-		error_count=$(( error_count + 1 ))
-	else
+	if [ ! -z "${g_workflow_id}" ]; then
 		echo "g_workflow_id: ${g_workflow_id}"
 	fi
 
@@ -231,12 +228,14 @@ get_options()
 # Show information about a specified XNAT Workflow
 show_xnat_workflow()
 {
-	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_server}" \
-		--username="${g_user}" \
-		--password="${g_password}" \
-		--workflow-id="${g_workflow_id}" \
-		show
+	if [ ! -z "${g_workflow_id}" ]; then
+		${XNAT_UTILS_HOME}/xnat_workflow_info \
+			--server="${g_server}" \
+			--username="${g_user}" \
+			--password="${g_password}" \
+			--workflow-id="${g_workflow_id}" \
+			show
+	fi
 }
 
 # Update information (step id, step description, and percent complete)
@@ -254,42 +253,48 @@ update_xnat_workflow()
 	echo ""
 	echo ""
 
-	echo "update_xnat_workflow - workflow_id: ${g_workflow_id}"
-	echo "update_xnat_workflow - step_id: ${step_id}"
-	echo "update_xnat_workflow - set_desc: ${step_desc}"
-	echo "update_xnat_workflow - percent_complete: ${percent_complete}"
+	if [ ! -z "${g_workflow_id}" ]; then
+		echo "update_xnat_workflow - workflow_id: ${g_workflow_id}"
+		echo "update_xnat_workflow - step_id: ${step_id}"
+		echo "update_xnat_workflow - set_desc: ${step_desc}"
+		echo "update_xnat_workflow - percent_complete: ${percent_complete}"
 
-	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_server}" \
-		--username="${g_user}" \
-		--password="${g_password}" \
-		--workflow-id="${g_workflow_id}" \
-		update \
-		--step-id="${step_id}" \
-		--step-description="${step_desc}" \
-		--percent-complete="${percent_complete}"
+		${XNAT_UTILS_HOME}/xnat_workflow_info \
+			--server="${g_server}" \
+			--username="${g_user}" \
+			--password="${g_password}" \
+			--workflow-id="${g_workflow_id}" \
+			update \
+			--step-id="${step_id}" \
+			--step-description="${step_desc}" \
+			--percent-complete="${percent_complete}"
+	fi
 }
 
 # Mark the specified XNAT Workflow as complete
 complete_xnat_workflow()
 {
-	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_server}" \
-		--username="${g_user}" \
-		--password="${g_password}" \
-		--workflow-id="${g_workflow_id}" \
-		complete
+	if [ ! -z "${g_workflow_id}" ]; then
+		${XNAT_UTILS_HOME}/xnat_workflow_info \
+			--server="${g_server}" \
+			--username="${g_user}" \
+			--password="${g_password}" \
+			--workflow-id="${g_workflow_id}" \
+			complete
+	fi
 }
 
 # Mark the specified XNAT Workflow as failed
 fail_xnat_workflow()
 {
-	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_server}" \
-		--username="${g_user}" \
-		--password="${g_password}" \
-		--workflow-id="${g_workflow_id}" \
-		fail
+	if [ ! -z "${g_workflow_id}" ]; then
+		${XNAT_UTILS_HOME}/xnat_workflow_info \
+			--server="${g_server}" \
+			--username="${g_user}" \
+			--password="${g_password}" \
+			--workflow-id="${g_workflow_id}" \
+			fail
+	fi
 }
 
 # Update specified XNAT Workflow to Failed status and exit this script
