@@ -377,12 +377,12 @@ main()
 	# results of the FIX processing pipeline
 
  	# ----------------------------------------------------------------------------------------------
-  	# Step - Get RestingStateStats data from DB
+  	# Step - Link RestingStateStats data from DB
  	# ----------------------------------------------------------------------------------------------
  	current_step=$(( current_step + 1 ))
  	step_percent=$(( (current_step * 100) / total_steps ))
 
- 	update_xnat_workflow ${current_step} "Get Resting State Stats data from DB" ${step_percent}
+ 	update_xnat_workflow ${current_step} "Link Resting State Stats data from DB" ${step_percent}
 
 	for scan_name in ${scan_names} ; do
 		link_hcp_resting_state_stats_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
@@ -394,7 +394,7 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Get FIX processed data from DB" ${step_percent}
+	update_xnat_workflow ${current_step} "Link FIX processed data from DB" ${step_percent}
 
 	for scan_name in ${scan_names} ; do
 		link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
