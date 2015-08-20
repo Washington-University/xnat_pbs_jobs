@@ -58,8 +58,7 @@ for subject in ${subjects} ; do
 			--password=${password} \
 			--server=${server} \
 			--project=${project} \
-			--subject=${subject} \
-			--notify=WUSTL_Pipeline_Notifications@tbb.fastmail.fm
+			--subject=${subject} 
 EOF
 
 		delay=$((delay + interval))
