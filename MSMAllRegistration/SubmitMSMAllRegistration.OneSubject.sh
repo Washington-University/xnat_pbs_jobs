@@ -145,7 +145,13 @@ main()
 
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
 	echo "Getting XNAT Session ID"
-	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --project=${g_project} --subject=${g_subject} --session=${g_session}"
+	get_session_id_cmd=""
+	get_session_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py "
+	get_session_id_cmd+="--server=db.humanconnectome.org "
+	get_session_id_cmd+="--username=${g_user} "
+	get_session_id_cmd+="--project=${g_project} "
+	get_session_id_cmd+="--subject=${g_subject} "
+	get_session_id_cmd+="--session=${g_session} "
 	echo "get_session_id_cmd: ${get_session_id_cmd}"
 	get_session_id_cmd+=" --password=${g_password}"
 
@@ -155,7 +161,15 @@ main()
 	# Get XNAT Workflow ID
 	server="https://db.humanconnectome.org/"
 	echo "Getting XNAT workflow ID for this job from server: ${server}"
-	get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline MSMAllRegistration -Status Queued -JSESSION ${jsession}"
+	get_workflow_id_cmd=""
+	get_workflow_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py "
+	get_workflow_id_cmd+="-User ${g_user} "
+	get_workflow_id_cmd+="-Server ${server} "
+	get_workflow_id_cmd+="-ExperimentID ${sessionID} "
+	get_workflow_id_cmd+="-ProjectID ${g_project} "
+	get_workflow_id_cmd+="-Pipeline MSMAllRegistration "
+	get_workflow_id_cmd+="-Status Queued "
+	get_workflow_id_cmd+="-JSESSION ${jsession} "
 	echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
 	get_workflow_id_cmd+=" -Password ${g_password}"
 
