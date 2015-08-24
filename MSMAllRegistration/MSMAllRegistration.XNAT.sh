@@ -443,13 +443,18 @@ main()
 	echo "scan_names: ${scan_names}"
 		
 	# Run MSMAllPipeline.sh script
+	# TBD: Should MSMAll_InitalReg be MSMAll_InitialReg
 	${HCPPIPEDIR}/MSMAll/MSMAllPipeline.sh \
 		--path=${g_working_dir} \
 		--subject=${g_subject} \
 		--fmri-names-list=${scan_names} \
 		--output-fmri-name="rfMRI_REST" \
-		--fmri-proc-string="_Atlas_hp2000_clean" 
-
+		--fmri-proc-string="_Atlas_hp2000_clean" \
+		--msm-all-templates="${HCPPIPEDIR}/global/templates/MSMAll" \
+		--output-registration-name="MSMAll_InitalReg" \
+		--high-res-mesh="164" \
+		--low-res-mesh="32"
+	
 	if [ $? -ne 0 ]; then
 		die 
 	fi
