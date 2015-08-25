@@ -304,6 +304,25 @@ die()
 	exit 1
 }
 
+# Initialize the step counters
+init_steps()
+{
+	local total_steps=${1}
+	g_total_steps=${total_steps}
+	g_current_step=0
+}
+
+# Increment the current step
+increment_step()
+{
+	g_current_step=$(( g_current_step + 1 ))
+	if [ ${g_current_step} -gt ${g_total_steps} ] ; then
+		echo "ERROR: g_current_step: ${g_current_step} greater than g_total_steps: ${g_total_steps}"
+		exit 1
+	fi
+	g_step_percent=$(( (g_current_step * 100) / g_total_steps ))
+}
+
 # Main processing 
 #   Carry out the necessary steps to: 
 #   - get prerequisite data for MSMAllPipeline.sh
@@ -313,8 +332,7 @@ main()
 	get_options $@
 
 	# Set up step counters
-	total_steps=9
-	current_step=0
+	init_steps 10
 
 	show_xnat_workflow 
 
@@ -322,10 +340,8 @@ main()
 	# Step - Figure out what resting state scans are available for this
 	#        subject/session that have RestingStateStats computed for them
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	update_xnat_workflow ${current_step} "Figure out what resting state scans should be used" ${step_percent}
+	increment_step
+	update_xnat_workflow ${g_current_step} "Figure out what resting state scans should be used" ${g_step_percent}
 
 	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES
 
@@ -373,16 +389,17 @@ main()
 	# below.  We should call them in order from the results of the latest prerequisite pipelines 
 	# to the earliest prerequisite pipelines.
 
-	# For this pipeline, we first link in the RestingStateStats data then link in the earlier
-	# results of the FIX processing pipeline
+	# For this pipeline, we link in the data in the following order:
+	#   1. results of RestingStateStats pipeline
+	#   2. results of the FIX Processing pipeline
+	#   3. results of the Functional Preprocessing pipeline
+	#   4. results of Structural Preprocessing pipeline
 
  	# ----------------------------------------------------------------------------------------------
   	# Step - Link RestingStateStats data from DB
  	# ----------------------------------------------------------------------------------------------
- 	current_step=$(( current_step + 1 ))
- 	step_percent=$(( (current_step * 100) / total_steps ))
-
- 	update_xnat_workflow ${current_step} "Link Resting State Stats data from DB" ${step_percent}
+	increment_step
+ 	update_xnat_workflow ${g_current_step} "Link Resting State Stats data from DB" ${g_step_percent}
 
 	for scan_name in ${scan_names} ; do
 		link_hcp_resting_state_stats_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
@@ -391,22 +408,36 @@ main()
 	# ----------------------------------------------------------------------------------------------
  	# Step - Link FIX processed data from DB
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	update_xnat_workflow ${current_step} "Link FIX processed data from DB" ${step_percent}
+	increment_step
+	update_xnat_workflow ${g_current_step} "Link FIX processed data from DB" ${g_step_percent}
 
 	for scan_name in ${scan_names} ; do
 		link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
 	done
 
 	# ----------------------------------------------------------------------------------------------
+ 	# Step - Link functionally preprocessed data from DB
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Link functionally preprocessed data from DB" ${g_step_percent}
+
+	for scan_name in ${scan_names} ; do
+		link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
+	done
+
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Link structurally preprocessed data from DB
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Link structurally preprocessed data from DB" ${g_step_percent}
+
+	link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
+
+	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	update_xnat_workflow ${current_step} "Create a start_time file" ${step_percent}
+	increment_step
+	update_xnat_workflow ${g_current_step} "Create a start_time file" ${g_step_percent}
 	
 	start_time_file="${g_working_dir}/MSMAll.starttime"
 	if [ -e "${start_time_file}" ]; then
@@ -431,10 +462,8 @@ main()
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run MSMAllPipeline.sh script
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	update_xnat_workflow ${current_step} "Run MSMAllPipeline.sh script" ${step_percent}
+	increment_step
+	update_xnat_workflow ${g_current_step} "Run MSMAllPipeline.sh script" ${g_step_percent}
 	
 	# Source setup script to setup environment for running the script
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSMAll.sh
@@ -453,7 +482,8 @@ main()
 		--msm-all-templates="${HCPPIPEDIR}/global/templates/MSMAll" \
 		--output-registration-name="MSMAll_InitalReg" \
 		--high-res-mesh="164" \
-		--low-res-mesh="32"
+		--low-res-mesh="32" \
+		--input-registration-name="MSMSulc"
 	
 	if [ $? -ne 0 ]; then
 		die 
@@ -462,10 +492,8 @@ main()
 	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	update_xnat_workflow ${current_step} "Show newly created or modified files" ${step_percent}
+	increment_step
+	update_xnat_workflow ${g_current_step} "Show newly created or modified files" ${g_step_percent}
 	
 	echo "Newly created/modified files:"
 	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
@@ -473,10 +501,8 @@ main()
 	# ----------------------------------------------------------------------------------------------
 	# Step - Remove any files that are not newly created or modified
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	update_xnat_workflow ${current_step} "Remove files not newly created or modified" ${step_percent}
+	increment_step
+	update_xnat_workflow ${g_current_step} "Remove files not newly created or modified" ${g_step_percent}
 
 	echo "The following files are being removed"
 	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete || die 
@@ -484,9 +510,7 @@ main()
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
+	increment_step
 	complete_xnat_workflow 
 }
 
