@@ -1,0 +1,274 @@
+#!/bin/bash
+
+echo "Job started on `hostname` at `date`"
+
+# home directory for scripts to be sourced to set up the environment 
+SCRIPTS_HOME=/home/HCPpipeline/SCRIPTS
+echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
+
+# root directory of the XNAT database archive
+DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
+echo "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
+
+# home directory for these XNAT PBS job scripts
+XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
+echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
+
+# Load Function Libraries
+source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
+
+# Show script usage information
+usage()
+{
+	echo ""
+	echo "  Compute Group Registration Drift"
+	echo ""
+	echo "  Usage: MSMRemoveGroupDrift.XNAT.sh <options>"
+	echo ""
+	echo "  To Be Written"
+	echo ""
+}
+
+# Parse specified command line options and verify that required options are
+# specified. "Return" the options to use in global variables.
+get_options()
+{
+	local arguments=($@)
+
+	# initialize global output variables
+	unset g_subject_list_file
+	unset g_project
+	unset g_session_suffix
+	unset g_working_dir
+
+	# parse arguments
+	local num_args=${#arguments[@]}
+	local argument
+	local index=0
+
+	while [ ${index} -lt ${num_args} ]; do
+		argument=${arguments[index]}
+
+		case ${argument} in
+			--help)
+				usage
+				exit 1
+				;;
+			--subject-list-file=*)
+				g_subject_list_file=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--project=*)
+				g_project=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--session-suffix=*)
+				g_session_suffix==${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--working-dir=*)
+				g_working_dir=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			*)
+				usage
+				echo "ERROR: unrecognized option: ${argument}"
+				echo ""
+				exit 1
+				;;
+		esac
+	done
+
+	local error_count=0
+
+	# check required parameters
+
+	if [ -z "${g_subject_list_file}" ]; then
+		echo "ERROR: subject list file (--subject-list-file=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "g_subject_list_file: ${g_subject_list_file}"
+	fi
+
+	if [ -z "${g_project}" ]; then
+		echo "ERROR: project (--project=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "g_project: ${g_project}"
+	fi
+
+	if [ -z "${g_session_suffix}" ]; then
+		g_session_suffix="_3T"
+	fi
+	echo "g_session_suffix: ${g_session_suffix}"
+
+	if [ -z "${g_working_dir}" ]; then
+		echo "ERROR: working directory (--working-dir=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "g_working_dir: ${g_working_dir}"
+	fi
+
+	# exit if errors occurred
+
+	if [ ${error_count} -gt 0 ]; then
+		echo "For usage information, use --help"
+		exit 1
+	fi
+}
+
+get_subject_list()
+{
+	local subject_file_name="${1}"
+	echo "Retrieving subject list from: ${subject_file_name}"
+	local subject_list_from_file=( $( cat ${subject_file_name} ) )
+	g_subjects="`echo "${subject_list_from_file[@]}"`"
+	if [ -z "${g_subjects}" ]; then
+		echo "ERROR: No Subjects Specified" 
+		exit 1
+	fi
+}
+
+create_input_data_dir()
+{
+	# VERY IMPORTANT NOTE:
+	# 
+	# Since ConnectomeDB resources contain overlapping files (e.g the functionally preprocessed 
+	# data resource may contain some of the exact same files as the structurally preprocessed
+	# data resource) extra care must be taken with the order in which data is linked in to the
+	# working directory.  
+	#
+	# If, for example, a file named ${subject}/subdir1/subdir2/this_file.nii.gz exists in both
+	# the structurally preprocessed data resource and in the functionally preprocessed data 
+	# resource, whichever resource we link in to the working directory _first_ will take 
+	# precedence.  (This is due to the behavior of the lndir command used by the link_hcp...
+	# functions, and is unlike the behavior of the rsync command used by the get_hcp...
+	# functions. The rsync command will copy/update the newer version of the file from its
+	# source.) 
+	#
+	# The lndir command will report to stderr any links that it could not (would not) create 
+	# because they already exist in the destination directories.
+	# 
+	# So if we link in the structurally preprocessed data first and then link in the functionally
+	# preprocessed data second, the file ${subject}/subdir1/subdir2/this_file.nii.gz in the 
+	# working directory will be linked back to the structurally preprocessed version of the file.
+	#
+	# Since functional preprocessing comes _after_ structural preprocessing, this is not likely
+	# to be what we want.  Instead, we want the file as it exists after functional preprocessing
+	# to be the one that is linked in to the working directory.
+	#
+	# Therefore, it is important to consider the order in which we call the link_hcp... functions
+	# below.  We should call them in order from the results of the latest prerequisite pipelines 
+	# to the earliest prerequisite pipelines.
+
+	local subject=""
+	local session=""
+
+	mkdir -p ${g_working_dir}/${g_project}
+
+	for subject in ${g_subjects} ; do
+
+		session="${subject}${g_session_suffix}"
+		echo "Linking data for subject: ${subject} from session ${session}"
+
+# 		# figure out what resting state scans are available for this subject/session
+# 		# that have RestingStateStats computed for them
+# 		pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${session}/RESOURCES
+
+# 		scan_names=""
+# 		resting_state_scan_dirs=`ls -d rfMRI_REST*_RSS`
+# 		for resting_state_scan_dir in ${resting_state_scan_dirs} ; do
+# 			scan_name=${resting_state_scan_dir%%_RSS}
+# 			scan_names+="${scan_name} "
+# 		done
+# 		scan_names=${scan_names% } # remove trailing space
+
+# 		echo "Found the following resting state scans: ${scan_names}"
+
+# 		popd
+
+# 		# link RestingStateStats data from database for subject
+# 		for scan_name in ${scan_names} ; do
+# 			link_hcp_resting_state_stats_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${subject}" "${session}" "${scan_name}" "${g_working_dir}/${g_project}"  
+# 		done
+
+		# link structurally preprocessed data from DB
+		link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${subject}" "${session}" "${g_working_dir}/${g_project}"
+
+	done
+}
+
+create_start_time_file()
+{
+	local file_name=${1}
+	
+	# remove old file if it exists
+	if [ -e "${file_name}" ]; then
+		echo "Removing old ${file_name}"
+		rm -f ${file_name}
+	fi
+
+	# sleep for 1 minute prior to creating file
+	# this is to make sure file is create at least a minute after any 
+	# input data files copied or linked prior to calling this function
+	echo "Sleep for 1 minute prior to creating ${file_name}"
+	sleep 1m
+
+	echo "Creating file: ${file_name}"
+	touch ${file_name}
+	ls -l ${file_name}
+	
+	# sleep for 1 minute after creating file
+	# this is to make sure any files created by processing 
+	# are created at least 1 minute after the created start time file
+	echo "Sleep for 1 minute after creating ${file_name}"
+	sleep 1m
+}
+
+#
+# Main processing
+#
+main() 
+{
+	# get user specified command line options
+	get_options $@
+
+	# get list of subjects
+	get_subject_list ${g_subject_list_file}
+
+	# build linked tree of all necessary data
+	create_input_data_dir
+
+	# create a start time file
+	start_time_file=${g_working_dir}/MSMRemoveGroupDrift.starttime
+	create_start_time_file ${start_time_file}
+
+	# convert subject list for passing as a single argument
+	subject_list=`echo ${g_subjects} | sed 's/ /@/g'`
+
+	study_folder="${g_working_dir}/${g_project}"
+	group_average_name="DeDriftingGroup"
+
+	# do the actual work by running the MSMRemoveGroupDrift.sh script
+	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSMAll.sh
+	${HCPPIPEDIR}/MSMRemoveGroupDrift/MSMRemoveGroupDrift.sh \
+		--path=${study_folder} \
+		--subject-list=${subject_list} \
+		--common-folder=${study_folder}/${group_average_name} \
+		--group-average-name=${group_average_name} \
+		--input-registration-name="MSMAll_InitalReg" \
+		--target-registration-name="MSMSulc" \
+		--registration-name="DeDriftMSMAll" \
+		--high-res-mesh=164 \
+		--low-res-mesh=32
+
+	# show any newly created or modified files
+	echo "Newly created/modified files:"
+	find ${g_working_dir}/${g_project} -type f -newer ${start_time_file}
+
+	# remove any files that are not newly created or modified
+	#find ${g_working_dir}/${g_project} -not -newer ${start_time_file} -delete
+}
+
+# Invoke the main function to get things started
+main $@
