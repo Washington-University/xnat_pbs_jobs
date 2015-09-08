@@ -174,6 +174,9 @@ create_input_data_dir()
 		session=`get_session ${subject_info}`
 		echo "Linking data from project: ${project} for subject: ${subject} from session ${session}"
 
+		# link MSM All registration data from DB
+		link_hcp_msm_all_registration_data "${DATABASE_ARCHIVE_ROOT}" "${project}" "${subject}" "${session}" "${g_working_dir}"
+
 # 		# figure out what resting state scans are available for this subject/session
 # 		# that have RestingStateStats computed for them
 # 		pushd ${DATABASE_ARCHIVE_ROOT}/${project}/arc001/${session}/RESOURCES
