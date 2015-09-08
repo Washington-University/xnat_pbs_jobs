@@ -322,7 +322,7 @@ link_hcp_postfix_data()
 
 get_hcp_postfix_data()
 {
-    local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hdpdb/archive
+    local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
     local project=${2} # e.g. HCP_500
     local subject=${3} # e.g. 100307
     local session=${4} # e.g. 100307_3T
@@ -368,7 +368,7 @@ get_hcp_postfix_data()
 
 link_hcp_resting_state_stats_data()
 {
-    local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hdpdb/archive
+    local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
     local project=${2} # e.g. HCP_500
     local subject=${3} # e.g. 100307
     local session=${4} # e.g. 100307_3T
@@ -414,7 +414,7 @@ link_hcp_resting_state_stats_data()
 
 get_hcp_resting_state_stats_data()
 {
-    local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hdpdb/archive
+    local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
     local project=${2} # e.g. HCP_500
     local subject=${3} # e.g. 100307
     local session=${4} # e.g. 100307_3T
@@ -457,3 +457,48 @@ get_hcp_resting_state_stats_data()
 
     popd
 }
+
+link_hcp_msm_all_registration_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arch001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Linking HCP MSM All Registration data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir -p ${subject}/MNINonLinear
+
+	local link_from=""
+    link_from+="${archive}"
+    link_from+="/${project}"
+    link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+    link_from+="/${session}"
+    link_from+="/${DATABASE_RESOURCES_ROOT}"
+	link_from+="/rfMRI_REST_MSMAllReg/MNINonLinear"
+
+	local link_to=""
+	link_to="${to_study_dir}/${subject}/MNINonLinear"
+
+	local lndir_cmd=""
+	lndir_cmd="${PATH_TO_LNDIR} ${link_from} ${link_to}"
+	echo "lndir_cmd: ${lndir_cmd}"
+	echo "----------" `date` "----------"
+	echo ""
+    ${lndir_cmd}
+
+    popd
+}
+
