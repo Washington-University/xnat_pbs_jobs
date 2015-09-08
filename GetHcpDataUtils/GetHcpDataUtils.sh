@@ -466,7 +466,7 @@ link_hcp_msm_all_registration_data()
 	local session=${4} # e.g. 100307_3T
 	local to_study_dir=${5}
 
-	local DATABASE_ARCHIVE_PROJECT_ROOT="arch001"
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
 	local DATABASE_RESOURCES_ROOT="RESOURCES"
 
 	echo ""
