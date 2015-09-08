@@ -1,12 +1,10 @@
 #!/bin/bash
 
-g_project=HCP_500
-
 BUILD_HOME="/HCP/hcpdb/build_ssd/chpc/BUILD"
 echo "BUILD_HOME: ${BUILD_HOME}"
 
 current_seconds_since_epoch=`date +%s`
-working_directory_name="${BUILD_HOME}/${g_project}/MSMRemoveGroupDrift_${current_seconds_since_epoch}"
+working_directory_name="${BUILD_HOME}/CrossProject/MSMRemoveGroupDrift_${current_seconds_since_epoch}"
 
 echo "Making working directory: ${working_directory_name}"
 mkdir -p ${working_directory_name}
@@ -24,8 +22,7 @@ echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 echo ""
 echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MSMRemoveGroupDrift/MSMRemoveGroupDrift.XNAT.sh \\" >> ${script_file_to_submit}
-echo "  --subject-list-file=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MSMRemoveGroupDrift/sample_hcp500_subjects.txt \\" >> ${script_file_to_submit}
-echo "  --project=HCP_500 \\" >> ${script_file_to_submit}
+echo "  --subject-info-file=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MSMRemoveGroupDrift/sample_multiprojects_subjects.txt \\" >> ${script_file_to_submit}
 echo "  --working-dir=\"${working_directory_name}\" " >> ${script_file_to_submit}
 
 submit_cmd="qsub ${script_file_to_submit}"

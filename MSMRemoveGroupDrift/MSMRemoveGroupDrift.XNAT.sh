@@ -36,9 +36,7 @@ get_options()
 	local arguments=($@)
 
 	# initialize global output variables
-	unset g_subject_list_file
-	unset g_project
-	unset g_session_suffix
+	unset g_subject_info_file
 	unset g_working_dir
 
 	# parse arguments
@@ -54,16 +52,8 @@ get_options()
 				usage
 				exit 1
 				;;
-			--subject-list-file=*)
-				g_subject_list_file=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--project=*)
-				g_project=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--session-suffix=*)
-				g_session_suffix==${argument/*=/""}
+			--subject-info-file=*)
+				g_subject_info_file=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--working-dir=*)
@@ -83,24 +73,12 @@ get_options()
 
 	# check required parameters
 
-	if [ -z "${g_subject_list_file}" ]; then
-		echo "ERROR: subject list file (--subject-list-file=) required"
+	if [ -z "${g_subject_info_file}" ]; then
+		echo "ERROR: subject info file (--subject-info-file=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		echo "g_subject_list_file: ${g_subject_list_file}"
+		echo "g_subject_info_file: ${g_subject_info_file}"
 	fi
-
-	if [ -z "${g_project}" ]; then
-		echo "ERROR: project (--project=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		echo "g_project: ${g_project}"
-	fi
-
-	if [ -z "${g_session_suffix}" ]; then
-		g_session_suffix="_3T"
-	fi
-	echo "g_session_suffix: ${g_session_suffix}"
 
 	if [ -z "${g_working_dir}" ]; then
 		echo "ERROR: working directory (--working-dir=) required"
@@ -117,16 +95,37 @@ get_options()
 	fi
 }
 
-get_subject_list()
+get_subject_info_list()
 {
-	local subject_file_name="${1}"
-	echo "Retrieving subject list from: ${subject_file_name}"
-	local subject_list_from_file=( $( cat ${subject_file_name} ) )
-	g_subjects="`echo "${subject_list_from_file[@]}"`"
-	if [ -z "${g_subjects}" ]; then
+	local file_name="${1}"
+	echo "Retrieving subject info list from: ${file_name}"
+	local subject_info_from_file=( $( cat ${file_name} ) )
+	g_subjects_info="`echo "${subject_info_from_file[@]}"`"
+	if [ -z "${g_subjects_info}" ]; then
 		echo "ERROR: No Subjects Specified" 
 		exit 1
 	fi
+}
+
+get_project()
+{
+	local subject_info="${1}"
+	local project=`echo ${subject_info} | cut -d ":" -f 1`
+	echo ${project}
+}
+
+get_subject()
+{
+	local subject_info="${1}"
+	local subject=`echo ${subject_info} | cut -d ":" -f 2`
+	echo ${subject}
+}
+
+get_session()
+{
+	local subject_info="${1}"
+	local session=`echo ${subject_info} | cut -d ":" -f 3`
+	echo ${session}
 }
 
 create_input_data_dir()
@@ -163,17 +162,21 @@ create_input_data_dir()
 
 	local subject=""
 	local session=""
+	local project=""
 
-	mkdir -p ${g_working_dir}/${g_project}
+	mkdir -p ${g_working_dir}
 
-	for subject in ${g_subjects} ; do
+	for subject_info in ${g_subjects_info} ; do 
+		echo "subject_info: ${subject_info}"
 
-		session="${subject}${g_session_suffix}"
-		echo "Linking data for subject: ${subject} from session ${session}"
+		project=`get_project ${subject_info}`
+		subject=`get_subject ${subject_info}`
+		session=`get_session ${subject_info}`
+		echo "Linking data from project: ${project} for subject: ${subject} from session ${session}"
 
 # 		# figure out what resting state scans are available for this subject/session
 # 		# that have RestingStateStats computed for them
-# 		pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${session}/RESOURCES
+# 		pushd ${DATABASE_ARCHIVE_ROOT}/${project}/arc001/${session}/RESOURCES
 
 # 		scan_names=""
 # 		resting_state_scan_dirs=`ls -d rfMRI_REST*_RSS`
@@ -189,11 +192,11 @@ create_input_data_dir()
 
 # 		# link RestingStateStats data from database for subject
 # 		for scan_name in ${scan_names} ; do
-# 			link_hcp_resting_state_stats_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${subject}" "${session}" "${scan_name}" "${g_working_dir}/${g_project}"  
+# 			link_hcp_resting_state_stats_data "${DATABASE_ARCHIVE_ROOT}" "${project}" "${subject}" "${session}" "${scan_name}" "${g_working_dir}"  
 # 		done
 
 		# link structurally preprocessed data from DB
-		link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${subject}" "${session}" "${g_working_dir}/${g_project}"
+		link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${project}" "${subject}" "${session}" "${g_working_dir}"
 
 	done
 }
@@ -225,6 +228,22 @@ create_start_time_file()
 	sleep 1m
 }
 
+create_subject_list()
+{
+	g_subject_list=""
+	local subject_info
+	local subject
+
+	for subject_info in ${g_subjects_info} ; do
+		subject=`get_subject ${subject_info}`
+		echo "subject: ${subject}"
+		if [ ! -z "${g_subject_list}" ]; then
+			g_subject_list+="@"
+		fi
+		g_subject_list+="${subject}"
+	done
+}
+
 #
 # Main processing
 #
@@ -234,7 +253,7 @@ main()
 	get_options $@
 
 	# get list of subjects
-	get_subject_list ${g_subject_list_file}
+	get_subject_info_list ${g_subject_info_file}
 
 	# build linked tree of all necessary data
 	create_input_data_dir
@@ -243,17 +262,18 @@ main()
 	start_time_file=${g_working_dir}/MSMRemoveGroupDrift.starttime
 	create_start_time_file ${start_time_file}
 
-	# convert subject list for passing as a single argument
-	subject_list=`echo ${g_subjects} | sed 's/ /@/g'`
+	# convert subject info for passing as a single argument subject list
+	create_subject_list
+	echo "g_subject_list: ${g_subject_list}"
 
-	study_folder="${g_working_dir}/${g_project}"
+	study_folder="${g_working_dir}"
 	group_average_name="DeDriftingGroup"
 
 	# do the actual work by running the MSMRemoveGroupDrift.sh script
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSMAll.sh
 	${HCPPIPEDIR}/MSMRemoveGroupDrift/MSMRemoveGroupDrift.sh \
 		--path=${study_folder} \
-		--subject-list=${subject_list} \
+		--subject-list=${g_subject_list} \
 		--common-folder=${study_folder}/${group_average_name} \
 		--group-average-name=${group_average_name} \
 		--input-registration-name="MSMAll_InitalReg" \
