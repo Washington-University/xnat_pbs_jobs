@@ -57,10 +57,12 @@ usage()
 	echo "    --project=<project>        : XNAT project (e.g. HCP_500)"
 	echo "    --subject=<subject>        : XNAT subject ID within project (e.g. 100307)"
 	echo "    --session=<session>        : XNAT session ID within project (e.g. 100307_3T)"
-	echo "    --scan=<scan>              : Scan ID (e.g. rfMRI_REST1_LR)"
+	echo "   [--scan=<scan>]             : Scan ID (e.g. rfMRI_REST1_LR)"
 	echo "    --working-dir=<dir>        : Working directory from which to push data"
 	echo "    --resource-suffix=<suffix> : Suffix for resource in which to push data"
-	echo "                                 Resource will be named <scan>_<suffix>"
+	echo "                                 Resource will be named <scan>_<suffix> or"
+	echo "                                 simply <suffix> if scan is not specified"
+	echo "   [--reason=<reason>]         : Reason for data update (e.g. name of pipeline run)"
 	echo ""
 }
 
@@ -80,6 +82,7 @@ get_options()
 	unset g_scan
 	unset g_working_dir
 	unset g_resource_suffix
+	unset g_reason
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -128,6 +131,10 @@ get_options()
 				;;
 			--resource-suffix=*)
 				g_resource_suffix=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--reason=*)
+				g_reason=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -184,12 +191,8 @@ get_options()
 		echo "g_session: ${g_session}"
 	fi
 
-	if [ -z "${g_scan}" ]; then
-		echo "ERROR: scan (--scan=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		echo "g_scan: ${g_scan}"
-	fi
+	# --scan= is optional
+	echo "g_scan: ${g_scan}"
 
 	if [ -z "${g_working_dir}" ]; then
 		echo "ERROR: working directory (--working-dir=) required"
@@ -204,6 +207,9 @@ get_options()
 	else
 		echo "g_resource_suffix: ${g_resource_suffix}"
 	fi
+
+	# --reason= is optional
+	echo "g_reason: ${g_reason}"
 
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
@@ -235,9 +241,23 @@ main()
 	echo "-------------------------------------------------"
 	echo "Deleting previous resource"	
 	echo "-------------------------------------------------"
+	resource_url=""
+	resource_url+="http://${g_server}"
+	resource_url+="/REST/projects/${g_project}"
+	resource_url+="/subjects/${g_subject}"
+	resource_url+="/experiments/${sessionID}"
+	if [ ! -z "${g_scan}" ]; then
+		resource_url+="/resources/${g_scan}_${g_resource_suffix}"
+	else
+		resource_url+="/resources/${g_resource_suffix}"
+	fi
+
+	variable_values="?removeFiles=true"
+	resource_uri="${resource_url}${variable_values}"
+
 	java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar \
 		-u ${g_user} -p ${g_password} -m DELETE \
-		-r http://${g_server}/REST/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/resources/${g_scan}_${g_resource_suffix}?removeFiles=true
+		-r ${resource_uri}
 
 	# Make processing job log files readable so they can be pushed into the database
 	chmod a+r ${g_working_dir}/*
@@ -254,9 +274,24 @@ main()
 	echo "-------------------------------------------------"
 	echo "Putting new data into DB from db_working_dir: ${db_working_dir}"
 	echo "-------------------------------------------------"
+
+	resource_url+="/files"
+
+	variable_values=""
+	variable_values+="?overwrite=true"
+    variable_values+="\&replace=true"
+	if [ ! -z "${g_reason}" ]; then
+		variable_values+="\&event_reason=${g_reason}"
+	else
+		variable_values+="\&event_reason=Unspecified"
+	fi
+	variable_values+="\&reference=${db_working_dir}"
+
+	resource_uri="${resource_url}${variable_values}"
+
 	java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar \
 		-u ${g_user} -p ${g_password} -m PUT \
-		-r http://${g_server}/REST/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/resources/${g_scan}_${g_resource_suffix}/files?overwrite=true\&replace=true\&event_reason=RestingStateStatsPipeline\&reference=${db_working_dir}
+		-r ${resource_uri}
 	
 	# Cleanup
 	echo "-------------------------------------------------"
