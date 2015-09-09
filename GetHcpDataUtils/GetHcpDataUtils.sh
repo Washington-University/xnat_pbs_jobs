@@ -502,3 +502,46 @@ link_hcp_msm_all_registration_data()
     popd
 }
 
+get_hcp_msm_all_registration_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Copying HCP MSM All Registration data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir -p ${subject}/MNINonLinear
+
+	local copy_from=""
+    copy_from+="${archive}"
+    copy_from+="/${project}"
+    copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+    copy_from+="/${session}"
+    copy_from+="/${DATABASE_RESOURCES_ROOT}"
+	copy_from+="/rfMRI_REST_MSMAllReg/MNINonLinear"
+
+	local copy_to=""
+	copy_to="${to_study_dir}/${subject}/MNINonLinear"
+
+	local rsync_cmd=""
+	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+	echo "rsync_cmd: ${rsync_cmd}"
+	echo "----------" `date` "----------"
+	echo ""
+    ${rsync_cmd}
+
+    popd
+}
