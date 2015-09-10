@@ -531,7 +531,7 @@ get_hcp_msm_all_registration_data()
     copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     copy_from+="/${session}"
     copy_from+="/${DATABASE_RESOURCES_ROOT}"
-	copy_from+="/rfMRI_REST_MSMAllReg/MNINonLinear"
+	copy_from+="/rfMRI_REST_MSMAllReg/MNINonLinear/"
 
 	local copy_to=""
 	copy_to="${to_study_dir}/${subject}/MNINonLinear"
