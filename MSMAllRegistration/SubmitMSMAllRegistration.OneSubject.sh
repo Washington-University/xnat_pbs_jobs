@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# home directory for these XNAT PBS job scripts
+XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
+echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
+
 # home directory for XNAT pipeline engine installation
 XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
@@ -15,6 +19,10 @@ echo "BUILD_HOME: ${BUILD_HOME}"
 # set up to run Python
 echo "Setting up to run Python"
 source ${SCRIPTS_HOME}/epd-python_setup.sh
+
+# Database Resource names and suffixes
+echo "Defining Database Resource Names and Suffixes"
+source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/ResourceNamesAndSuffixes.sh
 
 get_options() 
 {
@@ -241,9 +249,8 @@ main()
 	echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
 	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
 	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
-	#echo "  --scan=\"rfMRI_REST\" \\" >> ${put_script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-	echo "  --resource-suffix=\"MSMAllReg\" " >> ${put_script_file_to_submit} 
+	echo "  --resource-suffix=\"${MSM_ALL_REGISTRATION_RESOURCE_NAME}\" " >> ${put_script_file_to_submit} 
 	echo "  --reason=\"MSMAllRegistration\" " >> ${put_script_file_to_submit}
 	
 	submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"

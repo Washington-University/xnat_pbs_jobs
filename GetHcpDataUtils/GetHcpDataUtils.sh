@@ -1,4 +1,8 @@
+# Path to tools used
 PATH_TO_LNDIR="/export/lndir-1.0.1/bin/lndir"
+
+# Database Resource names and suffixes
+source ResourceNamesAndSuffixes.sh
 
 link_hcp_struct_preproc_data()
 {
@@ -29,7 +33,7 @@ link_hcp_struct_preproc_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-    link_from+="/Structural_preproc/"
+    link_from+="/${STRUCTURAL_PREPROC_RESOURCE_NAME}/"
 
     local link_to=""
     link_to="${to_study_dir}/${subject}"
@@ -74,7 +78,7 @@ get_hcp_struct_preproc_data()
     copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     copy_from+="/${session}"
     copy_from+="/${DATABASE_RESOURCES_ROOT}"
-    copy_from+="/Structural_preproc/*"
+    copy_from+="/${STRUCTURAL_PREPROC_RESOURCE_NAME}/*"
 
     local copy_to=""
     copy_to="${to_study_dir}/${subject}"
@@ -120,7 +124,7 @@ link_hcp_func_preproc_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-    link_from+="/${scan}_preproc/"
+    link_from+="/${scan}${FUNCTIONAL_PREPROC_RESOURCE_SUFFIX}/"
 
     local link_to=""
     link_to="${to_study_dir}/${subject}"
@@ -167,7 +171,7 @@ get_hcp_func_preproc_data()
     copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     copy_from+="/${session}"
     copy_from+="/${DATABASE_RESOURCES_ROOT}"
-    copy_from+="/${scan}_preproc/*"
+    copy_from+="/${scan}${FUNCTIONAL_PREPROC_RESOURCE_SUFFIX}/*"
 
     local copy_to=""
     copy_to="${to_study_dir}/${subject}"
@@ -213,7 +217,7 @@ link_hcp_fix_proc_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-    link_from+="/${scan}_FIX/"
+    link_from+="/${scan}${FIX_PROC_RESOURCE_SUFFIX}/"
 
     local link_to=""
     link_to="${to_study_dir}/${subject}/MNINonLinear/Results"
@@ -259,7 +263,7 @@ get_hcp_fix_proc_data()
     copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     copy_from+="/${session}"
     copy_from+="/${DATABASE_RESOURCES_ROOT}"
-    copy_from+="/${scan}_FIX/*"
+    copy_from+="/${scan}${FIX_PROC_RESOURCE_SUFFIX}/*"
 
     local copy_to=""
     copy_to="${to_study_dir}/${subject}/MNINonLinear/Results"
@@ -305,7 +309,7 @@ link_hcp_postfix_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-    link_from+="/${scan}_PostFix/${subject}/MNINonLinear/Results/${scan}"
+    link_from+="/${scan}${POSTFIX_PROC_RESOURCE_SUFFIX}/${subject}/MNINonLinear/Results/${scan}"
 
     local link_to=""
     link_to="${to_study_dir}/${subject}/MNINonLinear/Results"
@@ -351,7 +355,7 @@ get_hcp_postfix_data()
     copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     copy_from+="/${session}"
     copy_from+="/${DATABASE_RESOURCES_ROOT}"
-    copy_from+="/${scan}_PostFix/${subject}/MNINonLinear/Results/${scan}"
+    copy_from+="/${scan}${POSTFIX_PROC_RESOURCE_SUFFIX}/${subject}/MNINonLinear/Results/${scan}"
 
     local copy_to=""
     copy_to="${to_study_dir}/${subject}/MNINonLinear/Results"
@@ -397,7 +401,7 @@ link_hcp_resting_state_stats_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-    link_from+="/${scan}_RSS/MNINonLinear/Results/${scan}"
+    link_from+="/${scan}${RESTING_STATE_STATS_PROC_RESOURCE_SUFFIX}/MNINonLinear/Results/${scan}"
 
     local link_to=""
     link_to="${to_study_dir}/${subject}/MNINonLinear/Results/${scan}"
@@ -443,7 +447,7 @@ get_hcp_resting_state_stats_data()
     copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     copy_from+="/${session}"
     copy_from+="/${DATABASE_RESOURCES_ROOT}"
-    copy_from+="/${scan}_RSS/MNINonLinear/Results/${scan}"
+    copy_from+="/${scan}${RESTING_STATE_STATS_PROC_RESOURCE_SUFFIX}/MNINonLinear/Results/${scan}"
 
     local copy_to=""
     copy_to="${to_study_dir}/${subject}/MNINonLinear/Results/${scan}"
@@ -487,7 +491,7 @@ link_hcp_msm_all_registration_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-	link_from+="/rfMRI_REST_MSMAllReg/MNINonLinear"
+	link_from+="/${MSM_ALL_REGISTRATION_RESOURCE_NAME}/MNINonLinear"
 
 	local link_to=""
 	link_to="${to_study_dir}/${subject}/MNINonLinear"
@@ -531,7 +535,7 @@ get_hcp_msm_all_registration_data()
     copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     copy_from+="/${session}"
     copy_from+="/${DATABASE_RESOURCES_ROOT}"
-	copy_from+="/rfMRI_REST_MSMAllReg/MNINonLinear/"
+	copy_from+="/${MSM_ALL_REGISTRATION_RESOURCE_NAME}/MNINonLinear/"
 
 	local copy_to=""
 	copy_to="${to_study_dir}/${subject}/MNINonLinear"
