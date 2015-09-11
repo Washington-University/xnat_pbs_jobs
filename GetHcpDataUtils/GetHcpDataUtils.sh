@@ -1,8 +1,12 @@
 # Path to tools used
 PATH_TO_LNDIR="/export/lndir-1.0.1/bin/lndir"
 
+# home directory for these XNAT PBS job scripts
+XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
+echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
+
 # Database Resource names and suffixes
-source ResourceNamesAndSuffixes.sh
+source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/ResourceNamesAndSuffixes.sh
 
 link_hcp_struct_preproc_data()
 {

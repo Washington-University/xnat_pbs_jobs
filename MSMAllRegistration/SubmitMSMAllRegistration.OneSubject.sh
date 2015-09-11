@@ -250,7 +250,7 @@ main()
 	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
 	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-	echo "  --resource-suffix=\"${MSM_ALL_REGISTRATION_RESOURCE_NAME}\" " >> ${put_script_file_to_submit} 
+	echo "  --resource-suffix=\"${MSM_ALL_REGISTRATION_RESOURCE_NAME}\" \\" >> ${put_script_file_to_submit} 
 	echo "  --reason=\"MSMAllRegistration\" " >> ${put_script_file_to_submit}
 	
 	submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
