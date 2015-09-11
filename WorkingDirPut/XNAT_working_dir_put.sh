@@ -30,6 +30,10 @@ set -e
 
 echo "Job started on `hostname` at `date`"
 
+# home directory for these XNAT PBS job scripts
+XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
+echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
+
 # home directory for scripts to be sourced to setup the environment
 SCRIPTS_HOME=/home/HCPpipeline/SCRIPTS
 echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
@@ -208,7 +212,10 @@ get_options()
 		echo "g_resource_suffix: ${g_resource_suffix}"
 	fi
 
-	# --reason= is optional
+	# --reason= is optional and has a default value
+	if [ -z "${g_reason}" ]; then
+		g_reason="Unspecified"
+	fi
 	echo "g_reason: ${g_reason}"
 
 	if [ ${error_count} -gt 0 ]; then
@@ -221,44 +228,32 @@ get_options()
 main()
 {
 	get_options $@
-	
-	# Set up to run Python
-	echo "-------------------------------------------------"
-	echo "Setting up to run Python"
-	echo "-------------------------------------------------"
-	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-	# Get XNAT Session ID (a.k.a. the experiment ID, e.g ConnectomeDB_E1234)
+	# Determine DB resource name
 	echo "-------------------------------------------------"
-	echo "Getting XNAT Session ID"
+	echo "Determining DB resource name"
 	echo "-------------------------------------------------"
-	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
-	echo "get_session_id_cmd: ${get_session_id_cmd}"
-	sessionID=`${get_session_id_cmd}`
-	echo "XNAT session ID: ${sessionID}"
+ 	if [ ! -z "${g_scan}" ]; then
+		resource="${g_scan}_${g_resource_suffix}"
+	else
+		resource="${g_resource_suffix}"
+	fi
+	echo "resource: ${resource}"
 
-	# Delete any previous resource
+	# Delete previous resource
 	echo "-------------------------------------------------"
 	echo "Deleting previous resource"	
 	echo "-------------------------------------------------"
-	resource_url=""
-	resource_url+="http://${g_server}"
-	resource_url+="/REST/projects/${g_project}"
-	resource_url+="/subjects/${g_subject}"
-	resource_url+="/experiments/${sessionID}"
-	if [ ! -z "${g_scan}" ]; then
-		resource_url+="/resources/${g_scan}_${g_resource_suffix}"
-	else
-		resource_url+="/resources/${g_resource_suffix}"
-	fi
-
-	variable_values="?removeFiles=true"
-	resource_uri="${resource_url}${variable_values}"
-
-	java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar \
-		-u ${g_user} -p ${g_password} -m DELETE \
-		-r ${resource_uri}
-
+	${XNAT_PBS_JOBS_HOME}/WorkingDirPut/DeleteResource.sh \
+		--user=${g_user} \
+		--password=${g_password} \
+		--server=${g_server} \
+		--project=${g_project} \
+		--subject=${g_subject} \
+		--session=${g_session} \
+		--resource=${resource} \
+		--force
+	
 	# Make processing job log files readable so they can be pushed into the database
 	chmod a+r ${g_working_dir}/*
 
@@ -274,25 +269,18 @@ main()
 	echo "-------------------------------------------------"
 	echo "Putting new data into DB from db_working_dir: ${db_working_dir}"
 	echo "-------------------------------------------------"
+	${XNAT_PBS_JOBS_HOME}/WorkingDirPut/PutDirIntoResource.sh \
+		--user=${g_user} \
+		--password=${g_password} \
+		--server=${g_server} \
+		--project=${g_project} \
+		--subject=${g_subject} \
+		--session=${g_session} \
+		--resource=${resource} \
+		--reason=${g_reason} \
+		--dir=${db_working_dir} \
+		--force
 
-	resource_url+="/files"
-
-	variable_values=""
-	variable_values+="?overwrite=true"
-    variable_values+="\&replace=true"
-	if [ ! -z "${g_reason}" ]; then
-		variable_values+="\&event_reason=${g_reason}"
-	else
-		variable_values+="\&event_reason=Unspecified"
-	fi
-	variable_values+="\&reference=${db_working_dir}"
-
-	resource_uri="${resource_url}${variable_values}"
-
-	java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar \
-		-u ${g_user} -p ${g_password} -m PUT \
-		-r ${resource_uri}
-	
 	# Cleanup
 	echo "-------------------------------------------------"
 	echo "Cleanup"
