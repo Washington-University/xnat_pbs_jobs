@@ -89,11 +89,13 @@ get_options()
 	fi
 
 	if [ -z "${g_password}" ]; then
-		echo "ERROR: password (--password=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		echo "g_password: *******"
+		stty -echo
+		printf "Password: "
+		read g_password
+		echo ""
+		stty echo
 	fi
+	echo "g_password: Now you know I'm not going to show you that."
 
 	if [ -z "${g_server}" ]; then
 		g_server="${default_server}"
