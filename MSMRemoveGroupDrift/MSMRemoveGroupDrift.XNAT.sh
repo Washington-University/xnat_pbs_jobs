@@ -199,7 +199,7 @@ create_input_data_dir()
 # 		done
 
 		# link structurally preprocessed data from DB
-#		link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${project}" "${subject}" "${session}" "${g_working_dir}"
+		link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${project}" "${subject}" "${session}" "${g_working_dir}"
 
 	done
 }
