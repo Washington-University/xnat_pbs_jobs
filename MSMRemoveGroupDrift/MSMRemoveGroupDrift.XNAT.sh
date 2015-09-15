@@ -279,7 +279,7 @@ main()
 		--subject-list=${g_subject_list} \
 		--common-folder=${study_folder}/${group_average_name} \
 		--group-average-name=${group_average_name} \
-		--input-registration-name="MSMAll_InitalReg" \
+		--input-registration-name="MSMAll_InitalReg_2_d40_WRN" \
 		--target-registration-name="MSMSulc" \
 		--registration-name="DeDriftMSMAll" \
 		--high-res-mesh=164 \
