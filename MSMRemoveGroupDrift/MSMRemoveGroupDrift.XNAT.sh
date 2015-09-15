@@ -273,7 +273,7 @@ main()
 	group_average_name="DeDriftingGroup"
 
 	# do the actual work by running the MSMRemoveGroupDrift.sh script
-	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSMAll.sh
+	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSMRemoveGroupDrift.sh
 	${HCPPIPEDIR}/MSMRemoveGroupDrift/MSMRemoveGroupDrift.sh \
 		--path=${study_folder} \
 		--subject-list=${g_subject_list} \
