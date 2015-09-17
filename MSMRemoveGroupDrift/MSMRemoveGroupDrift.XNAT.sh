@@ -177,30 +177,8 @@ create_input_data_dir()
 		# link MSM All registration data from DB
 		link_hcp_msm_all_registration_data "${DATABASE_ARCHIVE_ROOT}" "${project}" "${subject}" "${session}" "${g_working_dir}"
 
-# 		# figure out what resting state scans are available for this subject/session
-# 		# that have RestingStateStats computed for them
-# 		pushd ${DATABASE_ARCHIVE_ROOT}/${project}/arc001/${session}/RESOURCES
-
-# 		scan_names=""
-# 		resting_state_scan_dirs=`ls -d rfMRI_REST*_RSS`
-# 		for resting_state_scan_dir in ${resting_state_scan_dirs} ; do
-# 			scan_name=${resting_state_scan_dir%%_RSS}
-# 			scan_names+="${scan_name} "
-# 		done
-# 		scan_names=${scan_names% } # remove trailing space
-
-# 		echo "Found the following resting state scans: ${scan_names}"
-
-# 		popd
-
-# 		# link RestingStateStats data from database for subject
-# 		for scan_name in ${scan_names} ; do
-# 			link_hcp_resting_state_stats_data "${DATABASE_ARCHIVE_ROOT}" "${project}" "${subject}" "${session}" "${scan_name}" "${g_working_dir}"  
-# 		done
-
 		# link structurally preprocessed data from DB
 		link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${project}" "${subject}" "${session}" "${g_working_dir}"
-
 	done
 }
 
@@ -290,7 +268,7 @@ main()
 	find ${g_working_dir}/${g_project} -type f -newer ${start_time_file}
 
 	# remove any files that are not newly created or modified
-	#find ${g_working_dir}/${g_project} -not -newer ${start_time_file} -delete
+	find ${g_working_dir}/${g_project} -not -newer ${start_time_file} -delete
 }
 
 # Invoke the main function to get things started
