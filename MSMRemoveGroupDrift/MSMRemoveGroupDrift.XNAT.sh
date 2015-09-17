@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 echo "Job started on `hostname` at `date`"
 
@@ -16,6 +17,10 @@ echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
 
 # Load Function Libraries
 source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
+
+# Database Resource names and suffixes
+echo "Defining Database Resource Names and Suffixes"
+source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/ResourceNamesAndSuffixes.sh
 
 # Show script usage information
 usage()
@@ -265,10 +270,10 @@ main()
 
 	# show any newly created or modified files
 	echo "Newly created/modified files:"
-	find ${g_working_dir}/${g_project} -type f -newer ${start_time_file}
+	find ${g_working_dir} -type f -newer ${start_time_file}
 
 	# remove any files that are not newly created or modified
-	find ${g_working_dir}/${g_project} -not -newer ${start_time_file} -delete
+	find ${g_working_dir} -not -newer ${start_time_file} -delete
 }
 
 # Invoke the main function to get things started
