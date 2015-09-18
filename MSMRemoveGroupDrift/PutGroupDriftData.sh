@@ -158,10 +158,10 @@ push_group_files_to_db()
 		--force
 
 	echo "-------------------------------------------------"
-	echo "Deleting pushed data"
+	echo "Cleanup"
 	echo "-------------------------------------------------"
-	
-	echo "TBD"
+	echo "Removing g_working_dir: ${g_working_dir}"
+	rm -f ${g_working_dir}
 }
 
 #
