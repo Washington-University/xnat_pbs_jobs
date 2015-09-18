@@ -78,7 +78,7 @@ echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MSMRemoveGroupDrift/PutGrou
 echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
 echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
 echo "  --server=\"${server}\" \\" >> ${put_script_file_to_submit}
-echo "  --subject-info-file=${subject_info_file_name} \\" >> ${put_script_file_to_submit}
+echo "  --project=HCP_Staging \\" >> ${put_script_file_to_submit}
 echo "  --working-dir=\"${working_directory_name}\" " >> ${put_script_file_to_submit}
 
 submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
