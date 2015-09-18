@@ -140,6 +140,9 @@ push_group_files_to_db()
 		--resource="${MSM_ALL_DEDRIFT_RESOURCE_NAME}" \
 		--force
 
+	# Make processing job log files readable so they can be pushed into the database
+	chmod a+r ${g_working_dir}/*
+
 	db_working_dir=${g_working_dir/HCP/data}
 	echo "-------------------------------------------------"
 	echo "Putting new data into DB from db_working_dir: ${db_working_dir}"
