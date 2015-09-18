@@ -161,7 +161,7 @@ push_group_files_to_db()
 	echo "Cleanup"
 	echo "-------------------------------------------------"
 	echo "Removing g_working_dir: ${g_working_dir}"
-	rm -f ${g_working_dir}
+	rm -rf ${g_working_dir}
 }
 
 #
