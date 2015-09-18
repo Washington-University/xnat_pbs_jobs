@@ -273,7 +273,7 @@ main()
 	find ${g_working_dir} -type f -newer ${start_time_file}
 
 	# remove any files that are not newly created or modified
-	find ${g_working_dir} -not -newer ${start_time_file} -delete
+	find ${g_working_dir} -not -name "*.XNAT_PBS_job.sh" -not -newer ${start_time_file} -delete
 }
 
 # Invoke the main function to get things started
