@@ -50,6 +50,10 @@ echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
 XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
+# root directory of the XNAT database archive
+DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
+echo "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
+
 # Set up to run Python
 echo "Setting up to run Python"
 source ${SCRIPTS_HOME}/epd-python_setup.sh
@@ -305,9 +309,45 @@ main()
 
 	show_xnat_workflow
 
+	# ----------------------------------------------------------------------------------------------
+	# Step - Figure out what resting state scans are available for this subject/session
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Figure out what resting state scans should be processed" ${g_step_percent}
 
+	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES
 
+	resting_state_scan_names=""
+	resting_state_scan_dirs=`ls -d rfMRI_REST*_preproc`
+	for resting_state_scan_dir in ${resting_state_scan_dirs} ; do
+		scan_name=${resting_state_scan_dir%%_preproc}
+		resting_state_scan_names+="${scan_name} "
+	done
+	resting_state_scan_names=${resting_state_scan_names% } # remove trailing space
+	
+	echo "Found the following resting state scans: ${resting_state_scan_names}"
 
+	popd
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Figure out what task scans are available for this subject/session 
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Figure out what task scans should be processed" ${g_step_percent}
+
+	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES
+
+	task_scan_names=""
+	task_scan_dirs=`ls -d tfMRI_*_preproc`
+	for task_scan_dir in ${task_scan_dirs} ; do
+		scan_name=${task_scan_dir%%_preproc}
+		task_scan_names+="${scan_name} "
+	done
+	task_scan_names=${task_scan_names% } # remove trailing space
+
+	echo "Found the following task scans: ${task_scan_names}"
+
+	popd
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
@@ -350,23 +390,45 @@ main()
 
 	source ${setup_file}
 
-	scan_names=`echo "${scan_names}" | sed s/" "/"@"/g`
-	echo "scan_names: ${scan_names}"
-		
+	# Setup variables for command line arguments
+
+	local HighResMesh="164"
+	local LowResMeshes="32" # Delimit with @ e.g. 32@59, multiple resolutions not currently supported for fMRI data
+	local RegName="MSMAll_InitalReg" # From MSMAllPipeline.bat
+
+	local DeDriftRegFiles=""
+	DeDriftRegFiles+="${g_working_dir}/DeDriftingGroup/MNINonLinear/DeDriftMSMAll/DeDriftingGroup.L.sphere.DeDriftMSMAll.164k_fs_LR.surf.gii"
+	DeDriftRegFiles+="@"
+	DeDriftRegFiles+="${g_working_dir}/DeDriftingGroup/MNINonLinear/DeDriftMSMAll/DeDriftingGroup.R.sphere.DeDriftMSMAll.164k_fs_LR.surf.gii"
+
+	local ConcatRegName="MSMAll" # Final name of ${RegName}, the string that identifies files as being registered with this method
+	local Maps="sulc curvature corrThickness thickness" # List of Structural Maps to be resampled
+	local MyelinMaps="MyelinMap SmoothedMyelinMap" #List of Myelin Maps to be Resampled (No _BC, this will be reapplied)
+	local rfMRINames="${resting_state_scan_names}" #List of Resting State Maps Space delimited list or NONE
+	local tfMRINames="${task_scan_names}" #Space delimited list or NONE
+	local SmoothingFWHM="2" #Should equal previous grayordiantes smoothing (because we are resampling from unsmoothed native mesh timeseries
+	local HighPass="2000" #For resting state fMRI
+
+	Maps=`echo "$Maps" | sed s/" "/"@"/g`
+	MyelinMaps=`echo "$MyelinMaps" | sed s/" "/"@"/g`
+	rfMRINames=`echo "$rfMRINames" | sed s/" "/"@"/g`
+	tfMRINames=`echo "$rfMRINames" | sed s/" "/"@"/g`
+
 	# Run DeDriftAndResamplePipeline.sh script
 	${HCPPIPEDIR}/DeDriftAndResample/DeDriftAndResamplePipeline.sh \
 		--path=${g_working_dir} \
-		--subject=${g_subject} 
-
-
-# 		--fmri-names-list=${scan_names} \
-# 		--output-fmri-name="rfMRI_REST" \
-# 		--fmri-proc-string="_Atlas_hp2000_clean" \
-# 		--msm-all-templates="${HCPPIPEDIR}/global/templates/MSMAll" \
-# 		--output-registration-name="MSMAll_InitalReg" \
-# 		--high-res-mesh="164" \
-# 		--low-res-mesh="32" \
-# 		--input-registration-name="MSMSulc"
+		--subject=${g_subject} \
+		--high-res-mesh=${HighResMesh} \
+		--low-res-meshes=${LowResMeshes} \
+		--registration-name="${RegName}" \
+		--dedrift-reg-files="${DeDriftRegFiles}" \
+		--concat-reg-name="${ConcatRegName}" \
+		--maps="${Maps}" \
+		--myelin-maps="${MyelinMaps}" \
+		--rfmri-names="${rfMRINames}" \
+		--tfmri-names="${tfMRINames}" \
+		--smoothing-fwhm=${SmoothingFWHM} \
+		--highpass=${HighPass}
 	
 	if [ $? -ne 0 ]; then
 		die 
