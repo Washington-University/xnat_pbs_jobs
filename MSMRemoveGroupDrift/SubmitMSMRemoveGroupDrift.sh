@@ -18,7 +18,7 @@ echo ""
 stty echo
 
 server="db-shadow1.nrg.mir:8080"
-subject_info_file_name="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MSMRemoveGroupDrift/vetting_subjects.txt"
+subject_info_file_name="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MSMRemoveGroupDrift/all_s900_subjects.txt"
 
 # Get token user id and password
 echo "Getting token user id and password"
