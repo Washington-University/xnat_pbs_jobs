@@ -312,7 +312,7 @@ main()
 	get_options $@
 
 	# Set up step counters
-	init_steps 11
+	init_steps 12
 
 	show_xnat_workflow
 
@@ -402,6 +402,26 @@ main()
 
 	link_hcp_msm_all_registration_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
 
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Link FIX processed data from DB
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Link FIX processed data from DB" ${g_step_percent}
+
+	for scan_name in ${resting_state_scan_names} ; do
+		link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
+	done
+
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Link functionally preprocessed data from DB
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Link functionally preprocessed data from DB" ${g_step_percent}
+
+	for scan_name in ${resting_state_scan_names} ${task_scan_names} ; do
+		link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
+	done
+	
 	# ----------------------------------------------------------------------------------------------
  	# Step - Link structurally preprocessed data from DB
 	# ----------------------------------------------------------------------------------------------
