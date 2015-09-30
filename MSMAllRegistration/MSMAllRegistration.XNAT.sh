@@ -53,10 +53,6 @@ echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
 echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
 
-# home directory for XNAT pipeline engine installation
-XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
-echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
-
 # root directory of the XNAT database archive
 DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
 echo "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
