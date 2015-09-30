@@ -137,9 +137,9 @@ create_input_data_dir()
 {
 	# VERY IMPORTANT NOTE:
 	# 
-	# Since ConnectomeDB resources contain overlapping files (e.g the functionally preprocessed 
+	# Since ConnectomeDB resources contain overlapping files (e.g. the functionally preprocessed 
 	# data resource may contain some of the exact same files as the structurally preprocessed
-	# data resource) extra care must be taken with the order in which data is linked in to the
+	# data resource), extra care must be taken with the order in which data is linked in to the
 	# working directory.  
 	#
 	# If, for example, a file named ${subject}/subdir1/subdir2/this_file.nii.gz exists in both
@@ -153,7 +153,7 @@ create_input_data_dir()
 	# The lndir command will report to stderr any links that it could not (would not) create 
 	# because they already exist in the destination directories.
 	# 
-	# So if we link in the structurally preprocessed data first and then link in the functionally
+	# So, if we link in the structurally preprocessed data first and then link in the functionally
 	# preprocessed data second, the file ${subject}/subdir1/subdir2/this_file.nii.gz in the 
 	# working directory will be linked back to the structurally preprocessed version of the file.
 	#
