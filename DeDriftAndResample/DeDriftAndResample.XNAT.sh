@@ -50,9 +50,16 @@ echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
 XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
+# home directory for these XNAT PBS job scripts
+XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
+echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
+
 # root directory of the XNAT database archive
 DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
 echo "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
+
+# Load Function libraries
+source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
 
 # Set up to run Python
 echo "Setting up to run Python"
@@ -305,7 +312,7 @@ main()
 	get_options $@
 
 	# Set up step counters
-	init_steps 2
+	init_steps 11
 
 	show_xnat_workflow
 
@@ -348,6 +355,82 @@ main()
 	echo "Found the following task scans: ${task_scan_names}"
 
 	popd
+
+	# VERY IMPORTANT NOTE:
+	#
+	# Since ConnectomeDB resources contain overlapping files (e.g. the functionally preprocessed
+	# data resource may contain some of the exact same files as the structurally preprocessed
+	# data resource), extra care must be taken with the order in which data is linked in to the
+	# working directory.
+	#
+	# If, for example, a file named ${subject}/subdir1/subdir2/this_file.nii.gz exists in both
+	# the structurally preprocessed data resource and in the functionally preprocessed data 
+	# resource, whichever resource we link in to the working directory _first_ will take 
+	# precedence.  (This is due to the behavior of the lndir command used by the link_hcp...
+	# functions, and is unlike the behavior of the rsync command used by the get_hcp...
+	# functions. The rsync command will copy/update the newer version of the file from its 
+	# source.)
+	#
+	# The lndir command will report to stderr any links that it could not (would not) create 
+	# because they already exist in the destination directories.
+	#
+	# So, if we link in the structurally preprocessed data first and then link in the functionally
+	# preprocessed data second, the file ${subject}/subdir1/subdir2/this_file.nii.gz in the 
+	# working directory will be linked back to the structurally preprocessed version of the file.
+	#
+	# Since functional preprocessing comes _after_ structural preprocessing, this is not likely
+	# to be what we want.  Instead, we want the file as it exists after functional preprocessing
+	# to be the one that is linked in to the working directory.
+	#
+	# Therefore, it is important to consider the order in which we call the link_hcp... functions
+	# below.  We should call them in order from the results of the latest prerequisite pipelines
+	# to the earliest prerequisite pipelines.
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Link Group Average Drift Data from DB
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+ 	update_xnat_workflow ${g_current_step} "Link Group Average Drift Data from DB" ${g_step_percent}
+
+	link_hcp_msm_group_average_drift_data "${DATABASE_ARCHIVE_ROOT}" "HCP_Staging" "${g_working_dir}"
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Link MSM All registration data from DB
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Link MSM-All registration data from DB" ${g_step_percent}
+
+	link_hcp_msm_all_registration_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
+
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Link structurally preprocessed data from DB
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Link structurally preprocessed data from DB" ${g_step_percent}
+
+	link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Copy files that are opened for writing
+	# These spec files already exist prior to running this pipeline, and are modified by the
+	# pipeline script.
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Copy files that are opened for writing" ${g_step_percent}
+	
+	t1w_native_spec_file=${g_working_dir}/${g_subject}/T1w/Native/${g_subject}.native.wb.spec
+
+	rm ${t1w_native_spec_file}
+	cp -a --preserve=timestamps \
+		${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/Structural_preproc/T1w/Native/${g_subject}.native.wb.spec \
+		${t1w_native_spec_file}
+
+	native_spec_file=${g_working_dir}/${g_subject}/MNINonLinear/Native/${g_subject}.native.wb.spec
+
+	rm ${native_spec_file}
+	cp -a --preserve=timestamps \
+		${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/Structural_preproc/MNINonLinear/Native/${g_subject}.native.wb.spec \
+		${native_spec_file}
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
@@ -394,7 +477,8 @@ main()
 
 	local HighResMesh="164"
 	local LowResMeshes="32" # Delimit with @ e.g. 32@59, multiple resolutions not currently supported for fMRI data
-	local RegName="MSMAll_InitalReg" # From MSMAllPipeline.bat
+	#local RegName="MSMAll_InitalReg" # From MSMAllPipeline.bat
+	local RegName="MSMAll_InitalReg_2_d40_WRN" # From MSMAllPipeline.bat
 
 	local DeDriftRegFiles=""
 	DeDriftRegFiles+="${g_working_dir}/DeDriftingGroup/MNINonLinear/DeDriftMSMAll/DeDriftingGroup.L.sphere.DeDriftMSMAll.164k_fs_LR.surf.gii"
@@ -412,7 +496,7 @@ main()
 	Maps=`echo "$Maps" | sed s/" "/"@"/g`
 	MyelinMaps=`echo "$MyelinMaps" | sed s/" "/"@"/g`
 	rfMRINames=`echo "$rfMRINames" | sed s/" "/"@"/g`
-	tfMRINames=`echo "$rfMRINames" | sed s/" "/"@"/g`
+	tfMRINames=`echo "$tfMRINames" | sed s/" "/"@"/g`
 
 	# Run DeDriftAndResamplePipeline.sh script
 	${HCPPIPEDIR}/DeDriftAndResample/DeDriftAndResamplePipeline.sh \

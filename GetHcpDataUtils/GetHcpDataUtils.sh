@@ -487,7 +487,7 @@ link_hcp_msm_all_registration_data()
     echo " To Study Directory: ${to_study_dir}"
 
 	pushd ${to_study_dir}
-	mkdir -p ${subject}/MNINonLinear
+	mkdir -p ${subject}
 
 	local link_from=""
     link_from+="${archive}"
@@ -495,10 +495,10 @@ link_hcp_msm_all_registration_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-	link_from+="/${MSM_ALL_REGISTRATION_RESOURCE_NAME}/MNINonLinear"
+	link_from+="/${MSM_ALL_REGISTRATION_RESOURCE_NAME}"
 
 	local link_to=""
-	link_to="${to_study_dir}/${subject}/MNINonLinear"
+	link_to="${to_study_dir}/${subject}"
 
 	local lndir_cmd=""
 	lndir_cmd="${PATH_TO_LNDIR} ${link_from} ${link_to}"
@@ -510,46 +510,83 @@ link_hcp_msm_all_registration_data()
     popd
 }
 
-get_hcp_msm_all_registration_data()
+# UNTESTED
+#
+# get_hcp_msm_all_registration_data()
+# {
+# 	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+# 	local project=${2} # e.g. HCP_500
+# 	local subject=${3} # e.g. 100307
+# 	local session=${4} # e.g. 100307_3T
+# 	local to_study_dir=${5}
+
+# 	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+# 	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+# 	echo ""
+# 	echo "----------" `date` "----------"
+#     echo "Copying HCP MSM All Registration data from archive"
+#     echo " Archive: ${archive}"
+#     echo " Project: ${project}"
+#     echo " Subject: ${subject}"
+#     echo " Session: ${session}"
+#     echo " To Study Directory: ${to_study_dir}"
+
+# 	pushd ${to_study_dir}
+
+# 	mkdir -p ${subject}
+
+# 	local copy_from=""
+#     copy_from+="${archive}"
+#     copy_from+="/${project}"
+#     copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+#     copy_from+="/${session}"
+#     copy_from+="/${DATABASE_RESOURCES_ROOT}"
+#     copy_from+="/${MSM_ALL_REGISTRATION_RESOURCE_NAME}/"
+
+# 	local copy_to=""
+# 	copy_to="${to_study_dir}/${subject}"
+
+# 	local rsync_cmd=""
+# 	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+# 	echo "rsync_cmd: ${rsync_cmd}"
+# 	echo "----------" `date` "----------"
+# 	echo ""
+#     ${rsync_cmd}
+
+#     popd
+# }
+
+link_hcp_msm_group_average_drift_data()
 {
 	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
-	local project=${2} # e.g. HCP_500
-	local subject=${3} # e.g. 100307
-	local session=${4} # e.g. 100307_3T
-	local to_study_dir=${5}
+	local project=${2} # e.g. HCP_Staging or HCP_500
+	local to_study_dir=${3}
 
-	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
-	local DATABASE_RESOURCES_ROOT="RESOURCES"
+	local DATABASE_ARCHIVE_PROJECT_LEVEL_RESOURCES_ROOT="resources"
 
 	echo ""
 	echo "----------" `date` "----------"
-    echo "Copying HCP MSM All Registration data from archive"
+    echo "Linking HCP MSM Group Average Drift data from archive"
     echo " Archive: ${archive}"
     echo " Project: ${project}"
-    echo " Subject: ${subject}"
-    echo " Session: ${session}"
     echo " To Study Directory: ${to_study_dir}"
 
-	pushd ${to_study_dir}
-	mkdir -p ${subject}/MNINonLinear
+	local link_from=""
+	link_from+="${archive}"
+	link_from+="/${project}"
+	link_from+="/${DATABASE_ARCHIVE_PROJECT_LEVEL_RESOURCES_ROOT}"
+	link_from+="/${MSM_ALL_DEDRIFT_RESOURCE_NAME}"
 
-	local copy_from=""
-    copy_from+="${archive}"
-    copy_from+="/${project}"
-    copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
-    copy_from+="/${session}"
-    copy_from+="/${DATABASE_RESOURCES_ROOT}"
-	copy_from+="/${MSM_ALL_REGISTRATION_RESOURCE_NAME}/MNINonLinear/"
+	local link_to=""
+	link_to="${to_study_dir}"
 
-	local copy_to=""
-	copy_to="${to_study_dir}/${subject}/MNINonLinear"
-
-	local rsync_cmd=""
-	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
-	echo "rsync_cmd: ${rsync_cmd}"
+	local lndir_cmd=""
+	lndir_cmd="${PATH_TO_LNDIR} ${link_from} ${link_to}"
+	echo "lndir_cmd: ${lndir_cmd}"
+	
 	echo "----------" `date` "----------"
 	echo ""
-    ${rsync_cmd}
-
-    popd
+    ${lndir_cmd}
 }
+
