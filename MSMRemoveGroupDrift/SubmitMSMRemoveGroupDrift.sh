@@ -18,7 +18,7 @@ echo ""
 stty echo
 
 server="db-shadow1.nrg.mir:8080"
-subject_info_file_name="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MSMRemoveGroupDrift/all_s900_subjects.txt"
+subject_info_file_name="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MSMRemoveGroupDrift/group_drift_subjects.txt"
 
 # Get token user id and password
 echo "Getting token user id and password"
@@ -47,7 +47,7 @@ if [ -e "${script_file_to_submit}" ]; then
 fi
 
 touch ${script_file_to_submit}
-echo "#PBS -l nodes=1:ppn=1,walltime=96:00:00,vmem=16000mb" >> ${script_file_to_submit}
+echo "#PBS -l nodes=1:ppn=1,walltime=8:00:00,vmem=32000mb" >> ${script_file_to_submit}
 echo "#PBS -q dque" >> ${script_file_to_submit}
 echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
