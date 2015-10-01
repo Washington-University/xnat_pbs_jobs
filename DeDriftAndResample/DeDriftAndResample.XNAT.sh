@@ -312,7 +312,7 @@ main()
 	get_options $@
 
 	# Set up step counters
-	init_steps 12
+	init_steps 13
 
 	show_xnat_workflow
 
@@ -431,7 +431,7 @@ main()
 	link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
-	# Step - Copy files that are opened for writing
+	# Step - Copy files that are opened for writing by DeDriftAndResample.sh script
 	# These spec files already exist prior to running this pipeline, and are modified by the
 	# pipeline script.
 	# ----------------------------------------------------------------------------------------------
@@ -441,16 +441,33 @@ main()
 	t1w_native_spec_file=${g_working_dir}/${g_subject}/T1w/Native/${g_subject}.native.wb.spec
 
 	rm ${t1w_native_spec_file}
-	cp -a --preserve=timestamps \
+	cp -a --preserve=timestamps --verbose \
 		${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/Structural_preproc/T1w/Native/${g_subject}.native.wb.spec \
 		${t1w_native_spec_file}
 
 	native_spec_file=${g_working_dir}/${g_subject}/MNINonLinear/Native/${g_subject}.native.wb.spec
 
 	rm ${native_spec_file}
-	cp -a --preserve=timestamps \
+	cp -a --preserve=timestamps --verbose \
 		${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/Structural_preproc/MNINonLinear/Native/${g_subject}.native.wb.spec \
 		${native_spec_file}
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Copy files that are re-created by the ReApplyFixPipeline.sh script which is invoked
+	#        by the DeDriftAndResample.sh script
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Copy files that are re-created by ReApplyFixPipeline" ${g_step_percent}
+
+	local HighPass="2000" 
+	for scan_name in ${resting_state_scan_names} ; do
+		prefiltered_func_data_mcf_file=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica/mc/prefiltered_func_data_mcf.par
+
+		rm ${prefiltered_func_data_mcf_file}
+		cp -a --preserve=timestamps --verbose \
+			${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX/${scan_name}/${scan_name}_hp${HighPass}.ica/mc/prefiltered_func_data_mcf.par \
+			${prefiltered_func_data_mcf_file}
+	done
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
@@ -511,7 +528,8 @@ main()
 	local rfMRINames="${resting_state_scan_names}" #List of Resting State Maps Space delimited list or NONE
 	local tfMRINames="${task_scan_names}" #Space delimited list or NONE
 	local SmoothingFWHM="2" #Should equal previous grayordiantes smoothing (because we are resampling from unsmoothed native mesh timeseries
-	local HighPass="2000" #For resting state fMRI
+	# For value of HighPass, see step above in which prefiltered_func_data_mcf.par files are copied.
+	#local HighPass="2000" #For resting state fMRI
 
 	Maps=`echo "$Maps" | sed s/" "/"@"/g`
 	MyelinMaps=`echo "$MyelinMaps" | sed s/" "/"@"/g`
