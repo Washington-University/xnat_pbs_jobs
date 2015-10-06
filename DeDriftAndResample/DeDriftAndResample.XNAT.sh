@@ -312,7 +312,7 @@ main()
 	get_options $@
 
 	# Set up step counters
-	init_steps 13
+	init_steps 14
 
 	show_xnat_workflow
 
@@ -461,12 +461,26 @@ main()
 
 	local HighPass="2000" 
 	for scan_name in ${resting_state_scan_names} ; do
-		prefiltered_func_data_mcf_file=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica/mc/prefiltered_func_data_mcf.par
+		working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica
+		db_ica_dir=${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX/${scan_name}/${scan_name}_hp${HighPass}.ica
 
-		rm ${prefiltered_func_data_mcf_file}
+		# mc/prefiltered_func_data_mcf.par
+		working_prefiltered_func_data_mcf_file=${working_ica_dir}/mc/prefiltered_func_data_mcf.par
+		db_prefiltered_func_data_mcf_file=${db_ica_dir}/mc/prefiltered_func_data_mcf.par
+
+		rm ${working_prefiltered_func_data_mcf_file}
 		cp -a --preserve=timestamps --verbose \
-			${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX/${scan_name}/${scan_name}_hp${HighPass}.ica/mc/prefiltered_func_data_mcf.par \
-			${prefiltered_func_data_mcf_file}
+			${db_prefiltered_func_data_mcf_file} \
+			${working_prefiltered_func_data_mcf_file}
+
+		# Atlas_hp_preclean.dtseries.nii
+		working_preclean_dtseries_file=${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
+		db_preclean_dtseries_file=${db_ica_dir}/Atlas_hp_preclean.dtseries.nii
+
+		rm ${working_preclean_dtseries_file}
+		cp -a --preserve=timestamps --verbose \
+			${db_preclean_dtseries_file} \
+			${working_preclean_dtseries_file}
 	done
 
 	# ----------------------------------------------------------------------------------------------
@@ -568,11 +582,11 @@ main()
 	# ----------------------------------------------------------------------------------------------
 	# Step - Remove any files that are not newly created or modified
 	# ----------------------------------------------------------------------------------------------
-#	increment_step
-#	update_xnat_workflow ${g_current_step} "Remove files not newly created or modified" ${g_step_percent}
-#
-#	echo "The following files are being removed"
-#	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete || die 
+	increment_step
+	update_xnat_workflow ${g_current_step} "Remove files not newly created or modified" ${g_step_percent}
+
+	echo "The following files are being removed"
+	find ${g_working_dir} -not -newer ${start_time_file} -print -delete || die 
 	
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
