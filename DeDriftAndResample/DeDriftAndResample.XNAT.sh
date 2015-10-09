@@ -332,6 +332,10 @@ main()
 	done
 	resting_state_scan_names=${resting_state_scan_names% } # remove trailing space
 	
+	if [ -z "${resting_state_scan_names}" ]; then
+		resting_state_scan_names="NONE"
+	fi
+
 	echo "Found the following resting state scans: ${resting_state_scan_names}"
 
 	popd
@@ -351,6 +355,10 @@ main()
 		task_scan_names+="${scan_name} "
 	done
 	task_scan_names=${task_scan_names% } # remove trailing space
+
+	if [ -z "${task_scan_names}" ]; then
+		task_scan_names="NONE"
+	fi
 
 	echo "Found the following task scans: ${task_scan_names}"
 
