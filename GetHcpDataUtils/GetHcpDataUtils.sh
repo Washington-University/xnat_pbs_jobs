@@ -590,3 +590,35 @@ link_hcp_msm_group_average_drift_data()
     ${lndir_cmd}
 }
 
+get_hcp_msm_group_average_drift_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+    local to_study_dir=${3}
+
+	local DATABASE_ARCHIVE_PROJECT_LEVEL_RESOURCES_ROOT="resources"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Copying HCP MSM Group Average Drift data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " To Study Directory: ${to_study_dir}"
+	
+	local copy_from=""
+	copy_from+="${archive}"
+	copy_from+="/${project}"
+	copy_from+="/${DATABASE_ARCHIVE_PROJECT_LEVEL_RESOURCES_ROOT}"
+	copy_from+="/${MSM_ALL_DEDRIFT_RESOURCE_NAME}/"
+
+	local copy_to=""
+	copy_to="${to_study_dir}"
+
+	local rsync_cmd=""
+	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+	echo "rsync_cmd: ${rsync_cmd}"
+	echo "----------" `date` "----------"
+	echo ""
+	
+	${rsync_cmd}
+}
