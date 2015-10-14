@@ -454,7 +454,7 @@ main()
 	script_cmd+="--lvl1tasks=${level1_task_list} "
 	script_cmd+="--lvl1fsfs=${level1_fsfs_list} "
 	script_cmd+="--lvl2task=${level2_task_list} "
-	script_cmd+="--lvl2fsfs=${level2_fsfs_list} "
+	script_cmd+="--lvl2fsf=${level2_fsfs_list} "
 	script_cmd+="--lowresmesh=32 "
 	script_cmd+="--grayordinatesres=2 "
 	script_cmd+="--origsmoothingFWHM=2 "

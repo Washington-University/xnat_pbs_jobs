@@ -146,9 +146,6 @@ main()
 
 	echo "Task scans available for subject: ${task_scan_names}"
 
-	echo "BUT FOR TESTING I'M JUST USING WM"
-	task_scan_names="WM"
-
 	# Submit jobs for each task
 
 	for task in ${task_scan_names} ; do

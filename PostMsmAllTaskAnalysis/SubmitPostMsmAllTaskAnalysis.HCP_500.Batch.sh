@@ -52,25 +52,15 @@ for subject in ${subjects} ; do
 		echo " Submission delayed until ${delay} minutes from now"
 		echo "--------------------------------------------------------------------------------"
 		
-#		at now + ${delay} minutes <<EOF 
-#			/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostMsmAllTaskAnalysis/SubmitPostMsmAllTaskAnalysis.OneSubject.sh \
-#			--user=${userid} \
-#			--password=${password} \
-#			--server=${server} \
-#			--project=${project} \
-#			--subject=${subject}
-#EOF
-	
-		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostMsmAllTaskAnalysis/SubmitPostMsmAllTaskAnalysis.OneSubject.sh \
+		at now + ${delay} minutes <<EOF 
+			/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostMsmAllTaskAnalysis/SubmitPostMsmAllTaskAnalysis.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
 			--server=${server} \
 			--project=${project} \
 			--subject=${subject}
-
-
-
-
+EOF
+	
 		delay=$((delay + interval))
 
 		shadow_number=$((shadow_number+1))
