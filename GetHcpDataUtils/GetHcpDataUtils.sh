@@ -3,6 +3,7 @@ PATH_TO_LNDIR="/export/lndir-1.0.1/bin/lndir"
 
 # home directory for these XNAT PBS job scripts
 XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
+#XNAT_PBS_JOBS_HOME=/home/NRG/tbrown01/projects/xnat_pbs_jobs
 echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
 
 # Database Resource names and suffixes
