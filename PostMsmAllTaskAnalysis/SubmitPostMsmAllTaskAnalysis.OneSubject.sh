@@ -286,7 +286,7 @@ main()
 	
 		submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
 		echo "submit_cmd: ${submit_cmd}"
-		#${submit_cmd}
+		${submit_cmd}
 
 	done
 }
