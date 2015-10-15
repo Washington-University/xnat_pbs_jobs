@@ -626,7 +626,7 @@ get_hcp_msm_group_average_drift_data()
 
 link_hcp_resampled_and_dedrifted_data()
 {
-	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hdpdb/archive
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
 	local project=${2} # e.g. HCP_500
 	local subject=${3} # e.g. 100307
 	local session=${4} # e.g. 100307_3T
@@ -666,6 +666,50 @@ link_hcp_resampled_and_dedrifted_data()
     ${lndir_cmd}
 
     popd
+}
+
+get_hcp_resampled_and_dedrifted_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Copying HCP resampled and dedrifted data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+	echo " Subject: ${subject}"
+	echo " Session: ${session}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local copy_from=""
+	copy_from+="${archive}"
+	copy_from+="/${project}"
+	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	copy_from+="/${session}"
+	copy_from+="/${DATABASE_RESOURCES_ROOT}"
+	copy_from+="/${MSM_ALL_DEDRIFT_RESOURCE_NAME}/*"
+
+	local copy_to=""
+	copy_to="${to_study_dir}/${subject}"
+
+	local rsync_cmd=""
+	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+	echo "rsync_cmd: ${rsync_cmd}"
+	echo "----------" `date` "----------"
+	echo ""
+    ${rsync_cmd}
+
+	popd
 }
 
 link_hcp_task_analysis_data()
