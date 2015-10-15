@@ -325,12 +325,12 @@ main()
 	get_options $@
 
 	# Set up step counters
-	init_steps 10 # TBD
+	init_steps 9
 
 	show_xnat_workflow
 
 	# ----------------------------------------------------------------------------------------------
-	# Step - Figure out what task scans are available for this subject/session 
+	# Step - Figure out what task scans should be processed
 	# ----------------------------------------------------------------------------------------------
 	increment_step
 	update_xnat_workflow ${g_current_step} "Figure out what task scans should be processed" ${g_step_percent}
@@ -387,6 +387,14 @@ main()
 	update_xnat_workflow ${g_current_step} "Link resampled (re-registered) data from DB" ${g_step_percent}
 
 	link_hcp_resampled_and_dedrifted_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
+
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Link original task analysis data from DB
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Link original task analysis data from DB" ${g_step_percent}
+
+	link_hcp_task_analysis_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "tfMRI_${g_task}" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
  	# Step - Link functionally preprocessed data from DB
