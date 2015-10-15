@@ -325,7 +325,7 @@ main()
 	get_options $@
 
 	# Set up step counters
-	init_steps 9
+	init_steps 10
 
 	show_xnat_workflow
 
