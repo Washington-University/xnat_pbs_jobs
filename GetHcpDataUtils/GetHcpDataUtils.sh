@@ -29,7 +29,7 @@ link_hcp_struct_preproc_data()
     echo " To Study Directory: ${to_study_dir}"
 
 	pushd ${to_study_dir}
-	mkdir -p ${subject}
+	mkdir --parents ${subject}
 
     local link_from=""
     link_from+="${archive}"
@@ -74,7 +74,7 @@ get_hcp_struct_preproc_data()
     echo " To Study Directory: ${to_study_dir}"
 
     pushd ${to_study_dir}
-    mkdir -p ${subject}
+    mkdir --parents ${subject}
 
     local copy_from=""
     copy_from+="${archive}"
@@ -120,7 +120,7 @@ link_hcp_func_preproc_data()
     echo " To Study Directory: ${to_study_dir}"
 
     pushd ${to_study_dir}
-    mkdir -p ${subject}
+    mkdir --parents ${subject}
 
     local link_from=""
     link_from+="${archive}"
@@ -167,7 +167,7 @@ get_hcp_func_preproc_data()
     echo " To Study Directory: ${to_study_dir}"
 
     pushd ${to_study_dir}
-    mkdir -p ${subject}
+    mkdir --parents ${subject}
 
     local copy_from=""
     copy_from+="${archive}"
@@ -213,7 +213,7 @@ link_hcp_fix_proc_data()
     echo " To Study Directory: ${to_study_dir}"
 
     pushd ${to_study_dir}
-    mkdir -p ${subject}/MNINonLinear/Results
+    mkdir --parents ${subject}/MNINonLinear/Results
 
     local link_from=""
     link_from+="${archive}"
@@ -259,7 +259,7 @@ get_hcp_fix_proc_data()
     echo " To Study Directory: ${to_study_dir}"
 
     pushd ${to_study_dir}
-    mkdir -p ${subject}/MNINonLinear/Results
+    mkdir --parents ${subject}/MNINonLinear/Results
 
     local copy_from=""
     copy_from+="${archive}"
@@ -305,7 +305,7 @@ link_hcp_postfix_data()
     echo " To Study Directory: ${to_study_dir}"
 
     pushd ${to_study_dir}
-    mkdir -p ${subject}/MNINonLinear/Results/${scan}
+    mkdir --parents ${subject}/MNINonLinear/Results/${scan}
 
     local link_from=""
     link_from+="${archive}"
@@ -351,7 +351,7 @@ get_hcp_postfix_data()
     echo " To Study Directory: ${to_study_dir}"
 
     pushd ${to_study_dir}
-    mkdir -p ${subject}/MNINonLinear/Results/${scan}
+    mkdir --parents ${subject}/MNINonLinear/Results/${scan}
 
     local copy_from=""
     copy_from+="${archive}"
@@ -397,7 +397,7 @@ link_hcp_resting_state_stats_data()
     echo " To Study Directory: ${to_study_dir}"
 
     pushd ${to_study_dir}
-    mkdir -p ${subject}/MNINonLinear/Results/${scan}
+    mkdir --parents ${subject}/MNINonLinear/Results/${scan}
 
     local link_from=""
     link_from+="${archive}"
@@ -443,7 +443,7 @@ get_hcp_resting_state_stats_data()
     echo " To Study Directory: ${to_study_dir}"
 
     pushd ${to_study_dir}
-    mkdir -p ${subject}/MNINonLinear/Results/${scan}
+    mkdir --parents ${subject}/MNINonLinear/Results/${scan}
 
     local copy_from=""
     copy_from+="${archive}"
@@ -487,7 +487,7 @@ link_hcp_msm_all_registration_data()
     echo " To Study Directory: ${to_study_dir}"
 
 	pushd ${to_study_dir}
-	mkdir -p ${subject}
+	mkdir --parents ${subject}
 
 	local link_from=""
     link_from+="${archive}"
@@ -534,7 +534,7 @@ link_hcp_msm_all_registration_data()
 
 # 	pushd ${to_study_dir}
 
-# 	mkdir -p ${subject}
+# 	mkdir --parents ${subject}
 
 # 	local copy_from=""
 #     copy_from+="${archive}"
@@ -644,7 +644,7 @@ link_hcp_resampled_and_dedrifted_data()
     echo " To Study Directory: ${to_study_dir}"
 
 	pushd ${to_study_dir}
-	mkdir -p ${subject}
+	mkdir --parents ${subject}
 
 	local link_from=""
     link_from+="${archive}"
@@ -665,4 +665,51 @@ link_hcp_resampled_and_dedrifted_data()
     ${lndir_cmd}
 
     popd
+}
+
+link_hcp_task_analysis_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local task=${5}    # e.g. tfMRI_EMOTION
+	local to_study_dir=${6}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Linking HCP Task Analysis data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+	echo " Task: ${task}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local link_from=""
+	link_from+="${archive}"
+	link_from+="/${project}"
+	link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	link_from+="/${session}"
+	link_from+="/${DATABASE_RESOURCES_ROOT}"
+	link_from+="/${task}/"
+
+	local link_to=""
+	link_to="${to_study_dir}/${subject}"
+
+	local lndir_cmd=""
+	lndir_cmd="${PATH_TO_LNDIR} ${link_from} ${link_to}"
+	echo "lndir_cmd: ${lndir_cmd}"
+
+	echo "----------" `date` "----------"
+	echo ""
+    ${lndir_cmd}
+
+	popd
 }
