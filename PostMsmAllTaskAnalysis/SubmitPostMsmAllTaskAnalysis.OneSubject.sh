@@ -281,7 +281,7 @@ main()
 		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-		echo "  --resource-suffix=\"PostMsmAllTask_${task}\" \\" >> ${put_script_file_to_submit} 
+		echo "  --resource-suffix=\"${task}_PostMsmAllTaskAnalysis\" \\" >> ${put_script_file_to_submit} 
 		echo "  --reason=\"PostMsmAllTaskAnalysis\" " >> ${put_script_file_to_submit}
 	
 		submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
@@ -293,5 +293,3 @@ main()
 
 # Invoke the main function to get things started
 main $@
-
-
