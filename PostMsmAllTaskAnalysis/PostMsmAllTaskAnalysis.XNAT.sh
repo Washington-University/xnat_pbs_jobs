@@ -325,7 +325,7 @@ main()
 	get_options $@
 
 	# Set up step counters
-	init_steps 10
+	init_steps 11
 
 	show_xnat_workflow
 
@@ -441,10 +441,10 @@ main()
 	sleep 1m || die 
 
 	# ----------------------------------------------------------------------------------------------
-	# Step - Run TaskfMRIAnalysis.sh script
+	# Step - Run TaskfMRIAnalysis.sh script with smoothing 2
 	# ----------------------------------------------------------------------------------------------
 	increment_step
-	update_xnat_workflow ${g_current_step} "Run TaskfMRIAnalysis.sh script" ${g_step_percent}
+	update_xnat_workflow ${g_current_step} "Run TaskfMRIAnalysis.sh script with smoothing 2" ${g_step_percent}
 	
 	# Source setup script to setup environment for running the script
 	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_MSMAll_TaskAnalysis.sh"
@@ -467,9 +467,50 @@ main()
 	script_cmd+="--grayordinatesres=2 "
 	script_cmd+="--origsmoothingFWHM=2 "
 	script_cmd+="--confound=NONE "
-	script_cmd+="--finalsmoothingFWHM=2 " # 2, 4, 8, 12 ?
-	script_cmd+="--temporalfilter=200 " 
-	script_cmd+="--vba=NO " # when finalsmoothingFWHM=x, then vba=y (2,NO) (4,YES) (8,NO) (12,NO)
+	script_cmd+="--finalsmoothingFWHM=2 "
+	script_cmd+="--temporalfilter=200 "
+	script_cmd+="--vba=NO "
+	script_cmd+="--regname=MSMAll "
+	script_cmd+="--parcellation=NONE "
+	script_cmd+="--parcellationfile=NONE "
+	
+	echo "script_cmd: ${script_cmd}"
+	${script_cmd}
+
+ 	if [ $? -ne 0 ]; then
+ 		die 
+ 	fi
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Run TaskfMRIAnalysis.sh script with smoothing 4
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Run TaskfMRIAnalysis.sh script with smoothing 4" ${g_step_percent}
+	
+	# Source setup script to setup environment for running the script
+	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_MSMAll_TaskAnalysis.sh"
+	if [ ! -e ${setup_file} ] ; then
+		echo "ERROR: setup_file: ${setup_file} DOES NOT EXIST! ABORTING"
+		die
+	fi
+
+	source ${setup_file}
+
+	local script_cmd=""
+	script_cmd+="${HCPPIPEDIR}/TaskfMRIAnalysis/TaskfMRIAnalysis.sh "
+	script_cmd+="--path=${g_working_dir} "
+	script_cmd+="--subject=${g_subject} "
+	script_cmd+="--lvl1tasks=${level1_task_list} "
+	script_cmd+="--lvl1fsfs=${level1_fsfs_list} "
+	script_cmd+="--lvl2task=${level2_task_list} "
+	script_cmd+="--lvl2fsf=${level2_fsfs_list} "
+	script_cmd+="--lowresmesh=32 "
+	script_cmd+="--grayordinatesres=2 "
+	script_cmd+="--origsmoothingFWHM=2 "
+	script_cmd+="--confound=NONE "
+	script_cmd+="--finalsmoothingFWHM=4 "
+	script_cmd+="--temporalfilter=200 "
+	script_cmd+="--vba=NO "
 	script_cmd+="--regname=MSMAll "
 	script_cmd+="--parcellation=NONE "
 	script_cmd+="--parcellationfile=NONE "
