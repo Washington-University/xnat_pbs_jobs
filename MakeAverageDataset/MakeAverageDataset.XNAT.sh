@@ -179,6 +179,9 @@ create_input_data_dir()
 		session=`get_session ${subject_info}`
 		echo "Linking data from project: ${project} for subject: ${subject} from session ${session}"
 
+		# link MSM All DeDrifted and Resampled data from DB
+		link_hcp_resampled_and_dedrifted_data "${DATABASE_ARCHIVE_ROOT}" "${project}" "${subject}" "${session}" "${g_working_dir}"
+
 		# link MSM All registration data from DB
 		link_hcp_msm_all_registration_data "${DATABASE_ARCHIVE_ROOT}" "${project}" "${subject}" "${session}" "${g_working_dir}"
 
