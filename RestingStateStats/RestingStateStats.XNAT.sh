@@ -435,18 +435,41 @@ main()
 	
 	# Source setup script to setup environment for running the script
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_Resting_State_Stats.sh
-		
+
+	# Set up variables to pass in to RestingStateStats.sh
+	RegName="NONE"
+	OrigHighPass="2000"
+	LowResMesh="32"
+	FinalfMRIResolution="2"
+	BrainOrdinatesResolution="2"
+	SmoothingFWHM="2"
+	OutputProcSTRING="_hp2000_clean"
+	dlabelFile="NONE"
+	MatlabRunMode="0" # Compiled Matlab
+	BCMode="REVERT" # One of REVERT (revert bias field correction), NONE (don't change bias field correction), CORRECT (revert original bias field correction and apply new one)
+	OutSTRING="stats"
+	WM="${HCPPIPEDIR}/global/config/FreeSurferWMRegLut.txt"
+	CSF="${HCPPIPEDIR}/global/config/FreeSurferCSFRegLut.txt"
+
 	# Run RestingStateStats.sh script
 	${HCPPIPEDIR}/RestingStateStats/RestingStateStats.sh \
 		--path=${g_working_dir} \
 		--subject=${g_subject} \
 		--fmri-name=${g_scan} \
-		--high-pass=2000 \
-		--low-res-mesh=32 \
-		--final-fmri-res=2 \
-		--brain-ordinates-res=2 \
-		--smoothing-fwhm=2 \
-		--output-proc-string="_hp2000_clean"
+		--high-pass=${OrigHighPass} \
+		--reg-name=${RegName} \
+		--low-res-mesh=${LowResMesh} \
+		--final-fmri-res=${FinalfMRIResolution} \
+		--brain-ordinates-res=${BrainOrdinatesResolution} \
+		--smoothing-fwhm=${SmoothingFWHM} \
+		--output-proc-string=${OutputProcSTRING} \
+		--dlabel-file=${dlabelFile} \
+		--matlab-run-mode=${MatlabRunMode} \
+		--bc-mode=${BCMode} \
+		--out-string=${OutSTRING} \
+		--wm=${WM} \
+		--csf=${CSF}
+
 
 	if [ $? -ne 0 ]; then
 		die 
