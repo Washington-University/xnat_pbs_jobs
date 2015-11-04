@@ -257,7 +257,7 @@ main()
 
 	study_folder="${g_working_dir}"
 
-	VideenMaps="corrThickness thickness MyelinMap_BC SmoothedMyelineMap_BC"
+	VideenMaps="corrThickness thickness MyelinMap_BC SmoothedMyelinMap_BC"
 	GreyScaleMaps="sulc curvature"
 	DistortionMaps="SphericalDistortion ArealDistortion EdgeDistortion"
 	GradientMaps="MyelinMap_BC SmoothedMyelinMap_BC corrThickness"
@@ -274,6 +274,7 @@ main()
 	# do the actual work by running the MakeAverageDataset.sh script
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MakeAverageDataset.sh
 
+	#--reg-name="MSMAll_2_d41_WRN_DeDrift" \
 	${HCPPIPEDIR}/Supplemental/MakeAverageDataset/MakeAverageDataset.sh \
 		--subject-list=${g_subject_list} \
 		--study-folder=${study_folder} \
@@ -284,7 +285,7 @@ main()
 		--low-res-meshes="32" \
 		--freesurfer-labels="${HCPPIPEDIR}/global/config/FreeSurferAllLut.txt" \
 		--sigma="1" \
-		--reg-name="MSMAll_2_d41_WRN_DeDrift" \
+		--reg-name="MSMAll" \
 		--videen-maps="${VideenMaps}" \
 		--greyscale-maps="${GreyScaleMaps}" \
 		--distortion-maps="${DistortionMaps}" \
