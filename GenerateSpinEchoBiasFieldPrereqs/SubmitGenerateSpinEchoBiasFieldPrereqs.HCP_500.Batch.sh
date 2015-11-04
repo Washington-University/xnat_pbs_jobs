@@ -29,7 +29,7 @@ if [ -z "${interval}" ]; then
 fi
 
 project="HCP_500"
-subject_file_name="${SUBJECT_FILES_DIR}/${project}.GenerateSpinEchoBiasFields.subjects"
+subject_file_name="${SUBJECT_FILES_DIR}/${project}.GenerateSpinEchoBiasFieldPrereqs.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
@@ -47,13 +47,13 @@ for subject in ${subjects} ; do
 
 		echo ""
 		echo "--------------------------------------------------------------------------------"
-		echo " Submitting GenerateSpinEchoBiasFields job for subject: ${subject}"
+		echo " Submitting GenerateSpinEchoBiasFieldPrereqs job for subject: ${subject}"
 		echo " Using server: ${server}"
 		echo " Submission delayed until ${delay} minutes from now"
 		echo "--------------------------------------------------------------------------------"
 		
 		at now + ${delay} minutes <<EOF 
-			/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/GenerateSpinEchoBiasFields/SubmitGenerateSpinEchoBiasFields.OneSubject.sh \
+			/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/GenerateSpinEchoBiasFieldPrereqs/SubmitGenerateSpinEchoBiasFieldPrereqs.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
 			--server=${server} \

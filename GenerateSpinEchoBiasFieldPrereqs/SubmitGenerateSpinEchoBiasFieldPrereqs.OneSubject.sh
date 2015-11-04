@@ -140,7 +140,7 @@ main()
 	sleep 5s
 
 	current_seconds_since_epoch=`date +%s`
-	working_directory_name="${BUILD_HOME}/${g_project}/GenerateSpinEchoBiasFields_${current_seconds_since_epoch}_${g_subject}"
+	working_directory_name="${BUILD_HOME}/${g_project}/GenerateSpinEchoBiasFieldPrereqs_${current_seconds_since_epoch}_${g_subject}"
 
 	# Make the working directory
 	echo "Making working directory: ${working_directory_name}"
@@ -194,7 +194,7 @@ main()
 	echo "XNAT workflow ID: ${workflowID}"
 
 	# Submit job to actually do the work
-	script_file_to_submit=${working_directory_name}/${g_subject}.GenerateSpinEchoBiasFields.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+	script_file_to_submit=${working_directory_name}/${g_subject}.GenerateSpinEchoBiasFieldPrereqs.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
 	if [ -e "${script_file_to_submit}" ]; then
 		rm -f "${script_file_to_submit}"
 	fi
@@ -209,7 +209,7 @@ main()
 		echo "#PBS -m abe" >> ${script_file_to_submit}
 	fi
 	echo ""
-	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/GenerateSpinEchoBiasFields/GenerateSpinEchoBiasFields.XNAT.sh \\" >> ${script_file_to_submit}
+	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/GenerateSpinEchoBiasFieldPrereqs/GenerateSpinEchoBiasFieldPrereqs.XNAT.sh \\" >> ${script_file_to_submit}
 	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 	echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 	echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
@@ -226,7 +226,7 @@ main()
 	echo "processing_job_no: ${processing_job_no}"
 	
 	# Submit job to put the results in the DB
-	put_script_file_to_submit=${working_directory_name}/${g_subject}.GenerateSpinEchoBiasFields.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+	put_script_file_to_submit=${working_directory_name}/${g_subject}.GenerateSpinEchoBiasFieldPrereqs.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 	if [ -e "${put_script_file_to_submit}" ]; then
 		rm -f "${put_script_file_to_submit}"
 	fi
@@ -251,7 +251,7 @@ main()
 	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
 	echo "  --resource-suffix=\"${SPIN_ECHO_BIAS_FIELDS_RESOURCE_NAME}\" \\" >> ${put_script_file_to_submit} 
-	echo "  --reason=\"GenerateSpinEchoBiasFields\" " >> ${put_script_file_to_submit}
+	echo "  --reason=\"GenerateSpinEchoBiasFieldPrereqs\" " >> ${put_script_file_to_submit}
 	
 	submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
 	echo "submit_cmd: ${submit_cmd}"

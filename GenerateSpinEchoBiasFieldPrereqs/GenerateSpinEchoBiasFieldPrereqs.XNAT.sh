@@ -3,7 +3,7 @@
 #~ND~FORMAT~MARKDOWN~
 #~ND~START~
 #
-# # GenerateSpinEchoBiasFields.XNAT.sh
+# # GenerateSpinEchoBiasFieldPrereqs.XNAT.sh
 #
 # ## Copyright Notice
 #
@@ -402,7 +402,7 @@ main()
 	increment_step
 	update_xnat_workflow ${g_current_step} "Create a start_time file" ${g_step_percent}
 	
-	start_time_file="${g_working_dir}/GenerateSpinEchoBiasFields.starttime"
+	start_time_file="${g_working_dir}/GenerateSpinEchoBiasFieldPrereqs.starttime"
 	if [ -e "${start_time_file}" ]; then
 		echo "Removing old ${start_time_file}"
 		rm -f ${start_time_file}
@@ -423,13 +423,13 @@ main()
 	sleep 1m || die 
 
 	# ----------------------------------------------------------------------------------------------
-	# Step - Run GenerateSpinEchoBiasFields.sh script
+	# Step - Run GenerateSpinEchoBiasFieldPrereqs.sh script
 	# ----------------------------------------------------------------------------------------------
 	increment_step
-	update_xnat_workflow ${g_current_step} "Run GenerateSpinEchoBiasFields.sh script" ${g_step_percent}
+	update_xnat_workflow ${g_current_step} "Run GenerateSpinEchoBiasFieldPrereqs.sh script" ${g_step_percent}
 	
 	# Source setup script to setup environment for running the script
-	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_GenerateSpinEchoBiasFields.sh"
+	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_GenerateSpinEchoBiasFieldPrereqs.sh"
 	if [ ! -e ${setup_file} ] ; then
 		echo "ERROR: setup_file: ${setup_file} DOES NOT EXIST! ABORTING"
 		die
@@ -445,7 +445,7 @@ main()
 	tfMRINames=`echo "$tfMRINames" | sed s/" "/"@"/g`
 
 	# Run DeDriftAndResamplePipeline.sh script
-	${HCPPIPEDIR}/GenerateSpinEchoBiasFields/GenerateSpinEchoBiasFields.sh \
+	${HCPPIPEDIR}/GenerateSpinEchoBiasFieldPrereqs/GenerateSpinEchoBiasFieldPrereqs.sh \
 		--path=${g_working_dir} \
 		--subject=${g_subject} \
 		--rfmri-names="${rfMRINames}" \
