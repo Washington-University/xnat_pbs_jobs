@@ -196,7 +196,7 @@ main()
 		fi
 
 		touch ${script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=16000mb" >> ${script_file_to_submit}
+		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=16000mb" >> ${script_file_to_submit}
 		echo "#PBS -q dque" >> ${script_file_to_submit}
 		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
@@ -233,7 +233,7 @@ main()
 		fi
 		
 		touch ${put_script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
+		echo "#PBS -l nodes=1:ppn=1,walltime=2:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
 		echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
 		echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
