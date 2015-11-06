@@ -455,7 +455,7 @@ get_hcp_resting_state_stats_data()
     copy_from+="/${scan}${RESTING_STATE_STATS_PROC_RESOURCE_SUFFIX}/MNINonLinear/Results/${scan}"
 
     local copy_to=""
-    copy_to="${to_study_dir}/${subject}/MNINonLinear/Results/${scan}"
+    copy_to="${to_study_dir}/${subject}/MNINonLinear/Results"
 
     local rsync_cmd=""
     rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
