@@ -1,0 +1,14 @@
+#!/bin/bash
+
+printf "Enter name of file containing job numbers: "
+read job_numbers_file_name
+
+job_list_from_file=( $( cat ${job_numbers_file_name} ) )
+job_list="`echo "${job_list_from_file[@]}"`"
+
+for job in ${job_list} ; do
+	if [[ ${job} != \#* ]]; then
+		echo "Deleting queue job: ${job}"
+		qdel ${job}
+	fi
+done
