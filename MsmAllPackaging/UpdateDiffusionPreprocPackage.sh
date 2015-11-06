@@ -170,6 +170,7 @@ main()
 
         pushd ${new_package_dir}
         md5sum ${new_package_name} > ${new_package_name}.md5
+		chmod u=rw,g=rw,o=r ${new_package_name}.md5
         popd
     fi
 
@@ -228,6 +229,7 @@ main()
 
         pushd ${new_package_dir}
         md5sum ${new_package_name} > ${new_package_name}.md5
+		chmod u=rw,g=rw,o=r ${new_package_name}.md5
         popd
     fi
 
