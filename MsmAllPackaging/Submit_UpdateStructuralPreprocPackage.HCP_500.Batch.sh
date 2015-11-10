@@ -33,7 +33,7 @@ for subject in ${subjects} ; do
 		fi
 
 		touch ${script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=16000mb" >> ${script_file_to_submit}
+		echo "#PBS -l nodes=1:ppn=1,walltime=16:00:00,vmem=16000mb" >> ${script_file_to_submit}
 		echo "#PBS -q dque" >> ${script_file_to_submit}
 		echo "#PBS -o ${log_dir}" >> ${script_file_to_submit}
         echo "#PBS -e ${log_dir}" >> ${script_file_to_submit}

@@ -5,11 +5,28 @@ if [ -z "${SUBJECT_FILES_DIR}" ]; then
     exit 1
 fi
 
+printf "Delay until first submission (minutes) [0]: "
+read delay
+
+if [ -z "${delay}" ]; then
+	delay=0
+fi
+
+printf "Interval between submissions (minutes) [60]: "
+read interval
+
+if [ -z "${interval}" ]; then
+	interval=60
+fi
+
 project="HCP_500"
 packages_root="/HCP/hcpdb/packages/live/HCP_500"
 archive_root="/HCP/hcpdb/archive/HCP_500/arc001"
 
-packages_tmp="/HCP/hcpdb/packages/temp"
+#packages_tmp="/HCP/hcpdb/packages/temp"
+#packages_tmp="/HCP/hcpdb/build_hds/hcpdb/packages/temp"
+packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
+
 output_dir="/HCP/hcpdb/packages/PostMsmAll"
 scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"
 log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/logs"
@@ -33,7 +50,7 @@ for subject in ${subjects} ; do
 		fi
 
 		touch ${script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=16000mb" >> ${script_file_to_submit}
+		echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=16000mb" >> ${script_file_to_submit}
 		echo "#PBS -q dque" >> ${script_file_to_submit}
 		echo "#PBS -o ${log_dir}" >> ${script_file_to_submit}
         echo "#PBS -e ${log_dir}" >> ${script_file_to_submit}
@@ -48,13 +65,20 @@ for subject in ${subjects} ; do
 		echo "  --subject=${subject} \\" >> ${script_file_to_submit}
 		echo "  --create-checksum \\" >> ${script_file_to_submit}
 
+		echo ""
+		echo "--------------------------------------------------------------------------------"
+		echo " Submitting UpdateFunctionalPreprocPackages job for subject: ${subject}"
+		echo " Submission delayed until ${delay} minutes from now"
+		echo "--------------------------------------------------------------------------------"
+
 		submit_cmd="qsub ${script_file_to_submit}"
-		echo "submit_cmd: ${submit_cmd}"
+		#echo "submit_cmd: ${submit_cmd}"
+
+		at now + ${delay} minutes <<EOF
+${submit_cmd}
+EOF
 		
-		processing_job_no=`${submit_cmd}`
-
-		echo "processing_job_no: ${processing_job_no}"
-
+		delay=$((delay + interval))
 	fi
 
 done

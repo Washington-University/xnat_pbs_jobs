@@ -168,7 +168,7 @@ main()
             echo "from_dir: ${from_dir}"
 
             mkdir -p ${to_dir}
-            files=`find ${from_dir} -maxdepth 1 -name "${g_subject}_tfMRI_${task}_level2_beta_hp200_s${smoothing_level}_MSMAll.dscalar.nii"`
+            #files=`find ${from_dir} -maxdepth 1 -name "${g_subject}_tfMRI_${task}_level2_beta_hp200_s${smoothing_level}_MSMAll.dscalar.nii"`
 
             files+=" "
             files+=`find ${from_dir} -maxdepth 1 -name "${g_subject}_tfMRI_${task}_level2_hp200_s${smoothing_level}_MSMAll.dscalar.nii"`
