@@ -274,11 +274,10 @@ main()
 	# do the actual work by running the MakeAverageDataset.sh script
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MakeAverageDataset.sh
 
-	#--reg-name="MSMAll_2_d41_WRN_DeDrift" \
 	${HCPPIPEDIR}/Supplemental/MakeAverageDataset/MakeAverageDataset.sh \
 		--subject-list=${g_subject_list} \
 		--study-folder=${study_folder} \
-		--group-average-name="Q1-Q6_Related449" \
+		--group-average-name="S900" \
 		--surface-atlas-dir="${HCPPIPEDIR}/global/templates/standard_mesh_atlases" \
 		--grayordinates-space-dir="${HCPPIPEDIR}/global/templates/91282_Greyordinates" \
 		--high-res-mesh="164" \
