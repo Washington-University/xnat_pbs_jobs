@@ -758,3 +758,143 @@ link_hcp_task_analysis_data()
 
 	popd
 }
+
+get_hcp_task_analysis_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local task=${5}    # e.g. tfMRI_EMOTION
+	local to_study_dir=${6}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Copying HCP Task Analysis data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+	echo " Task: ${task}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local copy_from=""
+	copy_from+="${archive}"
+	copy_from+="/${project}"
+	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	copy_from+="/${session}"
+	copy_from+="/${DATABASE_RESOURCES_ROOT}"
+	copy_from+="/${task}"
+
+	local copy_to=""
+	copy_to="${to_study_dir}/${subject}"
+
+	local rsync_cmd=""
+	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+	echo "rsync_cmd: ${rsync_cmd}"
+	echo "----------" `date` "----------"
+	echo ""
+    ${rsync_cmd}
+
+	popd
+}
+
+link_hcp_post_msmall_task_analysis_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local task=${5}    # e.g. tfMRI_EMOTION
+	local to_study_dir=${6}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Linking HCP Task Analysis data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+	echo " Task: ${task}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local link_from=""
+	link_from+="${archive}"
+	link_from+="/${project}"
+	link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	link_from+="/${session}"
+	link_from+="/${DATABASE_RESOURCES_ROOT}"
+	link_from+="/${task}_PostMsmAllTaskAnalysis/"
+
+	local link_to=""
+	link_to="${to_study_dir}/${subject}"
+
+	local lndir_cmd=""
+	lndir_cmd="${PATH_TO_LNDIR} ${link_from} ${link_to}"
+	echo "lndir_cmd: ${lndir_cmd}"
+
+	echo "----------" `date` "----------"
+	echo ""
+    ${lndir_cmd}
+
+	popd
+}
+
+get_hcp_post_msmall_task_analysis_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local task=${5}    # e.g. tfMRI_EMOTION
+	local to_study_dir=${6}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Copying HCP Task Analysis data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+	echo " Task: ${task}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local copy_from=""
+	copy_from+="${archive}"
+	copy_from+="/${project}"
+	copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	copy_from+="/${session}"
+	copy_from+="/${DATABASE_RESOURCES_ROOT}"
+	copy_from+="/${task}_PostMsmAllTaskAnalysis/"
+
+	local copy_to=""
+	copy_to="${to_study_dir}/${subject}"
+
+	local rsync_cmd=""
+	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+	echo "rsync_cmd: ${rsync_cmd}"
+	echo "----------" `date` "----------"
+	echo ""
+    ${rsync_cmd}
+
+	popd
+}
+
