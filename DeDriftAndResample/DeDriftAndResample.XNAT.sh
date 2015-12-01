@@ -461,34 +461,35 @@ main()
 		${native_spec_file}
 
 	# ----------------------------------------------------------------------------------------------
-	# Step - Copy files that are re-created by the ReApplyFixPipeline.sh script which is invoked
+	# Step - Remove files that are re-created by the ReApplyFixPipeline.sh script which is invoked
 	#        by the DeDriftAndResample.sh script
 	# ----------------------------------------------------------------------------------------------
 	increment_step
-	update_xnat_workflow ${g_current_step} "Copy files that are re-created by ReApplyFixPipeline" ${g_step_percent}
+	update_xnat_workflow ${g_current_step} "Remove files that are re-created by ReApplyFixPipeline" ${g_step_percent}
 
 	local HighPass="2000" 
 	for scan_name in ${resting_state_scan_names} ; do
 		working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica
-		db_ica_dir=${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX/${scan_name}/${scan_name}_hp${HighPass}.ica
+		
+		if [ -e "${working_ica_dir}/Atlas.dtseries.nii" ] ; then
+			rm --verbose ${working_ica_dir}/Atlas.dtseries.nii
+		fi
+		
+		if [ -e "${working_ica_dir}/Atlas.nii.gz" ] ; then
+			rm --verbose ${working_ica_dir}/Atlas.nii.gz
+		fi
 
-		# mc/prefiltered_func_data_mcf.par
-		working_prefiltered_func_data_mcf_file=${working_ica_dir}/mc/prefiltered_func_data_mcf.par
-		db_prefiltered_func_data_mcf_file=${db_ica_dir}/mc/prefiltered_func_data_mcf.par
+		if [ -e "${working_ica_dir}/filtered_func_data.nii.gz" ] ; then
+			rm --verbose ${working_ica_dir}/filtered_func_data.nii.gz
+		fi
 
-		rm ${working_prefiltered_func_data_mcf_file}
-		cp -a --preserve=timestamps --verbose \
-			${db_prefiltered_func_data_mcf_file} \
-			${working_prefiltered_func_data_mcf_file}
+		if [ -d "${working_ica_dir}/mc" ] ; then
+			rm --recursive --verbose ${working_ica_dir}/mc
+		fi
 
-		# Atlas_hp_preclean.dtseries.nii
-		working_preclean_dtseries_file=${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
-		db_preclean_dtseries_file=${db_ica_dir}/Atlas_hp_preclean.dtseries.nii
-
-		rm ${working_preclean_dtseries_file}
-		cp -a --preserve=timestamps --verbose \
-			${db_preclean_dtseries_file} \
-			${working_preclean_dtseries_file}
+		if [ -e "${working_ica_dir}/Atlas_hp_preclean.dtseries.nii" ] ; then
+			rm --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
+		fi
 	done
 
 	# ----------------------------------------------------------------------------------------------
@@ -592,10 +593,10 @@ main()
 	# ----------------------------------------------------------------------------------------------
 	increment_step
 	update_xnat_workflow ${g_current_step} "Remove files not newly created or modified" ${g_step_percent}
-
+	
 	echo "The following files are being removed"
 	find ${g_working_dir} -not -newer ${start_time_file} -print -delete || die 
-	
+
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
 	# ----------------------------------------------------------------------------------------------
