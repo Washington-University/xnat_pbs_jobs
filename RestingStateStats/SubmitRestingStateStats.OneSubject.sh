@@ -227,7 +227,7 @@ main()
 		echo "processing_job_no: ${processing_job_no}"
 
 		# Submit job to put the results in the DB
-		put_script_file_to_submit=${working_directory_name}/${g_subject}.RestingStateStats.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+		put_script_file_to_submit=${LOG_DIR}/${g_subject}.RestingStateStats.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 		if [ -e "${put_script_file_to_submit}" ]; then
 			rm -f "${put_script_file_to_submit}"
 		fi
@@ -244,8 +244,8 @@ main()
 		fi
 		echo ""
 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
-		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
-		echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
+		echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
+		echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
 		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
 		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
 		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
