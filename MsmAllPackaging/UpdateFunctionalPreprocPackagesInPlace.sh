@@ -12,7 +12,6 @@ get_options()
     unset g_tmp_dir
     unset g_subject
     unset g_release_notes_template_file
-    unset g_output_dir
     unset g_create_checksum
 
     g_script_name=`basename ${0}`
@@ -44,10 +43,6 @@ get_options()
                 ;;
             --release-notes-template-file=*)
                 g_release_notes_template_file=${argument/*=/""}
-                index=$(( index + 1 ))
-                ;;
-            --output-dir=*)
-                g_output_dir=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --create-checksum)
@@ -100,13 +95,6 @@ get_options()
         error_count=$(( error_count + 1 ))
     else
         echo "release notes template file: ${g_release_notes_template_file}"
-    fi
-
-    if [ -z "${g_output_dir}" ]; then
-        echo "ERROR: --output-dir= required"
-        error_count=$(( error_count + 1 ))
-    else
-        echo "output dir: ${g_output_dir}"
     fi
 
     if [ -z "${g_create_checksum}" ]; then
@@ -174,7 +162,7 @@ main()
 
         echo ""
         echo "--------------------------------------------------"
-        echo " Get files "
+        echo " Get files from DeDrift and Resample"
         echo "--------------------------------------------------"
         echo ""
         
@@ -218,6 +206,20 @@ main()
 
         echo ""
         echo "--------------------------------------------------"
+        echo " Get physio files"
+        echo "--------------------------------------------------"
+        echo ""
+
+		for phase in LR RL ; do
+			preproc_resource="${subject_resources_dir}/${scan}_${phase}_preproc"
+			physio_file="${preproc_resource}/MNINonLinear/Results/${scan}_${phase}/${scan}_${phase}_Physio_log.txt"
+
+			mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear/Results/${scan}_${phase}
+			cp --verbose --archive ${physio_file} ${script_tmp_dir}/${g_subject}/MNINonLinear/Results/${scan}_${phase}
+		done
+
+        echo ""
+        echo "--------------------------------------------------"
         echo " Update release notes for patch package"
         echo "--------------------------------------------------"
         echo ""
@@ -237,26 +239,21 @@ main()
 
         echo ""
         echo "--------------------------------------------------"
-        echo " Create patch package"
+        echo " Update patch package"
         echo "--------------------------------------------------"
         echo ""
-        new_package_dir="${g_output_dir}/${g_subject}/preproc"
-        new_package_name="${g_subject}_3T_${scan}_preproc${PATCH_NAME_SUFFIX}.zip"
-        new_package_path="${new_package_dir}/${new_package_name}"
+        package_dir="${g_packages_root}/${g_subject}/preproc"
+        package_name="${g_subject}_3T_${scan}_preproc${PATCH_NAME_SUFFIX}.zip"
+        package_path="${package_dir}/${package_name}"
 
-        # start with a clean slate
-        rm -f ${new_package_path}
-        rm -f ${new_package_path}.md5
-        mkdir -p ${new_package_dir}
+        # remove old checksum file
+        rm -f ${package_path}.md5
 
-        # go create the zip file
+        # update the zip file
         pushd ${script_tmp_dir}
-        zip_cmd="zip -r ${new_package_path} ${g_subject}"
+		zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
         echo "zip_cmd: ${zip_cmd}"
         ${zip_cmd}
-
-        # make sure it's readable
-        chmod u=rw,g=rw,o=r ${new_package_path}
 
         # create the checksum file if requested
         if [ "${g_create_checksum}" = "YES" ]; then
@@ -267,9 +264,9 @@ main()
             echo "--------------------------------------------------"
             echo ""
             
-            pushd ${new_package_dir}
-            md5sum ${new_package_name} > ${new_package_name}.md5
-			chmod u=rw,g=rw,o=r ${new_package_name}.md5
+            pushd ${package_dir}
+            md5sum ${package_name} > ${package_name}.md5
+			chmod 777 ${package_name}.md5
             popd
         fi
         
@@ -277,46 +274,21 @@ main()
 
         echo ""
         echo "--------------------------------------------------"
-        echo " Get contents of original functional preproc package"
+        echo " Update package"
         echo "--------------------------------------------------"
         echo ""
+        package_dir="${g_packages_root}/${g_subject}/preproc"
+        package_name="${g_subject}_3T_${scan}_preproc.zip"
+        package_path="${package_dir}/${package_name}"
 
-        # figure out where to find the original functional preproc package
-        original_func_preproc_package=${g_packages_root}/${g_subject}/preproc/${g_subject}_3T_${scan}_preproc.zip
+        # remove old checksum file
+        rm -rf ${package_path}.md5
 
-        if [ ! -e ${original_func_preproc_package} ]; then
-            echo "ERROR: original package ${original_func_preproc_package} not exist"
-            return
-        fi
-
-        # unzip the contents of the original functional preproc package into the temporary directory 
-        # with the already existing files that we got from the MSM-All related 
-        # resources
-        cd ${script_tmp_dir}
-        unzip -n ${original_func_preproc_package}
-
-        echo ""
-        echo "--------------------------------------------------"
-        echo " Create new package"
-        echo "--------------------------------------------------"
-        echo ""
-        new_package_dir="${g_output_dir}/${g_subject}/preproc"
-        new_package_name="${g_subject}_3T_${scan}_preproc.zip"
-        new_package_path="${new_package_dir}/${new_package_name}"
-
-        # start with a clean slate
-        rm -rf ${new_package_path}
-        rm -rf ${new_package_path}.md5
-        mkdir -p ${new_package_dir}
-
-        # go create the zip file
+        # update the zip file
         pushd ${script_tmp_dir}
-        zip_cmd="zip -r ${new_package_path} ${g_subject}"
+        zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
         echo "zip_cmd: ${zip_cmd}"
         ${zip_cmd}
-
-        # make sure it's readable
-        chmod u=rw,g=rw,o=r ${new_package_path}
 
         # create the checksum file if requested
         if [ "${g_create_checksum}" = "YES" ]; then
@@ -327,9 +299,9 @@ main()
             echo "--------------------------------------------------"
             echo ""
             
-            pushd ${new_package_dir}
-            md5sum ${new_package_name} > ${new_package_name}.md5
-			chmod u=rw,g=rw,o=r ${new_package_name}.md5
+            pushd ${package_dir}
+            md5sum ${package_name} > ${package_name}.md5
+			chmod 777 ${package_name}.md5
             popd
         fi
         

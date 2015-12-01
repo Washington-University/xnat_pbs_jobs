@@ -11,7 +11,7 @@ get_options()
     unset g_archive_root
     unset g_tmp_dir
     unset g_subject
-    unset g_output_dir
+    unset g_release_notes_template_file
     unset g_create_checksum
 
     g_script_name=`basename ${0}`
@@ -41,8 +41,8 @@ get_options()
             	g_subject=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
-            --output-dir=*)
-                g_output_dir=${argument/*=/""}
+            --release-notes-template-file=*)
+                g_release_notes_template_file=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --create-checksum)
@@ -90,11 +90,11 @@ get_options()
         echo "tmp dir: ${g_tmp_dir}"
     fi
 
-    if [ -z "${g_output_dir}" ]; then
-        echo "ERROR: --output-dir= required"
+    if [ -z "${g_release_notes_template_file}" ]; then
+        echo "ERROR: --release-notes-template-file= required"
         error_count=$(( error_count + 1 ))
     else
-        echo "output dir: ${g_output_dir}"
+        echo "release notes template file: ${g_release_notes_template_file}"
     fi
 
     if [ -z "${g_create_checksum}" ]; then
@@ -127,39 +127,92 @@ main()
 
     echo ""
     echo "--------------------------------------------------"
-    echo " Get files from Diffusion Preproc"
+    echo " Get files from MSM-All Initial Registration"
     echo "--------------------------------------------------"
     echo ""
 
-    diffusion_preproc_resource="${subject_resources_dir}/Diffusion_preproc"
+    initial_registration_resource="${subject_resources_dir}/MSMAllReg"
 
-    mkdir -p ${script_tmp_dir}/${g_subject}/T1w/Diffusion
-    cp --verbose --archive \
-        ${diffusion_preproc_resource}/Diffusion/eddy/eddy_unwarped_images.eddy_parameters \
-        ${script_tmp_dir}/${g_subject}/T1w/Diffusion/eddy_parameters
+    mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear/Native
+    files=`find ${initial_registration_resource}/MNINonLinear/Native/*.SphericalDistortion*`
+    for file in ${files} ; do
+        cp --verbose --archive ${file} ${script_tmp_dir}/${g_subject}/MNINonLinear/Native
+    done
 
     echo ""
     echo "--------------------------------------------------"
-    echo " Create patch package"
+    echo " Get files from DeDrift and Resample"
     echo "--------------------------------------------------"
     echo ""
-    new_package_dir="${g_output_dir}/${g_subject}/preproc"
-    new_package_name="${g_subject}_3T_Diffusion_preproc${PATCH_NAME_SUFFIX}.zip"
-    new_package_path="${new_package_dir}/${new_package_name}"
 
-    # start with a clean slate
-    rm -f ${new_package_path}
-    rm -f ${new_package_path}.md5
-    mkdir -p ${new_package_dir}
+    dedrift_resource="${subject_resources_dir}/MSMAllDeDrift"
 
-    # go create the zip file
+    mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear
+    files=`find ${dedrift_resource}/MNINonLinear -type f -maxdepth 1`
+    for file in ${files} ; do
+        cp --verbose --archive ${file} ${script_tmp_dir}/${g_subject}/MNINonLinear
+    done
+
+    mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear/fsaverage_LR32k
+    files=`find ${dedrift_resource}/MNINonLinear/fsaverage_LR32k -type f -maxdepth 1` 
+    for file in ${files} ; do
+        cp --verbose --archive ${file} ${script_tmp_dir}/${g_subject}/MNINonLinear/fsaverage_LR32k
+    done
+   
+    mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear/Native
+    files=`find ${dedrift_resource}/MNINonLinear/Native -type f -maxdepth 1` 
+    for file in ${files} ; do
+        cp --verbose --archive ${file} ${script_tmp_dir}/${g_subject}/MNINonLinear/Native
+    done
+
+    mkdir -p ${script_tmp_dir}/${g_subject}/T1w/fsaverage_LR32k
+    files=`find ${dedrift_resource}/T1w/fsaverage_LR32k -type f -maxdepth 1` 
+    for file in ${files} ; do
+        cp --verbose --archive ${file} ${script_tmp_dir}/${g_subject}/T1w/fsaverage_LR32k
+    done
+
+    mkdir -p ${script_tmp_dir}/${g_subject}/T1w/Native
+    files=`find ${dedrift_resource}/T1w/Native -type f -maxdepth 1` 
+    for file in ${files} ; do
+        cp --verbose --archive ${file} ${script_tmp_dir}/${g_subject}/T1w/Native
+    done
+
+    echo ""
+    echo "--------------------------------------------------"
+    echo " Update release notes for patch package"
+    echo "--------------------------------------------------"
+    echo ""
+
+    # figure out path to release notes file
+    release_notes_file=${script_tmp_dir}/${g_subject}/release-notes/Structural_preproc.txt
+
+    # create new release notes file
+    mkdir -p ${script_tmp_dir}/${g_subject}/release-notes
+    touch ${release_notes_file}
+    echo "${g_subject}_3T_Structural_preproc.zip" >> ${release_notes_file}
+    echo "" >> ${release_notes_file}
+    echo `date` >> ${release_notes_file}
+    echo "" >> ${release_notes_file}
+    cat ${g_release_notes_template_file} >> ${release_notes_file}
+    echo "" >> ${release_notes_file}
+
+    echo ""
+    echo "--------------------------------------------------"
+    echo " Update patch package"
+    echo "--------------------------------------------------"
+    echo ""
+    package_dir="${g_packages_root}/${g_subject}/preproc"
+    package_name="${g_subject}_3T_Structural_preproc${PATCH_NAME_SUFFIX}.zip"
+    package_path="${package_dir}/${package_name}"
+
+    # remove old checksum file
+    rm -f ${package_path}.md5
+
+    # update the zip file
     pushd ${script_tmp_dir}
-    zip_cmd="zip -r ${new_package_path} ${g_subject}"
+	zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
     echo "zip_cmd: ${zip_cmd}"
     ${zip_cmd}
-
-    # make sure it's readable
-    chmod u=rw,g=rw,o=r ${new_package_path}
 
     # create the checksum file if requested
     if [ "${g_create_checksum}" = "YES" ]; then
@@ -170,55 +223,32 @@ main()
         echo "--------------------------------------------------"
         echo ""
 
-        pushd ${new_package_dir}
-        md5sum ${new_package_name} > ${new_package_name}.md5
-		chmod u=rw,g=rw,o=r ${new_package_name}.md5
-        popd
+        pushd ${package_dir}
+        md5sum ${package_name} > ${package_name}.md5
+		chmod 777 ${package_name}.md5
+		popd
     fi
 
     popd
 
     echo ""
     echo "--------------------------------------------------"
-    echo " Get contents of original Diffusion Preproc package"
+    echo " Update package"
     echo "--------------------------------------------------"
     echo ""
 
-    # figure out where to find the original package
-    original_package=${g_packages_root}/${g_subject}/preproc/${g_subject}_3T_Diffusion_preproc.zip
+    package_dir="${g_packages_root}/${g_subject}/preproc"
+    package_name="${g_subject}_3T_Structural_preproc.zip"
+    package_path="${package_dir}/${package_name}"
 
-    if [ ! -e ${original_package} ]; then
-        echo "ERROR: original package ${original_package} does not exist"
-        return
-    fi
+    # remove old checksum file
+    rm -rf ${package_path}.md5
 
-    # unzip the contents of the original package into the temporary directory 
-    # with the already existing files that we got above 
-    cd ${script_tmp_dir}
-    unzip -n ${original_package}
-
-    echo ""
-    echo "--------------------------------------------------"
-    echo " Create new package"
-    echo "--------------------------------------------------"
-    echo ""
-    new_package_dir="${g_output_dir}/${g_subject}/preproc"
-    new_package_name="${g_subject}_3T_Diffusion_preproc.zip"
-    new_package_path="${new_package_dir}/${new_package_name}"
-
-    # start with a clean slate
-    rm -f ${new_package_path}
-    rm -f ${new_package_path}.md5
-    mkdir -p ${new_package_dir}
-
-    # go create the zip file
+    # update the zip file
     pushd ${script_tmp_dir}
-    zip_cmd="zip -r ${new_package_path} ${g_subject}"
+    zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
     echo "zip_cmd: ${zip_cmd}"
     ${zip_cmd}
-
-    # make sure it's readable
-    chmod u=rw,g=rw,o=r ${new_package_path}
 
     # create the checksum file if requested
     if [ "${g_create_checksum}" = "YES" ]; then
@@ -229,9 +259,9 @@ main()
         echo "--------------------------------------------------"
         echo ""
 
-        pushd ${new_package_dir}
-        md5sum ${new_package_name} > ${new_package_name}.md5
-		chmod u=rw,g=rw,o=r ${new_package_name}.md5
+        pushd ${package_dir}
+        md5sum ${package_name} > ${package_name}.md5
+		chmod 777 ${package_name}.md5
         popd
     fi
 

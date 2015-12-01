@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PATCH_NAME_SUFFIX="_S500_to_S900_extension"
+
 get_options()
 {
     local arguments=($@)
@@ -199,7 +201,7 @@ main()
     echo "--------------------------------------------------"
     echo ""
     new_package_dir="${g_output_dir}/${g_subject}/fix"
-    new_package_name="${g_subject}_3T_rfMRI_REST_fix.MSMAllPatch.zip"
+    new_package_name="${g_subject}_3T_rfMRI_REST_fix${PATCH_NAME_SUFFIX}.zip"
     new_package_path="${new_package_dir}/${new_package_name}"
 
     # start with a clean slate

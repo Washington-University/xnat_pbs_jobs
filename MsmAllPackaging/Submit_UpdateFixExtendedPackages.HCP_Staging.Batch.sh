@@ -9,7 +9,9 @@ project="HCP_Staging"
 packages_root="/HCP/hcpdb/packages/prerelease/zip/HCP_Staging"
 archive_root="/HCP/hcpdb/archive/HCP_Staging/arc001"
 
-packages_tmp="/HCP/hcpdb/packages/temp"
+#packages_tmp="/HCP/hcpdb/packages/temp"
+packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
+
 output_dir="/HCP/hcpdb/packages/PostMsmAll"
 scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"
 log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/logs"
@@ -33,8 +35,8 @@ for subject in ${subjects} ; do
 		fi
 
 		touch ${script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=16:00:00,vmem=16000mb" >> ${script_file_to_submit}
-		echo "#PBS -q dque" >> ${script_file_to_submit}
+		echo "#PBS -l nodes=1:ppn=1,walltime=8:00:00,vmem=4000mb" >> ${script_file_to_submit}
+		echo "#PBS -q HCPput" >> ${script_file_to_submit}
 		echo "#PBS -o ${log_dir}" >> ${script_file_to_submit}
         echo "#PBS -e ${log_dir}" >> ${script_file_to_submit}
 

@@ -15,5 +15,6 @@ This data was processed using the following versions of the HCP Pipeline Scripts
 https://github.com/Washington-University/Pipelines
 
 * v3.4.0  - Original MSM-Sulc based preprocessing
-* v3.10.0 - MSM-All DeDrifting and Resampling based on MSM-All registration
 * v3.12.0 - Spin Echo Bias Field Prerequisite Files
+* v3.13.2 - MSM-All DeDrifting and Resampling based on MSM-All registration
+
