@@ -26,7 +26,7 @@ if [ -e "${script_file_to_submit}" ]; then
 fi
 
 touch ${script_file_to_submit}
-echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=256000mb" >> ${script_file_to_submit}
+echo "#PBS -l nodes=1:ppn=1,walltime=120:00:00,vmem=256000mb" >> ${script_file_to_submit}
 #echo "#PBS -q dque" >> ${script_file_to_submit}
 # max memory for dque nodes is 48GB
 # dque_smp submits to nodes that have 64 cores and 256GB RAM
