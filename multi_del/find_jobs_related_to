@@ -1,0 +1,26 @@
+#!/bin/bash
+
+printf "Enter name of file containing subject ids: "
+read subject_id_file_name
+
+rm -f jobs_related_to.txt
+
+subject_list_from_file=( $( cat ${subject_id_file_name} ) )
+subject_list="`echo "${subject_list_from_file[@]}"`"
+
+for subject in ${subject_list} ; do
+	if [[ ${subject} != \#* ]]; then
+
+		echo "Looking for jobs related to subject: ${subject}"
+		job_info=`qstat -u HCPpipeline | grep ${subject}`
+		
+		if [ "${job_info}" != "" ] ; then
+			echo "job_info: ${job_info}"
+			job_id=`echo ${job_info} | cut -d " " -f 1`
+			echo "${job_id}" >> jobs_related_to.txt
+			echo "job_number: ${job_id}"
+		fi
+
+	fi
+done
+
