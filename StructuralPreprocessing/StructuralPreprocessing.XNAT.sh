@@ -223,6 +223,12 @@ get_options()
 	fi
 }
 
+die()
+{
+	xnat_workflow_fail ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	exit 1
+}
+
 # Main processing
 #   Carry out the necessary steps to:
 #   - get prerequisite data for the Strucutral Preprocessing pipeline 
@@ -234,8 +240,154 @@ main()
 	source ${XNAT_UTILS_HOME}/xnat_workflow_utilities.sh
 	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
 
+	# Set up step counters
+	total_steps=8
+	current_step=0
+
+	# Set up to run Python
+	echo "Setting up to run Python"
+	source ${SCRIPTS_HOME}/epd-python_setup.sh
+
+	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+
+	# ----------------------------------------------------------------------------------------------
+ 	# Step - Link unprocessed data from DB
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Link unprocessed data from DB" ${step_percent}
+
+	link_hcp_struct_unproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
+	link_hcp_resting_state_unproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
+	link_hcp_diffusion_unproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
+	link_hcp_task_unproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Create a start_time file
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Create a start_time file" ${step_percent}
+	
+	start_time_file="${g_working_dir}/StructuralPreproc.starttime"
+	if [ -e "${start_time_file}" ]; then
+		echo "Removing old ${start_time_file}"
+		rm -f ${start_time_file}
+	fi
+
+	# Sleep for 1 minute to make sure start_time file is created at least a
+	# minute after any files copied or linked above.
+	echo "Sleep for 1 minute before creating start_time file."
+	sleep 1m || die 
+	
+	echo "Creating start time file: ${start_time_file}"
+	touch ${start_time_file} || die 
+	ls -l ${start_time_file}
+
+	# Sleep for 1 minute to make sure any files created or modified by the RestingStateStats.sh
+	# script are created at least 1 minute after the start_time file
+	echo "Sleep for 1 minute after creating start_time file."
+	sleep 1m || die 
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Run PreFreeSurferPipeline.sh script
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Run PreFreeSurferPipeline.sh script" ${step_percent}
+	
+	# Source setup script to setup environment for running the script
+	source ${SCRIPTS_HOME}/SetUpHCPPipeline_StructuralPreproc.sh
+
+	# Set up variables to pass in to PreFreeSurferPipeline.sh
+	RegName="NONE"
+	OrigHighPass="2000"
+	LowResMesh="32"
+	FinalfMRIResolution="2"
+	BrainOrdinatesResolution="2"
+	SmoothingFWHM="2"
+	OutputProcSTRING="_hp2000_clean"
+	dlabelFile="NONE"
+	MatlabRunMode="0" # Compiled Matlab
+	BCMode="REVERT" # One of REVERT (revert bias field correction), NONE (don't change bias field correction), CORRECT (revert original bias field correction and apply new one)
+	OutSTRING="stats"
+	WM="${HCPPIPEDIR}/global/config/FreeSurferWMRegLut.txt"
+	CSF="${HCPPIPEDIR}/global/config/FreeSurferCSFRegLut.txt"
+
+	# Run PreFreeSurferPipeline.sh script
+	${HCPPIPEDIR}/PreFreeSurfer/PreFreeSurferPipeline.sh \
+		--path=${g_working_dir} \
+		--subject=${g_subject} \
+		--fmri-name=${g_scan} \
+		--high-pass=${OrigHighPass} \
+		--reg-name=${RegName} \
+		--low-res-mesh=${LowResMesh} \
+		--final-fmri-res=${FinalfMRIResolution} \
+		--brain-ordinates-res=${BrainOrdinatesResolution} \
+		--smoothing-fwhm=${SmoothingFWHM} \
+		--output-proc-string=${OutputProcSTRING} \
+		--dlabel-file=${dlabelFile} \
+		--matlab-run-mode=${MatlabRunMode} \
+		--bc-mode=${BCMode} \
+		--out-string=${OutSTRING} \
+		--wm=${WM} \
+		--csf=${CSF}
+
+	if [ $? -ne 0 ]; then
+		die 
+	fi
 
 
+	# ----------------------------------------------------------------------------------------------
+	# Step - Run FreeSurferPipeline.sh script
+	# ----------------------------------------------------------------------------------------------
+
+
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Run PostFreeSurferPipeline.sh script
+	# ----------------------------------------------------------------------------------------------
+
+
+
+	
+	# ----------------------------------------------------------------------------------------------
+	# Step - Show any newly created or modified files
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Show newly created or modified files" ${step_percent}
+	
+	echo "Newly created/modified files:"
+	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
+	
+	# ----------------------------------------------------------------------------------------------
+	# Step - Remove any files that are not newly created or modified
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Remove files not newly created or modified" ${step_percent}
+
+	echo "The following files are being removed"
+	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete || die 
+	
+	# ----------------------------------------------------------------------------------------------
+	# Step - Complete Workflow
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_complete ${g_server} ${g_user} ${g_password} ${g_workflow_id}
 }
 
 # Invoke the main function to get things started
