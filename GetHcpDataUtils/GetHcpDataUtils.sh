@@ -9,6 +9,268 @@ echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
 # Database Resource names and suffixes
 source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/ResourceNamesAndSuffixes.sh
 
+link_hcp_struct_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Linking HCP Structural Unprocessed data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local resource_dir=""
+	resource_dir+="${archive}"
+	resource_dir+="/${project}"
+	resource_dir+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	resource_dir+="/${session}"
+	resource_dir+="/${DATABASE_RESOURCES_ROOT}"
+
+	T1w_resources=`find ${resource_dir} -maxdepth 1 -name T1w*_unproc`
+	for T1w_resource in ${T1w_resources} ; do
+		local T1w_resource=${T1w_resource##*/}
+		local T1w_dir=${T1w_resource%_unproc}  
+
+		local link_from=""
+		link_from+="${archive}"
+		link_from+="/${project}"
+		link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+		link_from+="/${session}"
+		link_from+="/${DATABASE_RESOURCES_ROOT}"
+		link_from+="/${T1w_resource}/*"
+
+		local link_to=""
+		link_to="${to_study_dir}/${subject}/unprocessed/3T/${T1w_dir}"
+		mkdir --parents ${link_to}
+
+		local link_cmd=""
+		link_cmd="cp -sR ${link_from} ${link_to}"
+		echo "link_cmd: ${link_cmd}"
+
+		echo "----------" `date` "----------"
+		echo ""
+		${link_cmd}
+	done
+	
+	T2w_resources=`find ${resource_dir} -maxdepth 1 -name T2w*_unproc`
+	for T2w_resource in ${T2w_resources} ; do
+		local T2w_resource=${T2w_resource##*/}
+		local T2w_dir=${T2w_resource%_unproc}
+
+		local link_from=""
+		link_from+="${archive}"
+		link_from+="/${project}"
+		link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+		link_from+="/${session}"
+		link_from+="/${DATABASE_RESOURCES_ROOT}"
+		link_from+="/${T2w_resource}/*"
+
+		local link_to=""
+		link_to="${to_study_dir}/${subject}/unprocessed/3T/${T2w_dir}"
+		mkdir --parents ${link_to}
+
+		local link_cmd=""
+		link_cmd="cp -sR ${link_from} ${link_to}"
+		echo "link_cmd: ${link_cmd}"
+
+		echo "----------" `date` "----------"
+		echo ""
+		${link_cmd}
+	done
+
+	popd
+}
+
+link_hcp_resting_state_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Linking HCP Resting State Unprocessed data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local resource_dir=""
+	resource_dir+="${archive}"
+	resource_dir+="/${project}"
+	resource_dir+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	resource_dir+="/${session}"
+	resource_dir+="/${DATABASE_RESOURCES_ROOT}"
+
+	resting_state_resources=`find ${resource_dir} -maxdepth 1 -name rfMRI_REST*_unproc`
+	for resting_state_resource in ${resting_state_resources} ; do
+		local resting_state_resource=${resting_state_resource##*/}
+		local resting_state_dir=${resting_state_resource%_unproc}
+
+		local link_from=""
+		link_from+="${archive}"
+		link_from+="/${project}"
+		link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+		link_from+="/${session}"
+		link_from+="/${DATABASE_RESOURCES_ROOT}"
+		link_from+="/${resting_state_resource}/*"
+
+		local link_to=""
+		link_to="${to_study_dir}/${subject}/unprocessed/3T/${resting_state_dir}"
+		mkdir --parents ${link_to}
+
+		local link_cmd=""
+		link_cmd="cp -sR ${link_from} ${link_to}"
+		echo "link_cmd: ${link_cmd}"
+
+		echo "----------" `date` "----------"
+		echo ""
+		${link_cmd}
+	done
+	
+	popd
+}
+
+link_hcp_diffusion_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Linking HCP Diffusion Unprocessed data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local resource_dir=""
+	resource_dir+="${archive}"
+	resource_dir+="/${project}"
+	resource_dir+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	resource_dir+="/${session}"
+	resource_dir+="/${DATABASE_RESOURCES_ROOT}"
+
+	diffusion_resources=`find ${resource_dir} -maxdepth 1 -name Diffusion*_unproc`
+	for diffusion_resource in ${diffusion_resources} ; do
+		local diffusion_resource=${diffusion_resource##*/}
+		local diffusion_dir=${diffusion_resource%_unproc}
+
+		local link_from=""
+		link_from+="${archive}"
+		link_from+="/${project}"
+		link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+		link_from+="/${session}"
+		link_from+="/${DATABASE_RESOURCES_ROOT}"
+		link_from+="/${diffusion_resource}/*"
+
+		local link_to=""
+		link_to="${to_study_dir}/${subject}/unprocessed/3T/${diffusion_dir}"
+		mkdir --parents ${link_to}
+
+		local link_cmd=""
+		link_cmd="cp -sR ${link_from} ${link_to}"
+		echo "link_cmd: ${link_cmd}"
+
+		echo "----------" `date` "----------"
+		echo ""
+		${link_cmd}
+	done
+	
+	popd
+}
+
+link_hcp_task_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Linking HCP Task Unprocessed data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local resource_dir=""
+	resource_dir+="${archive}"
+	resource_dir+="/${project}"
+	resource_dir+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	resource_dir+="/${session}"
+	resource_dir+="/${DATABASE_RESOURCES_ROOT}"
+
+	task_resources=`find ${resource_dir} -maxdepth 1 -name tfMRI*_unproc`
+	for task_resource in ${task_resources} ; do
+		local task_resource=${task_resource##*/}
+		local task_dir=${task_resource%_unproc}
+
+		local link_from=""
+		link_from+="${archive}"
+		link_from+="/${project}"
+		link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+		link_from+="/${session}"
+		link_from+="/${DATABASE_RESOURCES_ROOT}"
+		link_from+="/${task_resource}/*"
+
+		local link_to=""
+		link_to="${to_study_dir}/${subject}/unprocessed/3T/${task_dir}"
+		mkdir --parents ${link_to}
+
+		local link_cmd=""
+		link_cmd="cp -sR ${link_from} ${link_to}"
+		echo "link_cmd: ${link_cmd}"
+
+		echo "----------" `date` "----------"
+		echo ""
+		${link_cmd}
+	done
+	
+	popd
+}
+
 link_hcp_struct_preproc_data()
 {
     local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
