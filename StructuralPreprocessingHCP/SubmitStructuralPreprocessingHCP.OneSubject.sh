@@ -171,7 +171,7 @@ main()
 	echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 	echo ""
-	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessing/StructuralPreprocessing.XNAT.sh \\" >> ${script_file_to_submit}
+	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/StructuralPreprocessingHCP.XNAT.sh \\" >> ${script_file_to_submit}
 	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 	echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 	echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
@@ -180,6 +180,8 @@ main()
 	echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
 	echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
+
+	chmod +x ${script_file_to_submit}
 
 	submit_cmd="qsub ${script_file_to_submit}"
 	echo "submit_cmd: ${submit_cmd}"

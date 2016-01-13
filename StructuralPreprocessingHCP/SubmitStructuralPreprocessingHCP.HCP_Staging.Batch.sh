@@ -29,7 +29,7 @@ if [ -z "${interval}" ]; then
 fi
 
 project="HCP_Staging"
-subject_file_name="${SUBJECT_FILES_DIR}/${project}.StructuralPreprocessing.subjects"
+subject_file_name="${SUBJECT_FILES_DIR}/${project}.StructuralPreprocessingHCP.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
@@ -52,8 +52,8 @@ for subject in ${subjects} ; do
 		echo " Submission delayed until ${delay} minutes from now"
 		echo "--------------------------------------------------------------------------------"
 
-		at now + ${delay} minutes <<EOF 
-			/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessing/SubmitStructuralPreprocessing.OneSubject.sh \
+ 		at now + ${delay} minutes <<EOF 
+			/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/SubmitStructuralPreprocessingHCP.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
 			--server=${server} \
