@@ -122,7 +122,7 @@ main()
 	unset depend_on_job
 
 	current_seconds_since_epoch=`date +%s`
-	working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreproc.${current_seconds_since_epoch}_${g_subject}"
+	working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.${current_seconds_since_epoch}_${g_subject}"
 
 	# Make the working directory
 	echo "Making working directory: ${working_directory_name}"
@@ -160,7 +160,7 @@ main()
 	echo "XNAT workflow ID: ${workflowID}"
 
 	# Submit job to actually do the work
-	script_file_to_submit=${working_directory_name}/${g_subject}.StructuralPreproc.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+	script_file_to_submit=${working_directory_name}/${g_subject}.StructuralPreprocHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
 	if [ -e "${script_file_to_submit}" ]; then
 		rm -f "${script_file_to_submit}"
 	fi
@@ -189,33 +189,35 @@ main()
 	processing_job_no=`${submit_cmd}`
 	echo "processing_job_no: ${processing_job_no}"
 
-# 	# Submit job to put the results in the DB
-# 	put_script_file_to_submit=${LOG_DIR}/${g_subject}.StructuralPreproc.${g_project}.${g_session}${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
-# 	if [ -e "${put_script_file_to_submit}" ]; then
-# 		rm -f "${put_script_file_to_submit}"
-# 	fi
+ 	# Submit job to put the results in the DB
+ 	put_script_file_to_submit=${LOG_DIR}/${g_subject}.StructuralPreprocHCP.${g_project}.${g_session}${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+ 	if [ -e "${put_script_file_to_submit}" ]; then
+ 		rm -f "${put_script_file_to_submit}"
+ 	fi
 		
-# 	touch ${put_script_file_to_submit}
-# 	echo "#PBS -l nodes=1:ppn=1,walltime=2:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
-# 	echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
-# 	echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
-# 	echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
+ 	touch ${put_script_file_to_submit}
+ 	echo "#PBS -l nodes=1:ppn=1,walltime=2:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
+ 	echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
+ 	echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
+ 	echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
 
-# 	echo ""
-# 	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
-# 	echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
-# 	echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
-# 	echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
-# 	echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
-# 	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
-# 	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
-# 	echo "  --scan=\"${scan}\" \\" >> ${put_script_file_to_submit}
-# 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-# 	echo "  --resource-suffix=\"RSS\" " >> ${put_script_file_to_submit} 
+ 	echo ""
+ 	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
+ 	echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --resource-suffix=\"StructuralHCPTest_preproc\" " >> ${put_script_file_to_submit} 
 
-# 	submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
-# 	echo "submit_cmd: ${submit_cmd}"
-# 	${submit_cmd}
+	# fix after testing
+ 	#echo "  --resource-suffix=\"Structural_preproc\" " >> ${put_script_file_to_submit} 
+
+ 	submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
+ 	echo "submit_cmd: ${submit_cmd}"
+ 	${submit_cmd}
 }
 
 # Invoke the main function to get things started

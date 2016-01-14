@@ -58,10 +58,12 @@ echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 XNAT_PBS_JOBS_HOME=${PIPELINE_TOOLS_HOME}/xnat_pbs_jobs
 echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
 
+# home directory for XNAT pipeline engine installation
+XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
+
 # root directory of the XNAT database archive
 DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
 echo "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
-
 
 FIRST_T1W_FILE_NAME_BASE="T1w_MPR1"
 SECOND_T1W_FILE_NAME_BASE="T1w_MPR2"
@@ -479,7 +481,7 @@ main()
 	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
 
 	# Set up step counters
-	total_steps=9
+	total_steps=12
 	current_step=0
 
 	# Set up to run Python
@@ -754,7 +756,101 @@ main()
 	if [ $? -ne 0 ]; then
 		die 
 	fi
-	
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Generate XNAT XML from FreeSurfer stats files
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Generate XNAT XML from FreeSurfer stats files" ${step_percent}
+
+ 	# Generate XNAT XML from FreeSurfer stats files
+	pushd ${g_working_dir}/${g_subject}
+	stats2xml_cmd=""
+	stats2xml_cmd+="${NRG_PACKAGES}/tools/HCP/Freesurfer/freesurfer_includes/stats2xml_mrh.pl"
+	stats2xml_cmd+=" -p ${g_project}"
+	stats2xml_cmd+=" -x ${g_session}"
+	stats2xml_cmd+=" -t Freesurfer"
+	stats2xml_cmd+=" -d ${TESLA_SPEC}"
+	stats2xml_cmd+=" -o ${g_working_dir}/${g_subject}"
+	stats2xml_cmd+=" ${g_working_dir}/${g_subject}/T1w/${g_subject}/stats"
+
+	echo ""
+	echo "stats2xml_cmd: ${stats2xml_cmd}"
+	echo ""
+
+	${stats2xml_cmd}
+	if [ $? -ne 0 ]; then
+		die 
+	fi
+
+	popd
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Put generated FreeSurfer stats file in DB
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Put generated FreeSurfer stats file in DB" ${step_percent}
+
+	pushd ${g_working_dir}/${g_subject}
+
+	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_session}/assessors/${g_session}_freesurfer_${TESLA_SPEC}?allowDataDeletion=true&inbody=true"
+
+	java_cmd+="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
+	java_cmd+=" -u ${g_user}"
+	java_cmd+=" -p ${g_password}"
+	java_cmd+=" -r ${resource_uri}"	
+	java_cmd+=" -l ${g_working_dir}/${g_subject}/${g_session}_freesurfer5.xml"
+	java_cmd+=" -m PUT"
+
+	echo ""
+	echo "java_cmd: ${java_cmd}"
+	echo ""
+
+	${java_cmd}
+	if [ $? -ne 0 ]; then
+		die 
+	fi
+
+	popd
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Put snapshots in DB and remove local copies
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Put snapshots in DB and remove local copies" ${step_percent}
+
+	pushd ${g_working_dir}/${g_subject}
+
+	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_session}/assessors/${g_session}_freesurfer_${TESLA_SPEC}/resources/SNAPSHOTS/files?overwrite=true&replace=true&reference=${g_working_dir}/T1w/${g_subject}/snapshots"
+
+	java_cmd+="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
+	java_cmd+=" -u ${g_user}"
+	java_cmd+=" -p ${g_password}"
+	java_cmd+=" -r ${resource_uri}"	
+	java_cmd+=" -m PUT"
+
+	echo ""
+	echo "java_cmd: ${java_cmd}"
+	echo ""
+
+	${java_cmd}
+	if [ $? -ne 0 ]; then
+		die 
+	fi
+
+	popd
+
+	rm -r ${g_working_dir}/T1w/${g_subject}/snapshots
+
 	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files
 	# ----------------------------------------------------------------------------------------------
@@ -770,14 +866,14 @@ main()
 	# ----------------------------------------------------------------------------------------------
 	# Step - Remove any files that are not newly created or modified
 	# ----------------------------------------------------------------------------------------------
-#	current_step=$(( current_step + 1 ))
-#	step_percent=$(( (current_step * 100) / total_steps ))
-#
-#	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-#		${current_step} "Remove files not newly created or modified" ${step_percent}
-#
-#	echo "The following files are being removed"
-#	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete || die 
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Remove files not newly created or modified" ${step_percent}
+
+	echo "The following files are being removed"
+	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete || die 
 	
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
