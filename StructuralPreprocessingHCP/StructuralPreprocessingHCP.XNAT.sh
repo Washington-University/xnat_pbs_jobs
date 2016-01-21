@@ -111,6 +111,7 @@ usage()
 	echo "    --working-dir=<dir>    : Working directory in which to place retrieved data"
 	echo "                             and in which to produce results"
 	echo "    --workflow-id=<id>     : XNAT Workflow ID to update as steps are completed"
+	echo "   [--seed=<rng-seed>]     : Random number generator seed for recon-all, passed to FreeSurferPipeline.sh script"
 	echo ""
 }
 
@@ -131,6 +132,7 @@ get_options()
 	unset g_workflow_id
 	unset g_fieldmap_type
 	unset g_phase_encoding_dir
+	unset g_seed
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -183,6 +185,10 @@ get_options()
 				;;
 			--phase-encoding-dir=*)
 				g_phase_encoding_dir=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--seed=*)
+				g_seed=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -276,6 +282,10 @@ get_options()
 	else
 		echo "ERROR: unrecognized g_phase_encoding_dir: ${g_phase_encoding_dir}"
 		error_count=$(( error_count + 1 ))		
+	fi
+
+	if [ ! -z "{g_seed}" ]; then
+		echo "g_seed: ${g_seed}"
 	fi
 
 	if [ ${error_count} -gt 0 ]; then
@@ -714,6 +724,10 @@ main()
 	FreeSurfer_cmd+=" --t1=${g_working_dir}/${g_subject}/T1w/T1w_acpc_dc_restore.nii.gz"
 	FreeSurfer_cmd+=" --t1brain=${g_working_dir}/${g_subject}/T1w/T1w_acpc_dc_restore_brain.nii.gz"
 	FreeSurfer_cmd+=" --t2=${g_working_dir}/${g_subject}/T1w/T2w_acpc_dc_restore.nii.gz"
+
+	if [ ! -z "${g_seed}" ]; then
+		FreeSurfer_cmd+=" --seed=${g_seed}"
+	fi
 
 	echo ""
 	echo "FreeSurfer_cmd: ${FreeSurfer_cmd}"

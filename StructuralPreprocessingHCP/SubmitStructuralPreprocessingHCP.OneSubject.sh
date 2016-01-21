@@ -23,6 +23,7 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
+	unset g_seed
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -55,6 +56,10 @@ get_options()
 				;;
 			--session=*)
 				g_session=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--seed=*)
+				g_seed=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -99,6 +104,11 @@ get_options()
 		g_session=${g_subject}_3T
 	fi
 	echo "Connectome DB Session: ${g_session}"
+
+	if [ ! -z "${g_seed}" ]; then
+		echo "Random number generator seed for recon-all: ${g_seed}"
+	fi
+
 }
 
 main()
@@ -179,7 +189,13 @@ main()
 	echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
 	echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
-	echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
+
+	if [ -z "${g_seed}" ]; then
+		echo "  --workflow-id=\"${workflowID}\" " >> ${script_file_to_submit}
+	else
+		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
+		echo "  --seed=${g_seed} " >> ${script_file_to_submit}
+	fi
 
 	chmod +x ${script_file_to_submit}
 
