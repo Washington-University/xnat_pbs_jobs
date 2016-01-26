@@ -23,9 +23,6 @@
 # This script runs the Diffusion Preprocessing pipeline PreEddy phase 
 # consisting of the DiffPreprocPipeline_PreEddy.sh pipeline script from
 # the Human Connectome Project for a specified project, subject, session,
-
-#  and scan 
-
 # in the ConnectomeDB (db.humanconnectome.org) XNAT database.
 #
 # The script is run not as an XNAT pipeline (under the control of the
@@ -82,6 +79,8 @@ RLLR_NEGATIVE_DIR="LR"
 
 PAAP_POSITIVE_DIR="PA"
 PAAP_NEGATIVE_DIR="AP"
+
+TESLA_SPEC="3T"
 
 # Show script usage information
 usage()
@@ -270,6 +269,16 @@ die()
 	exit 1
 }
 
+get_scan_data()
+{
+	local resource_name="${1}"
+	local file_name="${2}"
+	local item_name="${3}"
+	
+	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "db.humanconnectome.org" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
+	echo ${result}
+}
+
 # Main processing
 #   Carry out the necessary steps to:
 #   - get prerequisite data for the Diffusion Preprocessing pipeline
@@ -279,7 +288,7 @@ main()
 	get_options $@
 
 	# Set up step counters
-	total_steps=10
+	total_steps=25
 	current_step=0
 
 	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
@@ -353,7 +362,53 @@ main()
 		die
 	fi
 
+	echo "--- sourcing setup file: ${setup_file}"
 	source "${setup_file}"
+
+	echo "--- determining what positive and negative DWI files are available"
+	# figure out what positive and negative DWI files are available
+
+	if [ "${g_phase_encoding_dir}" = "RLLR" ] ; then
+		positive_dir=${RLLR_POSITIVE_DIR}
+		negative_dir=${RLLR_NEGATIVE_DIR}
+	elif [ "${g_phase_encoding_dir}" = "PAAP" ] ; then
+		positive_dir=${PAAP_POSITIVE_DIR}
+		negative_dir=${PAAP_NEGATIVE_DIR}
+	else
+		echo "ERROR: Unrecognized phase encoding dir specifier: ${g_phase_encoding_dir}"
+		exit 1
+	fi
+
+	# build the posData string and the echoSpacing while we're at it
+	positive_scans=`find ${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/Diffusion -maxdepth 1 -name "${g_subject}_${TESLA_SPEC}_DWI_dir*_${positive_dir}.nii.gz" | sort`
+	posData=""
+	for pos_scan in ${positive_scans} ; do
+		if [ -z "${posData}" ] ; then
+			# get echo spacing from the first DWI scan we encounter
+			short_name=${pos_scan##*/}
+			echoSpacing=`get_scan_data Diffusion_unproc ${short_name} "parameters/echoSpacing"`
+			echoSpacing=`echo "${echoSpacing} 1000.0" | awk '{printf "%.12f", $1 * $2}'`
+			echo "echoSpacing: ${echoSpacing}"
+		else
+			# this is not the first positive DWI scan we've encountered, so add a separator to the posData string we are building
+			posData+="@"
+		fi
+		posData+="${pos_scan}"
+	done
+	echo "posData: ${posData}"
+
+	# build the negData string
+	negative_scans=`find ${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/Diffusion -maxdepth 1 -name "${g_subject}_${TESLA_SPEC}_DWI_dir*_${negative_dir}.nii.gz" | sort`
+	
+	negData=""
+	for neg_scan in ${negative_scans} ; do
+		if [ ! -z "${negData}" ] ; then
+			# this is not the first negative DWI scan we've encountered, so add a separator to the negData string we are building
+			negData+="@"
+		fi
+		negData+="${neg_scan}"
+	done
+	echo "negData: ${negData}"
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run the DiffPreprocPipeline_PreEddy.sh script
@@ -368,7 +423,7 @@ main()
 	PreEddy_cmd+="${HCPPIPEDIR}/DiffusionPreprocessing/DiffPreprocPipeline_PreEddy.sh"
  	PreEddy_cmd+=" --path=${g_working_dir}"
  	PreEddy_cmd+=" --subject=${g_subject}"
-
+	
 	if [ "${g_phase_encoding_dir}" = "RLLR" ] ; then
 		PreEddy_cmd+=" --PEdir=1"
 	elif [ "${g_phase_encoding_dir}" = "PAAP" ] ; then
@@ -378,61 +433,19 @@ main()
 		exit 1
 	fi
 
-
-
-
-
-
-
-
-
-#  	PreFreeSurfer_cmd=""
-#  	PreFreeSurfer_cmd+="${HCPPIPEDIR}/PreFreeSurfer/PreFreeSurferPipeline.sh"
-#  	PreFreeSurfer_cmd+=" --path=${g_working_dir}"
-#  	PreFreeSurfer_cmd+=" --subject=${g_subject}"
-#  	PreFreeSurfer_cmd+=" --t1=${t1_spec}"
-#  	PreFreeSurfer_cmd+=" --t2=${t2_spec}"
-#  	PreFreeSurfer_cmd+=" --t1template=${HCPPIPEDIR}/global/templates/MNI152_T1_0.7mm.nii.gz"
-#  	PreFreeSurfer_cmd+=" --t1templatebrain=${HCPPIPEDIR}/global/templates/MNI152_T1_0.7mm_brain.nii.gz"
-#  	PreFreeSurfer_cmd+=" --t1template2mm=${HCPPIPEDIR}/global/templates/MNI152_T1_2mm.nii.gz"
-#  	PreFreeSurfer_cmd+=" --t2template=${HCPPIPEDIR}/global/templates/MNI152_T2_0.7mm.nii.gz"
-#  	PreFreeSurfer_cmd+=" --t2templatebrain=${HCPPIPEDIR}/global/templates/MNI152_T2_0.7mm_brain.nii.gz"
-#  	PreFreeSurfer_cmd+=" --t2template2mm=${HCPPIPEDIR}/global/templates/MNI152_T2_2mm.nii.gz"
-# 	PreFreeSurfer_cmd+=" --templatemask=${HCPPIPEDIR}/global/templates/MNI152_T1_0.7mm_brain_mask.nii.gz"
-# 	PreFreeSurfer_cmd+=" --template2mmmask=${HCPPIPEDIR}/global/templates/MNI152_T1_2mm_brain_mask_dil.nii.gz"
-# 	PreFreeSurfer_cmd+=" --fnirtconfig=${HCPPIPEDIR}/global/config/T1_2_MNI152_2mm.cnf"
-# 	PreFreeSurfer_cmd+=" --gdcoeffs=${HCPPIPEDIR}/global/config/coeff_SC72C_Skyra.grad"
-# 	PreFreeSurfer_cmd+=" --brainsize=150"
-# 	PreFreeSurfer_cmd+=" --echodiff=${g_first_t1w_deltaTE}"
-# 	PreFreeSurfer_cmd+=" --t1samplespacing=${g_first_t1w_sample_spacing}"
-# 	PreFreeSurfer_cmd+=" --t2samplespacing=${g_first_t2w_sample_spacing}"
-
-# 	if [[ ("${g_fieldmap_type}" == "GE") || ("${g_fieldmap_type}" == "SiemensGradientEcho") ]] ; then
-# 		# add parameters for Gradient Echo fieldmap usage
-# 		PreFreeSurfer_cmd+=" --avgrdcmethod=FIELDMAP"
-# 		PreFreeSurfer_cmd+=" --topupconfig=NONE"
-# 		PreFreeSurfer_cmd+=" --fmapmag=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
-# 		PreFreeSurfer_cmd+=" --fmapphase=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${PHASE_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
-# 		PreFreeSurfer_cmd+=" --unwarpdir=z"
-# 	elif [[ ("${g_fieldmap_type}" == "SE") || ("${g_fieldmap_type}" == "SpinEcho") ]] ; then
-# 		# add parameters for SpinEcho fieldmap usage
-# 		echo "SpinEcho fieldmaps UNHANDLED YET"
-# 		exit 1 
-# 	else
-# 		echo "ERROR: Unrecognized g_fieldmap_type: ${g_fieldmap_type}"
-# 		exit 1
-# 	fi
+	PreEddy_cmd+=" --posData=${posData}"
+	PreEddy_cmd+=" --negData=${negData}"
+	PreEddy_cmd+=" --echospacing=${echoSpacing}"
+	#PreEddy_cmd+=" --printcom=''"
 
 	echo ""
 	echo "PreEddy_cmd: ${PreEddy_cmd}"
 	echo ""
 
-#	${PreEddy_cmd}
+	${PreEddy_cmd}
 	if [ $? -ne 0 ]; then
 		die 
 	fi
-
-
 }
 
 # Invoke the main function to get things started

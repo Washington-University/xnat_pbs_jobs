@@ -177,7 +177,7 @@ main()
 	echo "XNAT workflow ID: ${workflowID}"
 
 	# Submit job to do PreEddy work
-	pre_eddy_script_file_to_submit=${working_directory_name}/${g_subject}.DiffusionPreprocHCP.PreEddy.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+	pre_eddy_script_file_to_submit=${working_directory_name}/${g_subject}.DiffusionPreprocHCP_PreEddy.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
 	if [ -e "${pre_eddy_script_file_to_submit}" ]; then
 		rm -f "${pre_eddy_script_file_to_submit}"
 	fi
@@ -199,20 +199,50 @@ main()
 	echo "  --workflow-id=\"${workflowID}\" \\" >> ${pre_eddy_script_file_to_submit}
 	echo "  --phase-encoding-dir=\"${g_phase_encoding_dir}\" " >> ${pre_eddy_script_file_to_submit}
 
-	chmod +x ${script_file_to_submit}
+	chmod +x ${pre_eddy_script_file_to_submit}
 
 	submit_cmd="qsub ${pre_eddy_script_file_to_submit}"
-	echo "submit_cmd: ${submit+cmd}"
+	echo "submit_cmd: ${submit_cmd}"
 
 	pre_eddy_jobno=`${submit_cmd}`
 	echo "pre_eddy_jobno: ${pre_eddy_jobno}"
 
+	# Submit job to do Eddy work
+	eddy_script_file_to_submit=${working_directory_name}/${g_subject}.DiffusionPreprocHCP_Eddy.${g_project}.${g_subject}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+	if [ -e "${eddy_script_file_to_submit}" ]; then
+		rm -f "${eddy_script_file_to_submit}"
+	fi
 
-	
+	touch ${eddy_script_file_to_submit}
+	echo "#PBS -l nodes=1:ppn=3:gpus=1,walltime=16:00:00" >> ${eddy_script_file_to_submit}
+	echo "#PBS -q dque_gpu" >> ${eddy_script_file_to_submit}
+	echo "#PBS -o ${working_directory_name}" >> ${eddy_script_file_to_submit}
+	echo "#PBS -e ${working_directory_name}" >> ${eddy_script_file_to_submit}
+	echo ""
+	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/DiffusionPreprocessingHCP_Eddy.XNAT.sh \\" >> ${eddy_script_file_to_submit}
+	echo "  --user=\"${token_username}\" \\" >> ${eddy_script_file_to_submit}
+	echo "  --password=\"${token_password}\" \\" >> ${eddy_script_file_to_submit}
+	echo "  --server=\"${g_server}\" \\" >> ${eddy_script_file_to_submit}
+	echo "  --subject=\"${g_subject}\" \\" >> ${eddy_script_file_to_submit}
+	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${eddy_script_file_to_submit}
+	echo "  --workflow-id=\"${workflowID}\" \\" >> ${eddy_script_file_to_submit}
 
+	chmod +x ${eddy_script_file_to_submit}
 
+	submit_cmd="qsub -W depend=afterok:${pre_eddy_jobno} ${eddy_script_file_to_submit}"
+	echo "submit_cmd: ${submit_cmd}"
 
+	eddy_jobno=`${submit_cmd}`
+	echo "eddy_jobno: ${eddy_jobno}"
 
+	# Submit job to do PostEddy work
+	post_eddy_script_file_to_submit=${working_directory_name}/${g_subject}.DiffusionPreprocHCP_PostEddy.${g_project}.${g_subject}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+
+	if [ -e "${eddy_script_file_to_submit}" ]; then
+		rm -f "${eddy_script_file_to_submit}"
+	fi
+
+	touch ${eddy_script_file_to_submit}
 
 
 
