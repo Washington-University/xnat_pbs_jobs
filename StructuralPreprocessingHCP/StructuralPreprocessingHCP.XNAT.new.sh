@@ -299,7 +299,8 @@ get_options()
 		echo "ERROR: --xnat-session-id= required"
 		error_count=$(( error_count + 1 ))
 	fi
-
+	echo "g_xnat_session_id: ${g_xnat_session_id}"
+	
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
 		exit 1

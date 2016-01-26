@@ -194,8 +194,10 @@ main()
 		echo "  --workflow-id=\"${workflowID}\" " >> ${script_file_to_submit}
 	else
 		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
-		echo "  --seed=${g_seed} " >> ${script_file_to_submit}
+		echo "  --seed=${g_seed} \\" >> ${script_file_to_submit}
 	fi
+
+	echo "  --xnat-session-id=${sessionID}" >> ${script_file_to_submit}
 
 	chmod +x ${script_file_to_submit}
 
