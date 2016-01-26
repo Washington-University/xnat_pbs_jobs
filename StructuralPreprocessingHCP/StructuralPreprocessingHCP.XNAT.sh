@@ -566,7 +566,7 @@ main()
 		${current_step} "Set up to run PreFreeSurferPipeline.sh script" ${step_percent}
 	
 	# Source setup script to setup environment for running the script
-	source ${SCRIPTS_HOME}/SetUpHCPPipeline_StructuralPreproc.sh
+	source ${SCRIPTS_HOME}/SetUpHCPPipeline_StructuralPreprocHCP.sh
 
 	first_T1w_resource_exists=`does_first_t1w_scan_exist`
 	echo "first_T1w_resource_exists: ${first_T1w_resource_exists}"

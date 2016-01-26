@@ -232,7 +232,7 @@ main()
 	
 	# Source setup script to setup environment for running the script
 
-	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_DiffusionPreproc.sh"
+	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_DiffusionPreprocHCP.sh"
 	if [ ! -e "${setup_file}" ] ; then
 		echo "setup_file: ${setup_file} DOES NOT EXIST - ABORTING"
 		die
