@@ -143,11 +143,12 @@ main()
         fi
     done
 
-    for task in ${tasks} ; do 
-        # start with a clean temporary directory for this subject
-        rm -rf ${script_tmp_dir}/${g_subject}
+	for task in ${tasks} ; do 
 
-        for smoothing_level in 2 4 ; do
+		for smoothing_level in 2 4 ; do
+
+			# start with a clean temporary directory for this subject
+			rm -rf ${script_tmp_dir}/${g_subject}
 
             echo ""
             echo "--------------------------------------------------"
@@ -172,7 +173,7 @@ main()
             mkdir -p ${to_dir}
             #files=`find ${from_dir} -maxdepth 1 -name "${g_subject}_tfMRI_${task}_level2_beta_hp200_s${smoothing_level}_MSMAll.dscalar.nii"`
 
-            files+=" "
+            files=" "
             files+=`find ${from_dir} -maxdepth 1 -name "${g_subject}_tfMRI_${task}_level2_hp200_s${smoothing_level}_MSMAll.dscalar.nii"`
 
             for extension in txt con png ppm fsf grp mat ; do

@@ -5,9 +5,9 @@ if [ -z "${SUBJECT_FILES_DIR}" ]; then
     exit 1
 fi
 
-project="HCP_500"
-packages_root="/HCP/hcpdb/packages/live/HCP_500"
-archive_root="/HCP/hcpdb/archive/HCP_500/arc001"
+project="HCP_Staging"
+packages_root="/HCP/hcpdb/packages/prerelease/zip/HCP_Staging"
+archive_root="/HCP/hcpdb/archive/HCP_Staging/arc001"
 
 #packages_tmp="/HCP/hcpdb/packages/temp"
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
@@ -50,12 +50,11 @@ for subject in ${subjects} ; do
 		echo "  --subject=${subject} \\" >> ${script_file_to_submit}
 		echo "  --create-checksum \\" >> ${script_file_to_submit}
 
-		submit_cmd="qsub ${script_file_to_submit}"
+		chmod +x ${script_file_to_submit}
+		submit_cmd="${script_file_to_submit}"
 		echo "submit_cmd: ${submit_cmd}"
 		
-		processing_job_no=`${submit_cmd}`
-
-		echo "processing_job_no: ${processing_job_no}"
+		${submit_cmd}
 
 	fi
 
