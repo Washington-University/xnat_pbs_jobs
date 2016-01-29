@@ -14,6 +14,9 @@ read password
 echo ""
 stty echo
 
+printf "Random Number Generator Seed: "
+read seed
+
 printf "Delay until first submission (minutes) [0]: "
 read delay
 
@@ -59,7 +62,7 @@ for subject in ${subjects} ; do
 			--server=${server} \
 			--project=${project} \
 			--subject=${subject} \
-			--seed=5678 
+			--seed=${seed} 
 EOF
 
 		delay=$((delay + interval))

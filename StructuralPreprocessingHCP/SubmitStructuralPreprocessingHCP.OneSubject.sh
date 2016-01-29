@@ -132,7 +132,7 @@ main()
 	unset depend_on_job
 
 	current_seconds_since_epoch=`date +%s`
-	working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.${current_seconds_since_epoch}_${g_subject}"
+	working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.Seed${g_seed}.${current_seconds_since_epoch}_${g_subject}"
 
 	# Make the working directory
 	echo "Making working directory: ${working_directory_name}"
@@ -227,7 +227,7 @@ main()
  	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
  	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
  	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
- 	echo "  --resource-suffix=\"StructuralHCPTest_preproc\" " >> ${put_script_file_to_submit} 
+ 	echo "  --resource-suffix=\"Structural_preproc_Seed${g_seed}\" " >> ${put_script_file_to_submit} 
 
 	# fix after testing
  	#echo "  --resource-suffix=\"Structural_preproc\" " >> ${put_script_file_to_submit} 
