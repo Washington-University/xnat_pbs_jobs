@@ -120,7 +120,7 @@ main()
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 	echo "Getting token user id and password"
-	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user}"
+	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=db.humanconnectome.org --username=${g_user}"
 	#echo "get_token_cmd: ${get_token_cmd}"
 	get_token_cmd+=" --password=${g_password}"
 	new_tokens=`${get_token_cmd}`
@@ -140,7 +140,8 @@ main()
 
 	# Get JSESSION ID
 	echo "Getting JSESSION ID"
-	jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
+	curl_cmd="curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION"
+	jsession=`${curl_cmd}`
 	echo "jsession: ${jsession}"
 
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
@@ -189,12 +190,10 @@ main()
 	echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
 	echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
+	echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit} 
 
 	if [ -z "${g_seed}" ]; then
-		echo "  --workflow-id=\"${workflowID}\" " >> ${script_file_to_submit}
-	else
-		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
-		echo "  --seed=${g_seed} \\" >> ${script_file_to_submit}
+	    echo "  --seed=${g_seed} \\" >> ${script_file_to_submit}
 	fi
 
 	echo "  --xnat-session-id=${sessionID}" >> ${script_file_to_submit}

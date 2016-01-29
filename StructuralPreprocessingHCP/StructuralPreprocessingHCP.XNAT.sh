@@ -309,7 +309,8 @@ get_options()
 
 die()
 {
-	xnat_workflow_fail ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+#	xnat_workflow_fail ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	xnat_workflow_fail db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id}
 	exit 1
 }
 
@@ -511,7 +512,8 @@ main()
 	echo "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	#xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	xnat_workflow_show db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id}
 
 	# ----------------------------------------------------------------------------------------------
  	# Step - Link unprocessed data from DB
@@ -519,8 +521,12 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#	${current_step} "Link unprocessed data from DB" ${step_percent}
+
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Link unprocessed data from DB" ${step_percent}
+
 
 	link_hcp_struct_unproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
 	link_hcp_resting_state_unproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
@@ -533,7 +539,10 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#	${current_step} "Create a start_time file" ${step_percent}
+
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Create a start_time file" ${step_percent}
 	
 	start_time_file="${g_working_dir}/StructuralPreproc.starttime"
@@ -562,8 +571,12 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#	${current_step} "Set up to run PreFreeSurferPipeline.sh script" ${step_percent}
+
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Set up to run PreFreeSurferPipeline.sh script" ${step_percent}
+
 	
 	# Source setup script to setup environment for running the script
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_StructuralPreprocHCP.sh
@@ -670,7 +683,10 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#	${current_step} "Run the PreFreeSurferPipeline.sh script" ${step_percent}
+
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Run the PreFreeSurferPipeline.sh script" ${step_percent}
 
  	# Run PreFreeSurferPipeline.sh script
@@ -726,7 +742,10 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#    ${current_step} "Run the FreeSurferPipeline.sh script" ${step_percent}
+
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Run the FreeSurferPipeline.sh script" ${step_percent}
 
  	# Run FreeSurferPipeline.sh script
@@ -757,8 +776,11 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Run the PostFreeSurferPipeline.sh script" ${step_percent}
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#	${current_step} "Run the PostFreeSurferPipeline.sh script" ${step_percent}
+
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
+	    ${current_step} "Run the PostFreeSurferPipeline.sh script" ${step_percent}
 
  	# Run PostFreeSurferPipeline.sh script
  	PostFreeSurfer_cmd=""
@@ -790,8 +812,11 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "GENERATE_SNAPSHOT" ${step_percent}
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#	${current_step} "GENERATE_SNAPSHOT" ${step_percent}
+
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
+	    ${current_step} "GENERATE_SNAPSHOT" ${step_percent}
 
 	pushd ${g_working_dir}/${g_subject}
 
@@ -817,8 +842,11 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "CREATE_ASSESSOR" ${step_percent}
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#	${current_step} "CREATE_ASSESSOR" ${step_percent}
+
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
+	    ${current_step} "CREATE_ASSESSOR" ${step_percent}
 
  	# Generate XNAT XML from FreeSurfer stats files
 	pushd ${g_working_dir}/${g_subject}
@@ -848,8 +876,11 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Put generated FreeSurfer stats file in DB" ${step_percent}
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#    ${current_step} "Put generated FreeSurfer stats file in DB" ${step_percent}
+
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
+	    ${current_step} "Put generated FreeSurfer stats file in DB" ${step_percent}
 
 	pushd ${g_working_dir}/${g_subject}
 
@@ -879,7 +910,10 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#	${current_step} "Put snapshots in DB and remove local copies" ${step_percent}
+
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Put snapshots in DB and remove local copies" ${step_percent}
 
 	pushd ${g_working_dir}/${g_subject}
@@ -915,8 +949,11 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Show newly created or modified files" ${step_percent}
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#	${current_step} "Show newly created or modified files" ${step_percent}
+	
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
+	    ${current_step} "Show newly created or modified files" ${step_percent}
 	
 	echo "Newly created/modified files:"
 	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
@@ -927,8 +964,11 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Remove files not newly created or modified" ${step_percent}
+	#xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	#	${current_step} "Remove files not newly created or modified" ${step_percent}
+	
+	xnat_workflow_update db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id} \
+	    ${current_step} "Remove files not newly created or modified" ${step_percent}
 
 	echo "The following files are being removed"
 	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete || die 
@@ -939,7 +979,8 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_complete ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	#xnat_workflow_complete ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	xnat_workflow_complete db.humanconnectome.org ${g_user} ${g_password} ${g_workflow_id}
 }
 
 # Invoke the main function to get things started

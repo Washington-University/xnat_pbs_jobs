@@ -38,6 +38,7 @@ start_shadow_number=1
 max_shadow_number=8
 
 shadow_number=${start_shadow_number}
+use_at="FALSE"
 
 for subject in ${subjects} ; do
 
@@ -52,14 +53,26 @@ for subject in ${subjects} ; do
 		echo " Submission delayed until ${delay} minutes from now"
 		echo "--------------------------------------------------------------------------------"
 
- 		at now + ${delay} minutes <<EOF 
-			/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/SubmitStructuralPreprocessingHCP.OneSubject.sh \
-			--user=${userid} \
-			--password=${password} \
-			--server=${server} \
-			--project=${project} \
-			--subject=${subject} 
+		cmd_to_run=""
+		cmd_to_run+="${HOME}/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/SubmitStructuralPreprocessingHCP.OneSubject.sh "
+		cmd_to_run+=" --user=${userid}"
+		cmd_to_run+=" --server=${server}"
+		cmd_to_run+=" --project=${project}"
+		cmd_to_run+=" --subject=${subject}"
+
+		echo "cmd_to_run: ${cmd_to_run}"
+		cmd_to_run+=" --password=${password}"
+
+		if [ "${use_at}" = "TRUE" ] ; then
+
+		    echo "About to use at to run command"
+ 		    at now + ${delay} minutes <<EOF 
+			${cmd_to_run}
 EOF
+		else
+		    echo "About to simply run command"
+		    ${cmd_to_run}
+		fi
 
 		delay=$((delay + interval))
 
