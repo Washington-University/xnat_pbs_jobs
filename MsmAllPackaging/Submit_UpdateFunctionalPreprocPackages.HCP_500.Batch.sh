@@ -24,7 +24,6 @@ packages_root="/HCP/hcpdb/packages/live/HCP_500"
 archive_root="/HCP/hcpdb/archive/HCP_500/arc001"
 
 #packages_tmp="/HCP/hcpdb/packages/temp"
-#packages_tmp="/HCP/hcpdb/build_hds/hcpdb/packages/temp"
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 
 output_dir="/HCP/hcpdb/packages/PostMsmAll"

@@ -24,7 +24,6 @@ packages_root="/HCP/hcpdb/packages/prerelease/zip/HCP_Staging"
 archive_root="/HCP/hcpdb/archive/HCP_Staging/arc001"
 
 #packages_tmp="/HCP/hcpdb/packages/temp"
-#packages_tmp="/HCP/hcpdb/build_hds/hcpdb/packages/temp"
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 
 output_dir="/HCP/hcpdb/packages/PostMsmAll/${project}"
