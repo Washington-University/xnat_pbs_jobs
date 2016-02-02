@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# This pipeline's name
+PIPELINE_NAME="DiffusionPreprocessingHCP"
+
 # home directory for XNAT pipeline engine installation
 XNAT_PIPELINE_HOME=${HOME}/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
@@ -24,6 +27,7 @@ get_options()
 	unset g_subject
 	unset g_session
 	unset g_phase_encoding_dir
+	unset g_put_server
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -60,6 +64,10 @@ get_options()
 				;;
 			--phase-encoding-dir=*)
 				g_phase_encoding_dir=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--put-server=*)
+				g_put_server=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -116,6 +124,12 @@ get_options()
 			fi
 		fi
 	fi
+
+	if [ -z "${g_put_server}" ]; then
+		g_put_server="db.humanconnectome.org"
+	fi
+	echo "PUT server: ${g_put_server}"
+
 }
 
 main()
@@ -160,7 +174,7 @@ main()
 	# Get XNAT Workflow ID
 	server="https://db.humanconnectome.org/"
 	echo "Getting XNAT workflow ID for this job from server: ${server}"
-	get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline RestingStateStats -Status Queued -JSESSION ${jsession}"
+	get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline ${PIPELINE_NAME} -Status Queued -JSESSION ${jsession}"
 	#echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
 	get_workflow_id_cmd+=" -Password ${g_password}"
 
@@ -183,11 +197,15 @@ main()
 	fi
 
 	touch ${pre_eddy_script_file_to_submit}
-	echo "#PBS -l nodes=1:ppn=1,walltime=10:00:00,vmem=16000mb" >> ${pre_eddy_script_file_to_submit}
-	echo "#PBS -q dque" >> ${pre_eddy_script_file_to_submit}
+	#echo "#PBS -l nodes=1:ppn=1,walltime=10:00:00,vmem=16000mb" >> ${pre_eddy_script_file_to_submit}
+	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run
+	echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=16000mb" >> ${pre_eddy_script_file_to_submit}
+	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run
+
+	#echo "#PBS -q dque" >> ${pre_eddy_script_file_to_submit}
 	echo "#PBS -o ${working_directory_name}" >> ${pre_eddy_script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${pre_eddy_script_file_to_submit}
-	echo ""
+	echo "" >> ${pre_eddy_script_file_to_submit}
 	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/DiffusionPreprocessingHCP_PreEddy.XNAT.sh \\" >> ${pre_eddy_script_file_to_submit}
 	echo "  --user=\"${token_username}\" \\" >> ${pre_eddy_script_file_to_submit}
 	echo "  --password=\"${token_password}\" \\" >> ${pre_eddy_script_file_to_submit}
@@ -207,6 +225,11 @@ main()
 	pre_eddy_jobno=`${submit_cmd}`
 	echo "pre_eddy_jobno: ${pre_eddy_jobno}"
 
+	if [ -z "${pre_eddy_jobno}" ] ; then
+		echo "ERROR SUBMITTING PRE-EDDY JOB - ABORTING"
+		exit 1
+	fi
+
 	# Submit job to do Eddy work
 	eddy_script_file_to_submit=${working_directory_name}/${g_subject}.DiffusionPreprocHCP_Eddy.${g_project}.${g_subject}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
 	if [ -e "${eddy_script_file_to_submit}" ]; then
@@ -214,18 +237,23 @@ main()
 	fi
 
 	touch ${eddy_script_file_to_submit}
-	echo "#PBS -l nodes=1:ppn=3:gpus=1,walltime=16:00:00" >> ${eddy_script_file_to_submit}
-	echo "#PBS -q dque_gpu" >> ${eddy_script_file_to_submit}
+	#echo "#PBS -l nodes=1:ppn=3:gpus=1,walltime=16:00:00" >> ${eddy_script_file_to_submit}
+	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run	
+	echo "#PBS -l nodes=1:ppn=3:gpus=1,walltime=4:00:00" >> ${eddy_script_file_to_submit}
+	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run
+
+	#echo "#PBS -q dque_gpu" >> ${eddy_script_file_to_submit}
+	#echo "#PBS -q dque" >> ${eddy_script_file_to_submit}
 	echo "#PBS -o ${working_directory_name}" >> ${eddy_script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${eddy_script_file_to_submit}
-	echo ""
+	echo "" >> ${eddy_script_file_to_submit}
 	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/DiffusionPreprocessingHCP_Eddy.XNAT.sh \\" >> ${eddy_script_file_to_submit}
 	echo "  --user=\"${token_username}\" \\" >> ${eddy_script_file_to_submit}
 	echo "  --password=\"${token_password}\" \\" >> ${eddy_script_file_to_submit}
 	echo "  --server=\"${g_server}\" \\" >> ${eddy_script_file_to_submit}
 	echo "  --subject=\"${g_subject}\" \\" >> ${eddy_script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${eddy_script_file_to_submit}
-	echo "  --workflow-id=\"${workflowID}\" \\" >> ${eddy_script_file_to_submit}
+	echo "  --workflow-id=\"${workflowID}\" " >> ${eddy_script_file_to_submit}
 
 	chmod +x ${eddy_script_file_to_submit}
 
@@ -235,18 +263,72 @@ main()
 	eddy_jobno=`${submit_cmd}`
 	echo "eddy_jobno: ${eddy_jobno}"
 
+	if [ -z "${eddy_jobno}" ] ; then
+		echo "ERROR SUBMITTING EDDY JOB - ABORTING"
+		exit 1
+	fi
+
 	# Submit job to do PostEddy work
 	post_eddy_script_file_to_submit=${working_directory_name}/${g_subject}.DiffusionPreprocHCP_PostEddy.${g_project}.${g_subject}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
 
-	if [ -e "${eddy_script_file_to_submit}" ]; then
-		rm -f "${eddy_script_file_to_submit}"
+	if [ -e "${post_eddy_script_file_to_submit}" ]; then
+		rm -f "${post_eddy_script_file_to_submit}"
 	fi
 
-	touch ${eddy_script_file_to_submit}
+	touch ${post_eddy_script_file_to_submit}
+	echo "#PBS -l nodes=1:ppn=1,walltime=03:00:00,vmem=20000mb" >> ${post_eddy_script_file_to_submit}
+	#echo "#PBS -q dque" >> ${post_eddy_script_file_to_submit}
+	echo "#PBS -o ${working_directory_name}" >> ${post_eddy_script_file_to_submit}
+	echo "#PBS -e ${working_directory_name}" >> ${post_eddy_script_file_to_submit}
+	echo "" >> ${post_eddy_script_file_to_submit}
+	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/DiffusionPreprocessingHCP_PostEddy.XNAT.sh \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --user=\"${token_username}\" \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --password=\"${token_password}\" \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --server=\"${g_server}\" \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --subject=\"${g_subject}\" \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --workflow-id=\"${workflowID}\" \\" >> ${post_eddy_script_file_to_submit}
 
+	chmod +x ${post_eddy_script_file_to_submit}
 
+	submit_cmd="qsub -W depend=afterok:${eddy_jobno} ${post_eddy_script_file_to_submit}"
+	echo "submit_cmd: ${submit_cmd}"
 
+	post_eddy_jobno=`${submit_cmd}`
+	echo "post_eddy_jobno: ${post_eddy_jobno}"
 
+	if [ -z "${post_eddy_jobno}" ] ; then
+		echo "ERROR SUBMITTING POST-EDDY JOB - ABORTING"
+		exit 1
+	fi
+
+	# Submit job to put the results in the DB
+	put_script_file_to_submit=${LOG_DIR}/${g_subject}.DiffusionPreprocHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+ 	if [ -e "${put_script_file_to_submit}" ]; then
+ 		rm -f "${put_script_file_to_submit}"
+ 	fi
+
+ 	touch ${put_script_file_to_submit}
+ 	echo "#PBS -l nodes=1:ppn=1,walltime=2:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
+ 	echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
+ 	echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
+ 	echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
+ 	echo "" >> ${put_script_file_to_submit}
+ 	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
+ 	echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
+	echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
+ 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
+	echo "  --resource-suffix=\"Diffusion_preproc_test\" " >> ${put_script_file_to_submit}
+
+	# fix resource name after testing
+
+	submit_cmd="qsub -W depend=afterok:${post_eddy_jobno} ${put_script_file_to_submit}"
+	echo "submit_cmd: ${submit_cmd}"
+	${submit_cmd}
 }
 
 # Invoke the main function to get things started

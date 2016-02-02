@@ -1,5 +1,11 @@
 # Path to tools used
-PATH_TO_LNDIR="/export/lndir-1.0.1/bin/lndir"
+if [ "${CLUSTER}" = "1.0" ] ; then
+	PATH_TO_LNDIR="/export/lndir-1.0.1/bin/lndir"
+elif [ "${CLUSTER}" = "2.0" ]; then
+	PATH_TO_LNDIR="${HOME}/export/lndir-1.0.1/bin/lndir"
+else
+	echo "ERROR - ${CLUSTER} value unsupported by GetHcpDataUtils.sh"
+fi
 
 # home directory for these XNAT PBS job scripts
 XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs

@@ -231,14 +231,14 @@ main()
 
 		touch ${script_file_to_submit}
 		echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=16000mb" >> ${script_file_to_submit}
-		echo "#PBS -q dque" >> ${script_file_to_submit}
+		#echo "#PBS -q dque" >> ${script_file_to_submit}
 		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 		if [ -n "${g_notify}" ]; then
 			echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
 			echo "#PBS -m abe" >> ${script_file_to_submit}
 		fi
-		echo ""
+		echo "" >> ${script_file_to_submit}
 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostMsmAllTaskAnalysis/PostMsmAllTaskAnalysis.XNAT.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 		echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}

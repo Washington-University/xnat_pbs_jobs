@@ -42,6 +42,14 @@
 
 echo "Job started on `hostname` at `date`"
 
+# home directory for scripts to be sourced to setup the environment
+SCRIPTS_HOME=${HOME}/SCRIPTS
+echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
+
+# home directory for pipeline tools
+PIPELINE_TOOLS_HOME=${HOME}/pipeline_tools
+echo "PIPELINE_TOOLS_HOME: ${PIPELINE_TOOLS_HOME}"
+
 # home directory for XNAT related utilities
 XNAT_UTILS_HOME=${PIPELINE_TOOLS_HOME}/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
@@ -59,12 +67,9 @@ get_options()
 	unset g_user
 	unset g_password
 	unset g_server
-#	unset g_project
 	unset g_subject
-#	unset g_session
 	unset g_working_dir
 	unset g_workflow_id
-#	unset g_phase_encoding_dir
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -91,18 +96,10 @@ get_options()
 				g_server=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-#			--project=*)
-#				g_project=${argument/*=/""}
-#				index=$(( index + 1 ))
-#				;;
 			--subject=*)
 				g_subject=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-#			--session=*)
-#				g_session=${argument/*=/""}
-#				index=$(( index + 1 ))
-#				;;
 			--working-dir=*)
 				g_working_dir=${argument/*=/""}
 				index=$(( index + 1 ))
@@ -111,10 +108,6 @@ get_options()
 				g_workflow_id=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-#			--phase-encoding-dir=*)
-#				g_phase_encoding_dir=${argument/*=/""}
-#				index=$(( index + 1 ))
-#				;;
 			*)
 				#usage
 				echo "ERROR: unrecognized option: ${argument}"
@@ -148,26 +141,12 @@ get_options()
 		echo "g_server: ${g_server}"
 	fi
 
-#	if [ -z "${g_project}" ]; then
-#		echo "ERROR: project (--project=) required"
-#		error_count=$(( error_count + 1 ))
-#	else
-#		echo "g_project: ${g_project}"
-#	fi
-
 	if [ -z "${g_subject}" ]; then
 		echo "ERROR: subject (--subject=) required"
 		error_count=$(( error_count + 1 ))
 	else
 		echo "g_subject: ${g_subject}"
 	fi
-
-#	if [ -z "${g_session}" ]; then
-#		echo "ERROR: session (--session=) required"
-#		error_count=$(( error_count + 1 ))
-#	else
-#		echo "g_session: ${g_session}"
-#	fi
 
 	if [ -z "${g_working_dir}" ]; then
 		echo "ERROR: working directory (--working-dir=) required"
@@ -182,18 +161,6 @@ get_options()
 	else
 		echo "g_workflow_id: ${g_workflow_id}"
 	fi
-
-#	if [ -z "${g_phase_encoding_dir}" ]; then
-#		echo "ERROR: phase encoding dir specifier (--phase-encoding-dir=) required"
-#		error_count=$(( error_count + 1 ))
-#	else
-#		if [ "${g_phase_encoding_dir}" != "RLLR" ] ; then
-#			if [ "${g_phase_encoding_dir}" != "PAAP" ] ; then
-#				echo "ERROR: Unrecognized phase encoding dir specifier: ${g_phase_encoding_dir}"
-#				error_count=$(( error_count + 1 ))
-#			fi
-#		fi
-#	fi
 
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"

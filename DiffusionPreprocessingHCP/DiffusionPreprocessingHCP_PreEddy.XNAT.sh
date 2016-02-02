@@ -325,7 +325,7 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Create a start_time file" ${step_percent}
 	
-	start_time_file="${g_working_dir}/DiffusionPreproc.starttime"
+	start_time_file="${g_working_dir}/DiffusionPreprocessingHCP.starttime"
 	if [ -e "${start_time_file}" ]; then
 		echo "Removing old ${start_time_file}"
 		rm -f ${start_time_file}

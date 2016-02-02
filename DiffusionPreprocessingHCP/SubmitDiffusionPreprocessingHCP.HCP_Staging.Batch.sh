@@ -52,15 +52,15 @@ for subject in ${subjects} ; do
 		echo " Submission delayed until ${delay} minutes from now"
 		echo "--------------------------------------------------------------------------------"
 
- 		at now + ${delay} minutes <<EOF 
+# 		at now + ${delay} minutes <<EOF 
 			/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/SubmitDiffusionPreprocessingHCP.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
-			--server=${server} \
+			--put-server=${server} \
 			--project=${project} \
 			--subject=${subject} \
 			--phase-encoding-dir=RLLR
-EOF
+#EOF
 
 		delay=$((delay + interval))
 

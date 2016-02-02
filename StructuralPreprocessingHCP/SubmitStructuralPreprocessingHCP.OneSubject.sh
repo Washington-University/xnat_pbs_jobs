@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# This pipeline's name 
+PIPELINE_NAME="StructuralPreprocessingHCP"
+
 # home directory for XNAT pipeline engine installation
 XNAT_PIPELINE_HOME=${HOME}/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
@@ -24,6 +27,7 @@ get_options()
 	unset g_subject
 	unset g_session
 	unset g_seed
+	unset g_put_server
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -58,10 +62,15 @@ get_options()
 				g_session=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
+			--put-server=*)
+				g_put_server=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
 			--seed=*)
 				g_seed=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
+				
 			*)
 				echo "ERROR: unrecognized option: ${argument}"
 				echo ""
@@ -109,6 +118,10 @@ get_options()
 		echo "Random number generator seed for recon-all: ${g_seed}"
 	fi
 
+	if [ -z "${g_put_server}" ]; then
+		g_put_server="db.humanconnectome.org"
+	fi
+	echo "PUT server: ${g_put_server}"
 }
 
 main()
@@ -120,7 +133,7 @@ main()
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 	echo "Getting token user id and password"
-	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=db.humanconnectome.org --username=${g_user}"
+	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user}"
 	#echo "get_token_cmd: ${get_token_cmd}"
 	get_token_cmd+=" --password=${g_password}"
 	new_tokens=`${get_token_cmd}`
@@ -132,7 +145,12 @@ main()
 	unset depend_on_job
 
 	current_seconds_since_epoch=`date +%s`
-	working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.Seed${g_seed}.${current_seconds_since_epoch}_${g_subject}"
+
+	if [ ! -z "${g_seed}" ] ; then
+		working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.Seed${g_seed}.${current_seconds_since_epoch}_${g_subject}"
+	else
+		working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.${current_seconds_since_epoch}_${g_subject}"
+	fi
 
 	# Make the working directory
 	echo "Making working directory: ${working_directory_name}"
@@ -146,7 +164,7 @@ main()
 
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
 	echo "Getting XNAT Session ID"
-	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
+	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=${g_server} --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
 	#echo "get_session_id_cmd: ${get_session_id_cmd}"
 	sessionID=`${get_session_id_cmd}`
 	echo "XNAT session ID: ${sessionID}"
@@ -154,7 +172,7 @@ main()
 	# Get XNAT Workflow ID
 	server="https://db.humanconnectome.org/"
 	echo "Getting XNAT workflow ID for this job from server: ${server}"
-	get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline RestingStateStats -Status Queued -JSESSION ${jsession}"
+	get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline ${PIPELINE_NAME} -Status Queued -JSESSION ${jsession}"
 	#echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
 	get_workflow_id_cmd+=" -Password ${g_password}"
 
@@ -177,11 +195,14 @@ main()
 	fi
 
 	touch ${script_file_to_submit}
-	echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=32000mb" >> ${script_file_to_submit}
-	echo "#PBS -q dque" >> ${script_file_to_submit}
+	#echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=32000mb" >> ${script_file_to_submit}
+	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run
+	echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=32000mb" >> ${script_file_to_submit}
+	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run
+	#echo "#PBS -q dque" >> ${script_file_to_submit}
 	echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
-	echo ""
+	echo "" >> ${script_file_to_submit}
 	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/StructuralPreprocessingHCP.XNAT.sh \\" >> ${script_file_to_submit}
 	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 	echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
@@ -207,7 +228,7 @@ main()
 	echo "processing_job_no: ${processing_job_no}"
 
  	# Submit job to put the results in the DB
- 	put_script_file_to_submit=${LOG_DIR}/${g_subject}.StructuralPreprocHCP.${g_project}.${g_session}${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+ 	put_script_file_to_submit=${LOG_DIR}/${g_subject}.StructuralPreprocHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
  	if [ -e "${put_script_file_to_submit}" ]; then
  		rm -f "${put_script_file_to_submit}"
  	fi
@@ -217,17 +238,21 @@ main()
  	echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
  	echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
  	echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
-
- 	echo ""
+ 	echo "" >> ${put_script_file_to_submit}
  	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
  	echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
  	echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
- 	echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
+	echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
  	echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
  	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
  	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
  	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
- 	echo "  --resource-suffix=\"Structural_preproc_Seed${g_seed}\" " >> ${put_script_file_to_submit} 
+	
+	if [ ! -z "${g_seed}" ] ; then
+ 		echo "  --resource-suffix=\"Structural_preproc_Seed${g_seed}\" " >> ${put_script_file_to_submit} 
+	else
+ 		echo "  --resource-suffix=\"Structural_preproc_test\" " >> ${put_script_file_to_submit} 
+	fi
 
 	# fix after testing
  	#echo "  --resource-suffix=\"Structural_preproc\" " >> ${put_script_file_to_submit} 
