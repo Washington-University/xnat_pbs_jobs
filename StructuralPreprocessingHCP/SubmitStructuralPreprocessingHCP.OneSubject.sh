@@ -133,9 +133,7 @@ main()
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 	echo "Getting token user id and password"
-	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user}"
-	#echo "get_token_cmd: ${get_token_cmd}"
-	get_token_cmd+=" --password=${g_password}"
+	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
 	new_tokens=`${get_token_cmd}`
 	token_username=${new_tokens% *}
 	token_password=${new_tokens#* }
@@ -165,7 +163,6 @@ main()
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
 	echo "Getting XNAT Session ID"
 	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=${g_server} --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
-	#echo "get_session_id_cmd: ${get_session_id_cmd}"
 	sessionID=`${get_session_id_cmd}`
 	echo "XNAT session ID: ${sessionID}"
 
@@ -173,7 +170,6 @@ main()
 	server="https://db.humanconnectome.org/"
 	echo "Getting XNAT workflow ID for this job from server: ${server}"
 	get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline ${PIPELINE_NAME} -Status Queued -JSESSION ${jsession}"
-	#echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
 	get_workflow_id_cmd+=" -Password ${g_password}"
 
 	workflowID=`${get_workflow_id_cmd}`
@@ -195,10 +191,7 @@ main()
 	fi
 
 	touch ${script_file_to_submit}
-	#echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=32000mb" >> ${script_file_to_submit}
-	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run
-	echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=32000mb" >> ${script_file_to_submit}
-	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run
+	echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=32000mb" >> ${script_file_to_submit}
 	#echo "#PBS -q dque" >> ${script_file_to_submit}
 	echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
@@ -212,11 +205,7 @@ main()
 	echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
 	echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit} 
-
-	if [ -z "${g_seed}" ]; then
-	    echo "  --seed=${g_seed} \\" >> ${script_file_to_submit}
-	fi
-
+	echo "  --seed=${g_seed} \\" >> ${script_file_to_submit}
 	echo "  --xnat-session-id=${sessionID}" >> ${script_file_to_submit}
 
 	chmod +x ${script_file_to_submit}
@@ -254,7 +243,7 @@ main()
  		echo "  --resource-suffix=\"Structural_preproc_test\" " >> ${put_script_file_to_submit} 
 	fi
 
-	# fix after testing
+	# TBD: fix resource name after testing
  	#echo "  --resource-suffix=\"Structural_preproc\" " >> ${put_script_file_to_submit} 
 
  	submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
