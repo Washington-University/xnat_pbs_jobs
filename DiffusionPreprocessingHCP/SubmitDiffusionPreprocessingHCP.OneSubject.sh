@@ -141,9 +141,7 @@ main()
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 	echo "Getting token user id and password"
-	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user}"
-	#echo "get_token_cmd: ${get_token_cmd}"
-	get_token_cmd+=" --password=${g_password}"
+	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
 	new_tokens=`${get_token_cmd}`
 	token_username=${new_tokens% *}
 	token_password=${new_tokens#* }
@@ -197,11 +195,7 @@ main()
 	fi
 
 	touch ${pre_eddy_script_file_to_submit}
-	#echo "#PBS -l nodes=1:ppn=1,walltime=10:00:00,vmem=16000mb" >> ${pre_eddy_script_file_to_submit}
-	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run
-	echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=16000mb" >> ${pre_eddy_script_file_to_submit}
-	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run
-
+	echo "#PBS -l nodes=1:ppn=1,walltime=10:00:00,vmem=16000mb" >> ${pre_eddy_script_file_to_submit}
 	#echo "#PBS -q dque" >> ${pre_eddy_script_file_to_submit}
 	echo "#PBS -o ${working_directory_name}" >> ${pre_eddy_script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${pre_eddy_script_file_to_submit}
@@ -237,11 +231,7 @@ main()
 	fi
 
 	touch ${eddy_script_file_to_submit}
-	#echo "#PBS -l nodes=1:ppn=3:gpus=1,walltime=16:00:00" >> ${eddy_script_file_to_submit}
-	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run	
-	echo "#PBS -l nodes=1:ppn=3:gpus=1,walltime=4:00:00" >> ${eddy_script_file_to_submit}
-	# TBD: This 4 hour limit is wrong. It is here because cluster 2.0 is going down for a day and anything longer than 4 hours is not being allowed to run
-
+	echo "#PBS -l nodes=1:ppn=3:gpus=1,walltime=16:00:00" >> ${eddy_script_file_to_submit}
 	#echo "#PBS -q dque_gpu" >> ${eddy_script_file_to_submit}
 	#echo "#PBS -q dque" >> ${eddy_script_file_to_submit}
 	echo "#PBS -o ${working_directory_name}" >> ${eddy_script_file_to_submit}
@@ -322,9 +312,10 @@ main()
  	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
  	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
  	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-	echo "  --resource-suffix=\"Diffusion_preproc_test\" " >> ${put_script_file_to_submit}
+	echo "  --resource-suffix=\"Diffusion_preproc_Test\" " >> ${put_script_file_to_submit}
 
-	# fix resource name after testing
+	# TBD: fix resource name after testing
+	#echo "  --resource-suffix=\"Diffusion_preproc\" " >> ${put_script_file_to_submit}
 
 	submit_cmd="qsub -W depend=afterok:${post_eddy_jobno} ${put_script_file_to_submit}"
 	echo "submit_cmd: ${submit_cmd}"
