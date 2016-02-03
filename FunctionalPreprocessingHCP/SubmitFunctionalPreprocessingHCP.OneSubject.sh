@@ -197,9 +197,7 @@ main()
 
 			# Get token user id and password
 			echo "Getting token user id and password"
-			get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user}"
-			echo "get_token_cmd: ${get_token_cmd}"
-			get_token_cmd+=" --password=${g_password}"
+			get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
 			new_tokens=`${get_token_cmd}`
 			token_username=${new_tokens% *}
 			token_password=${new_tokens#* }
@@ -231,7 +229,7 @@ main()
 			get_session_id_cmd+="--project=${g_project} "
 			get_session_id_cmd+="--subject=${g_subject} "
 			get_session_id_cmd+="--session=${g_session} "
-			echo "get_session_id_cmd: ${get_session_id_cmd}"
+			#echo "get_session_id_cmd: ${get_session_id_cmd}"
 			get_session_id_cmd+=" --password=${g_password}"
 
 			sessionID=`${get_session_id_cmd}`
@@ -271,7 +269,7 @@ main()
 			fi
 
 			touch ${script_file_to_submit}
-			echo "#PBS -l nodes=1:ppn-1,walltime=36:00:00,vmem=20000mb" >> ${script_file_to_submit}
+			echo "#PBS -l nodes=1:ppn=1,walltime=36:00:00,vmem=20000mb" >> ${script_file_to_submit}
 			echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 			echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 			echo "" >> ${script_file_to_submit}
@@ -289,18 +287,16 @@ main()
 		
 			chmod +x ${script_file_to_submit}
 
-			#submit_cmd="qsub ${script_file_to_submit}"
-			submit_cmd="${script_file_to_submit}"
+			submit_cmd="qsub ${script_file_to_submit}"
 			echo "submit_cmd: ${submit_cmd}"			
 
-			#processing_job_no=`${submit_cmd}`
-			#echo "processing_job_no: ${processing_job_no}"
+			processing_job_no=`${submit_cmd}`
+			echo "processing_job_no: ${processing_job_no}"
 
-			#if [ -z "${processing_job_no}" ] ; then
-			#	echo "ERROR SUBMITTING PROCESSING JOB - ABORTING"
-			#	exit 1
-			#fi
-			${submit_cmd}
+			if [ -z "${processing_job_no}" ] ; then
+				echo "ERROR SUBMITTING PROCESSING JOB - ABORTING"
+				exit 1
+			fi
 
 			# Submit job to put the results in the DB
  			put_script_file_to_submit=${LOG_DIR}/${g_subject}.${scan}.FunctionalPreprocessingHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
@@ -325,9 +321,11 @@ main()
 			echo "  --resource-suffix=\"${scan}_preproc_TEST\" \\" >> ${put_script_file_to_submit}
 			echo "  --reason=\"${scan}_FunctionalPreprocessingHCP\" " >> ${put_script_file_to_submit}
 
-			#submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
-			#echo "submit_cmd: ${submit_cmd}"
-			#${submit_cmd}
+			chmod +x ${put_script_file_to_submit}
+
+			submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
+			echo "submit_cmd: ${submit_cmd}"
+			${submit_cmd}
 
 		done # postfix in RL LR
 

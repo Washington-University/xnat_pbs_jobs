@@ -232,6 +232,16 @@ die()
 	exit 1
 }
 
+get_scan_data() 
+{
+	local resource_name="${1}"
+	local file_name="${2}"
+	local item_name="${3}"
+
+	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "db.humanconnectome.org" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
+	echo ${result}
+}
+
 # Main processing
 #   Carry out the necessary steps to:
 #   - get prerequisite data for the Strucutral Preprocessing pipeline 
@@ -319,6 +329,15 @@ main()
 	# Source setup script to setup environment for running the script
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_FunctionalPreprocessingHCP.sh
 
+	# get the echo spacing value
+	local resource=${g_scan}_unproc
+	local file=${g_session}_${g_scan}.nii.gz
+	local item="parameters/echoSpacing"
+	get_echo_spacing_cmd="get_scan_data ${resource} ${file} ${item}"
+	echo_spacing=`${get_echo_spacing_cmd}`
+
+	echo "echo_spacing: ${echo_spacing}"
+
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run the GenericfMRIVolumeProcessingPipeline.sh script
 	# ----------------------------------------------------------------------------------------------
@@ -328,17 +347,16 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Run the GenericfMRIVolumeProcessingPipeline.sh script" ${step_percent}
 
- 	# Run GenericfMRIVolumeProcessingPipeline.sh script
  	volume_cmd=""
  	volume_cmd+="${HCPPIPEDIR}/fMRIVolume/GenericfMRIVolumeProcessingPipeline.sh"
  	volume_cmd+=" --path=${g_working_dir}"
  	volume_cmd+=" --subject=${g_subject}"
  	volume_cmd+=" --fmriname=${g_scan}"
-	volume_cmd+=" --fmritcs=${g_working_dir}/${g_subject}/unprocessed/3T/${g_subject}_3T_${g_scan}.nii.gz"
-	volume_cmd+=" --fmriscout=${g_working_dir}/${g_subject}/unprocessed/3T/${g_subject}_3T_${g_scan}_SBRef.nii.gz"
-	volume_cmd+=" --SEPhaseNeg=${g_working_dir}/${g_subject}/unprocessed/3T/${g_subject}_3T_SpinEchoFieldMap_LR.nii.gz"
-	volume_cmd+=" --SEPhasePos=${g_working_dir}/${g_subject}/unprocessed/3T/${g_subject}_3T_SpinEchoFieldMap_RL.nii.gz"
-	volume_cmd+=" --echospacing=0.000580002668012"  # need to get this from DB
+	volume_cmd+=" --fmritcs=${g_working_dir}/${g_subject}/unprocessed/3T/${g_scan}/${g_subject}_3T_${g_scan}.nii.gz"
+	volume_cmd+=" --fmriscout=${g_working_dir}/${g_subject}/unprocessed/3T/${g_scan}/${g_subject}_3T_${g_scan}_SBRef.nii.gz"
+	volume_cmd+=" --SEPhaseNeg=${g_working_dir}/${g_subject}/unprocessed/3T/${g_scan}/${g_subject}_3T_SpinEchoFieldMap_LR.nii.gz"
+	volume_cmd+=" --SEPhasePos=${g_working_dir}/${g_subject}/unprocessed/3T/${g_scan}/${g_subject}_3T_SpinEchoFieldMap_RL.nii.gz"
+	volume_cmd+=" --echospacing=${echo_spacing}"
 	volume_cmd+=" --echodiff=NONE"
 	volume_cmd+=" --unwarpdir=-x"
 	volume_cmd+=" --fmrires=2"
@@ -358,200 +376,37 @@ main()
 		die 
 	fi
 
-	# # ----------------------------------------------------------------------------------------------
-	# # Step - Run FreeSurferPipeline.sh script
-	# # ----------------------------------------------------------------------------------------------
-	# current_step=$(( current_step + 1 ))
-	# step_percent=$(( (current_step * 100) / total_steps ))
+	# ----------------------------------------------------------------------------------------------
+	# Step - Run the GenericfMRISurfaceProcessingPipeline.sh script
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
 
-	# xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-	#     ${current_step} "Run the FreeSurferPipeline.sh script" ${step_percent}
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Run the GenericfMRISurfaceProcessingPipeline.sh script" ${step_percent}
 
- 	# # Run FreeSurferPipeline.sh script
- 	# FreeSurfer_cmd=""
-	# FreeSurfer_cmd+="${HCPPIPEDIR}/FreeSurfer/FreeSurferPipeline.sh"
-	# FreeSurfer_cmd+=" --subject=${g_subject}"
-	# FreeSurfer_cmd+=" --subjectDIR=${g_working_dir}/${g_subject}/T1w"
-	# FreeSurfer_cmd+=" --t1=${g_working_dir}/${g_subject}/T1w/T1w_acpc_dc_restore.nii.gz"
-	# FreeSurfer_cmd+=" --t1brain=${g_working_dir}/${g_subject}/T1w/T1w_acpc_dc_restore_brain.nii.gz"
-	# FreeSurfer_cmd+=" --t2=${g_working_dir}/${g_subject}/T1w/T2w_acpc_dc_restore.nii.gz"
+ 	surface_cmd=""
+	surface_cmd+="${HCPPIPEDIR}/fMRISurface/GenericfMRISurfaceProcessingPipeline.sh"
+	surface_cmd+=" --path=${g_working_dir}"
+	surface_cmd+=" --subject=${g_subject}"
+ 	surface_cmd+=" --fmriname=${g_scan}"
+	surface_cmd+=" --lowresmesh=32"
+	surface_cmd+=" --fmrires=2"
+	surface_cmd+=" --smoothingFWHM=2"
+	surface_cmd+=" --grayordinatesres=2"
+	surface_cmd+=" --regname=MSMSulc"
 
-	# if [ ! -z "${g_seed}" ]; then
-	# 	FreeSurfer_cmd+=" --seed=${g_seed}"
-	# fi
-
-	# echo ""
-	# echo "FreeSurfer_cmd: ${FreeSurfer_cmd}"
-	# echo ""
+	echo ""
+	echo "surface_cmd: ${surface_cmd}"
+	echo ""
 	
-	# pushd ${g_working_dir}
-	# ${FreeSurfer_cmd}
-	# popd
+	pushd ${g_working_dir}
+	${surface_cmd} 
+	popd
 
-	# if [ $? -ne 0 ]; then
-	# 	die 
-	# fi
-
-	# # ----------------------------------------------------------------------------------------------
-	# # Step - Run PostFreeSurferPipeline.sh script
-	# # ----------------------------------------------------------------------------------------------
-	# current_step=$(( current_step + 1 ))
-	# step_percent=$(( (current_step * 100) / total_steps ))
-
-	# xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-	# 	${current_step} "Run the PostFreeSurferPipeline.sh script" ${step_percent}
-
- 	# # Run PostFreeSurferPipeline.sh script
- 	# PostFreeSurfer_cmd=""
-	# PostFreeSurfer_cmd+="${HCPPIPEDIR}/PostFreeSurfer/PostFreeSurferPipeline.sh"
-	# PostFreeSurfer_cmd+=" --path=${g_working_dir}"
-	# PostFreeSurfer_cmd+=" --subject=${g_subject}"
-	# PostFreeSurfer_cmd+=" --surfatlasdir=${HCPPIPEDIR}/global/templates/standard_mesh_atlases/"
-	# PostFreeSurfer_cmd+=" --grayordinatesdir=${HCPPIPEDIR}/global/templates/91282_Greyordinates"
-	# PostFreeSurfer_cmd+=" --grayordinatesres=2"
-	# PostFreeSurfer_cmd+=" --hiresmesh=164"
-	# PostFreeSurfer_cmd+=" --lowresmesh=32"
-	# PostFreeSurfer_cmd+=" --subcortgraylabels=${HCPPIPEDIR}/global/config/FreeSurferSubcorticalLabelTableLut.txt"
-	# PostFreeSurfer_cmd+=" --freesurferlabels=${HCPPIPEDIR}/global/config/FreeSurferAllLut.txt"
-	# PostFreeSurfer_cmd+=" --refmyelinmaps=${HCPPIPEDIR}/global/templates/standard_mesh_atlases/Conte69.MyelinMap_BC.164k_fs_LR.dscalar.nii"
-	# PostFreeSurfer_cmd+=" --regname=MSMSulc"
-
-	# echo ""
-	# echo "PostFreeSurfer_cmd: ${PostFreeSurfer_cmd}"
-	# echo ""
-	
-	# pushd ${g_working_dir}
-	# ${PostFreeSurfer_cmd}
-	# popd
-
-	# if [ $? -ne 0 ]; then
-	# 	die 
-	# fi
-
-	# # ----------------------------------------------------------------------------------------------
-	# # Step - GENERATE_SNAPSHOT
-	# # ----------------------------------------------------------------------------------------------
-	# current_step=$(( current_step + 1 ))
-	# step_percent=$(( (current_step * 100) / total_steps ))
-
-	# xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-	# 	${current_step} "GENERATE_SNAPSHOT" ${step_percent}
-
-	# pushd ${g_working_dir}/${g_subject}
-
-	# snap_montage_cmd=""
-	# snap_montage_cmd+="source ${SCRIPTS_HOME}/freesurfer53_setup.sh; xvfb_wrapper.sh ${NRG_PACKAGES}/tools/HCP/Freesurfer/freesurfer_includes/snap_montage_fs5.csh"
-	# snap_montage_cmd+=" ${g_subject}"
-	# snap_montage_cmd+=" ${g_working_dir}/${g_subject}/T1w"
-
-	# echo ""
-	# echo "snap_montage_cmd: ${snap_montage_cmd}"
-	# echo ""
-
-	# ${snap_montage_cmd}
-	# if [ $? -ne 0 ]; then
-	# 	die 
-	# fi
-
-	# popd
-
-	# # ----------------------------------------------------------------------------------------------
-	# # Step - CREATE_ASSESSOR
-	# # ----------------------------------------------------------------------------------------------
-	# current_step=$(( current_step + 1 ))
-	# step_percent=$(( (current_step * 100) / total_steps ))
-
-	# xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-	# 	${current_step} "CREATE_ASSESSOR" ${step_percent}
-
- 	# # Generate XNAT XML from FreeSurfer stats files
-	# pushd ${g_working_dir}/${g_subject}
-	# stats2xml_cmd=""
-	# stats2xml_cmd+="${NRG_PACKAGES}/tools/HCP/Freesurfer/freesurfer_includes/stats2xml_mrh.pl"
-	# stats2xml_cmd+=" -p ${g_project}"
-	# stats2xml_cmd+=" -x ${g_xnat_session_id}"
-	# stats2xml_cmd+=" -t Freesurfer"
-	# stats2xml_cmd+=" -d ${TESLA_SPEC}"
-	# stats2xml_cmd+=" -o ${g_working_dir}/${g_subject}/"
-	# stats2xml_cmd+=" ${g_working_dir}/${g_subject}/T1w/${g_subject}/stats"
-
-	# echo ""
-	# echo "stats2xml_cmd: ${stats2xml_cmd}"
-	# echo ""
-
-	# ${stats2xml_cmd}
-	# if [ $? -ne 0 ]; then
-	# 	die 
-	# fi
-
-	# popd
-
-	# # ----------------------------------------------------------------------------------------------
-	# # Step - Put generated FreeSurfer stats file in DB
-	# # ----------------------------------------------------------------------------------------------
-	# current_step=$(( current_step + 1 ))
-	# step_percent=$(( (current_step * 100) / total_steps ))
-
-	# xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-	#     ${current_step} "Put generated FreeSurfer stats file in DB" ${step_percent}
-
-	# pushd ${g_working_dir}/${g_subject}
-
-	# resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_session}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}?allowDataDeletion=true&inbody=true"
-
-	# java_cmd+="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
-	# java_cmd+=" -u ${g_user}"
-	# java_cmd+=" -p ${g_password}"
-	# java_cmd+=" -r ${resource_uri}"	
-	# java_cmd+=" -l ${g_working_dir}/${g_subject}/${g_session}_freesurfer5.xml"
-	# java_cmd+=" -m PUT"
-
-	# echo ""
-	# echo "java_cmd: ${java_cmd}"
-	# echo ""
-
-	# ${java_cmd}
-	# if [ $? -ne 0 ]; then
-	# 	die 
-	# fi
-
-	# popd
-
-	# # ----------------------------------------------------------------------------------------------
-	# # Step - Put snapshots in DB and remove local copies
-	# # ----------------------------------------------------------------------------------------------
-	# current_step=$(( current_step + 1 ))
-	# step_percent=$(( (current_step * 100) / total_steps ))
-
-	# xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-	# 	${current_step} "Put snapshots in DB and remove local copies" ${step_percent}
-
-	# pushd ${g_working_dir}/${g_subject}
-
-	# resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_session}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}/resources/SNAPSHOTS/files?overwrite=true&replace=true&reference=${g_working_dir}/T1w/${g_subject}/snapshots"
-
-	# java_cmd+="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
-	# java_cmd+=" -u ${g_user}"
-	# java_cmd+=" -p ${g_password}"
-	# java_cmd+=" -r ${resource_uri}"	
-	# java_cmd+=" -m PUT"
-
-	# echo ""
-	# echo "java_cmd: ${java_cmd}"
-	# echo ""
-
-	# ${java_cmd}
-	# if [ $? -ne 0 ]; then
-	# 	die 
-	# fi
-
-	# popd
-
-	# rm_cmd="rm -r ${g_working_dir}/T1w/${g_subject}/snapshots"
-	# echo ""
-	# echo "rm_cmd: ${rm_cmd}"
-	# echo ""
-	# ${rm_cmd}
+	if [ $? -ne 0 ]; then
+	 	die 
+	fi
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files

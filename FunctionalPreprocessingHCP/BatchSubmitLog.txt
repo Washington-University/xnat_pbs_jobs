@@ -1,0 +1,284 @@
+Connectome DB Username: Connectome DB Password: 
+Retrieving subject list from: /home/HCPpipeline/pipeline_tools/subject_list_files/HCP_Staging.FunctionalPreprocessingHCP.subjects
+
+--------------------------------------------------------------------------------
+ Submitting FunctionalPreprocessingHCP jobs for subject: 103010
+ Using put-server: db-shadow1.nrg.mir:8080
+--------------------------------------------------------------------------------
+XNAT_PBS_JOBS_HOME: /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
+XNAT_PIPELINE_HOME: /home/HCPpipeline/pipeline
+XNAT_UTILS_HOME: /home/HCPpipeline/pipeline_tools/xnat_utilities
+BUILD_HOME: /HCP/hcpdb/build_ssd/chpc/BUILD
+Setting up to run Python
+Setting up Python for CLUSTER: 2.0
+DATABASE_ARCHIVE_ROOT: /HCP/hcpdb/archive
+Connectome DB Server: db.humanconnectome.org
+Connectome DB Project: HCP_Staging
+Connectome DB Subject: 103010
+Connectome DB Session: 103010_3T
+PUT server: db-shadow1.nrg.mir:8080
+/HCP/hcpdb/archive/HCP_Staging/arc001/103010_3T/RESOURCES ~/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP
+~/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP
+Resting state scans available for subject:   REST1  REST2
+/HCP/hcpdb/archive/HCP_Staging/arc001/103010_3T/RESOURCES ~/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP
+~/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP
+Task scans available for subject:   GAMBLING  LANGUAGE  MOTOR SOCIAL  WM
+scan_name: REST1
+--------------------------------------------------
+Submitting jobs for scan: rfMRI_REST1_RL
+--------------------------------------------------
+Getting token user id and password
+token_username: d68e2e32-9a3f-4e97-ba4e-3f56970a5933
+token_password: 1454537500446
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537505_103010_rfMRI_REST1_RL
+Getting JSESSION ID
+jsession: BB7F9D4BD9E897A9FC15A13E4FB9348B
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_rfMRI_REST1_RL -Status Queued -JSESSION BB7F9D4BD9E897A9FC15A13E4FB9348B
+XNAT workflow ID: 4801408
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537505_103010_rfMRI_REST1_RL/103010.rfMRI_REST1_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537505.XNAT_PBS_job.sh
+processing_job_no: 341941.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341941.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.rfMRI_REST1_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537505.XNAT_PBS_PUT_job.sh
+341942.mgt2.cluster
+--------------------------------------------------
+Submitting jobs for scan: rfMRI_REST1_LR
+--------------------------------------------------
+Getting token user id and password
+token_username: e0e1ae83-67f7-43af-8454-8aba354bff31
+token_password: 1454537511228
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537516_103010_rfMRI_REST1_LR
+Getting JSESSION ID
+jsession: 78E8DBD9841ECC60DB8F8A4123A2AED7
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_rfMRI_REST1_LR -Status Queued -JSESSION 78E8DBD9841ECC60DB8F8A4123A2AED7
+XNAT workflow ID: 4801409
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537516_103010_rfMRI_REST1_LR/103010.rfMRI_REST1_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537516.XNAT_PBS_job.sh
+processing_job_no: 341943.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341943.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.rfMRI_REST1_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537516.XNAT_PBS_PUT_job.sh
+341944.mgt2.cluster
+scan_name: REST2
+--------------------------------------------------
+Submitting jobs for scan: rfMRI_REST2_RL
+--------------------------------------------------
+Getting token user id and password
+token_username: 7aab8bbb-994b-47de-b54d-cfac6025742a
+token_password: 1454537521765
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537526_103010_rfMRI_REST2_RL
+Getting JSESSION ID
+jsession: FD9E3A5D0A392A38E3D2FDC1D997A17C
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_rfMRI_REST2_RL -Status Queued -JSESSION FD9E3A5D0A392A38E3D2FDC1D997A17C
+XNAT workflow ID: 4801410
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537526_103010_rfMRI_REST2_RL/103010.rfMRI_REST2_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537526.XNAT_PBS_job.sh
+processing_job_no: 341945.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341945.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.rfMRI_REST2_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537526.XNAT_PBS_PUT_job.sh
+341946.mgt2.cluster
+--------------------------------------------------
+Submitting jobs for scan: rfMRI_REST2_LR
+--------------------------------------------------
+Getting token user id and password
+token_username: 1f75d0ed-f41d-4fcc-b5c3-84d125e038bd
+token_password: 1454537532323
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537537_103010_rfMRI_REST2_LR
+Getting JSESSION ID
+jsession: 1A363E7AB592FBC2260158BB7E9C3BD5
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_rfMRI_REST2_LR -Status Queued -JSESSION 1A363E7AB592FBC2260158BB7E9C3BD5
+XNAT workflow ID: 4801411
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537537_103010_rfMRI_REST2_LR/103010.rfMRI_REST2_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537537.XNAT_PBS_job.sh
+processing_job_no: 341947.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341947.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.rfMRI_REST2_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537537.XNAT_PBS_PUT_job.sh
+341948.mgt2.cluster
+scan_name: GAMBLING
+--------------------------------------------------
+Submitting jobs for scan: tfMRI_GAMBLING_RL
+--------------------------------------------------
+Getting token user id and password
+token_username: e05ad60e-48ac-4f84-a4dd-690cbc5aec9e
+token_password: 1454537542984
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537548_103010_tfMRI_GAMBLING_RL
+Getting JSESSION ID
+jsession: 2D98314828417ED0DCA2FAE693AFFBAA
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_tfMRI_GAMBLING_RL -Status Queued -JSESSION 2D98314828417ED0DCA2FAE693AFFBAA
+XNAT workflow ID: 4801412
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537548_103010_tfMRI_GAMBLING_RL/103010.tfMRI_GAMBLING_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537548.XNAT_PBS_job.sh
+processing_job_no: 341949.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341949.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.tfMRI_GAMBLING_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537548.XNAT_PBS_PUT_job.sh
+341950.mgt2.cluster
+--------------------------------------------------
+Submitting jobs for scan: tfMRI_GAMBLING_LR
+--------------------------------------------------
+Getting token user id and password
+token_username: 34367422-87e3-40af-9fdc-e532aee0d6f2
+token_password: 1454537553591
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537558_103010_tfMRI_GAMBLING_LR
+Getting JSESSION ID
+jsession: BA82D060B8BCE09CD4D17503BF76279A
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_tfMRI_GAMBLING_LR -Status Queued -JSESSION BA82D060B8BCE09CD4D17503BF76279A
+XNAT workflow ID: 4801413
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537558_103010_tfMRI_GAMBLING_LR/103010.tfMRI_GAMBLING_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537558.XNAT_PBS_job.sh
+processing_job_no: 341951.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341951.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.tfMRI_GAMBLING_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537558.XNAT_PBS_PUT_job.sh
+341952.mgt2.cluster
+scan_name: LANGUAGE
+--------------------------------------------------
+Submitting jobs for scan: tfMRI_LANGUAGE_RL
+--------------------------------------------------
+Getting token user id and password
+token_username: 8964c549-1c6c-49fe-94bc-052739978389
+token_password: 1454537564121
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537569_103010_tfMRI_LANGUAGE_RL
+Getting JSESSION ID
+jsession: 0C6FA4DE9C6593BD1CC179E5A62E85D6
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_tfMRI_LANGUAGE_RL -Status Queued -JSESSION 0C6FA4DE9C6593BD1CC179E5A62E85D6
+XNAT workflow ID: 4801414
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537569_103010_tfMRI_LANGUAGE_RL/103010.tfMRI_LANGUAGE_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537569.XNAT_PBS_job.sh
+processing_job_no: 341953.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341953.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.tfMRI_LANGUAGE_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537569.XNAT_PBS_PUT_job.sh
+341954.mgt2.cluster
+--------------------------------------------------
+Submitting jobs for scan: tfMRI_LANGUAGE_LR
+--------------------------------------------------
+Getting token user id and password
+token_username: 1c5e5979-8f23-4d63-b136-12fb79ec11ea
+token_password: 1454537574617
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537579_103010_tfMRI_LANGUAGE_LR
+Getting JSESSION ID
+jsession: 7B918D192CB82CD38CF59389F3CDF764
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_tfMRI_LANGUAGE_LR -Status Queued -JSESSION 7B918D192CB82CD38CF59389F3CDF764
+XNAT workflow ID: 4801415
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537579_103010_tfMRI_LANGUAGE_LR/103010.tfMRI_LANGUAGE_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537579.XNAT_PBS_job.sh
+processing_job_no: 341955.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341955.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.tfMRI_LANGUAGE_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537579.XNAT_PBS_PUT_job.sh
+341956.mgt2.cluster
+scan_name: MOTOR
+--------------------------------------------------
+Submitting jobs for scan: tfMRI_MOTOR_RL
+--------------------------------------------------
+Getting token user id and password
+token_username: 4db5e93b-1c51-4d19-815c-eab22799afda
+token_password: 1454537585109
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537590_103010_tfMRI_MOTOR_RL
+Getting JSESSION ID
+jsession: ED7ED3504E3D5DB7C106DC29C6E8DBA8
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_tfMRI_MOTOR_RL -Status Queued -JSESSION ED7ED3504E3D5DB7C106DC29C6E8DBA8
+XNAT workflow ID: 4801416
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537590_103010_tfMRI_MOTOR_RL/103010.tfMRI_MOTOR_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537590.XNAT_PBS_job.sh
+processing_job_no: 341957.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341957.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.tfMRI_MOTOR_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537590.XNAT_PBS_PUT_job.sh
+341958.mgt2.cluster
+--------------------------------------------------
+Submitting jobs for scan: tfMRI_MOTOR_LR
+--------------------------------------------------
+Getting token user id and password
+token_username: 859c893a-634a-4a37-8483-759e5291acad
+token_password: 1454537595673
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537600_103010_tfMRI_MOTOR_LR
+Getting JSESSION ID
+jsession: 9A30756B555DFE2BADFA6BC7F5ADA2C2
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_tfMRI_MOTOR_LR -Status Queued -JSESSION 9A30756B555DFE2BADFA6BC7F5ADA2C2
+XNAT workflow ID: 4801417
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537600_103010_tfMRI_MOTOR_LR/103010.tfMRI_MOTOR_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537600.XNAT_PBS_job.sh
+processing_job_no: 341959.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341959.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.tfMRI_MOTOR_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537600.XNAT_PBS_PUT_job.sh
+341960.mgt2.cluster
+scan_name: SOCIAL
+--------------------------------------------------
+Submitting jobs for scan: tfMRI_SOCIAL_RL
+--------------------------------------------------
+Getting token user id and password
+token_username: 37584b6f-9275-43cf-8aca-0ce96beb5c6e
+token_password: 1454537606159
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537611_103010_tfMRI_SOCIAL_RL
+Getting JSESSION ID
+jsession: B6391C5DA0CCE8F16553D3A5604FBCDE
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_tfMRI_SOCIAL_RL -Status Queued -JSESSION B6391C5DA0CCE8F16553D3A5604FBCDE
+XNAT workflow ID: 4801418
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537611_103010_tfMRI_SOCIAL_RL/103010.tfMRI_SOCIAL_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537611.XNAT_PBS_job.sh
+processing_job_no: 341961.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341961.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.tfMRI_SOCIAL_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537611.XNAT_PBS_PUT_job.sh
+341962.mgt2.cluster
+--------------------------------------------------
+Submitting jobs for scan: tfMRI_SOCIAL_LR
+--------------------------------------------------
+Getting token user id and password
+token_username: 32b4cdbe-d1eb-4ffb-b6a1-5661768837e3
+token_password: 1454537616697
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537621_103010_tfMRI_SOCIAL_LR
+Getting JSESSION ID
+jsession: 861A4ADEDF2D9FB7A5F8D9E7E12C0A28
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_tfMRI_SOCIAL_LR -Status Queued -JSESSION 861A4ADEDF2D9FB7A5F8D9E7E12C0A28
+XNAT workflow ID: 4801419
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537621_103010_tfMRI_SOCIAL_LR/103010.tfMRI_SOCIAL_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537621.XNAT_PBS_job.sh
+processing_job_no: 341963.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341963.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.tfMRI_SOCIAL_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537621.XNAT_PBS_PUT_job.sh
+341964.mgt2.cluster
+scan_name: WM
+--------------------------------------------------
+Submitting jobs for scan: tfMRI_WM_RL
+--------------------------------------------------
+Getting token user id and password
+token_username: c2f9890e-1d3d-4491-a9af-fe5b893fb18f
+token_password: 1454537627286
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537632_103010_tfMRI_WM_RL
+Getting JSESSION ID
+jsession: 5760F71FC3346C16C05C42F73A584E4F
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_tfMRI_WM_RL -Status Queued -JSESSION 5760F71FC3346C16C05C42F73A584E4F
+XNAT workflow ID: 4801420
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537632_103010_tfMRI_WM_RL/103010.tfMRI_WM_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537632.XNAT_PBS_job.sh
+processing_job_no: 341965.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341965.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.tfMRI_WM_RL.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537632.XNAT_PBS_PUT_job.sh
+341966.mgt2.cluster
+--------------------------------------------------
+Submitting jobs for scan: tfMRI_WM_LR
+--------------------------------------------------
+Getting token user id and password
+token_username: 0ae9b37d-8aeb-4f65-b582-c6929070f704
+token_password: 1454537637849
+Making working directory: /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537642_103010_tfMRI_WM_LR
+Getting JSESSION ID
+jsession: C79F40261D2925498C7CEEDCFA587112
+Getting XNAT Session ID
+XNAT session ID: ConnectomeDB_E17311
+Getting XNAT workflow ID for this job from server: https://db.humanconnectome.org/
+get_workflow_id_cmd: python /home/HCPpipeline/pipeline/catalog/ToolsHCP/resources/scripts/workflow.py -User tbbrown -Server https://db.humanconnectome.org/ -ExperimentID ConnectomeDB_E17311 -ProjectID HCP_Staging -Pipeline FunctionalPreprocessingHCP_tfMRI_WM_LR -Status Queued -JSESSION C79F40261D2925498C7CEEDCFA587112
+XNAT workflow ID: 4801421
+submit_cmd: qsub /HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/FunctionalPreprocessingHCP_1454537642_103010_tfMRI_WM_LR/103010.tfMRI_WM_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537642.XNAT_PBS_job.sh
+processing_job_no: 341967.mgt2.cluster
+submit_cmd: qsub -W depend=afterok:341967.mgt2.cluster /HCP/hcpdb/build_ssd/chpc/logs/pbs/103010.tfMRI_WM_LR.FunctionalPreprocessingHCP.HCP_Staging.103010_3T.1454537642.XNAT_PBS_PUT_job.sh
+341968.mgt2.cluster
