@@ -272,15 +272,7 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Link functionally preprocessed data from DB" ${step_percent}
 
-
 	link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
-
-
-
-	exit
-
-
-
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Link Structurally preprocessed data from DB
@@ -316,7 +308,7 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Create a start_time file" ${step_percent}
 
-	start_time_file="${g_working_dir}/FunctionalPreprocessingHCP.starttime"
+	start_time_file="${g_working_dir}/IcaFixProcessingHCP.starttime"
 	if [ -e "${start_time_file}" ]; then
 		echo "Removing old ${start_time_file}"
 		rm -f ${start_time_file}
@@ -337,95 +329,50 @@ main()
 	sleep 1m || die 
 
 	# ----------------------------------------------------------------------------------------------
-	# Step - Set up to run GenericfMRIVolumeProcessingPipeline.sh script
+	# Step - Set up to run ICAFIX
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Set up to run GenericfMRIVolumeProcessingPipeline.sh script" ${step_percent}
+		${current_step} "Set up to run ICAFIX" ${step_percent}
 
 	# Source setup script to setup environment for running the script
-	source ${SCRIPTS_HOME}/SetUpHCPPipeline_FunctionalPreprocessingHCP.sh
+	source ${SCRIPTS_HOME}/SetUpHCPPipeline_IcaFixHCP.sh
 
-	# get the echo spacing value
-	local resource=${g_scan}_unproc
-	local file=${g_session}_${g_scan}.nii.gz
-	local item="parameters/echoSpacing"
-	get_echo_spacing_cmd="get_scan_data ${resource} ${file} ${item}"
-	echo_spacing=`${get_echo_spacing_cmd}`
+	# Already setup to run Python above
+	#source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-	echo "echo_spacing: ${echo_spacing}"
+	echo "Sourcing ${SCRIPTS_HOME}/fsl5_setup.sh"
+	source ${SCRIPTS_HOME}/fsl5_setup.sh
+
+	echo "Sourcing ${SCRIPTS_HOME}/R_setup.sh"
+	source ${SCRIPTS_HOME}/R_setup.sh
 
 	# ----------------------------------------------------------------------------------------------
-	# Step - Run the GenericfMRIVolumeProcessingPipeline.sh script
+	# Step - Run ICAFIX
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Run the GenericfMRIVolumeProcessingPipeline.sh script" ${step_percent}
+		${current_step} "Run ICAFIX" ${step_percent}
 
- 	volume_cmd=""
- 	volume_cmd+="${HCPPIPEDIR}/fMRIVolume/GenericfMRIVolumeProcessingPipeline.sh"
- 	volume_cmd+=" --path=${g_working_dir}"
- 	volume_cmd+=" --subject=${g_subject}"
- 	volume_cmd+=" --fmriname=${g_scan}"
-	volume_cmd+=" --fmritcs=${g_working_dir}/${g_subject}/unprocessed/3T/${g_scan}/${g_subject}_3T_${g_scan}.nii.gz"
-	volume_cmd+=" --fmriscout=${g_working_dir}/${g_subject}/unprocessed/3T/${g_scan}/${g_subject}_3T_${g_scan}_SBRef.nii.gz"
-	volume_cmd+=" --SEPhaseNeg=${g_working_dir}/${g_subject}/unprocessed/3T/${g_scan}/${g_subject}_3T_SpinEchoFieldMap_LR.nii.gz"
-	volume_cmd+=" --SEPhasePos=${g_working_dir}/${g_subject}/unprocessed/3T/${g_scan}/${g_subject}_3T_SpinEchoFieldMap_RL.nii.gz"
-	volume_cmd+=" --echospacing=${echo_spacing}"
-	volume_cmd+=" --echodiff=NONE"
-	volume_cmd+=" --unwarpdir=-x"
-	volume_cmd+=" --fmrires=2"
-	volume_cmd+=" --dcmethod=TOPUP"
-	volume_cmd+=" --gdcoeffs=${HCPPIPEDIR}/global/config/coeff_SC72C_Skyra.grad"
-	volume_cmd+=" --topupconfig=${HCPPIPEDIR}/global/config/b02b0.cnf"
+	icafix_cmd=""
+	icafix_cmd+="${ICAFIX}/hcp_fix"
+	icafix_cmd+=" ${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_scan}/${g_scan}.nii.gz"
+	icafix_cmd+=" 2000"
 
 	echo ""
-	echo "volume_cmd: ${volume_cmd}"
+	echo "icafix_cmd: ${icafix_cmd}"
 	echo ""
 
 	pushd ${g_working_dir}
-	${volume_cmd}
-	popd
-
+	${icafix_cmd}
 	if [ $? -ne 0 ]; then
 		die 
 	fi
-
-	# ----------------------------------------------------------------------------------------------
-	# Step - Run the GenericfMRISurfaceProcessingPipeline.sh script
-	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Run the GenericfMRISurfaceProcessingPipeline.sh script" ${step_percent}
-
- 	surface_cmd=""
-	surface_cmd+="${HCPPIPEDIR}/fMRISurface/GenericfMRISurfaceProcessingPipeline.sh"
-	surface_cmd+=" --path=${g_working_dir}"
-	surface_cmd+=" --subject=${g_subject}"
- 	surface_cmd+=" --fmriname=${g_scan}"
-	surface_cmd+=" --lowresmesh=32"
-	surface_cmd+=" --fmrires=2"
-	surface_cmd+=" --smoothingFWHM=2"
-	surface_cmd+=" --grayordinatesres=2"
-	surface_cmd+=" --regname=MSMSulc"
-
-	echo ""
-	echo "surface_cmd: ${surface_cmd}"
-	echo ""
-	
-	pushd ${g_working_dir}
-	${surface_cmd} 
 	popd
-
-	if [ $? -ne 0 ]; then
-	 	die 
-	fi
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files

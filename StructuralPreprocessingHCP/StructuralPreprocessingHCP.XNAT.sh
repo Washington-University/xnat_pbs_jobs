@@ -717,11 +717,10 @@ main()
 
 	pushd ${g_working_dir}
 	${PreFreeSurfer_cmd}
-	popd
-
 	if [ $? -ne 0 ]; then
 		die 
 	fi
+	popd
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run FreeSurferPipeline.sh script
@@ -751,11 +750,10 @@ main()
 	
 	pushd ${g_working_dir}
 	${FreeSurfer_cmd}
-	popd
-
 	if [ $? -ne 0 ]; then
 		die 
 	fi
+	popd
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run PostFreeSurferPipeline.sh script
@@ -787,11 +785,10 @@ main()
 	
 	pushd ${g_working_dir}
 	${PostFreeSurfer_cmd}
-	popd
-
 	if [ $? -ne 0 ]; then
 		die 
 	fi
+	popd
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - GENERATE_SNAPSHOT
@@ -802,8 +799,6 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "GENERATE_SNAPSHOT" ${step_percent}
 
-	pushd ${g_working_dir}/${g_subject}
-
 	snap_montage_cmd=""
 	snap_montage_cmd+="source ${SCRIPTS_HOME}/freesurfer53_setup.sh; xvfb_wrapper.sh ${NRG_PACKAGES}/tools/HCP/Freesurfer/freesurfer_includes/snap_montage_fs5.csh"
 	snap_montage_cmd+=" ${g_subject}"
@@ -813,11 +808,11 @@ main()
 	echo "snap_montage_cmd: ${snap_montage_cmd}"
 	echo ""
 
+	pushd ${g_working_dir}/${g_subject}
 	${snap_montage_cmd}
 	if [ $? -ne 0 ]; then
 		die 
 	fi
-
 	popd
 
 	# ----------------------------------------------------------------------------------------------
@@ -830,7 +825,7 @@ main()
 		${current_step} "CREATE_ASSESSOR" ${step_percent}
 
  	# Generate XNAT XML from FreeSurfer stats files
-	pushd ${g_working_dir}/${g_subject}
+
 	stats2xml_cmd=""
 	stats2xml_cmd+="${NRG_PACKAGES}/tools/HCP/Freesurfer/freesurfer_includes/stats2xml_mrh.pl"
 	stats2xml_cmd+=" -p ${g_project}"
@@ -844,11 +839,11 @@ main()
 	echo "stats2xml_cmd: ${stats2xml_cmd}"
 	echo ""
 
+	pushd ${g_working_dir}/${g_subject}
 	${stats2xml_cmd}
 	if [ $? -ne 0 ]; then
 		die 
 	fi
-
 	popd
 
 	# ----------------------------------------------------------------------------------------------
@@ -859,8 +854,6 @@ main()
 
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 	    ${current_step} "Put generated FreeSurfer stats file in DB" ${step_percent}
-
-	pushd ${g_working_dir}/${g_subject}
 
 	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_session}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}?allowDataDeletion=true&inbody=true"
 
@@ -875,11 +868,11 @@ main()
 	echo "java_cmd: ${java_cmd}"
 	echo ""
 
+	pushd ${g_working_dir}/${g_subject}
 	${java_cmd}
 	if [ $? -ne 0 ]; then
 		die 
 	fi
-
 	popd
 
 	# ----------------------------------------------------------------------------------------------
@@ -890,8 +883,6 @@ main()
 
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Put snapshots in DB and remove local copies" ${step_percent}
-
-	pushd ${g_working_dir}/${g_subject}
 
 	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_session}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}/resources/SNAPSHOTS/files?overwrite=true&replace=true&reference=${g_working_dir}/T1w/${g_subject}/snapshots"
 
@@ -905,11 +896,11 @@ main()
 	echo "java_cmd: ${java_cmd}"
 	echo ""
 
+	pushd ${g_working_dir}/${g_subject}
 	${java_cmd}
 	if [ $? -ne 0 ]; then
 		die 
 	fi
-
 	popd
 
 	rm_cmd="rm -r ${g_working_dir}/T1w/${g_subject}/snapshots"

@@ -370,11 +370,10 @@ main()
 
 	pushd ${g_working_dir}
 	${volume_cmd}
-	popd
-
 	if [ $? -ne 0 ]; then
 		die 
 	fi
+	popd
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run the GenericfMRISurfaceProcessingPipeline.sh script
@@ -402,11 +401,10 @@ main()
 	
 	pushd ${g_working_dir}
 	${surface_cmd} 
-	popd
-
 	if [ $? -ne 0 ]; then
 	 	die 
 	fi
+	popd
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files
