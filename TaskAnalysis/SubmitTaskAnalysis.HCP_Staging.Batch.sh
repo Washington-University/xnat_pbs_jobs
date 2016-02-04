@@ -14,20 +14,6 @@ read password
 echo ""
 stty echo
 
-printf "Delay until first submission (minutes) [0]: "
-read delay
-
-if [ -z "${delay}" ]; then
-	delay=0
-fi
-
-printf "Interval between submissions (minutes) [60]: "
-read interval
-
-if [ -z "${interval}" ]; then
-	interval=60
-fi
-
 project="HCP_Staging"
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.TaskAnalysis.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
@@ -49,20 +35,16 @@ for subject in ${subjects} ; do
 		echo "--------------------------------------------------------------------------------"
 		echo " Submitting TaskAnalysis job for subject: ${subject}"
 		echo " Using server: ${server}"
-		echo " Submission delayed until ${delay} minutes from now"
 		echo "--------------------------------------------------------------------------------"
 		
-		at now + ${delay} minutes <<EOF 
-			/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/TaskAnalysis/SubmitTaskAnalysis.OneSubject.sh \
+		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/TaskAnalysis/SubmitTaskAnalysis.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
 			--server=${server} \
+			--put-server=${server} \
 			--project=${project} \
 			--subject=${subject}
-EOF
 	
-		delay=$((delay + interval))
-
 		shadow_number=$((shadow_number+1))
 		
 		if [ "${shadow_number}" -gt "${max_shadow_number}" ]; then

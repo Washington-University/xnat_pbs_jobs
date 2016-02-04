@@ -436,7 +436,7 @@ main()
 	create_fsfs_cmd+=" --buildDir ${g_working_dir}/${g_subject}/"
 	create_fsfs_cmd+=" --project ${g_project}"
 	create_fsfs_cmd+=" --subject ${g_subject}"
-	create_fsfs_cmd+=" --series ${g_task}"
+	create_fsfs_cmd+=" --series tfMRI_${g_task}"
 
 	echo "create_fsfs_cmd: ${create_fsfs_cmd}"
 	${create_fsfs_cmd}

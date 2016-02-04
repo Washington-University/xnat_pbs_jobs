@@ -39,6 +39,7 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
+	unset g_put_server
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -71,6 +72,10 @@ get_options()
 				;;
 			--session=*)
 				g_session=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--put-server=*)
+				g_put_server=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -115,6 +120,11 @@ get_options()
 		g_session=${g_subject}_3T
 	fi
 	echo "Connectome DB Session: ${g_session}"
+
+	if [ -z "${g_put_server}" ]; then
+		g_put_server="db.humanconnectome.org"
+	fi
+	echo "PUT server: ${g_put_server}"
 }
 
 main()
@@ -257,7 +267,7 @@ main()
 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
 		echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
 		echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
-		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
+		echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
 		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
 		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
