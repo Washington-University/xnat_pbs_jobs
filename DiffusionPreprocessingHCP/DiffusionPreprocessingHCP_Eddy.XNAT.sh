@@ -57,6 +57,9 @@ echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 # source XNAT workflow utility functions
 source ${XNAT_UTILS_HOME}/xnat_workflow_utilities.sh
 
+# set up to run Python
+source ${SCRIPTS_HOME}/epd-python_setup.sh
+
 # Parse specified command line options and verify that required options are 
 # specified. "Return" the options to use in global variables
 get_options()
