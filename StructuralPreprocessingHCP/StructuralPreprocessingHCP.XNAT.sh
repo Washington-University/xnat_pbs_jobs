@@ -855,13 +855,13 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 	    ${current_step} "Put generated FreeSurfer stats file in DB" ${step_percent}
 
-	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_session}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}?allowDataDeletion=true&inbody=true"
+	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_xnat_session_id}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}?allowDataDeletion=true&inbody=true"
 
 	java_cmd+="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
 	java_cmd+=" -u ${g_user}"
 	java_cmd+=" -p ${g_password}"
 	java_cmd+=" -r ${resource_uri}"	
-	java_cmd+=" -l ${g_working_dir}/${g_subject}/${g_session}_freesurfer5.xml"
+	java_cmd+=" -l ${g_working_dir}/${g_subject}/${g_xnat_session_id}_freesurfer5.xml"
 	java_cmd+=" -m PUT"
 
 	echo ""
@@ -884,7 +884,7 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Put snapshots in DB and remove local copies" ${step_percent}
 
-	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_session}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}/resources/SNAPSHOTS/files?overwrite=true&replace=true&reference=${g_working_dir}/T1w/${g_subject}/snapshots"
+	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_xnat_session_id}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}/resources/SNAPSHOTS/files?overwrite=true&replace=true&reference=${g_working_dir}/T1w/${g_subject}/snapshots"
 
 	java_cmd+="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
 	java_cmd+=" -u ${g_user}"
@@ -903,7 +903,7 @@ main()
 	fi
 	popd
 
-	rm_cmd="rm -r ${g_working_dir}/T1w/${g_subject}/snapshots"
+	rm_cmd="rm -r ${g_working_dir}/${g_subject}/T1w/${g_subject}/snapshots"
 	echo ""
 	echo "rm_cmd: ${rm_cmd}"
 	echo ""
