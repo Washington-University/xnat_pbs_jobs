@@ -808,12 +808,29 @@ main()
 	echo "snap_montage_cmd: ${snap_montage_cmd}"
 	echo ""
 
-	pushd ${g_working_dir}/${g_subject}
-	${snap_montage_cmd}
+	# use a sub-shell so that freesurfer53_setup.sh only affects the snap_montage_cmd 
+	(
+		snap_montage_cmd=""
+		snap_montage_cmd+="xvfb_wrapper.sh ${NRG_PACKAGES}/tools/HCP/Freesurfer/freesurfer_includes/snap_montage_fs5.csh"
+		snap_montage_cmd+=" ${g_subject}"
+		snap_montage_cmd+=" ${g_working_dir}/${g_subject}/T1w"
+		
+		echo ""
+		echo "snap_montage_cmd: ${snap_montage_cmd}"
+		echo ""
+		
+		pushd ${g_working_dir}/${g_subject}
+		source ${SCRIPTS_HOME}/freesurfer53_setup.sh
+		${snap_montage_cmd}
+		if [ $? -ne 0 ]; then
+			die 
+		fi
+		popd
+	)
+
 	if [ $? -ne 0 ]; then
-		die 
+		die
 	fi
-	popd
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - CREATE_ASSESSOR
