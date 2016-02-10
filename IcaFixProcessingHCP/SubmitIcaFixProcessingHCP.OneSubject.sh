@@ -291,7 +291,7 @@ main()
  			echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
  			echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
  			echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-			echo "  --resource-suffix=\"${scan}_FIX_TEST\" \\" >> ${put_script_file_to_submit}
+			echo "  --resource-suffix=\"${scan}_FIX\" \\" >> ${put_script_file_to_submit}
 			echo "  --reason=\"${scan}_IcaFixProcessingHCP\" " >> ${put_script_file_to_submit}
 
 			chmod +x ${put_script_file_to_submit}
