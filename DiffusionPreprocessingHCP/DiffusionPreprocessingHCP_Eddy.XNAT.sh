@@ -38,6 +38,8 @@
 # has adequate resources (RAM, CPU power, storage space), this script can 
 # simply be invoked interactively.
 #
+# Typical Run Time: 1 - 2 hrs
+#
 #~ND~END~
 
 echo "Job started on `hostname` at `date`"
@@ -185,8 +187,8 @@ main()
 	get_options $@
 
 	# Set up step counters
-	total_steps=25
-	current_step=6
+	total_steps=12
+	current_step=5
 
 	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
 
