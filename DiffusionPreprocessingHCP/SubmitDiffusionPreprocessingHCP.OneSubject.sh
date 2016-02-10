@@ -28,6 +28,7 @@ get_options()
 	unset g_session
 	unset g_phase_encoding_dir
 	unset g_put_server
+	unset g_suppress_put
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -68,6 +69,10 @@ get_options()
 				;;
 			--put-server=*)
 				g_put_server=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--suppress-put*)
+				g_suppress_put="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -130,6 +135,10 @@ get_options()
 	fi
 	echo "PUT server: ${g_put_server}"
 
+	if [ -z "${g_suppress_put}" ]; then
+		g_suppress_put="FALSE"
+	fi
+	echo "Suppress PUT: ${g_suppress_put}"
 }
 
 main()
@@ -312,14 +321,18 @@ main()
  	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
  	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
  	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-	echo "  --resource-suffix=\"Diffusion_preproc_Test\" " >> ${put_script_file_to_submit}
+	echo "  --resource-suffix=\"Diffusion_preproc\" " >> ${put_script_file_to_submit}
 
-	# TBD: fix resource name after testing
-	#echo "  --resource-suffix=\"Diffusion_preproc\" " >> ${put_script_file_to_submit}
+	chmod +x ${put_script_file_to_submit}
 
-	submit_cmd="qsub -W depend=afterok:${post_eddy_jobno} ${put_script_file_to_submit}"
-	echo "submit_cmd: ${submit_cmd}"
-	${submit_cmd}
+	put_submit_cmd="qsub -W depend=afterok:${post_eddy_jobno} ${put_script_file_to_submit}"
+	echo "put_submit_cmd: ${put_submit_cmd}"
+
+	if [ "${g_suppress_put}" = "TRUE" ] ; then
+		echo "PUT operation has been suppressed. Resource will not be put in DB. Working Directory will not be deleted."
+	else
+		${put_submit_cmd}
+	fi
 }
 
 # Invoke the main function to get things started
