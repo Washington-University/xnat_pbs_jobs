@@ -20,20 +20,6 @@ echo "generator seed will be used."
 printf "Random Number Generator Seed []: "
 read seed
 
-#printf "Delay until first submission (minutes) [0]: "
-#read delay
-#
-#if [ -z "${delay}" ]; then
-#	delay=0
-#fi
-#
-#printf "Interval between submissions (minutes) [60]: "
-#read interval
-#
-#if [ -z "${interval}" ]; then
-#	interval=60
-#fi
-
 project="HCP_Staging"
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.StructuralPreprocessingHCP.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
@@ -45,9 +31,6 @@ max_shadow_number=8
 
 shadow_number=${start_shadow_number}
 
-#use_at="FALSE"
-##use_at="TRUE"
-
 for subject in ${subjects} ; do
 
 	if [[ ${subject} != \#* ]]; then
@@ -58,7 +41,6 @@ for subject in ${subjects} ; do
 		echo "--------------------------------------------------------------------------------"
 		echo " Submitting Structural Preprocessing job for subject: ${subject}"
 		echo " Using server: ${server}"
-		#echo " Submission delayed until ${delay} minutes from now"
 		echo "--------------------------------------------------------------------------------"
 
 		${HOME}/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/SubmitStructuralPreprocessingHCP.OneSubject.sh \
