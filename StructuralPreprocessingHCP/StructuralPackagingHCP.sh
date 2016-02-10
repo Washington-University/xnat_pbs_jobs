@@ -156,6 +156,11 @@ main()
 	echo ""
 
 	${pkg_cmd}
+	if [ $? -ne 0 ]; then
+		exit 1
+	fi
+
+	rm -rf ${g_working_dir}
 }
 
 # Invoke the main function to get things started
