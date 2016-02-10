@@ -240,11 +240,8 @@ main()
 	if [ ! -z "${g_seed}" ] ; then
  		echo "  --resource-suffix=\"Structural_preproc_Seed${g_seed}\" " >> ${put_script_file_to_submit} 
 	else
- 		echo "  --resource-suffix=\"Structural_preproc_test\" " >> ${put_script_file_to_submit} 
+ 		echo "  --resource-suffix=\"Structural_preproc\" " >> ${put_script_file_to_submit} 
 	fi
-
-	# TBD: fix resource name after testing
- 	#echo "  --resource-suffix=\"Structural_preproc\" " >> ${put_script_file_to_submit} 
 
  	submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
  	echo "submit_cmd: ${submit_cmd}"
