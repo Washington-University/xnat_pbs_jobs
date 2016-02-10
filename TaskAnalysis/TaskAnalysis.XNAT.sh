@@ -88,6 +88,7 @@ get_options()
 	unset g_working_dir
 	unset g_workflow_id
 	unset g_task
+	unset g_create_fsfs_server
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -136,6 +137,10 @@ get_options()
 				;;
 			--task=*)
 				g_task=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--create-fsfs-server=*)
+				g_create_fsfs_server=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -208,6 +213,13 @@ get_options()
 		error_count=$(( error_count + 1 ))
 	else
 		echo "g_task: ${g_task}"
+	fi
+
+	if [ -z "${g_create_fsfs_server}" ]; then
+		echo "ERROR: server to use for creating FSFs (--create-fsfs-server=) required (should be a shadow server)"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "g_create_fsfs_server: ${g_create_fsfs_server}"
 	fi
 
 	if [ ${error_count} -gt 0 ]; then
@@ -426,11 +438,19 @@ main()
 	# Step - Create FSFs
 	# ----------------------------------------------------------------------------------------------
 	increment_step
-	undate_xnat_workflow ${g_current_step} "Create FSFs" ${g_step_percent}
+	update_xnat_workflow ${g_current_step} "Create FSFs" ${g_step_percent}
+
+	host_without_port=${g_create_fsfs_server%:*}
+
+	echo "PATH: ${PATH}"
+	which dos2unix
+	export PATH="${HOME}/bin:${PATH}" # make sure ${HOME}/bin/dos2unix can be found, copied there from /usr/bin
+	echo "PATH: ${PATH}"
+	which dos2unix
 
 	local create_fsfs_cmd=""
 	create_fsfs_cmd+="${NRG_PACKAGES}/tools/HCP/FSF/callCreateFSFs.sh"
-	create_fsfs_cmd+=" --host ${g_server}"
+	create_fsfs_cmd+=" --host ${host_without_port}"
 	create_fsfs_cmd+=" --user ${g_user}"
 	create_fsfs_cmd+=" --pw ${g_password}"
 	create_fsfs_cmd+=" --buildDir ${g_working_dir}/${g_subject}/"
@@ -443,6 +463,22 @@ main()
  	if [ $? -ne 0 ]; then
  		die 
  	fi
+
+	# Copy created FSFs
+	echo "Copying created FSFs"
+
+	# Level 1
+	from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/tfMRI_${g_task}_RL_hp200_s4_level1.fsf"
+	to_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/tfMRI_${g_task}_RL/"
+	cp -verbose ${from_file} ${to_dir}
+
+	from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/tfMRI_${g_task}_LR_hp200_s4_level1.fsf"
+	to_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/tfMRI_${g_task}_LR/"
+	cp -verbose ${from_file} ${to_dir}
+
+	from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/tfMRI_${g_task}_hp200_s4_level2.fsf"
+	to_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/tfMRI_${g_task}/"
+	cp -verbose ${from_file} ${to_dir}
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run TaskfMRIAnalysis.sh script with smoothing 2 and VBA=NO

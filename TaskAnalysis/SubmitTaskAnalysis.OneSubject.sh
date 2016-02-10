@@ -40,6 +40,7 @@ get_options()
 	unset g_subject
 	unset g_session
 	unset g_put_server
+	unset g_suppress_put
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -76,6 +77,10 @@ get_options()
 				;;
 			--put-server=*)
 				g_put_server=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--suppress-put*)
+				g_suppress_put="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -125,6 +130,11 @@ get_options()
 		g_put_server="db.humanconnectome.org"
 	fi
 	echo "PUT server: ${g_put_server}"
+
+	if [ -z "${g_suppress_put}" ]; then
+		g_suppress_put="FALSE"
+	fi
+	echo "Suppress PUT: ${g_suppress_put}"
 }
 
 main()
@@ -244,7 +254,8 @@ main()
 		echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
 		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
-		echo "  --task=\"${task}\" " >> ${script_file_to_submit}
+		echo "  --task=\"${task}\" \\" >> ${script_file_to_submit}
+		echo "  --create-fsfs-server=\"${g_put_server}\" " >> ${script_file_to_submit}
 
 		submit_cmd="qsub ${script_file_to_submit}"
 		echo "submit_cmd: ${submit_cmd}"
@@ -272,13 +283,19 @@ main()
 		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-		echo "  --resource-suffix=\"tfMRI_${task}_TEST\" \\" >> ${put_script_file_to_submit} 
-		#echo "  --resource-suffix=\"tfMRI_${task}\" \\" >> ${put_script_file_to_submit} 
+		echo "  --resource-suffix=\"tfMRI_${task}\" \\" >> ${put_script_file_to_submit} 
 		echo "  --reason=\"TaskAnalysis\" " >> ${put_script_file_to_submit}
-	
-		submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
-		echo "submit_cmd: ${submit_cmd}"
-		${submit_cmd}
+
+		chmod +x ${put_script_file_to_submit}
+
+		put_submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
+		echo "put_submit_cmd: ${put_submit_cmd}"
+
+		if [ "${g_suppress_put}" = "TRUE" ] ; then
+			echo "PUT operation has been suppressed. Resource will not be put in DB. Working Directory will not be deleted."
+		else
+			${put_submit_cmd}
+		fi
 
 	done
 }

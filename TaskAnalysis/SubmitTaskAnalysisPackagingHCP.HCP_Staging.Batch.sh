@@ -15,7 +15,7 @@ echo ""
 stty echo
 
 project="HCP_Staging"
-subject_file_name="${SUBJECT_FILES_DIR}/${project}.TaskAnalysis.subjects"
+subject_file_name="${SUBJECT_FILES_DIR}/${project}.TaskAnalysisPackaging.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
@@ -29,27 +29,25 @@ for subject in ${subjects} ; do
 
 	if [[ ${subject} != \#* ]]; then
 
-		server="db-shadow${shadow_number}.nrg.mir:8080"
+		server="db-shadow${shadow_number}.nrg.mir"
 
-		echo ""
+ 		echo ""
 		echo "--------------------------------------------------------------------------------"
-		echo " Submitting TaskAnalysis job for subject: ${subject}"
-		echo " Using server: ${server}"
+		echo " Submitting Task Analysis Packaging job for subject: ${subject}"
 		echo "--------------------------------------------------------------------------------"
-		
-		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/TaskAnalysis/SubmitTaskAnalysis.OneSubject.sh \
+
+		${HOME}/pipeline_tools/xnat_pbs_jobs/TaskAnalysis/SubmitTaskAnalysisPackagingHCP.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
-			--put-server=${server} \
+			--server=${server} \
 			--project=${project} \
-			--subject=${subject}
-	
+			--subject=${subject} 
+
 		shadow_number=$((shadow_number+1))
-		
 		if [ "${shadow_number}" -gt "${max_shadow_number}" ]; then
 			shadow_number=${start_shadow_number}
 		fi
 
 	fi
-
+	
 done
