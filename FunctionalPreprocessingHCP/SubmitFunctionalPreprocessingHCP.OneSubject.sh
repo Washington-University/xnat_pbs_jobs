@@ -293,7 +293,8 @@ main()
 			echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
 			echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
 			echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit} 
-			echo "  --xnat-session-id=${sessionID}" >> ${script_file_to_submit}
+			echo "  --xnat-session-id=${sessionID} \\" >> ${script_file_to_submit}
+			echo "  --create-fsfs-server=\"${g_put_server}\" " >> ${script_file_to_submit}
 		
 			chmod +x ${script_file_to_submit}
 

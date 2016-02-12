@@ -87,6 +87,7 @@ get_options()
 	unset g_working_dir
 	unset g_workflow_id
 	unset g_xnat_session_id
+	unset g_create_fsfs_server
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -139,6 +140,10 @@ get_options()
 				;;
 			--xnat-session-id=*)
 				g_xnat_session_id=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--create-fsfs-server=*)
+				g_create_fsfs_server=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -220,6 +225,13 @@ get_options()
 	fi
 	echo "g_xnat_session_id: ${g_xnat_session_id}"
 
+	if [ -z "${g_create_fsfs_server}" ]; then
+		echo "ERROR: server to use for creating FSFs (--create-fsfs-server=) required (should be a shadow server)"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "g_create_fsfs_server: ${g_create_fsfs_server}"
+	fi
+
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
 		exit 1
@@ -250,11 +262,15 @@ main()
 {
 	get_options $@
 
+	echo "----- Platform Information: Begin -----"
+	uname -a
+	echo "----- Platform Information: End -----"
+
 	source ${XNAT_UTILS_HOME}/xnat_workflow_utilities.sh
 	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
 
 	# Set up step counters
-	total_steps=9
+	total_steps=10
 	current_step=0
 
 	# Set up to run Python
@@ -405,6 +421,52 @@ main()
 	 	die 
 	fi
 	popd
+
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Create FSFs if appropriate
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Create FSFs if appropriate" ${step_percent}
+
+
+	if [[ ${g_scan} == tfMRI* ]] ; then
+
+		host_without_port=${g_create_fsfs_server%:*}
+
+		export PATH="${HOME}/bin:${PATH}" # make sure ${HOME}/bin/dos2unix and ${HOME}/bin/unix2dos can be found
+	
+		local create_fsfs_cmd=""
+		create_fsfs_cmd+="${NRG_PACKAGES}/tools/HCP/FSF/callCreateFSFs.sh"
+		create_fsfs_cmd+=" --host ${host_without_port}"
+		create_fsfs_cmd+=" --user ${g_user}"
+		create_fsfs_cmd+=" --pw ${g_password}"
+		create_fsfs_cmd+=" --buildDir ${g_working_dir}/${g_subject}/"
+		create_fsfs_cmd+=" --project ${g_project}"
+		create_fsfs_cmd+=" --subject ${g_subject}"
+		create_fsfs_cmd+=" --series ${g_scan}"
+
+		echo "create_fsfs_cmd: ${create_fsfs_cmd}"
+		${create_fsfs_cmd}
+ 		if [ $? -ne 0 ]; then
+ 			die 
+ 		fi
+
+		# Copy created FSFs
+		echo "Copying created FSFs"
+		
+		# Level 1
+		from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/${g_scan}_hp200_s4_level1.fsf"
+		to_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_scan}/"
+		cp --verbose ${from_file} ${to_dir}
+
+	else
+		echo "Not a tfMRI scan, not creating FSF files" 
+
+	fi
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files
