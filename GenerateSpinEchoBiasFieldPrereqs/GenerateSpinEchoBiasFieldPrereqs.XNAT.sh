@@ -295,6 +295,10 @@ main()
 {
 	get_options $@
 
+	echo "----- Platform Information: Begin -----"
+	uname -a
+	echo "----- Platform Information: End -----"
+
 	# Set up step counters
 	init_steps 9
 

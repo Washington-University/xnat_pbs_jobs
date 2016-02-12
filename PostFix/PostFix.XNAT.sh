@@ -321,6 +321,10 @@ main()
 {
 	get_options $@
 
+	echo "----- Platform Information: Begin -----"
+	uname -a
+	echo "----- Platform Information: End -----"
+
 	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
 
 	# Set up step counters

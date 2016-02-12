@@ -238,6 +238,10 @@ main()
 	# get user specified command line options
 	get_options $@
 
+	echo "----- Platform Information: Begin -----"
+	uname -a
+	echo "----- Platform Information: End -----"
+
 	# get list of subjects
 	get_subject_info_list ${g_subject_info_file}
 
