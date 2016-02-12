@@ -498,6 +498,10 @@ main()
 {
 	get_options $@
 
+	echo "----- Platform Information: Begin -----"
+	uname -a
+	echo "----- Platform Information: End -----"
+
 	set_spin_echo_positive_and_negative_fieldmaps
 
 	source ${XNAT_UTILS_HOME}/xnat_workflow_utilities.sh
