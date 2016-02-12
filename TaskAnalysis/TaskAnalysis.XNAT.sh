@@ -334,6 +334,10 @@ main()
 {
 	get_options $@
 
+	echo "----- Platform Information: Begin -----"
+	uname -a
+	echo "----- Platform Information: End -----"
+
 	# Set up step counters
 	init_steps 12
 
@@ -468,17 +472,54 @@ main()
 	echo "Copying created FSFs"
 
 	# Level 1
-	from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/tfMRI_${g_task}_RL_hp200_s4_level1.fsf"
+	echo "Copying Level 1 RL FSF file"
+	file_name="tfMRI_${g_task}_RL_hp200_s4_level1.fsf"
+	from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/${file_name}"
 	to_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/tfMRI_${g_task}_RL/"
-	cp -verbose ${from_file} ${to_dir}
+	if [ -e "${to_dir}/${file_name}" ] ; then
+		echo "Removing existing ${to_dir}/${file_name}"
+		rm ${to_dir}/${file_name}
+	fi
+	mkdir -p ${to_dir}
+	cp --verbose ${from_file} ${to_dir}
 
-	from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/tfMRI_${g_task}_LR_hp200_s4_level1.fsf"
+	echo "Copying Level 1 LR FSF file"
+	file_name="tfMRI_${g_task}_LR_hp200_s4_level1.fsf"
+	from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/${file_name}"
 	to_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/tfMRI_${g_task}_LR/"
-	cp -verbose ${from_file} ${to_dir}
+	if [ -e "${to_dir}/${file_name}" ] ; then
+		echo "Removing existing ${to_dir}/${file_name}"
+		rm ${to_dir}/${file_name}
+	fi
+	mkdir -p ${to_dir}
+	cp --verbose ${from_file} ${to_dir}
 
-	from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/tfMRI_${g_task}_hp200_s4_level2.fsf"
+	echo "Copying Level 2 FSF file"
+	file_name="tfMRI_${g_task}_hp200_s4_level2.fsf"
+	from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/${file_name}"
 	to_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/tfMRI_${g_task}/"
-	cp -verbose ${from_file} ${to_dir}
+	if [ -e "${to_dir}/${file_name}" ] ; then
+		echo "Removing existing ${to_dir}/${file_name}"
+		rm ${to_dir}/${file_name}
+	fi
+	mkdir -p ${to_dir}
+	cp --verbose ${from_file} ${to_dir}
+
+	# Get EVs
+
+	echo "Copying EVs"
+	for direction in RL LR ; do
+
+		from_dir=${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/tfMRI_${g_task}_${direction}_unproc/LINKED_DATA/EPRIME/EVs
+		echo "from_dir: ${from_dir}"
+
+		to_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/tfMRI_${g_task}_${direction}/EVs
+		echo "to_dir: ${to_dir}"
+
+		mkdir -p ${to_dir}
+		cp --verbose ${from_dir}/* ${to_dir}
+
+	done
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run TaskfMRIAnalysis.sh script with smoothing 2 and VBA=NO
@@ -525,7 +566,7 @@ main()
 	update_xnat_workflow ${g_current_step} "Run TaskfMRIAnalysis.sh script with smoothing 4 and VBA=YES" ${g_step_percent}
 	
 	# Source setup script to setup environment for running the script
-	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_MSMAll_TaskAnalysis.sh"
+	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_TaskAnalysis.sh"
 	if [ ! -e ${setup_file} ] ; then
 		echo "ERROR: setup_file: ${setup_file} DOES NOT EXIST! ABORTING"
 		die
@@ -563,7 +604,7 @@ main()
 	update_xnat_workflow ${g_current_step} "Run TaskfMRIAnalysis.sh script with smoothing 8 and VBA=NO" ${g_step_percent}
 	
 	# Source setup script to setup environment for running the script
-	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_MSMAll_TaskAnalysis.sh"
+	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_TaskAnalysis.sh"
 	if [ ! -e ${setup_file} ] ; then
 		echo "ERROR: setup_file: ${setup_file} DOES NOT EXIST! ABORTING"
 		die
@@ -601,7 +642,7 @@ main()
 	update_xnat_workflow ${g_current_step} "Run TaskfMRIAnalysis.sh script with smoothing 12 and VBA=NO" ${g_step_percent}
 	
 	# Source setup script to setup environment for running the script
-	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_MSMAll_TaskAnalysis.sh"
+	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_TaskAnalysis.sh"
 	if [ ! -e ${setup_file} ] ; then
 		echo "ERROR: setup_file: ${setup_file} DOES NOT EXIST! ABORTING"
 		die
