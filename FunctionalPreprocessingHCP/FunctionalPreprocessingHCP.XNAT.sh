@@ -270,7 +270,7 @@ main()
 	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
 
 	# Set up step counters
-	total_steps=10
+	total_steps=11
 	current_step=0
 
 	# Set up to run Python
@@ -422,7 +422,6 @@ main()
 	fi
 	popd
 
-
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create FSFs if appropriate
 	# ----------------------------------------------------------------------------------------------
@@ -432,10 +431,12 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Create FSFs if appropriate" ${step_percent}
 
-
 	if [[ ${g_scan} == tfMRI* ]] ; then
 
 		host_without_port=${g_create_fsfs_server%:*}
+
+		scan_without_dir=${g_scan%_LR}
+		scan_without_dir=${scan_without_dir%_RL}
 
 		export PATH="${HOME}/bin:${PATH}" # make sure ${HOME}/bin/dos2unix and ${HOME}/bin/unix2dos can be found
 	
@@ -447,7 +448,7 @@ main()
 		create_fsfs_cmd+=" --buildDir ${g_working_dir}/${g_subject}/"
 		create_fsfs_cmd+=" --project ${g_project}"
 		create_fsfs_cmd+=" --subject ${g_subject}"
-		create_fsfs_cmd+=" --series ${g_scan}"
+		create_fsfs_cmd+=" --series ${scan_without_dir}"
 
 		echo "create_fsfs_cmd: ${create_fsfs_cmd}"
 		${create_fsfs_cmd}
@@ -465,6 +466,28 @@ main()
 
 	else
 		echo "Not a tfMRI scan, not creating FSF files" 
+
+	fi
+
+	# ----------------------------------------------------------------------------------------------
+	# Step - Get EVs if appropriate
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Get EVs if appropriate" ${step_percent}
+
+	if [[ ${g_scan} == tfMRI* ]] ; then
+		
+		from_dir=${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${g_scan}_unproc/LINKED_DATA/EPRIME/EVs
+		echo "from_dir: ${from_dir}"
+
+		to_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_scan}/EVs
+		echo "to_dir: ${to_dir}"
+		
+		mkdir -p ${to_dir}
+		cp --verbose ${from_dir}/* ${to_dir}
 
 	fi
 
@@ -490,7 +513,6 @@ main()
 		${current_step} "Remove files not newly created or modified" ${step_percent}
 	
 	echo "The following files are being removed"
-	#find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete || die 
 	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete
 	
 	# ----------------------------------------------------------------------------------------------
