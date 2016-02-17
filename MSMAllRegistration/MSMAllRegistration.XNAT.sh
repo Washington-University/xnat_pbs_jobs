@@ -505,7 +505,7 @@ main()
 	update_xnat_workflow ${g_current_step} "Remove files not newly created or modified" ${g_step_percent}
 
 	echo "The following files are being removed"
-	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete || die 
+	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete 
 	
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
