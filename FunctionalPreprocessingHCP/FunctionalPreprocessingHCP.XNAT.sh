@@ -87,7 +87,7 @@ get_options()
 	unset g_working_dir
 	unset g_workflow_id
 	unset g_xnat_session_id
-	unset g_create_fsfs_server
+#	unset g_create_fsfs_server
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -142,10 +142,10 @@ get_options()
 				g_xnat_session_id=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--create-fsfs-server=*)
-				g_create_fsfs_server=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
+#			--create-fsfs-server=*)
+#				g_create_fsfs_server=${argument/*=/""}
+#				index=$(( index + 1 ))
+#				;;
 			*)
 				usage
 				echo "ERROR: unrecognized option: ${argument}"
@@ -225,12 +225,12 @@ get_options()
 	fi
 	echo "g_xnat_session_id: ${g_xnat_session_id}"
 
-	if [ -z "${g_create_fsfs_server}" ]; then
-		echo "ERROR: server to use for creating FSFs (--create-fsfs-server=) required (should be a shadow server)"
-		error_count=$(( error_count + 1 ))
-	else
-		echo "g_create_fsfs_server: ${g_create_fsfs_server}"
-	fi
+#	if [ -z "${g_create_fsfs_server}" ]; then
+#		echo "ERROR: server to use for creating FSFs (--create-fsfs-server=) required (should be a shadow server)"
+#		error_count=$(( error_count + 1 ))
+#	else
+#		echo "g_create_fsfs_server: ${g_create_fsfs_server}"
+#	fi
 
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
@@ -422,52 +422,65 @@ main()
 	fi
 	popd
 
-	# ----------------------------------------------------------------------------------------------
-	# Step - Create FSFs if appropriate
-	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
+	# # ----------------------------------------------------------------------------------------------
+	# # Step - Create FSFs if appropriate
+	# # ----------------------------------------------------------------------------------------------
+	# current_step=$(( current_step + 1 ))
+	# step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Create FSFs if appropriate" ${step_percent}
+	# xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	# 	${current_step} "Create FSFs if appropriate" ${step_percent}
 
-	if [[ ${g_scan} == tfMRI* ]] ; then
+	# if [[ ${g_scan} == tfMRI* ]] ; then
 
-		host_without_port=${g_create_fsfs_server%:*}
+	# 	# remove any existing FSF CSV file
+	# 	fsf_csv_file=${g_working_dir}/${g_subject}/fsf/csv/${g_subject}_hcpxpackage.csv
+	# 	if [ -e "${fsf_csv_file}" ] ; then
+	# 		rm ${fsf_csv_file}
+	# 	fi
 
-		scan_without_dir=${g_scan%_LR}
-		scan_without_dir=${scan_without_dir%_RL}
+	# 	# remove any existing FSF files
+	# 	fsf_files=`ls -1 ${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/*.fsf`
+	# 	for fsf_file in ${fsf_files} ; do
+	# 		rm ${fsf_file}
+	# 	done
 
-		export PATH="${HOME}/bin:${PATH}" # make sure ${HOME}/bin/dos2unix and ${HOME}/bin/unix2dos can be found
+	# 	host_without_port=${g_create_fsfs_server%:*}
+
+	# 	scan_without_dir=${g_scan%_LR}
+	# 	scan_without_dir=${scan_without_dir%_RL}
+
+	# 	export PATH="${HOME}/bin:${PATH}" # make sure ${HOME}/bin/dos2unix and ${HOME}/bin/unix2dos can be found
+	# 	echo "PATH: ${PATH}"
 	
-		local create_fsfs_cmd=""
-		create_fsfs_cmd+="${NRG_PACKAGES}/tools/HCP/FSF/callCreateFSFs.sh"
-		create_fsfs_cmd+=" --host ${host_without_port}"
-		create_fsfs_cmd+=" --user ${g_user}"
-		create_fsfs_cmd+=" --pw ${g_password}"
-		create_fsfs_cmd+=" --buildDir ${g_working_dir}/${g_subject}/"
-		create_fsfs_cmd+=" --project ${g_project}"
-		create_fsfs_cmd+=" --subject ${g_subject}"
-		create_fsfs_cmd+=" --series ${scan_without_dir}"
+	# 	local create_fsfs_cmd=""
+	# 	create_fsfs_cmd+="${NRG_PACKAGES}/tools/HCP/FSF/callCreateFSFs.sh"
+	# 	create_fsfs_cmd+=" --host ${host_without_port}"
+	# 	create_fsfs_cmd+=" --user ${g_user}"
+	# 	create_fsfs_cmd+=" --pw ${g_password}"
+	# 	create_fsfs_cmd+=" --buildDir ${g_working_dir}/${g_subject}/"
+	# 	create_fsfs_cmd+=" --project ${g_project}"
+	# 	create_fsfs_cmd+=" --subject ${g_subject}"
+	# 	create_fsfs_cmd+=" --series ${scan_without_dir}"
 
-		echo "create_fsfs_cmd: ${create_fsfs_cmd}"
-		${create_fsfs_cmd}
- 		if [ $? -ne 0 ]; then
- 			die 
- 		fi
+	# 	echo "create_fsfs_cmd: ${create_fsfs_cmd}"
+	# 	${create_fsfs_cmd}
+ 	# 	if [ $? -ne 0 ]; then
+ 	# 		die 
+ 	# 	fi
 
-		# Copy created FSFs
-		echo "Copying created FSFs"
+	# 	# Copy created FSFs
+	# 	echo "Copying created FSFs"
 		
-		# Level 1
-		from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/${g_scan}_hp200_s4_level1.fsf"
-		to_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_scan}/"
-		cp --verbose ${from_file} ${to_dir}
+	# 	# Level 1
+	# 	from_file="${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/${g_scan}_hp200_s4_level1.fsf"
+	# 	to_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_scan}/"
+	# 	cp --verbose ${from_file} ${to_dir}
 
-	else
-		echo "Not a tfMRI scan, not creating FSF files" 
+	# else
+	# 	echo "Not a tfMRI scan, not creating FSF files" 
 
-	fi
+	# fi
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Get EVs if appropriate

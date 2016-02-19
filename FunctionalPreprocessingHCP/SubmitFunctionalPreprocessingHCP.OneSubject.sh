@@ -27,6 +27,9 @@ source ${SCRIPTS_HOME}/epd-python_setup.sh
 DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
 echo "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
 
+POSITIVE_PHASE_ENCODING_DIR=RL
+NEGATIVE_PHASE_ENCODING_DIR=LR
+
 get_options()
 {
 	local arguments=($@)
@@ -39,7 +42,6 @@ get_options()
 	unset g_subject
 	unset g_session
 	unset g_put_server
-	unset g_suppress_put
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -76,10 +78,6 @@ get_options()
 				;;
 			--put-server=*)
 				g_put_server=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--suppress-put*)
-				g_suppress_put="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -129,11 +127,6 @@ get_options()
 		g_put_server="db.humanconnectome.org"
 	fi
 	echo "PUT server: ${g_put_server}"
-
-	if [ -z "${g_suppress_put}" ]; then
-		g_suppress_put="FALSE"
-	fi
-	echo "Suppress PUT: ${g_suppress_put}"
 }
 
 main()
@@ -147,8 +140,8 @@ main()
 	resting_state_scan_dirs=`ls -d rfMRI_*_unproc`
 	for resting_state_scan_dir in ${resting_state_scan_dirs} ; do
 		scan_name=${resting_state_scan_dir%%_unproc}
-		scan_name=${scan_name%%_LR}
-		scan_name=${scan_name%%_RL}
+		scan_name=${scan_name%%_${NEGATIVE_PHASE_ENCODING_DIR}}
+		scan_name=${scan_name%%_${POSITIVE_PHASE_ENCODING_DIR}}
 		scan_name=${scan_name##rfMRI_}
 		resting_state_scan_names=${resting_state_scan_names//$scan_name/}
 		resting_state_scan_names+=" ${scan_name}"
@@ -165,8 +158,8 @@ main()
 	task_scan_dirs=`ls -d tfMRI_*_unproc`
 	for task_scan_dir in ${task_scan_dirs} ; do
 		scan_name=${task_scan_dir%%_unproc}
-		scan_name=${scan_name%%_LR}
-		scan_name=${scan_name%%_RL}
+		scan_name=${scan_name%%_${NEGATIVE_PHASE_ENCODING_DIR}}
+		scan_name=${scan_name%%_${POSITIVE_PHASE_ENCODING_DIR}}
 		scan_name=${scan_name##tfMRI_}
 		task_scan_names=${task_scan_names//$scan_name/}
 		task_scan_names+=" ${scan_name}"
@@ -197,153 +190,305 @@ main()
 			exit 1
 		fi
 
-		for postfix in RL LR ; do
+		# ------------------------------------------------------
+		#  Submit jobs for positive phase encoding direction
+		# ------------------------------------------------------
 
-			scan="${prefix}_${scan_name}_${postfix}"
+		scan="${prefix}_${scan_name}_${POSITIVE_PHASE_ENCODING_DIR}"
 
-			echo "--------------------------------------------------"
-			echo "Submitting jobs for scan: ${scan}"
-			echo "--------------------------------------------------"
+		echo "--------------------------------------------------"
+		echo "Submitting jobs for scan: ${scan}"
+		echo "--------------------------------------------------"
 
-			# Get token user id and password
-			echo "Getting token user id and password"
-			get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
-			new_tokens=`${get_token_cmd}`
-			token_username=${new_tokens% *}
-			token_password=${new_tokens#* }
-			echo "token_username: ${token_username}"
-			echo "token_password: ${token_password}"
+		# Get token user id and password
+		echo "Getting token user id and password"
+		get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
+		new_tokens=`${get_token_cmd}`
+		token_username=${new_tokens% *}
+		token_password=${new_tokens#* }
+		echo "token_username: ${token_username}"
+		echo "token_password: ${token_password}"
 
-			# make sure working directories don't have the same name based on the 
-			# same start time by sleeping a few seconds
-			sleep 5s
+		# make sure working directories don't have the same name based on the 
+		# same start time by sleeping a few seconds
+		sleep 5s
 
-			current_seconds_since_epoch=`date +%s`
-			working_directory_name="${BUILD_HOME}/${g_project}/FunctionalPreprocessingHCP_${current_seconds_since_epoch}_${g_subject}_${scan}"
+		current_seconds_since_epoch=`date +%s`
+		working_directory_name="${BUILD_HOME}/${g_project}/FunctionalPreprocessingHCP_${current_seconds_since_epoch}_${g_subject}_${scan}"
 
-			# Make the working directory
-			echo "Making working directory: ${working_directory_name}"
-			mkdir -p ${working_directory_name}
+		# Make the working directory
+		echo "Making working directory: ${working_directory_name}"
+		mkdir -p ${working_directory_name}
 
-			# Get JSESSION ID
-			echo "Getting JSESSION ID"
-			jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
-			echo "jsession: ${jsession}"
+		# Get JSESSION ID
+		echo "Getting JSESSION ID"
+		jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
+		echo "jsession: ${jsession}"
 
-			# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
-			echo "Getting XNAT Session ID"
-			get_session_id_cmd=""
-			get_session_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py "
-			get_session_id_cmd+="--server=db.humanconnectome.org "
-			get_session_id_cmd+="--username=${g_user} "
-			get_session_id_cmd+="--project=${g_project} "
-			get_session_id_cmd+="--subject=${g_subject} "
-			get_session_id_cmd+="--session=${g_session} "
-			#echo "get_session_id_cmd: ${get_session_id_cmd}"
-			get_session_id_cmd+=" --password=${g_password}"
+		# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
+		echo "Getting XNAT Session ID"
+		get_session_id_cmd=""
+		get_session_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py "
+		get_session_id_cmd+="--server=db.humanconnectome.org "
+		get_session_id_cmd+="--username=${g_user} "
+		get_session_id_cmd+="--project=${g_project} "
+		get_session_id_cmd+="--subject=${g_subject} "
+		get_session_id_cmd+="--session=${g_session} "
+		#echo "get_session_id_cmd: ${get_session_id_cmd}"
+		get_session_id_cmd+=" --password=${g_password}"
 
-			sessionID=`${get_session_id_cmd}`
-			echo "XNAT session ID: ${sessionID}"
+		sessionID=`${get_session_id_cmd}`
+		echo "XNAT session ID: ${sessionID}"
 
-			# Get XNAT Workflow ID
-			server="https://db.humanconnectome.org/"
-			echo "Getting XNAT workflow ID for this job from server: ${server}"
-			get_workflow_id_cmd=""
-			get_workflow_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py"
-			get_workflow_id_cmd+=" -User ${g_user}"
-			get_workflow_id_cmd+=" -Server ${server}"
-			get_workflow_id_cmd+=" -ExperimentID ${sessionID}"
-			get_workflow_id_cmd+=" -ProjectID ${g_project}"
-			get_workflow_id_cmd+=" -Pipeline ${PIPELINE_NAME}_${scan}"
-			get_workflow_id_cmd+=" -Status Queued"
-			get_workflow_id_cmd+=" -JSESSION ${jsession}"
-			echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
-			get_workflow_id_cmd+=" -Password ${g_password}"
+		# Get XNAT Workflow ID
+		server="https://db.humanconnectome.org/"
+		echo "Getting XNAT workflow ID for this job from server: ${server}"
+		get_workflow_id_cmd=""
+		get_workflow_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py"
+		get_workflow_id_cmd+=" -User ${g_user}"
+		get_workflow_id_cmd+=" -Server ${server}"
+		get_workflow_id_cmd+=" -ExperimentID ${sessionID}"
+		get_workflow_id_cmd+=" -ProjectID ${g_project}"
+		get_workflow_id_cmd+=" -Pipeline ${PIPELINE_NAME}_${scan}"
+		get_workflow_id_cmd+=" -Status Queued"
+		get_workflow_id_cmd+=" -JSESSION ${jsession}"
+		echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
+		get_workflow_id_cmd+=" -Password ${g_password}"
 			
-			workflowID=`${get_workflow_id_cmd}`
-			if [ $? -ne 0 ]; then
-				echo "Fetching workflow failed. Aborting"
-				echo "workflowID: ${workflowID}"
-				exit 1
-			elif [[ ${workflowID} == HTTP* ]]; then
-				echo "Fetching workflow failed. Aborting"
-				echo "worflowID: ${workflowID}"
-				exit 1
-			fi
-			echo "XNAT workflow ID: ${workflowID}"
+		workflowID=`${get_workflow_id_cmd}`
+		if [ $? -ne 0 ]; then
+			echo "Fetching workflow failed. Aborting"
+			echo "workflowID: ${workflowID}"
+			exit 1
+		elif [[ ${workflowID} == HTTP* ]]; then
+			echo "Fetching workflow failed. Aborting"
+			echo "worflowID: ${workflowID}"
+			exit 1
+		fi
+		echo "XNAT workflow ID: ${workflowID}"
 			
-			# Submit job to actually do the work
-			script_file_to_submit=${working_directory_name}/${g_subject}.${scan}.FunctionalPreprocessingHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
-			if [ -e "${script_file_to_submit}" ]; then
-				rm -f "${script_file_to_submit}"
-			fi
+		# Submit job to actually do the work
+		script_file_to_submit=${working_directory_name}/${g_subject}.${scan}.FunctionalPreprocessingHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+		if [ -e "${script_file_to_submit}" ]; then
+			rm -f "${script_file_to_submit}"
+		fi
 
-			touch ${script_file_to_submit}
-			echo "#PBS -l nodes=1:ppn=1,walltime=36:00:00,vmem=20000mb" >> ${script_file_to_submit}
-			echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
-			echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
-			echo "" >> ${script_file_to_submit}
-			echo "${XNAT_PBS_JOBS_HOME}/FunctionalPreprocessingHCP/FunctionalPreprocessingHCP.XNAT.sh \\" >> ${script_file_to_submit}
-			echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
-			echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
-			echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
-			echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
-			echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
-			echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
-			echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
-			echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
-			echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit} 
-			echo "  --xnat-session-id=${sessionID} \\" >> ${script_file_to_submit}
-			echo "  --create-fsfs-server=\"${g_put_server}\" " >> ${script_file_to_submit}
+		touch ${script_file_to_submit}
+		echo "#PBS -l nodes=1:ppn=1,walltime=36:00:00,vmem=20000mb" >> ${script_file_to_submit}
+		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
+		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
+		echo "" >> ${script_file_to_submit}
+		echo "${XNAT_PBS_JOBS_HOME}/FunctionalPreprocessingHCP/FunctionalPreprocessingHCP.XNAT.sh \\" >> ${script_file_to_submit}
+		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
+		echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
+		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
+		echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
+		echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
+		echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
+		echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
+		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
+		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit} 
+		echo "  --xnat-session-id=${sessionID} " >> ${script_file_to_submit}
+#		echo "  --create-fsfs-server=\"${g_put_server}\" " >> ${script_file_to_submit}
 		
-			chmod +x ${script_file_to_submit}
+		chmod +x ${script_file_to_submit}
 
-			submit_cmd="qsub ${script_file_to_submit}"
-			echo "submit_cmd: ${submit_cmd}"			
+		submit_cmd="qsub ${script_file_to_submit}"
+		echo "submit_cmd: ${submit_cmd}"			
 
-			processing_job_no=`${submit_cmd}`
-			echo "processing_job_no: ${processing_job_no}"
+		positive_processing_job_no=`${submit_cmd}`
+		echo "positive_processing_job_no: ${positive_processing_job_no}"
 
-			if [ -z "${processing_job_no}" ] ; then
-				echo "ERROR SUBMITTING PROCESSING JOB - ABORTING"
-				exit 1
+		if [ -z "${positive_processing_job_no}" ] ; then
+			echo "ERROR SUBMITTING POSITIVE PROCESSING JOB - ABORTING"
+			exit 1
+		fi
+
+		# Submit job to put the results in the DB
+ 		put_script_file_to_submit=${LOG_DIR}/${g_subject}.${scan}.FunctionalPreprocessingHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+ 		if [ -e "${put_script_file_to_submit}" ]; then
+ 			rm -f "${put_script_file_to_submit}"
+ 		fi
+
+ 		touch ${put_script_file_to_submit}
+ 		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=12000mb" >> ${put_script_file_to_submit}
+ 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
+ 		echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
+ 		echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
+ 		echo "" >> ${put_script_file_to_submit}
+		echo "${XNAT_PBS_JOBS_HOME}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
+ 		echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
+		echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
+		echo "  --resource-suffix=\"${scan}_preproc\" \\" >> ${put_script_file_to_submit}
+		echo "  --reason=\"${scan}_FunctionalPreprocessingHCP\" " >> ${put_script_file_to_submit}
+
+		chmod +x ${put_script_file_to_submit}
+
+		put_submit_cmd="qsub -W depend=afterok:${positive_processing_job_no} ${put_script_file_to_submit}"
+		echo "put_submit_cmd: ${put_submit_cmd}"
+		
+		positive_put_job_no=`${put_submit_cmd}`
+		echo "positive_put_job_no: ${positive_put_job_no}"
+		
+		# ------------------------------------------------------
+		#  Submit jobs for negative phase encoding direction
+		# ------------------------------------------------------
+
+		scan="${prefix}_${scan_name}_${NEGATIVE_PHASE_ENCODING_DIR}"
+
+		echo "--------------------------------------------------"
+		echo "Submitting jobs for scan: ${scan}"
+		echo "--------------------------------------------------"
+		
+		# make sure working directories don't have the same name based on the 
+		# same start time by sleeping a few seconds
+		sleep 5s
+
+		current_seconds_since_epoch=`date +%s`
+		working_directory_name="${BUILD_HOME}/${g_project}/FunctionalPreprocessingHCP_${current_seconds_since_epoch}_${g_subject}_${scan}"
+
+		# Make the working directory
+		echo "Making working directory: ${working_directory_name}"
+		mkdir -p ${working_directory_name}
+
+		# Get XNAT Workflow ID
+		server="https://db.humanconnectome.org/"
+		echo "Getting XNAT workflow ID for this job from server: ${server}"
+		get_workflow_id_cmd=""
+		get_workflow_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py"
+		get_workflow_id_cmd+=" -User ${g_user}"
+		get_workflow_id_cmd+=" -Server ${server}"
+		get_workflow_id_cmd+=" -ExperimentID ${sessionID}"
+		get_workflow_id_cmd+=" -ProjectID ${g_project}"
+		get_workflow_id_cmd+=" -Pipeline ${PIPELINE_NAME}_${scan}"
+		get_workflow_id_cmd+=" -Status Queued"
+		get_workflow_id_cmd+=" -JSESSION ${jsession}"
+		echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
+		get_workflow_id_cmd+=" -Password ${g_password}"
+			
+		workflowID=`${get_workflow_id_cmd}`
+		if [ $? -ne 0 ]; then
+			echo "Fetching workflow failed. Aborting"
+			echo "workflowID: ${workflowID}"
+			exit 1
+		elif [[ ${workflowID} == HTTP* ]]; then
+			echo "Fetching workflow failed. Aborting"
+			echo "worflowID: ${workflowID}"
+			exit 1
+		fi
+		echo "XNAT workflow ID: ${workflowID}"
+
+		# Submit job to actually do the work
+		script_file_to_submit=${working_directory_name}/${g_subject}.${scan}.FunctionalPreprocessingHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+		if [ -e "${script_file_to_submit}" ]; then
+			rm -f "${script_file_to_submit}"
+		fi
+
+		touch ${script_file_to_submit}
+		echo "#PBS -l nodes=1:ppn=1,walltime=36:00:00,vmem=20000mb" >> ${script_file_to_submit}
+		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
+		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
+		echo "" >> ${script_file_to_submit}
+		echo "${XNAT_PBS_JOBS_HOME}/FunctionalPreprocessingHCP/FunctionalPreprocessingHCP.XNAT.sh \\" >> ${script_file_to_submit}
+		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
+		echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
+		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
+		echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
+		echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
+		echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
+		echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
+		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
+		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit} 
+		echo "  --xnat-session-id=${sessionID} " >> ${script_file_to_submit}
+#		echo "  --create-fsfs-server=\"${g_put_server}\" " >> ${script_file_to_submit}
+		
+		chmod +x ${script_file_to_submit}
+
+		submit_cmd="qsub -w depend=afterok:${positive_processing_job_no} ${script_file_to_submit}"
+		echo "submit_cmd: ${submit_cmd}"			
+
+		negative_processing_job_no=`${submit_cmd}`
+		echo "negative_processing_job_no: ${negative_processing_job_no}"
+
+		if [ -z "${negative_processing_job_no}" ] ; then
+			echo "ERROR SUBMITTING NEGATIVE PROCESSING JOB - ABORTING"
+			exit 1
+		fi
+
+		# Submit job to put the results in the DB
+ 		put_script_file_to_submit=${LOG_DIR}/${g_subject}.${scan}.FunctionalPreprocessingHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+ 		if [ -e "${put_script_file_to_submit}" ]; then
+ 			rm -f "${put_script_file_to_submit}"
+ 		fi
+
+ 		touch ${put_script_file_to_submit}
+ 		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=12000mb" >> ${put_script_file_to_submit}
+ 		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
+ 		echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
+ 		echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
+ 		echo "" >> ${put_script_file_to_submit}
+		echo "${XNAT_PBS_JOBS_HOME}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
+ 		echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
+		echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
+		echo "  --resource-suffix=\"${scan}_preproc\" \\" >> ${put_script_file_to_submit}
+		echo "  --reason=\"${scan}_FunctionalPreprocessingHCP\" " >> ${put_script_file_to_submit}
+
+		chmod +x ${put_script_file_to_submit}
+
+		put_submit_cmd="qsub -W depend=afterok:${negative_processing_job_no} ${put_script_file_to_submit}"
+		echo "put_submit_cmd: ${put_submit_cmd}"
+		
+		negative_put_job_no=`${put_submit_cmd}`
+		echo "negative_put_job_no: ${negative_put_job_no}"
+		
+		# ------------------------------------------------------
+		#  Submit job for creating FSFs if appropriate
+		# ------------------------------------------------------
+
+		if [ "${prefix}" = "tfMRI" ] ; then
+
+			# create file to submit
+			create_fsfs_file_to_submit=${LOG_DIR}/${g_subject}.${prefix}_${scan_name}.CreateFSFs.${g_project}.${g_session}.${current_seconds_since_epoch}.PBS.job.sh
+			if [ -e "${create_fsfs_file_to_submit}" ]; then
+				rm -f "${create_fsfs_file_to_submit}"
 			fi
 
-			# Submit job to put the results in the DB
- 			put_script_file_to_submit=${LOG_DIR}/${g_subject}.${scan}.FunctionalPreprocessingHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
- 			if [ -e "${put_script_file_to_submit}" ]; then
- 				rm -f "${put_script_file_to_submit}"
- 			fi
+			put_server_without_port=${g_put_server%:*}
+			scan_without_dir=${prefix}_${scan_name}
 
- 			touch ${put_script_file_to_submit}
- 			echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=12000mb" >> ${put_script_file_to_submit}
- 			echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
- 			echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
- 			echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
- 			echo "" >> ${put_script_file_to_submit}
-			echo "${XNAT_PBS_JOBS_HOME}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
- 			echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
- 			echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
-			echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
- 			echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
- 			echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
- 			echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
- 			echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-			echo "  --resource-suffix=\"${scan}_preproc\" \\" >> ${put_script_file_to_submit}
-			echo "  --reason=\"${scan}_FunctionalPreprocessingHCP\" " >> ${put_script_file_to_submit}
+			touch ${create_fsfs_file_to_submit}
+			echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=12000mb" >> ${create_fsfs_file_to_submit}
+			echo "#PBS -o ${LOG_DIR}" >> ${create_fsfs_file_to_submit}
+			echo "#PBS -e ${LOG_DIR}" >> ${create_fsfs_file_to_submit}
+			echo "" >> ${create_fsfs_file_to_submit}
+			echo "${XNAT_PBS_JOBS_HOME}/FunctionalPreprocessingHCP/CreateFSFs.sh \\" >> ${create_fsfs_file_to_submit}
+ 			echo "  --user=\"${g_user}\" \\" >> ${create_fsfs_file_to_submit}
+ 			echo "  --password=\"${g_password}\" \\" >> ${create_fsfs_file_to_submit}
+			echo "  --server=\"${put_server_without_port}\" \\" >> ${create_fsfs_file_to_submit}
+			echo "  --working-dir=\"${BUILD_HOME}/${g_project}/${g_subject}/\" \\" >> ${create_fsfs_file_to_submit}
+			echo "  --project=\"${g_project}\" \\" >> ${create_fsfs_file_to_submit}
+			echo "  --subject=\"${g_subject}\" \\" >> ${create_fsfs_file_to_submit}
+			echo "  --series=\"${scan_without_dir}\" " >> ${create_fsfs_file_to_submit}
 
-			chmod +x ${put_script_file_to_submit}
+			chmod +x ${create_fsfs_file_to_submit}
 
-			put_submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
-			echo "put_submit_cmd: ${put_submit_cmd}"
+			create_fsfs_submit_cmd="qsub -W depend=afterok:${positive_put_job_no}:${negative_put_job_no} ${create_fsfs_file_to_submit}"
+			echo "create_fsfs_submit_cmd: ${create_fsfs_submit_cmd}"
 
-			if [ "${g_suppress_put}" = "TRUE" ] ; then
-				echo "PUT operation has been suppressed. Resource will not be put in DB. Working Directory will not be deleted."
-			else
-				${put_submit_cmd}
-			fi
+			create_fsfs_job_no=`${create_fsfs_submit_cmd}`
+			echo "create_fsfs_job_no: ${create_fsfs_job_no}"
 
-		done # postfix in RL LR
+		fi
 
 	done # scan_name in ${resting_state_scan_names}
 }
