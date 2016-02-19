@@ -339,7 +339,7 @@ main()
 	echo "----- Platform Information: End -----"
 
 	# Set up step counters
-	init_steps 12
+	init_steps 13
 
 	show_xnat_workflow
 
@@ -444,13 +444,22 @@ main()
 	increment_step
 	update_xnat_workflow ${g_current_step} "Create FSFs" ${g_step_percent}
 
+	# remove any existing FSF CSV file
+	fsf_csv_file=${g_working_dir}/${g_subject}/fsf/csv/${g_subject}_hcpxpackage.csv
+	if [ -e "${fsf_csv_file}" ] ; then
+		rm ${fsf_csv_file}
+	fi
+
+	# remove any existing FSF files
+	fsf_files=`ls -1 ${g_working_dir}/${g_subject}/fsf/FSFs/${g_subject}/*.fsf`
+	for fsf_file in ${fsf_files} ; do
+		rm ${fsf_file}
+	done
+
 	host_without_port=${g_create_fsfs_server%:*}
 
-	echo "PATH: ${PATH}"
-	which dos2unix
 	export PATH="${HOME}/bin:${PATH}" # make sure ${HOME}/bin/dos2unix can be found, copied there from /usr/bin
 	echo "PATH: ${PATH}"
-	which dos2unix
 
 	local create_fsfs_cmd=""
 	create_fsfs_cmd+="${NRG_PACKAGES}/tools/HCP/FSF/callCreateFSFs.sh"
@@ -505,7 +514,11 @@ main()
 	mkdir -p ${to_dir}
 	cp --verbose ${from_file} ${to_dir}
 
-	# Get EVs
+	# ----------------------------------------------------------------------------------------------
+	# Step - Get EVs
+	# ----------------------------------------------------------------------------------------------
+	increment_step
+	update_xnat_workflow ${g_current_step} "Get EVs" ${g_step_percent}
 
 	echo "Copying EVs"
 	for direction in RL LR ; do
@@ -685,11 +698,11 @@ main()
 	# ----------------------------------------------------------------------------------------------
 	# Step - Remove any files that are not newly created or modified
 	# ----------------------------------------------------------------------------------------------
-	increment_step
-	update_xnat_workflow ${g_current_step} "Remove files not newly created or modified" ${g_step_percent}
-
-	echo "The following files are being removed"
-	find ${g_working_dir} -not -newer ${start_time_file} -print -delete || die 
+#	increment_step
+#	update_xnat_workflow ${g_current_step} "Remove files not newly created or modified" ${g_step_percent}
+#
+#	echo "The following files are being removed"
+#	find ${g_working_dir} -not -newer ${start_time_file} -print -delete 
 	
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
