@@ -14,21 +14,8 @@ read password
 echo ""
 stty echo
 
-#printf "Delay until first submission (minutes) [0]: "
-#read delay
-#
-#if [ -z "${delay}" ]; then
-#	delay=0
-#fi
-#
-#printf "Interval between submissions (minutes) [60]: "
-#read interval
-#
-#if [ -z "${interval}" ]; then
-#	interval=60
-#fi
-
 project="HCP_Staging_7T"
+reference_project="HCP_500"
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.FunctionalPreprocessingHCP.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
@@ -51,12 +38,14 @@ for subject in ${subjects} ; do
 		echo " Using put-server: ${server}"
 		echo "--------------------------------------------------------------------------------"
 		
-		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/7T/FunctionalPreprocessingHCP/SubmitFunctionalPreprocessingHCP.OneSubject.sh \
+		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/7T/FunctionalPreprocessingHCP7T/SubmitFunctionalPreprocessingHCP7T.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
 			--put-server=${server} \
 			--project=${project} \
-			--subject=${subject}
+			--subject=${subject} \
+			--structural-reference-project=${reference_project} \
+			--structural-reference-session=${subject}_3T
 
 		shadow_number=$((shadow_number+1))
 		
