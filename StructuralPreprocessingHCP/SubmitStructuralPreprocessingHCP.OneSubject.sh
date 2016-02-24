@@ -145,9 +145,9 @@ main()
 	current_seconds_since_epoch=`date +%s`
 
 	if [ ! -z "${g_seed}" ] ; then
-		working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.Seed${g_seed}.${current_seconds_since_epoch}_${g_subject}"
+		working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.${g_subject}.Seed${g_seed}.${current_seconds_since_epoch}"
 	else
-		working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.${current_seconds_since_epoch}_${g_subject}"
+		working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.${g_subject}.${current_seconds_since_epoch}"
 	fi
 
 	# Make the working directory

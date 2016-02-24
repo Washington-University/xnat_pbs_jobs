@@ -160,7 +160,7 @@ main()
 	unset pre_eddy_jobno
 
 	current_seconds_since_epoch=`date +%s`
-	working_directory_name="${BUILD_HOME}/${g_project}/DiffusionHCP.${current_seconds_since_epoch}_${g_subject}"
+	working_directory_name="${BUILD_HOME}/${g_project}/DiffusionHCP.${g_subject}.${current_seconds_since_epoch}"
 
 	# Make the working directory
 	echo "Making working directory: ${working_directory_name}"
