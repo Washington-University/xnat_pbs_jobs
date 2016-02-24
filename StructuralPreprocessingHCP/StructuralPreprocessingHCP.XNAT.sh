@@ -71,6 +71,8 @@ SECOND_T1W_FILE_NAME_BASE="T1w_MPR2"
 FIRST_T2W_FILE_NAME_BASE="T2w_SPC1"
 SECOND_T2W_FILE_NAME_BASE="T2w_SPC2"
 
+
+
 UNPROC_SUFFIX="_unproc"
 
 COMPRESSED_NIFTI_EXTENSION=".nii.gz"
@@ -358,6 +360,20 @@ does_second_t2w_scan_exist()
 	echo ${does_it_exist}
 }
 
+do_gradient_echo_field_maps_exist()
+{
+	magnitude_fieldmaps=`find ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/T[1-2]w*_unproc -maxdepth 1 -name "*${MAG_FIELDMAP_NAME}*"`
+	phase_fieldmaps=`find ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/T[1-2]w*_unproc -maxdepth 1 -name "*${PHASE_FIELDMAP_NAME}*"`
+
+	if [ -z "${magnitude_fieldmaps}" ] ; then
+		echo "FALSE"
+	elif [ -z "${phase_fieldmaps}" ] ; then
+		echo "FALSE"
+	else
+		echo "TRUE"
+	fi
+}
+
 get_scan_data() 
 {
 	local resource_name="${1}"
@@ -488,8 +504,6 @@ get_parameters_for_second_t2w_scan()
 	fi
 }
 
-
-
 # Main processing
 #   Carry out the necessary steps to:
 #   - get prerequisite data for the Strucutral Preprocessing pipeline 
@@ -600,6 +614,8 @@ main()
 		get_parameters_for_second_t2w_scan
 	fi
 
+	gradient_echo_field_maps_exist=`do_gradient_echo_field_maps_exist`
+
 	# build specification of T1w scans
 
 	t1_spec=""
@@ -695,17 +711,29 @@ main()
 	PreFreeSurfer_cmd+=" --fnirtconfig=${HCPPIPEDIR}/global/config/T1_2_MNI152_2mm.cnf"
 	PreFreeSurfer_cmd+=" --gdcoeffs=${HCPPIPEDIR}/global/config/coeff_SC72C_Skyra.grad"
 	PreFreeSurfer_cmd+=" --brainsize=150"
-	PreFreeSurfer_cmd+=" --echodiff=${g_first_t1w_deltaTE}"
-	PreFreeSurfer_cmd+=" --t1samplespacing=${g_first_t1w_sample_spacing}"
-	PreFreeSurfer_cmd+=" --t2samplespacing=${g_first_t2w_sample_spacing}"
 
 	if [[ ("${g_fieldmap_type}" == "GE") || ("${g_fieldmap_type}" == "SiemensGradientEcho") ]] ; then
 		# add parameters for Gradient Echo fieldmap usage
-		PreFreeSurfer_cmd+=" --avgrdcmethod=FIELDMAP"
-		PreFreeSurfer_cmd+=" --topupconfig=NONE"
-		PreFreeSurfer_cmd+=" --fmapmag=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
-		PreFreeSurfer_cmd+=" --fmapphase=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${PHASE_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
-		PreFreeSurfer_cmd+=" --unwarpdir=z"
+
+		if [ "${gradient_echo_field_maps_exist}" = "TRUE"] ; then
+			PreFreeSurfer_cmd+=" --echodiff=${g_first_t1w_deltaTE}"
+			PreFreeSurfer_cmd+=" --t1samplespacing=${g_first_t1w_sample_spacing}"
+			PreFreeSurfer_cmd+=" --t2samplespacing=${g_first_t2w_sample_spacing}"
+			PreFreeSurfer_cmd+=" --avgrdcmethod=FIELDMAP"
+			PreFreeSurfer_cmd+=" --topupconfig=NONE"
+			PreFreeSurfer_cmd+=" --fmapmag=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
+			PreFreeSurfer_cmd+=" --fmapphase=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${PHASE_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
+			PreFreeSurfer_cmd+=" --unwarpdir=z"
+		else
+			PreFreeSurfer_cmd+=" --echodiff=NONE"
+			PreFreeSurfer_cmd+=" --t1samplespacing=NONE"
+			PreFreeSurfer_cmd+=" --t2samplespacing=NONE"
+			PreFreeSurfer_cmd+=" --avgrdcmethod=NONE"
+			PreFreeSurfer_cmd+=" --topupconfig=NONE"
+			PreFreeSurfer_cmd+=" --fmapmag=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
+			PreFreeSurfer_cmd+=" --fmapphase=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${PHASE_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
+			PreFreeSurfer_cmd+=" --unwarpdir=z"
+		fi
 	elif [[ ("${g_fieldmap_type}" == "SE") || ("${g_fieldmap_type}" == "SpinEcho") ]] ; then
 		# add parameters for SpinEcho fieldmap usage
 		echo "SpinEcho fieldmaps UNHANDLED YET"
@@ -803,15 +831,6 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "GENERATE_SNAPSHOT" ${step_percent}
 
-	snap_montage_cmd=""
-	snap_montage_cmd+="source ${SCRIPTS_HOME}/freesurfer53_setup.sh; xvfb_wrapper.sh ${NRG_PACKAGES}/tools/HCP/Freesurfer/freesurfer_includes/snap_montage_fs5.csh"
-	snap_montage_cmd+=" ${g_subject}"
-	snap_montage_cmd+=" ${g_working_dir}/${g_subject}/T1w"
-
-	echo ""
-	echo "snap_montage_cmd: ${snap_montage_cmd}"
-	echo ""
-
 	# use a sub-shell so that freesurfer53_setup.sh only affects the snap_montage_cmd 
 	(
 		snap_montage_cmd=""
@@ -878,7 +897,7 @@ main()
 
 	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_xnat_session_id}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}?allowDataDeletion=true&inbody=true"
 
-	java_cmd+="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
+	java_cmd="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
 	java_cmd+=" -u ${g_user}"
 	java_cmd+=" -p ${g_password}"
 	java_cmd+=" -r ${resource_uri}"	
@@ -907,7 +926,7 @@ main()
 
 	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_xnat_session_id}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}/resources/SNAPSHOTS/files?overwrite=true&replace=true&reference=${g_working_dir}/T1w/${g_subject}/snapshots"
 
-	java_cmd+="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
+	java_cmd="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
 	java_cmd+=" -u ${g_user}"
 	java_cmd+=" -p ${g_password}"
 	java_cmd+=" -r ${resource_uri}"	
