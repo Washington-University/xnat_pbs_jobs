@@ -28,7 +28,7 @@ link_hcp_struct_unproc_data()
 
 	echo ""
 	echo "----------" `date` "----------"
-    echo "Linking HCP Structural Unprocessed data from archive"
+    echo "Linking HCP 3T Structural Unprocessed data from archive"
     echo " Archive: ${archive}"
     echo " Project: ${project}"
     echo " Subject: ${subject}"
@@ -100,20 +100,21 @@ link_hcp_struct_unproc_data()
 	popd
 }
 
-link_hcp_resting_state_unproc_data()
+internal_link_hcp_resting_state_unproc_data()
 {
 	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
 	local project=${2} # e.g. HCP_500
 	local subject=${3} # e.g. 100307
 	local session=${4} # e.g. 100307_3T
 	local to_study_dir=${5}
+	local unprocessed_subdir=${6}
 
 	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
 	local DATABASE_RESOURCES_ROOT="RESOURCES"
 
 	echo ""
 	echo "----------" `date` "----------"
-    echo "Linking HCP Resting State Unprocessed data from archive"
+    echo "Linking HCP Resting State Unprocessed data from archive to unprocessed/${unprocessed_subdir}"
     echo " Archive: ${archive}"
     echo " Project: ${project}"
     echo " Subject: ${subject}"
@@ -144,7 +145,7 @@ link_hcp_resting_state_unproc_data()
 		link_from+="/${resting_state_resource}/*"
 
 		local link_to=""
-		link_to="${to_study_dir}/${subject}/unprocessed/3T/${resting_state_dir}"
+		link_to="${to_study_dir}/${subject}/unprocessed/${unprocessed_subdir}/${resting_state_dir}"
 		mkdir --parents ${link_to}
 
 		local link_cmd=""
@@ -159,7 +160,7 @@ link_hcp_resting_state_unproc_data()
 	popd
 }
 
-link_hcp_diffusion_unproc_data()
+link_hcp_3T_resting_state_unproc_data()
 {
 	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
 	local project=${2} # e.g. HCP_500
@@ -167,12 +168,46 @@ link_hcp_diffusion_unproc_data()
 	local session=${4} # e.g. 100307_3T
 	local to_study_dir=${5}
 
+	internal_link_hcp_resting_state_unproc_data "${archive}" "${project}" "${subject}" "${session}" "${to_study_dir}" "3T"
+}
+
+link_hcp_7T_resting_state_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_7T
+	local to_study_dir=${5}
+
+	internal_link_hcp_resting_state_unproc_data "${archive}" "${project}" "${subject}" "${session}" "${to_study_dir}" "7T"
+}
+
+link_hcp_resting_state_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	link_hcp_3T_resting_state_unproc_data "${archive}" "${project}" "${subject}" "${session}" "${to_study_dir}"
+}
+
+internal_link_hcp_diffusion_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+	local unprocessed_subdir=${6}
+
 	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
 	local DATABASE_RESOURCES_ROOT="RESOURCES"
 
 	echo ""
 	echo "----------" `date` "----------"
-    echo "Linking HCP Diffusion Unprocessed data from archive"
+    echo "Linking HCP Diffusion Unprocessed data from archive to unprocessed/${unprocessed_subdir}"
     echo " Archive: ${archive}"
     echo " Project: ${project}"
     echo " Subject: ${subject}"
@@ -203,7 +238,7 @@ link_hcp_diffusion_unproc_data()
 		link_from+="/${diffusion_resource}/*"
 
 		local link_to=""
-		link_to="${to_study_dir}/${subject}/unprocessed/3T/${diffusion_dir}"
+		link_to="${to_study_dir}/${subject}/unprocessed/${unprocessed_subdir}/${diffusion_dir}"
 		mkdir --parents ${link_to}
 
 		local link_cmd=""
@@ -218,7 +253,7 @@ link_hcp_diffusion_unproc_data()
 	popd
 }
 
-link_hcp_task_unproc_data()
+link_hcp_3T_diffusion_unproc_data()
 {
 	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
 	local project=${2} # e.g. HCP_500
@@ -226,12 +261,46 @@ link_hcp_task_unproc_data()
 	local session=${4} # e.g. 100307_3T
 	local to_study_dir=${5}
 
+	internal_link_hcp_diffusion_unproc_data "${archive}" "${project}" "${subject}" "${session}" "${to_study_dir}" "3T"
+}
+
+link_hcp_7T_diffusion_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_7T
+	local to_study_dir=${5}
+
+	internal_link_hcp_diffusion_unproc_data "${archive}" "${project}" "${subject}" "${session}" "${to_study_dir}" "7T"
+}
+
+link_hcp_diffusion_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	link_hcp_3T_diffusion_unproc_data "${archive}" "${project}" "${subject}" "${session}" "${to_study_dir}"
+}
+
+internal_link_hcp_task_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+	local unprocessed_subdir=${6}
+
 	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
 	local DATABASE_RESOURCES_ROOT="RESOURCES"
 
 	echo ""
 	echo "----------" `date` "----------"
-    echo "Linking HCP Task Unprocessed data from archive"
+    echo "Linking HCP Task Unprocessed data from archive to unprocessed/${unprocessed_subdir}"
     echo " Archive: ${archive}"
     echo " Project: ${project}"
     echo " Subject: ${subject}"
@@ -262,7 +331,7 @@ link_hcp_task_unproc_data()
 		link_from+="/${task_resource}/*"
 
 		local link_to=""
-		link_to="${to_study_dir}/${subject}/unprocessed/3T/${task_dir}"
+		link_to="${to_study_dir}/${subject}/unprocessed/${unprocessed_subdir}/${task_dir}"
 		mkdir --parents ${link_to}
 
 		local link_cmd=""
@@ -275,6 +344,39 @@ link_hcp_task_unproc_data()
 	done
 	
 	popd
+}
+
+link_hcp_3T_task_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	internal_link_hcp_task_unproc_data "${archive}" "${project}" "${subject}" "${session}" "${to_study_dir}" "3T"
+}
+
+link_hcp_7T_task_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	internal_link_hcp_task_unproc_data "${archive}" "${project}" "${subject}" "${session}" "${to_study_dir}" "7T"
+}
+
+link_hcp_task_unproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5}
+
+	link_hcp_3T_task_unproc_data "${archive}" "${project}" "${subject}" "${session}" "${to_study_dir}"
 }
 
 link_hcp_struct_preproc_data()
