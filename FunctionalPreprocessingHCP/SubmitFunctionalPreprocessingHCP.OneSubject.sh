@@ -27,8 +27,13 @@ source ${SCRIPTS_HOME}/epd-python_setup.sh
 DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
 echo "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
 
-POSITIVE_PHASE_ENCODING_DIR=RL
-NEGATIVE_PHASE_ENCODING_DIR=LR
+TASK_FMRI_PREFIX="tfMRI"
+RESTING_STATE_FMRI_PREFIX="rfMRI"
+
+POSITIVE_PHASE_ENCODING_DIR="RL"
+NEGATIVE_PHASE_ENCODING_DIR="LR"
+
+UNPROCESSED_SUFFIX="unproc"
 
 get_options()
 {
@@ -137,12 +142,12 @@ main()
 	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES
 
 	resting_state_scan_names=""
-	resting_state_scan_dirs=`ls -d rfMRI_*_unproc`
+	resting_state_scan_dirs=`ls -d ${RESTING_STATE_FMRI_PREFIX}_*_${UNPROCESSED_SUFFIX}`
 	for resting_state_scan_dir in ${resting_state_scan_dirs} ; do
-		scan_name=${resting_state_scan_dir%%_unproc}
+		scan_name=${resting_state_scan_dir%%_${UNPROCESSED_SUFFIX}}
 		scan_name=${scan_name%%_${NEGATIVE_PHASE_ENCODING_DIR}}
 		scan_name=${scan_name%%_${POSITIVE_PHASE_ENCODING_DIR}}
-		scan_name=${scan_name##rfMRI_}
+		scan_name=${scan_name##${RESTING_STATE_FMRI_PREFIX}_}
 		resting_state_scan_names=${resting_state_scan_names//$scan_name/}
 		resting_state_scan_names+=" ${scan_name}"
 	done
@@ -155,12 +160,12 @@ main()
 	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES
 	
 	task_scan_names=""
-	task_scan_dirs=`ls -d tfMRI_*_unproc`
+	task_scan_dirs=`ls -d ${TASK_FMRI_PREFIX}_*_${UNPROCESSED_SUFFIX}`
 	for task_scan_dir in ${task_scan_dirs} ; do
-		scan_name=${task_scan_dir%%_unproc}
+		scan_name=${task_scan_dir%%_${UNPROCESSED_SUFFIX}}
 		scan_name=${scan_name%%_${NEGATIVE_PHASE_ENCODING_DIR}}
 		scan_name=${scan_name%%_${POSITIVE_PHASE_ENCODING_DIR}}
-		scan_name=${scan_name##tfMRI_}
+		scan_name=${scan_name##${TASK_FMRI_PREFIX}_}
 		task_scan_names=${task_scan_names//$scan_name/}
 		task_scan_names+=" ${scan_name}"
 	done
@@ -180,10 +185,10 @@ main()
 
 		if [ "${resting_match_check}" != "${resting_state_scan_names}" ] ; then
 			# scan is a resting state scan
-			prefix="rfMRI"
+			prefix="${RESTING_STATE_FMRI_PREFIX}"
 		elif [ "${task_match_check}" != "${task_scan_names}" ] ; then
 			# scan is a task scan
-			prefix="tfMRI"
+			prefix="${TASK_FMRI_PREFIX}"
 		else
 			echo "Unable to determine whether ${scan_name} is a resting state or task scan"
 			echo "ABORTING"
@@ -214,7 +219,7 @@ main()
 		sleep 5s
 
 		current_seconds_since_epoch=`date +%s`
-		working_directory_name="${BUILD_HOME}/${g_project}/FunctionalPreprocessingHCP_${current_seconds_since_epoch}_${g_subject}_${scan}"
+		working_directory_name="${BUILD_HOME}/${g_project}/FunctionalPreprocessingHCP.${g_subject}.${scan}.${current_seconds_since_epoch}"
 
 		# Make the working directory
 		echo "Making working directory: ${working_directory_name}"
@@ -289,7 +294,6 @@ main()
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
 		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit} 
 		echo "  --xnat-session-id=${sessionID} " >> ${script_file_to_submit}
-#		echo "  --create-fsfs-server=\"${g_put_server}\" " >> ${script_file_to_submit}
 		
 		chmod +x ${script_file_to_submit}
 
@@ -405,7 +409,6 @@ main()
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
 		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit} 
 		echo "  --xnat-session-id=${sessionID} " >> ${script_file_to_submit}
-#		echo "  --create-fsfs-server=\"${g_put_server}\" " >> ${script_file_to_submit}
 		
 		chmod +x ${script_file_to_submit}
 
@@ -455,7 +458,10 @@ main()
 		#  Submit job for creating FSFs if appropriate
 		# ------------------------------------------------------
 
-		if [ "${prefix}" = "tfMRI" ] ; then
+		if [ "${prefix}" = "${TASK_FMRI_PREFIX}" ] ; then
+
+			create_fsfs_working_dir="${BUILD_HOME}/${g_project}/CreateFSFs_${current_seconds_since_epoch}_${g_subject}_${scan}"
+			mkdir -p ${create_fsfs_working_dir}
 
 			# create file to submit
 			create_fsfs_file_to_submit=${LOG_DIR}/${g_subject}.${prefix}_${scan_name}.CreateFSFs.${g_project}.${g_session}.${current_seconds_since_epoch}.PBS.job.sh
@@ -475,7 +481,7 @@ main()
  			echo "  --user=\"${g_user}\" \\" >> ${create_fsfs_file_to_submit}
  			echo "  --password=\"${g_password}\" \\" >> ${create_fsfs_file_to_submit}
 			echo "  --server=\"${put_server_without_port}\" \\" >> ${create_fsfs_file_to_submit}
-			echo "  --working-dir=\"${BUILD_HOME}/${g_project}/${g_subject}/\" \\" >> ${create_fsfs_file_to_submit}
+			echo "  --working-dir=\"${create_fsfs_working_dir}"
 			echo "  --project=\"${g_project}\" \\" >> ${create_fsfs_file_to_submit}
 			echo "  --subject=\"${g_subject}\" \\" >> ${create_fsfs_file_to_submit}
 			echo "  --series=\"${scan_without_dir}\" " >> ${create_fsfs_file_to_submit}
@@ -490,7 +496,7 @@ main()
 
 		fi
 
-	done # scan_name in ${resting_state_scan_names}
+	done 
 }
 
 # Invoke the main function to get things started
