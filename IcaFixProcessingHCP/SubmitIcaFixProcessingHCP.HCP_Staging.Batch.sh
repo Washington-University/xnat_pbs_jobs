@@ -59,7 +59,8 @@ for subject in ${subjects} ; do
 			--password=${password} \
 			--put-server=${server} \
 			--project=${project} \
-			--subject=${subject}
+			--subject=${subject} \
+			--suppress-put
 #EOF
 	
 		#delay=$((delay + interval))

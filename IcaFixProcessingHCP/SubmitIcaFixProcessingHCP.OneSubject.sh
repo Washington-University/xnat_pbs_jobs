@@ -39,6 +39,7 @@ get_options()
 	unset g_subject
 	unset g_session
 	unset g_put_server
+	unset g_suppress_put
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -75,6 +76,10 @@ get_options()
 				;;
 			--put-server=*)
 				g_put_server=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--suppress-put*)
+				g_suppress_put="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -124,6 +129,11 @@ get_options()
 		g_put_server="db.humanconnectome.org"
 	fi
 	echo "PUT server: ${g_put_server}"
+
+	if [ -z "${g_suppress_put}" ]; then
+		g_suppress_put="FALSE"
+	fi
+	echo "Suppress PUT: ${g_suppress_put}"
 }
 
 main()
@@ -183,7 +193,7 @@ main()
 			sleep 5s
 
 			current_seconds_since_epoch=`date +%s`
-			working_directory_name="${BUILD_HOME}/${g_project}/IcaFixProcessingHCP_${current_seconds_since_epoch}_${g_subject}_${scan}"
+			working_directory_name="${BUILD_HOME}/${g_project}/IcaFixProcessingHCP.${g_subject}.${scan}.${current_seconds_since_epoch}"
 
 			# Make the working directory
 			echo "Making working directory: ${working_directory_name}"
@@ -296,9 +306,14 @@ main()
 
 			chmod +x ${put_script_file_to_submit}
 
-			submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
-			echo "submit_cmd: ${submit_cmd}"
-			${submit_cmd}
+			put_submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
+			echo "put_submit_cmd: ${put_submit_cmd}"
+
+			if [ "${g_suppress_put}" = "TRUE" ] ; then
+				echo "PUT operation has been suppressed. Resource will not be put in DB. Working Directory will not be deleted."
+			else
+				${put_submit_cmd}
+			fi
 
 		done # pe_dir in ${phase_encoding_dirs}
 
