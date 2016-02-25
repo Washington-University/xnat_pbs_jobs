@@ -404,7 +404,7 @@ main()
 	volume_cmd+=" --unwarpdir=y"
 	volume_cmd+=" --fmrires=1.60"
 	volume_cmd+=" --dcmethod=TOPUP"
-	volume_cmd+=" --gdcoeffs=NONE"
+	volume_cmd+=" --gdcoeffs=${HCPPIPEDIR}/global/config/trunc.CMRR_7TAS_coeff_SC72CD.grad"
 	volume_cmd+=" --topupconfig=${HCPPIPEDIR}/global/config/b02b0.cnf"
 	volume_cmd+=" --fmapmag=NONE"
 	volume_cmd+=" --fmapphase=NONE"
