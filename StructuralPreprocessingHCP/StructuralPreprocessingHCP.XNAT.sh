@@ -104,18 +104,37 @@ usage()
 	echo ""
 	echo "   [--help] : show usage information and exit"
 	echo ""
-	echo "    --user=<username>      : XNAT DB username"
-	echo "    --password=<password>  : XNAT DB password"
-	echo "    --server=<server>      : XNAT server (e.g. db.humanconnectome.org)"
-	echo "    --project=<project>    : XNAT project (e.g. HCP_500)"
-	echo "    --subject=<subject>    : XNAT subject ID within project (e.g. 100307)"
-	echo "    --session=<session>    : XNAT session ID within project (e.g. 100307_3T)"
-	echo "    --working-dir=<dir>    : Working directory in which to place retrieved data"
-	echo "                             and in which to produce results"
-	echo "    --workflow-id=<id>     : XNAT Workflow ID to update as steps are completed"
-	echo "   [--seed=<rng-seed>]     : Random number generator seed for recon-all, passed to FreeSurferPipeline.sh script"
+	echo "    --user=<username>        : XNAT DB username"
+	echo "    --password=<password>    : XNAT DB password"
+	echo "    --server=<server>        : XNAT server (e.g. db.humanconnectome.org)"
+	echo "    --project=<project>      : XNAT project (e.g. HCP_500)"
+	echo "    --subject=<subject>      : XNAT subject ID within project (e.g. 100307)"
+	echo "    --session=<session>      : XNAT session ID within project (e.g. 100307_3T)"
+	echo "    --working-dir=<dir>      : Working directory in which to place retrieved data"
+	echo "                               and in which to produce results"
+	echo "    --workflow-id=<id>       : XNAT Workflow ID to update as steps are completed"
+	echo "   [--fieldmap-type=<type>]  : <type> values"
+	echo "                               GE: Siemens Gradient Echo Fieldmaps"
+	echo "                               SiemensGradientEcho: Siemens Gradient Echo Fieldmaps (equiv. to GE)"
+    echo "                               SE: Spin Echo Fieldmaps"
+	echo "                               SpinEcho: Spin Echo Fieldmaps (equiv. to SE)"
+	echo "                               NONE: No fieldmaps"
+	echo "                               If unspecified, defaults to GE"
+	echo "   [--phase-encoding-dir=<dir-indication>]"
+	echo "                             : <dir-indication> values"
+	echo "                               RL: Phase Encoding directions used are RL (positive) and LR (negative)"
+	echo "                               LR: same as RL"
+	echo "                               PA: Phase Encoding directions used are PA (positive) and AP (negative)" 
+	echo "                               AP: same as PA"
+	echo "                               If unspecified, defaults to RL"
+	echo "   [--seed=<rng-seed>]       : Random number generator seed for recon-all, passed to FreeSurferPipeline.sh script"
+	echo "                               If unspecified, no seed value is passed to the FreeSurferPipeline.sh script."
+	echo "                               In that case, no seed value is passsed to random number generator seed using"
+	echo "                               tools."
+	echo "   [--brainsize=<brainsize>] : brainsize value passed to the PreFreeSurferPipeline.sh script"
+	echo "                               If unspecified, the default value of 150 is used."
 	echo "    --xnat-session-id=$<xnat-session-id> "
-	echo "                           : e.g. ConnectomeDB_E17905 "
+	echo "                             : e.g. ConnectomeDB_E17905 "
 	echo ""
 }
 
@@ -137,6 +156,7 @@ get_options()
 	unset g_fieldmap_type
 	unset g_phase_encoding_dir
 	unset g_seed
+	unset g_brainsize
 	unset g_xnat_session_id
 
 	# parse arguments
@@ -194,6 +214,10 @@ get_options()
 				;;
 			--seed=*)
 				g_seed=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--brainsize=*)
+				g_brainsize=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--xnat-session-id=*)
@@ -296,6 +320,11 @@ get_options()
 	if [ ! -z "{g_seed}" ]; then
 		echo "g_seed: ${g_seed}"
 	fi
+
+	if [ -z "{g_brainsize}" ]; then
+		g_brainsize="150"
+	fi
+	echo "g_brainsize: ${g_brainsize}"
 
 	if [ -z "${g_xnat_session_id}" ] ; then
 		echo "ERROR: --xnat-session-id= required"
@@ -710,7 +739,7 @@ main()
 	PreFreeSurfer_cmd+=" --template2mmmask=${HCPPIPEDIR}/global/templates/MNI152_T1_2mm_brain_mask_dil.nii.gz"
 	PreFreeSurfer_cmd+=" --fnirtconfig=${HCPPIPEDIR}/global/config/T1_2_MNI152_2mm.cnf"
 	PreFreeSurfer_cmd+=" --gdcoeffs=${HCPPIPEDIR}/global/config/coeff_SC72C_Skyra.grad"
-	PreFreeSurfer_cmd+=" --brainsize=150"
+	PreFreeSurfer_cmd+=" --brainsize=${g_brainsize}"
 
 	if [[ ("${g_fieldmap_type}" == "GE") || ("${g_fieldmap_type}" == "SiemensGradientEcho") ]] ; then
 		# add parameters for Gradient Echo fieldmap usage
@@ -924,7 +953,7 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Put snapshots in DB and remove local copies" ${step_percent}
 
-	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_xnat_session_id}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}/resources/SNAPSHOTS/files?overwrite=true&replace=true&reference=${g_working_dir}/T1w/${g_subject}/snapshots"
+	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_xnat_session_id}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}/resources/SNAPSHOTS/files?overwrite=true&replace=true&reference=${g_working_dir}/${g_subject}/T1w/${g_subject}/snapshots"
 
 	java_cmd="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
 	java_cmd+=" -u ${g_user}"
