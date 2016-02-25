@@ -10,9 +10,12 @@ echo ""
 stty echo
 
 seed=1234
-project="HCP_Staging"
-shadow_number=1
 subject="116423"
+shadow_number=1
+node="node113"
+brainsize="160"
+
+project="HCP_Staging"
 server="db-shadow${shadow_number}.nrg.mir:8080"
 
 echo ""
@@ -30,8 +33,8 @@ at now <<EOF
 	--project=${project} \
 	--subject=${subject} \
 	--seed=${seed} \
-	--node=node113 \
-	--
+	--node=${node} \
+	--brainsize=${brainsize}
 
 EOF
 

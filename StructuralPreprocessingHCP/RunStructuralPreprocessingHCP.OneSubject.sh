@@ -150,7 +150,17 @@ main()
 	unset depend_on_job
 
 	current_seconds_since_epoch=`date +%s`
-	working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.Seed${g_seed}.${current_seconds_since_epoch}_${g_subject}"
+	working_directory_name="${BUILD_HOME}/${g_project}/StructuralPreprocHCP.${g_subject}"
+
+	if [ ! -z "${g_seed}" ]; then
+		working_directory_name+=".Seed${g_seed}"
+	fi
+
+	if [ ! -z "${g_brainsize}" ]; then
+		working_directory_name+=".Brainsize${g_brainsize}"
+	fi
+
+	working_directory_name+=".${current_seconds_since_epoch}"
 
 	# Make the working directory
 	echo "Making working directory: ${working_directory_name}"
@@ -251,16 +261,20 @@ main()
  	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
  	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
  	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
- 	echo "  --resource-suffix=\"Structural_preproc_Seed${g_seed}\" " >> ${put_script_file_to_submit} 
+
+	resource_suffix="Structural_preproc"
+
+	if [ ! -z "${g_seed}" ] ; then
+		resource_suffix+="_Seed${g_seed}"
+	fi
+
+	if [ ! -z "${g_brainsize}" ] ; then
+		resource_suffix+="_Brainsize${g_brainsize}"
+	fi
+
+	echo "  --resource-suffix=\"${resource_suffix}\" " >> ${put_script_file_to_submit}
 
 	chmod +x ${put_script_file_to_submit}
-
-	# fix after testing
- 	#echo "  --resource-suffix=\"Structural_preproc\" " >> ${put_script_file_to_submit} 
-
- 	#submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
- 	#echo "submit_cmd: ${submit_cmd}"
- 	#${submit_cmd}
 
 	standard_out_file=${LOG_DIR}/${g_subject}.StructuralPreprocHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.interactive_PUT.stdout
 	standard_err_file=${LOG_DIR}/${g_subject}.StructuralPreprocHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.interactive_PUT.stderr
