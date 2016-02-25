@@ -27,6 +27,7 @@ get_options()
 	unset g_subject
 	unset g_session
 	unset g_seed
+	unset g_brainsize
 	unset g_put_server
 
 	# parse arguments
@@ -70,7 +71,10 @@ get_options()
 				g_seed=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-				
+			--brainsize=*)
+				g_brainsize=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
 			*)
 				echo "ERROR: unrecognized option: ${argument}"
 				echo ""
@@ -116,6 +120,10 @@ get_options()
 
 	if [ ! -z "${g_seed}" ]; then
 		echo "Random number generator seed for recon-all: ${g_seed}"
+	fi
+
+	if [ ! -z "${g_brainsize}" ]; then
+		echo "brainsize: ${g_brainsize}"
 	fi
 
 	if [ -z "${g_put_server}" ]; then
@@ -205,7 +213,15 @@ main()
 	echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
 	echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit} 
-	echo "  --seed=${g_seed} \\" >> ${script_file_to_submit}
+
+	if [ ! -z "${g_seed}" ]; then
+		echo "  --seed=${g_seed} \\" >> ${script_file_to_submit}
+	fi
+
+	if [ ! -z "${g_brainsize}" ]; then
+		echo "  --brainsize=${g_brainsize} \\" >> ${script_file_to_submit}
+	fi
+
 	echo "  --xnat-session-id=${sessionID}" >> ${script_file_to_submit}
 
 	chmod +x ${script_file_to_submit}
