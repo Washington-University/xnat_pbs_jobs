@@ -317,11 +317,11 @@ get_options()
 		error_count=$(( error_count + 1 ))		
 	fi
 
-	if [ ! -z "{g_seed}" ]; then
+	if [ ! -z "${g_seed}" ]; then
 		echo "g_seed: ${g_seed}"
 	fi
 
-	if [ -z "{g_brainsize}" ]; then
+	if [ -z "${g_brainsize}" ]; then
 		g_brainsize="150"
 	fi
 	echo "g_brainsize: ${g_brainsize}"
