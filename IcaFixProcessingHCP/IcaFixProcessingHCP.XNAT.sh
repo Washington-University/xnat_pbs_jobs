@@ -258,7 +258,7 @@ main()
 	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
 
 	# Set up step counters
-	total_steps=12
+	total_steps=10
 	current_step=0
 
 	# Set up to run Python
@@ -390,18 +390,32 @@ main()
 	echo "Newly created/modified files:"
 	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
 	
-	# # ----------------------------------------------------------------------------------------------
-	# # Step - Remove any files that are not newly created or modified
-	# # ----------------------------------------------------------------------------------------------
-	# current_step=$(( current_step + 1 ))
-	# step_percent=$(( (current_step * 100) / total_steps ))
+	# ----------------------------------------------------------------------------------------------
+	# Step - Remove any files that are not newly created or modified
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
 
-	# xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-	# 	${current_step} "Remove files not newly created or modified" ${step_percent}
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Remove files not newly created or modified" ${step_percent}
 	
-	# echo "The following files are being removed"
-	# find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete 
+	echo "The following files are being removed"
+	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete 
 	
+	# ----------------------------------------------------------------------------------------------
+	# Step - Move data up in directory tree to match what is expected to be in pushed resource
+	# ----------------------------------------------------------------------------------------------
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Move data up in directory tree" ${step_percent}
+
+	mv --verbose ${g_working_dir}/${g_subject}/MNINonLinear/Results/rfMRI_REST* ${g_working_dir}
+	rm --verbose --recursive --force ${g_working_dir}/${g_subject}
+	mkdir --verbose ${g_working_dir}/${g_subject}
+	mv --verbose ${g_working_dir}/rfMRI_REST* ${g_working_dir}/${g_subject}
+
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
 	# ----------------------------------------------------------------------------------------------
