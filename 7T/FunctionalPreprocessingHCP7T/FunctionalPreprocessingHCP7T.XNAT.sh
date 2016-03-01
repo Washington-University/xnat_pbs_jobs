@@ -464,14 +464,14 @@ main()
 
 	if [[ ${g_scan} == tfMRI* ]] ; then
 		
-		from_dir=${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${g_scan}_unproc/LINKED_DATA/*
+		from_dir=${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${g_scan}_unproc/LINKED_DATA
 		echo "from_dir: ${from_dir}"
 
 		to_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${fmriname}/LINKED_DATA
 		echo "to_dir: ${to_dir}"
 		
 		mkdir -p ${to_dir}
-		cp --verbose ${from_dir}/* ${to_dir}
+		cp --verbose --recursive ${from_dir}/* ${to_dir}
 
 	fi
 
