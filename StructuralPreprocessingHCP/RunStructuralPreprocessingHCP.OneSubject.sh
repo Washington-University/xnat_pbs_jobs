@@ -241,7 +241,7 @@ main()
 
 
  	# Run job to put the results in the DB
- 	put_script_file_to_submit=${LOG_DIR}/${g_subject}.StructuralPreprocHCP.${g_project}.${g_session}${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+ 	put_script_file_to_submit=${LOG_DIR}/${g_subject}.StructuralPreprocHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
  	if [ -e "${put_script_file_to_submit}" ]; then
  		rm -f "${put_script_file_to_submit}"
  	fi
@@ -264,13 +264,19 @@ main()
 
 	resource_suffix="Structural_preproc"
 
-	if [ ! -z "${g_seed}" ] ; then
-		resource_suffix+="_Seed${g_seed}"
-	fi
-
-	if [ ! -z "${g_brainsize}" ] ; then
-		resource_suffix+="_Brainsize${g_brainsize}"
-	fi
+# The following code is only necessary when it is desirable to keep runs of Structural Preprocessing using
+# different seed values and/or different brainsize values in separate database resources for comparison.
+#
+# As things stand at the time this comment was written, only the Structural Preprocessing results in
+# the Structural_preproc DB resource will be used in subsequent pipeline runs.
+#
+#	if [ ! -z "${g_seed}" ] ; then
+#		resource_suffix+="_Seed${g_seed}"
+#	fi
+#
+#	if [ ! -z "${g_brainsize}" ] ; then
+#		resource_suffix+="_Brainsize${g_brainsize}"
+#	fi
 
 	echo "  --resource-suffix=\"${resource_suffix}\" " >> ${put_script_file_to_submit}
 
