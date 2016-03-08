@@ -644,6 +644,7 @@ main()
 	fi
 
 	gradient_echo_field_maps_exist=`do_gradient_echo_field_maps_exist`
+	echo "gradient_echo_field_maps_exist: ${gradient_echo_field_maps_exist}"
 
 	# build specification of T1w scans
 
@@ -742,9 +743,12 @@ main()
 	PreFreeSurfer_cmd+=" --brainsize=${g_brainsize}"
 
 	if [[ ("${g_fieldmap_type}" == "GE") || ("${g_fieldmap_type}" == "SiemensGradientEcho") ]] ; then
-		# add parameters for Gradient Echo fieldmap usage
+		# add parameters for Siemens Gradient Echo fieldmap usage
+		echo "add parameters for Siemens Gradient Echo fieldmap usage"
 
-		if [ "${gradient_echo_field_maps_exist}" = "TRUE"] ; then
+		echo "gradient_echo_field_maps_exist: ${gradient_echo_field_maps_exist}"
+		if [[ "${gradient_echo_field_maps_exist}" == "TRUE" ]] ; then
+			echo "adding parameters for when Siemens gradient echo fieldmaps should be used and do exist"
 			PreFreeSurfer_cmd+=" --echodiff=${g_first_t1w_deltaTE}"
 			PreFreeSurfer_cmd+=" --t1samplespacing=${g_first_t1w_sample_spacing}"
 			PreFreeSurfer_cmd+=" --t2samplespacing=${g_first_t2w_sample_spacing}"
@@ -754,6 +758,7 @@ main()
 			PreFreeSurfer_cmd+=" --fmapphase=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${PHASE_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
 			PreFreeSurfer_cmd+=" --unwarpdir=z"
 		else
+			echo "adding parameters for when Siemens gradient echo fieldmaps should be used but do NOT exist"
 			PreFreeSurfer_cmd+=" --echodiff=NONE"
 			PreFreeSurfer_cmd+=" --t1samplespacing=NONE"
 			PreFreeSurfer_cmd+=" --t2samplespacing=NONE"
@@ -953,7 +958,20 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Put snapshots in DB and remove local copies" ${step_percent}
 
-	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_xnat_session_id}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}/resources/SNAPSHOTS/files?overwrite=true&replace=true&reference=${g_working_dir}/${g_subject}/T1w/${g_subject}/snapshots"
+	db_resource="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${g_xnat_session_id}/assessors/${g_xnat_session_id}_freesurfer_${TESLA_SPEC}/resources/SNAPSHOTS"
+	echo "db_resource: ${db_resource}"
+	
+	# Replace very first instance of HCP in working directory name with data.
+	# So, for example, "/HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/..." becomes "/data/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/..."
+	# The reference= part of the PUT operation expects a reference to something that is local to the machine
+	# running XNAT.
+	local_resource="${g_working_dir}/${g_subject}/T1w/${g_subject}/snapshots"
+	echo "local_resource: ${local_resource}"
+
+	xnat_local_resource=${local_resource/HCP/data}
+	echo "xnat_local_resource: ${xnat_local_resource}"
+
+	resource_uri="${db_resource}/files?overwrite=true&replace=true&reference=${xnat_local_resource}"
 
 	java_cmd="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
 	java_cmd+=" -u ${g_user}"
@@ -964,7 +982,7 @@ main()
 	echo ""
 	echo "java_cmd: ${java_cmd}"
 	echo ""
-
+	
 	pushd ${g_working_dir}/${g_subject}
 	${java_cmd}
 	if [ $? -ne 0 ]; then
@@ -972,7 +990,7 @@ main()
 	fi
 	popd
 
-	rm_cmd="rm -r ${g_working_dir}/${g_subject}/T1w/${g_subject}/snapshots"
+	rm_cmd="rm -r ${local_resource}"
 	echo ""
 	echo "rm_cmd: ${rm_cmd}"
 	echo ""
