@@ -14,7 +14,7 @@ project="HCP_Staging"
 shadow_number=3
 subject="143830"
 server="db-shadow${shadow_number}.nrg.mir:8080"
-node="node010"
+node="node018"
 
 echo ""
 echo "--------------------------------------------------------------------------------"
