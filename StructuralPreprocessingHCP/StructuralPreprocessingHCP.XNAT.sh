@@ -43,8 +43,8 @@
 echo "Job started on `hostname` at `date`"
 
 # home directory for scripts to be sourced to setup the environment
-SCRIPTS_HOME=${HOME}/SCRIPTS
-echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
+SETUP_SCRIPTS_HOME=${HOME}/SCRIPTS
+echo "SETUP_SCRIPTS_HOME: ${SETUP_SCRIPTS_HOME}"
 
 # home directory for pipeline tools
 PIPELINE_TOOLS_HOME=${HOME}/pipeline_tools
@@ -65,29 +65,49 @@ XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
 DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
 echo "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
 
+# Default script for setting up environment for running HCP Pipeline Scripts
+DEFAULT_SETUP_SCRIPT="${SETUP_SCRIPTS_HOME}/SetUpHCPPipeline_StructuralPreprocHCP.sh"
+
+# "base" of file name for first T1w scan
 FIRST_T1W_FILE_NAME_BASE="T1w_MPR1"
+
+# "base" of file name for second T1w scan
 SECOND_T1W_FILE_NAME_BASE="T1w_MPR2"
 
+# "base" of file name for first T2w scan
 FIRST_T2W_FILE_NAME_BASE="T2w_SPC1"
+
+# "base" of file name for second T2w scan
 SECOND_T2W_FILE_NAME_BASE="T2w_SPC2"
 
-
-
+# database resources suffix for unprocessed data
 UNPROC_SUFFIX="_unproc"
 
+# file name extension for compressed NIFTI fiiles
 COMPRESSED_NIFTI_EXTENSION=".nii.gz"
 
+# part of file name that indicates a Siemens Gradient Echo Magnitude Fieldmap file
 MAG_FIELDMAP_NAME="FieldMap_Magnitude"
+
+# part of file name that indicates a Siemens Gradient Echo Phase Fieldmap file
 PHASE_FIELDMAP_NAME="FieldMap_Phase"
 
+# part of file name that indicates a Spin Echo Fieldmap file
 SPIN_ECHO_FIELDMAP_NAME="SpinEchoFieldMap"
 
+# For phase encoding directions RL and LR, which one is the "positive" direction
 RLLR_POSITIVE_DIR="RL"
+
+# For phase encoding directions RL and LR, which one is the "negative" direction
 RLLR_NEGATIVE_DIR="LR"
 
+# For phase encoding directions PA and AP, which one is the "positive" direction
 PAAP_POSITIVE_DIR="PA"
+
+# For phase encoding directions PA and AP, which one is the "negative" direction
 PAAP_NEGATIVE_DIR="AP"
 
+# part of file name that indicates the Tesla rating for the scanner
 TESLA_SPEC="3T"
 
 # Show script usage information
@@ -135,6 +155,9 @@ usage()
 	echo "                               If unspecified, the default value of 150 is used."
 	echo "    --xnat-session-id=$<xnat-session-id> "
 	echo "                             : e.g. ConnectomeDB_E17905 "
+	echo "   [--setup-script=<script>] : Full path to script to source to set up environment before running "
+	echo "                               HCP Pipeline Scripts. If unspecified the default value of:"
+	echo "                               ${DEFAULT_SETUP_SCRIPT} is used."
 	echo ""
 }
 
@@ -158,6 +181,7 @@ get_options()
 	unset g_seed
 	unset g_brainsize
 	unset g_xnat_session_id
+	unset g_setup_script
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -224,6 +248,10 @@ get_options()
 				g_xnat_session_id=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
+			--setup-script=*)
+				g_setup_script=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
 			*)
 				usage
 				echo "ERROR: unrecognized option: ${argument}"
@@ -235,7 +263,7 @@ get_options()
 
 	local error_count=0
 
-	# check required parameters
+	# check parameters
 	if [ -z "${g_user}" ]; then
 		echo "ERROR: user (--user=) required"
 		error_count=$(( error_count + 1 ))
@@ -331,6 +359,11 @@ get_options()
 		error_count=$(( error_count + 1 ))
 	fi
 	echo "g_xnat_session_id: ${g_xnat_session_id}"
+
+	if [ -z "${g_setup_script}" ] ; then
+		g_setup_script=${DEFAULT_SETUP_SCRIPT}
+	fi
+	echo "g_setup_script: ${g_setup_script}"
 
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
@@ -556,7 +589,7 @@ main()
 
 	# Set up to run Python
 	echo "Setting up to run Python"
-	source ${SCRIPTS_HOME}/epd-python_setup.sh
+	source ${SETUP_SCRIPTS_HOME}/epd-python_setup.sh
 
 	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
 
@@ -613,7 +646,8 @@ main()
 		${current_step} "Set up to run PreFreeSurferPipeline.sh script" ${step_percent}
 
 	# Source setup script to setup environment for running the script
-	source ${SCRIPTS_HOME}/SetUpHCPPipeline_StructuralPreprocHCP.sh
+	echo "Sourcing ${g_setup_script} to set up environment"
+	source ${g_setup_script}
 
 	first_T1w_resource_exists=`does_first_t1w_scan_exist`
 	echo "first_T1w_resource_exists: ${first_T1w_resource_exists}"
@@ -877,7 +911,7 @@ main()
 		echo ""
 		
 		pushd ${g_working_dir}/${g_subject}
-		source ${SCRIPTS_HOME}/freesurfer53_setup.sh
+		source ${SETUP_SCRIPTS_HOME}/freesurfer53_setup.sh
 		${snap_montage_cmd}
 		if [ $? -ne 0 ]; then
 			die 
