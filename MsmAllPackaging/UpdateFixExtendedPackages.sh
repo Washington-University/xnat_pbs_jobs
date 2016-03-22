@@ -159,20 +159,15 @@ main()
             
             mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear/Results/${scan}
 
-            files=`find ${resting_state_stats_resource}/MNINonLinear/Results/${scan} -not -name "*clean*.nii"`
-            for file in ${files} ; do
-                #echo "1. file: ${file}"
-                cp --verbose --archive ${file} ${script_tmp_dir}/${g_subject}/MNINonLinear/Results/${scan}
-            done
+			rsync --verbose --archive --recursive --exclude='*clean*.nii' \
+				${resting_state_stats_resource}/MNINonLinear/Results/${scan} \
+				${script_tmp_dir}/${g_subject}/MNINonLinear/Results
 
 			mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear/ROIs
 
-			files=`find ${restings_state_stats_resource}/MNINonLinear/ROIs`
-            for file in ${files} ; do
-                #echo "1. file: ${file}"
-                cp --verbose --archive ${file} ${script_tmp_dir}/${g_subject}/MNINonLinear/ROIs
-            done
-
+			rsync --verbose --archive --recursive \
+				${resting_state_stats_resource}/MNINonLinear/ROIs \
+				${script_tmp_dir}/${g_subject}/MNINonLinear
         done
 
         echo ""
