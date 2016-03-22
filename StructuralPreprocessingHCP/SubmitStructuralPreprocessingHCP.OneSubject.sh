@@ -29,6 +29,8 @@ get_options()
 	unset g_seed
 	unset g_brainsize
 	unset g_put_server
+	unset g_output_resource
+	unset g_setup_script
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -73,6 +75,14 @@ get_options()
 				;;
 			--brainsize=*)
 				g_brainsize=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--output-resource=*)
+				g_output_resource=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--setup-script=*)
+				g_setup_script=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -130,6 +140,15 @@ get_options()
 		g_put_server="db.humanconnectome.org"
 	fi
 	echo "PUT server: ${g_put_server}"
+
+	if [ -z "${g_output_resource}" ]; then
+		g_output_resource="Structural_preproc"
+	fi
+	echo "output resource: ${g_output_resource}"
+
+	if [ ! -z "${g_setup_script}" ]; then
+		echo "setup script: ${g_setup_script}"
+	fi
 }
 
 main()
@@ -227,6 +246,10 @@ main()
 		echo "  --brainsize=${g_brainsize} \\" >> ${script_file_to_submit}
 	fi
 
+	if [ ! -z "${g_setup_script}" ]; then
+		echo "  --setup-script=${g_setup_script} \\" >> ${script_file_to_submit}
+	fi
+
 	echo "  --xnat-session-id=${sessionID}" >> ${script_file_to_submit}
 
 	chmod +x ${script_file_to_submit}
@@ -257,18 +280,7 @@ main()
  	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
  	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
  	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-
-	resource_suffix="Structural_preproc"
-
-	if [ ! -z "${g_seed}" ] ; then
-		resource_suffix+="_Seed${g_seed}"
-	fi
-
-	if [ ! -z "${g_brainsize}" ] ; then
-		resource_suffix+="_Brainsize${g_brainsize}"
-	fi
-
-	echo "  --resource-suffix=\"${resource_suffix}\" " >> ${put_script_file_to_submit}
+	echo "  --resource-suffix=\"${g_output_resource}\" " >> ${put_script_file_to_submit}
 
 	chmod +x ${put_script_file_to_submit}
 
