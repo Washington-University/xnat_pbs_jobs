@@ -22,6 +22,7 @@ echo " Using server: ${server}"
 echo "--------------------------------------------------------------------------------"
 
 i="1"
+node_no="150"
 
 while [ ${i} -lt 6 ]; do
 
@@ -36,10 +37,11 @@ while [ ${i} -lt 6 ]; do
 	--project=${project} \
 	--subject=${subject} \
 	--seed=${seed} \
-	--node=node164 \
+	--node=node${node_no} \
 	--output-resource="Structural_preproc_test${i}"   
 
 EOF
 
 	i=$[$i+1]
+	node_no=$[$node_no+1]
 done
