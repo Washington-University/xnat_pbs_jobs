@@ -9,9 +9,9 @@ read password
 echo ""
 stty echo
 
-subject="116423"
+subject="908860"
 shadow_number=2
-node="node168"
+node="node160"
 project="HCP_Staging"
 server="db-shadow${shadow_number}.nrg.mir:8080"
 
