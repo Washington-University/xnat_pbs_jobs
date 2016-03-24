@@ -31,7 +31,7 @@ at now <<EOF
 	--server=${server} \
 	--project=${project} \
 	--subject=${subject} \
-	--g_phase_encoding_dir=RLLR \
+	--phase-encoding-dir=RLLR \
 	--node=${node} \
 	--gpu-node=${gpu_node}
 EOF

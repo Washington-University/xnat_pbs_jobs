@@ -23,15 +23,12 @@ echo " Running Diffusion Preprocessing job for subject: ${subject}"
 echo " Using server: ${server}"
 echo "--------------------------------------------------------------------------------"
 
-at now <<EOF
-
-/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocesingHCP/RunDiffusionPreprocessingHCP.OneSubject.sh \
+/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/RunDiffusionPreprocessingHCP.OneSubject.sh \
 	--user=${userid} \
 	--password=${password} \
 	--server=${server} \
 	--project=${project} \
 	--subject=${subject} \
-	--g_phase_encoding_dir=RLLR \
+	--phase-encoding-dir=RLLR \
 	--node=${node} \
 	--gpu-node=${gpu_node}
-EOF
