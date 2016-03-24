@@ -21,7 +21,13 @@ echo " Running Structural Preprocessing job for subject: ${subject}"
 echo " Using server: ${server}"
 echo "--------------------------------------------------------------------------------"
 
-at now <<EOF
+i="1"
+
+while [ ${i} -lt 6 ]; do
+
+	sleep 10s
+
+	at now <<EOF
 
 /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/RunStructuralPreprocessingHCP.OneSubject.sh \
 	--user=${userid} \
@@ -31,8 +37,9 @@ at now <<EOF
 	--subject=${subject} \
 	--seed=${seed} \
 	--node=node164 \
-	--output-resource="Structural_preproc_test"   
+	--output-resource="Structural_preproc_test${i}"   
 
 EOF
 
-
+	i=$[$i+1]
+done
