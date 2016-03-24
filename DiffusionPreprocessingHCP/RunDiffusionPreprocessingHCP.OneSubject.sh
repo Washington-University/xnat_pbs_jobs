@@ -30,6 +30,7 @@ get_options()
 	unset g_suppress_put
 	unset g_node
 	unset g_gpu_node
+	unset g_cuda_device_number
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -78,6 +79,10 @@ get_options()
 				;;
 			--gpu-node=*)
 				g_gpu_node=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--cuda-device_number=*)
+				g_cuda_device_number=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -149,6 +154,11 @@ get_options()
 		echo "GPU Node (--gpu-node=) required"
 		exit 1
 	fi
+
+	if [ -z "${g_cuda_device_number}" ]; then
+		g_cuda_device_number="0"
+	fi
+	echo "CUDA Device Number: ${g_cuda_device_number}"
 }
 
 main()
@@ -236,7 +246,7 @@ main()
 	standard_err_file=${working_directory_name}/${g_subject}.${PIPELINE_NAME}.pre_eddy.${g_project}.${g_session}.${current_seconds_since_epoch}.interactive.stderr
 
 	echo "About to ssh to ${g_node} and execute ${pre_eddy_script_file_to_submit}"
-	ssh ${g_node} "source ${HOME}/.bash_profile; ${pre_eddy_script_file_to_submit} > ${standard_output_file} 2>${standard_err_file}"
+	ssh ${g_node} "source ${HOME}/.bash_profile; ${pre_eddy_script_file_to_submit} > ${standard_out_file} 2>${standard_err_file}"
 
 	# Submit job to do Eddy work
 	eddy_script_file_to_submit=${working_directory_name}/${g_subject}.DiffusionPreprocHCP_Eddy.${g_project}.${g_subject}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
@@ -251,6 +261,7 @@ main()
 	echo "#PBS -o ${working_directory_name}" >> ${eddy_script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${eddy_script_file_to_submit}
 	echo "" >> ${eddy_script_file_to_submit}
+	echo "export CUDA_VISIBLE_DEVICES=${g_cuda_device_number}" >> ${eddy_script_file_to_submit}
 	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/DiffusionPreprocessingHCP_Eddy.XNAT.sh \\" >> ${eddy_script_file_to_submit}
 	echo "  --user=\"${token_username}\" \\" >> ${eddy_script_file_to_submit}
 	echo "  --password=\"${token_password}\" \\" >> ${eddy_script_file_to_submit}
