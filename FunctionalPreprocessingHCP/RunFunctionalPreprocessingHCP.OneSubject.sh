@@ -319,7 +319,7 @@ main()
 		echo "${XNAT_PBS_JOBS_HOME}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
  		echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
  		echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
-		echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
+		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
  		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
  		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
  		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
@@ -348,7 +348,7 @@ main()
 		sleep 5s
 
 		current_seconds_since_epoch=`date +%s`
-		working_directory_name="${BUILD_HOME}/${g_project}/FunctionalPreprocessingHCP_${current_seconds_since_epoch}_${g_subject}_${scan}"
+		working_directory_name="${BUILD_HOME}/${g_project}/FunctionalPreprocessingHCP.${g_subject}.${scan}.${current_seconds_since_epoch}"
 
 		# Make the working directory
 		echo "Making working directory: ${working_directory_name}"
@@ -427,7 +427,7 @@ main()
 		echo "${XNAT_PBS_JOBS_HOME}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
  		echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
  		echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
-		echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
+		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
  		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
  		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
  		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
