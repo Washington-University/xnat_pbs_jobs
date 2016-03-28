@@ -33,5 +33,7 @@ at now <<EOF
 	--subject=${subject} \
 	--phase-encoding-dir=RLLR \
 	--node=${node} \
-	--gpu-node=${gpu_node}
+	--gpu-node=${gpu_node} \
+	> /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/OneSubjectRuns/${subject}.stdout \
+	2>/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/OneSubjectRuns/${subject}.stderr
 EOF
