@@ -39,7 +39,7 @@
 
 echo "Job started on `hostname` at `date`"
 
-# home directory for scripts to be sourced to setup the environment
+# home directory for scripts to be sourced to set up the environment
 SCRIPTS_HOME=${HOME}/SCRIPTS
 echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
 
@@ -410,6 +410,8 @@ main()
 	volume_cmd+=" --fmapphase=NONE"
 	volume_cmd+=" --fmapgeneralelectric=NONE"
 	volume_cmd+=" --dof=12"
+	volume_cmd+=" --biascorrection=SEBASED"
+	volume_cmd+=" --usejacobian=TRUE"
 
 	echo ""
 	echo "volume_cmd: ${volume_cmd}"
