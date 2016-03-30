@@ -343,6 +343,15 @@ main()
 		echo "Submitting jobs for scan: ${scan}"
 		echo "--------------------------------------------------"
 		
+		# Get token user id and password
+		echo "Getting token user id and password"
+		get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
+		new_tokens=`${get_token_cmd}`
+		token_username=${new_tokens% *}
+		token_password=${new_tokens#* }
+		echo "token_username: ${token_username}"
+		echo "token_password: ${token_password}"
+
 		# make sure working directories don't have the same name based on the 
 		# same start time by sleeping a few seconds
 		sleep 5s
@@ -353,6 +362,26 @@ main()
 		# Make the working directory
 		echo "Making working directory: ${working_directory_name}"
 		mkdir -p ${working_directory_name}
+
+		# Get JSESSION ID
+		echo "Getting JSESSION ID"
+		jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
+		echo "jsession: ${jsession}"
+
+		# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
+		echo "Getting XNAT Session ID"
+		get_session_id_cmd=""
+		get_session_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py "
+		get_session_id_cmd+="--server=db.humanconnectome.org "
+		get_session_id_cmd+="--username=${g_user} "
+		get_session_id_cmd+="--project=${g_project} "
+		get_session_id_cmd+="--subject=${g_subject} "
+		get_session_id_cmd+="--session=${g_session} "
+		#echo "get_session_id_cmd: ${get_session_id_cmd}"
+		get_session_id_cmd+=" --password=${g_password}"
+
+		sessionID=`${get_session_id_cmd}`
+		echo "XNAT session ID: ${sessionID}"
 
 		# Get XNAT Workflow ID
 		server="https://db.humanconnectome.org/"
