@@ -305,7 +305,7 @@ main()
 	standard_err_file=${working_directory_name}/${g_subject}.${PIPELINE_NAME}.post_eddy.${g_project}.${g_session}.${current_seconds_since_epoch}.interactive.stderr
 	
 	echo "About to ssh to ${g_node} and execute ${post_eddy_script_file_to_submit}"
-	ssh ${g_gpu_node} "source ${HOME}/.bash_profile; ${post_eddy_script_file_to_submit} > ${standard_out_file} 2>${standard_err_file}"
+	ssh ${g_node} "source ${HOME}/.bash_profile; ${post_eddy_script_file_to_submit} > ${standard_out_file} 2>${standard_err_file}"
    
 	# Submit job to put the results in the DB
 	put_script_file_to_submit=${LOG_DIR}/${g_subject}.DiffusionPreprocHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
