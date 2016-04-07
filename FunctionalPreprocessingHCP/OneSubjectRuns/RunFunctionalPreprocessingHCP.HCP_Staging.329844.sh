@@ -29,5 +29,7 @@ at now <<EOF
 	--server=${server} \
 	--project=${project} \
 	--subject=${subject} \
-	--node=${node}
+	--node=${node} \
+	> /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP/OneSubjectRuns/${subject}.stdout \
+	2>/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP/OneSubjectRuns/${subject}.stderr
 EOF

@@ -9,9 +9,9 @@ read password
 echo ""
 stty echo
 
-subject="401422"
-shadow_number=8
-node="node162"
+subject="116423"
+shadow_number=2
+node="node157"
 project="HCP_Staging"
 server="db-shadow${shadow_number}.nrg.mir:8080"
 
@@ -30,6 +30,6 @@ at now <<EOF
 	--project=${project} \
 	--subject=${subject} \
 	--node=${node} \
-	> /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP/OneSubjectRuns/${subject}.stdout \
-	2>/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP/OneSubjectRuns/${subject}.stderr
+	> /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP/OneSubjectRuns/${subject}.${node}.stdout \
+	2>/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP/OneSubjectRuns/${subject}.${node}.stderr
 EOF
