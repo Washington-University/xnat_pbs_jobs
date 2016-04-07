@@ -478,11 +478,19 @@ main()
 			local package_file_name="${subject_volume_task_analysis_dir}/${g_subject}_3T_${package_type}_volume_s${smoothing_level}.zip"
 			local upgrade_package_file_name="${package_file_name%\.zip}_S500_to_S900_extension.zip"
 
-			if [ -e "${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/${package_type}" ] ; then
-				# upgrade packages are not supplied for the volume data
-				check_package_file ${package_file_name}
+			if [ "${g_archive_project}" == "HCP_900" ] ; then
+				# volume task analysis packages are not supplied for HCP_900 only subjects
+				show_unchecked_file ${package_file_name}
+				show_unchecked_file ${upgrade_package_file_name}
 			else
-				show_unchecked_file ${package_file_name} 
+				if [ -e "${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/${package_type}" ] ; then
+					# upgrade packages are not supplied for the volume data
+					check_package_file ${package_file_name}
+					show_unchecked_file ${upgrade_package_file_name}
+				else
+					show_unchecked_file ${package_file_name} 
+					show_unchecked_file ${upgrade_package_file_name}
+				fi
 			fi
 		done
 	done
