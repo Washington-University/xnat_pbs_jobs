@@ -530,7 +530,7 @@ main()
 		echo "to_dir: ${to_dir}"
 
 		mkdir -p ${to_dir}
-		cp --verbose ${from_dir}/* ${to_dir}
+		cp --verbose --remove-destination ${from_dir}/* ${to_dir}
 
 	done
 
