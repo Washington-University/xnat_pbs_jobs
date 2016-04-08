@@ -278,7 +278,7 @@ main()
 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
 		echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
 		echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
-		echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
+		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
 		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
 		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
 		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
