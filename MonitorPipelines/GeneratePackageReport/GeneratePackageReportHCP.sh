@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT_NAME="CheckPackageExistence.sh"
+SCRIPT_NAME="GeneratePackageReport.sh"
 
 PRE_RELEASE_PACKAGES_ROOT="/HCP/hcpdb/packages/prerelease/zip"
 LIVE_PACKAGES_ROOT="/HCP/hcpdb/packages/live"
@@ -264,8 +264,59 @@ check_package_file()
 
 	fi
 
+	note=""
+	package_type=${package_file_name%.zip} # get the part before the .zip
+	package_type=${package_type##*3T_}
+
+	t1w_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/T1w*_unproc | wc -l`
+	t2w_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/T2w*_unproc | wc -l`
+	
+	REST1_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/rfMRI_REST1*_unproc | wc -l`
+	REST2_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/rfMRI_REST2*_unproc | wc -l`
+
+	Diffusion_LR_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/Diffusion_unproc/${g_subject}_3T_DWI_dir*LR.nii.gz | wc -l`
+	Diffusion_RL_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/Diffusion_unproc/${g_subject}_3T_DWI_dir*RL.nii.gz | wc -l`
+
+	
+	if [ "${package_type}" == "Structural_unproc" ] ; then
+		if [ "${t1w_count}" -lt "2" -a "${t1w_count}" -lt "2" ] ; then
+			note+="T1w and T2w count less than 2"
+		elif [ "${t1w_count}" -lt "2" ] ; then
+			note+="T1w count less than 2"
+		elif [ "${t2w_count}" -lt "2" ] ; then
+			note+="T2w count less than 2"
+		fi
+
+	elif [[ ${package_type} == Diffusion_* ]] ; then
+		if [ "${Diffusion_LR_count}" -lt "3" -o "${Diffusion_RL_count}" -lt "3" ] ; then
+			note+="Missing some Diffusion Scans"
+		fi
+
+	elif [[ ${package_type} == rfMRI_REST_fix* ]] ; then
+		if [ "${REST1_count}" -lt "2" ] ; then
+			note+=" Missing some REST1 scans "
+		fi
+		if [ "${REST2_count}" -lt "2" ] ; then
+			note+=" Missing some REST2 scans "
+		fi
+	fi
+
+	if [ "${REST1_count}" -lt "1" -a "${REST2_count}" -lt "1" ] ; then
+		# No resting state scans ==> no MSM All additions to packages
+
+		if [[ ${package_type} == *analysis* ]] ; then
+			note+="No resting state scans, No MSM-All additions to packages"
+		elif [[ ${package_type} == tfMRI_*_preproc ]] ; then
+			note+="No resting state scans, No MSM-All additions to packages"
+		fi
+	fi
+
+	if [ ! -z "${note}" ] ; then
+		note="SMALL_OK: ${note}"
+	fi
+	
 	# output information
-	echo -e "${g_subject}\t${test_description}\t${package_file_exists}\t${package_file_size}\t${package_file_date}\t${checksum_file_exists}\t${checksums_equivalent}"
+	echo -e "${g_subject}\t${test_description}\t${package_file_exists}\t${package_file_size}\t${package_file_date}\t${checksum_file_exists}\t${checksums_equivalent}\t${note}"
 }
 
 
