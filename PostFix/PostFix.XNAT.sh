@@ -368,18 +368,19 @@ main()
 	# to the earliest prerequisite pipelines.
 	#
 	# Thus, we would first link in the FIX processed data from the DB, followed by the functionally
-	# preprocessed data from the DB, followed by the structurally preprocessed data from the 
-	# DB. For this work, only the FIX processed data is needed.
+	# preprocessed data from the DB, followed by the structurally preprocessed data from the DB.
 
 	# ----------------------------------------------------------------------------------------------
- 	# Step - Link FIX processed data from DB
+ 	# Step - Link FIX processed and functionally preprocessed data from DB
 	# ----------------------------------------------------------------------------------------------
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Link FIX processed data from DB" ${step_percent}
+	update_xnat_workflow ${current_step} "Link FIX processed and functionally preprocessed data from DB" ${step_percent}
 
 	link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
+
+	link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
 
 	# get files that are opened for writing
 	# Whether they are actually written to or not, if a file is opened in write mode,
