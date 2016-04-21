@@ -26,4 +26,4 @@ correct_task_analysis_packages/logs/*
 *.tsv
 
 # Ignore Open Document Spreadsheet files - outputs built from some TSV reports
-*.odf
+*.ods
