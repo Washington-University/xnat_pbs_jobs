@@ -1,12 +1,58 @@
 #!/bin/bash
 
+
+# Note: 2016.04.21  Timothy B. Brown (tbbrown@wustl.edu)
+#
+# There are still some "bugs" in this script.  
+#
+# For example, it doesn't seem to handle all conditions correctly for when 
+# the S500_to_S900_extension package is not needed (When there are noe
+# Resting State scans and when the subject is a subject initially released
+# as part of the S900 release.)  
+# 
+# Running this script on all subjects by submitting it to a cluster job 
+# scheduler means that each such "bug" that needs to be analyzed and 
+# fixed causes a test run that lasts for at least 12 hours.
+#
+# So I've just hand edited some of the resulting *.PackageReport.tsv 
+# files to replace their FALSE entries indicating that a package should
+# exist but doesn't exist to --- entries indicating that the package 
+# should not exist.
+#
+# This was initially developed to be a quick "one-off" shell script to 
+# verify the existence and size of various package files.
+# 
+# With a number of special conditions added it got a bit unweildy.
+# I think the whole process needs to be re-written, problem as 
+# a Python program.
+#
+
 SCRIPT_NAME="GeneratePackageReport.sh"
 
-PRE_RELEASE_PACKAGES_ROOT="/HCP/hcpdb/packages/prerelease/zip"
-LIVE_PACKAGES_ROOT="/HCP/hcpdb/packages/live"
-POST_MSM_ALL_PACKAGES_ROOT="/HCP/hcpdb/packages/PostMsmAll"
+if [ "${COMPUTE}" = "CHPC" ] ; then
+	HCP_ROOT="/HCP"
+elif [ "${COMPUTE}" = "NRG" ] ; then
+	HCP_ROOT="/data"
+elif [ "${COMPUTE}" = "" ] ; then
+	HCP_ROOT="/data"
+else
+	echo "${SCRIPT_NAME}: Unhandled value for COMPUTE environment variable"
+	echo "${SCRIPT_NAME}: '${COMPUTE}' is currently not supported."
+	echo "${SCRIPT_NAME}: Exiting with non-zero status."
+	exit 1
+fi
 
-ARCHIVE_ROOT="/HCP/hcpdb/archive"
+if [ ! -d "${HCP_ROOT}" ] ; then
+	echo "${SCRIPT_NAME}: Expected HCP_ROOT: ${HCP_ROOT} does not exist"
+	echo "${SCRIPT_NAME}: as a directory."
+	echo "${SCRIPT_NAME}: Exiting with non-zero status."
+	exit 1
+fi
+
+PRE_RELEASE_PACKAGES_ROOT="${HCP_ROOT}/hcpdb/packages/prerelease/zip"
+LIVE_PACKAGES_ROOT="${HCP_ROOT}/hcpdb/packages/live"
+POST_MSM_ALL_PACKAGES_ROOT="${HCP_ROOT}/hcpdb/packages/PostMsmAll"
+ARCHIVE_ROOT="${HCP_ROOT}/hcpdb/archive"
 
 UNPROC_PACKAGE_DIR="unproc"
 
@@ -76,6 +122,24 @@ VOLUME_TASK_ANALYSIS_PACKAGE_TYPES+=" tfMRI_MOTOR "
 VOLUME_TASK_ANALYSIS_PACKAGE_TYPES+=" tfMRI_RELATIONAL "
 VOLUME_TASK_ANALYSIS_PACKAGE_TYPES+=" tfMRI_SOCIAL "
 VOLUME_TASK_ANALYSIS_PACKAGE_TYPES+=" tfMRI_WM "
+
+
+MEG2_HCP500_SUBJECT_LIST=""
+MEG2_HCP500_SUBJECT_LIST+=" 104012 " #  1
+MEG2_HCP500_SUBJECT_LIST+=" 105923 " #  2
+MEG2_HCP500_SUBJECT_LIST+=" 111514 " #  3
+MEG2_HCP500_SUBJECT_LIST+=" 146129 " #  4
+MEG2_HCP500_SUBJECT_LIST+=" 153732 " #  5
+MEG2_HCP500_SUBJECT_LIST+=" 156334 " #  6
+MEG2_HCP500_SUBJECT_LIST+=" 175540 " #  7
+MEG2_HCP500_SUBJECT_LIST+=" 192641 " #  8
+MEG2_HCP500_SUBJECT_LIST+=" 287248 " #  9
+MEG2_HCP500_SUBJECT_LIST+=" 512835 " # 10
+MEG2_HCP500_SUBJECT_LIST+=" 660951 " # 11
+MEG2_HCP500_SUBJECT_LIST+=" 662551 " # 12
+MEG2_HCP500_SUBJECT_LIST+=" 715950 " # 13
+MEG2_HCP500_SUBJECT_LIST+=" 783462 " # 14
+MEG2_HCP500_SUBJECT_LIST+=" 825048 " # 15
 
 debugEcho()
 {
@@ -268,28 +332,38 @@ check_package_file()
 	package_type=${package_file_name%.zip} # get the part before the .zip
 	package_type=${package_type##*3T_}
 
-	t1w_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/T1w*_unproc | wc -l`
-	t2w_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/T2w*_unproc | wc -l`
-	
-	REST1_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/rfMRI_REST1*_unproc | wc -l`
-	REST2_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/rfMRI_REST2*_unproc | wc -l`
 
-	Diffusion_LR_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/Diffusion_unproc/${g_subject}_3T_DWI_dir*LR.nii.gz | wc -l`
-	Diffusion_RL_count=`ls -1d ${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/Diffusion_unproc/${g_subject}_3T_DWI_dir*RL.nii.gz | wc -l`
+	subject_resources=${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES
 
+	t1w_count=`ls -1d ${subject_resources}/T1w*_unproc | wc -l`
+	t2w_count=`ls -1d ${subject_resources}/T2w*_unproc | wc -l`
 	
+	REST1_count=`ls -1d ${subject_resources}/rfMRI_REST1*_unproc | wc -l`
+	REST2_count=`ls -1d ${subject_resources}/rfMRI_REST2*_unproc | wc -l`
+
+	Diffusion_LR_count=`ls -1d ${subject_resources}/Diffusion_unproc/${g_subject}_3T_DWI_dir*LR.nii.gz | wc -l`
+	Diffusion_RL_count=`ls -1d ${subject_resources}/Diffusion_unproc/${g_subject}_3T_DWI_dir*RL.nii.gz | wc -l`
+
+	EMOTION_count=`ls -1d ${subject_resources}/tfMRI_EMOTION_*_unproc | wc -l`
+	GAMBLING_count=`ls -1d ${subject_resources}/tfMRI_GAMBLING_*_unproc | wc -l`
+	LANGUAGE_count=`ls -1d ${subject_resources}/tfMRI_LANGUAGE_*_unproc | wc -l`
+	MOTOR_count=`ls -1d ${subject_resources}/tfMRI_MOTOR_*_unproc | wc -l`
+	RELATIONAL_count=`ls -1d ${subject_resources}/tfMRI_RELATIONAL_*_unproc | wc -l`
+	SOCIAL_count=`ls -1d ${subject_resources}/tfMRI_SOCIAL_*_unproc | wc -l`
+	WM_count=`ls -1d ${subject_resources}/tfMRI_WM_*_unproc | wc -l`
+
 	if [ "${package_type}" == "Structural_unproc" ] ; then
 		if [ "${t1w_count}" -lt "2" -a "${t1w_count}" -lt "2" ] ; then
-			note+="T1w and T2w count less than 2"
+			note+=" T1w and T2w count less than 2 "
 		elif [ "${t1w_count}" -lt "2" ] ; then
-			note+="T1w count less than 2"
+			note+=" T1w count less than 2 "
 		elif [ "${t2w_count}" -lt "2" ] ; then
-			note+="T2w count less than 2"
+			note+=" T2w count less than 2 "
 		fi
 
 	elif [[ ${package_type} == Diffusion_* ]] ; then
 		if [ "${Diffusion_LR_count}" -lt "3" -o "${Diffusion_RL_count}" -lt "3" ] ; then
-			note+="Missing some Diffusion Scans"
+			note+=" Missing some Diffusion Scans "
 		fi
 
 	elif [[ ${package_type} == rfMRI_REST_fix* ]] ; then
@@ -299,6 +373,52 @@ check_package_file()
 		if [ "${REST2_count}" -lt "2" ] ; then
 			note+=" Missing some REST2 scans "
 		fi
+
+	elif [[ ${package_type} == rfMRI_REST1* ]] ; then
+		if [ "${REST1_count}" -lt "2" ] ; then
+			note+=" Missing some REST1 scans "
+		fi
+
+	elif [[ ${package_type} == rfMRI_REST2* ]] ; then
+		if [ "${REST2_count}" -lt "2" ] ; then
+			note+=" Missing some REST2 scans "
+		fi
+
+	elif [[ ${package_type} == tfMRI_EMOTION* ]] ; then
+		if [ "${EMOTION_count}" -lt "2" ] ; then
+			note+=" Missing some EMOTION scans "
+		fi
+
+	elif [[ ${package_type} == tfMRI_GAMBLING* ]] ; then
+		if [ "${GAMBLING_count}" -lt "2" ] ; then
+			note+=" Missing some GAMBLING scans "
+		fi
+
+	elif [[ ${package_type} == tfMRI_LANGUAGE* ]] ; then
+		if [ "${LANGUAGE_count}" -lt "2" ] ; then
+			note+=" Missing some LANGUAGE scans "
+		fi
+
+	elif [[ ${package_type} == tfMRI_MOTOR* ]] ; then
+		if [ "${MOTOR_count}" -lt "2" ] ; then
+			note+=" Missing some MOTOR scans "
+		fi
+
+	elif [[ ${package_type} == tfMRI_RELATIONAL* ]] ; then
+		if [ "${RELATIONAL_count}" -lt "2" ] ; then
+			note+=" Missing some RELATIONAL scans "
+		fi
+
+	elif [[ ${package_type} == tfMRI_SOCIAL* ]] ; then
+		if [ "${SOCIAL_count}" -lt "2" ] ; then
+			note+=" Missing some SOCIAL scans "
+		fi
+
+	elif [[ ${package_type} == tfMRI_WM* ]] ; then
+		if [ "${WM_count}" -lt "2" ] ; then
+			note+=" Missing some WM scans "
+		fi
+
 	fi
 
 	if [ "${REST1_count}" -lt "1" -a "${REST2_count}" -lt "1" ] ; then
@@ -308,7 +428,16 @@ check_package_file()
 			note+="No resting state scans, No MSM-All additions to packages"
 		elif [[ ${package_type} == tfMRI_*_preproc ]] ; then
 			note+="No resting state scans, No MSM-All additions to packages"
+		elif [[ ${package_type} == *S500_to_S900_extension ]] ; then
+			# No MSM All additions to packages ==> no need for any S500_to_S900_extension packages for this subject
+			package_file_exists="---"
+			package_file_size="---"
+			package_file_date="---"
+			checksum_file_exists="---"
+			checksums_equivalent="---"
+			note=""
 		fi
+
 	fi
 
 	if [ ! -z "${note}" ] ; then
@@ -533,6 +662,13 @@ main()
 				# volume task analysis packages are not supplied for HCP_900 only subjects
 				show_unchecked_file ${package_file_name}
 				show_unchecked_file ${upgrade_package_file_name}
+			
+			elif [[ ${MEG2_HCP500_SUBJECT_LIST} =~ .*${g_subject}.* ]] ; then
+				# subjects released as part of the MEG2 HCP_500 release are like HCP_900 subjects in that they do not
+				# have volume task analysis packages supplied for them
+				show_unchecked_file ${package_file_name}
+				show_unchecked_file ${upgrade_package_file_name}
+				
 			else
 				if [ -e "${ARCHIVE_ROOT}/${g_archive_project}/arc001/${g_subject}_3T/RESOURCES/${package_type}" ] ; then
 					# upgrade packages are not supplied for the volume data

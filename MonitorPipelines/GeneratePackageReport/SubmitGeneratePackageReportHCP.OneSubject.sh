@@ -1,7 +1,29 @@
 #!/bin/bash
 
+SCRIPT_NAME="SubmitGeneratePackageReportHCP.OneSubject.sh"
+
+if [ "${COMPUTE}" = "CHPC" ] ; then
+	HCP_ROOT="/HCP"
+elif [ "${COMPUTE}" = "NRG" ] ; then
+	HCP_ROOT="/data"
+elif [ "${COMPUTE}" = "" ] ; then
+	HCP_ROOT="/data"
+else
+	echo "${SCRIPT_NAME}: unhandled value for COMPUTE environment variable"
+	echo "${SCRIPT_NAME}: '${COMPUTE}' is currently not supported"
+	echo "${SCRIPT_NAME}: exiting with non-zero status"
+	exit 1
+fi
+
+if [ ! -d "${HCP_ROOT}" ] ; then
+	echo "${SCRIPT_NAME}: Expected HCP_ROOT: ${HCP_ROOT} does not exist"
+	echo "${SCRIPT_NAME}: as a directory."
+	echo "${SCRIPT_NAME}: Exiting with non-zero status."
+	exit 1
+fi
+
 # main build directory
-BUILD_HOME="/HCP/hcpdb/build_ssd/chpc/BUILD"
+BUILD_HOME="${HCP_ROOT}/hcpdb/build_ssd/chpc/BUILD"
 echo "BUILD_HOME: ${BUILD_HOME}"
 
 get_options() 
@@ -73,12 +95,12 @@ main()
 	mkdir -p ${working_directory_name}
 
 	# Submit job to actually do the work
-	script_file_to_submit=${working_directory_name}/${g_subject}.GeneratePackageReportHCP.XNAT_job.sh
+	script_file_to_submit=${working_directory_name}/S${g_subject}.GeneratePackageReportHCP.XNAT_job.sh
 	if [ -e "${script_file_to_submit}" ]; then
 		rm -f "${script_file_to_submit}"
 	fi
 
-	results_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MonitorPipelines/GeneratePackageReport/Package_${g_package_project}.Archive_${g_archive_project}"
+	results_dir="${HOME}/pipeline_tools/xnat_pbs_jobs/MonitorPipelines/GeneratePackageReport/Package_${g_package_project}.Archive_${g_archive_project}"
 
 	touch ${script_file_to_submit}
 	echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${script_file_to_submit}
@@ -87,11 +109,11 @@ main()
 	echo "#PBS -e ${LOG_DIR}" >> ${script_file_to_submit}
 	echo "" >> ${script_file_to_submit}
 
-	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MonitorPipelines/GeneratePackageReport/GeneratePackageReportHCP.sh \\" >> ${script_file_to_submit}
+	echo "${HOME}/pipeline_tools/xnat_pbs_jobs/MonitorPipelines/GeneratePackageReport/GeneratePackageReportHCP.sh \\" >> ${script_file_to_submit}
 	echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
 	echo "  --package-project=${g_package_project} \\" >> ${script_file_to_submit}
 	echo "  --archive-project=${g_archive_project} \\" >> ${script_file_to_submit}
-	echo "  --package-root=\"/HCP/hcpdb/packages/live\" \\" >> ${script_file_to_submit}
+	echo "  --package-root=\"${HCP_ROOT}/hcpdb/packages/live\" \\" >> ${script_file_to_submit}
 	echo "  > ${working_directory_name}/PackageReport.${g_subject}.tsv " >> ${script_file_to_submit}
 	echo "" >> ${script_file_to_submit}
 

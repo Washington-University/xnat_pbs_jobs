@@ -25,11 +25,11 @@ at now <<EOF
 	--password=${password} \
 	--server=${server} \
 	--project=${project} \
-	--subject=130114 \
+	--subject=143830 \
 	--phase-encoding-dir=RLLR \
 	--node=${node} \
 	--gpu-node=${gpu_node} \
-	> /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/OneSubjectRuns/130114.stdout \
-	2>/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/OneSubjectRuns/130114.stderr
+	> /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/OneSubjectRuns/143830.stdout \
+	2>/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/OneSubjectRuns/143830.stderr
 
 EOF
