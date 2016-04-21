@@ -1,0 +1,79 @@
+
+* The code in this directory is intended to be used to create and analyze package reports.
+
+* Some of this code is quite HCP_900 release specific.
+
+* The intended flow of using this code is as follows.
+
+  1. Generate Package Reports on a per-subject basis
+
+  	 * The GeneratePackageReportHCP.sh script will generate a subject-specific package report file
+	   (a TSV file) for a single specified subject.
+	 * The generated subject-specific (or per-subject) package report will contain one TSV line/row
+       for each type of package that might be generated or distributed as part of the HCP_900
+	   release
+	 * The GeneratePackageReportHCP.sh script does some initial checking as to whether a particular
+       package type should exist. For example, if there is no REST2 scan for the subject, then
+	   any packages specific to the REST2 scan will not have been created.
+	 * The GeneratePackageReportHCP.sh script indicates that a package does not exist and that
+       is OK, by using "---" as the value for the package exists column/field in its output
+	 * A value of FALSE indicates that, as far as the logic in this code has determined, the
+	   package should exist, but does not.
+	 * Each per-subject package report can take up to about 20 minutes to generate. So the best
+	   approach is to submit jobs to do this per-subject package report generation to the 
+	   job scheduler on a cluster.
+     * SubmitGeneratePackageReportHCP.OneSubject.sh will submit the job to generate a package report
+	   for a single subject
+	 * SubmitGeneratePackageReportHCP.Package_HCP_900.Archive_HCP_500.Batch.sh will submit jobs
+       for all subjects in a separate subject list file. These are subjects whose packages are
+	   part of the HCP_900 release, and whose ConnectomeDB archive resources are in the HCP_500
+	   project.
+	 * SubmitGeneratePackageReportHCP.Package_HCP_900.Archive_HCP_900.Batch.sh is similar, but
+	   is for subjects whose packages are part of the HCP_900 release and whose DB archive
+	   resources are part of the HCP_900 project.
+
+  2. Once all per-subject package reports are generated (a lot of TSV files), you can generate 
+     a single package report for all the subjects by simply 'cat'ing together all the TSV files
+	 into a single TSV file, e.g. 
+
+	   cat *.tsv > All_HCP900_subjects.PackageReport.tsv
+
+  3. What is more helpful is then to have the package reports not on a per-subject basis, but
+     on a per-package-type basis.  That is, all Structural_unproc packages across subjects,
+	 all Diffusion_preproc packages across subjects, all REST1_fixextended packages across
+	 subjects, etc.
+
+	 The SeparatePackageReportsByPackageType.sh script is intended to create these per-package-type
+	 reports based on the file generated in the previous step (e.g. All_HCP900_subjects.PackageReport.tsv)
+
+	 SeparatePackageReportsByPackageType.sh prompts for the name of the All Subjects package report
+	 file to separate into package-type reports. Each package type report is a TSV file with
+	 all rows containing information about the package type. Each row represents a different
+	 subject.
+
+  4. If it is desired, then all of these per-package-type TSV files can be combined into one
+  	 Open Document Spreadsheet (.ods) file using the ssconvert command. See the comments in the 
+	 header of the SeparatePackageReportsByPackageType.sh script for instructions on doing
+     this.
+
+     However, these per-package-type reports still need to be reviewed or analyzed to determine
+	 such things as how many subjects and which subjects have incorrect checksum files, how many
+	 subjects and which subjects do not have packages that they should, how many subjects have
+	 packages are that "too small", etc.
+
+  5. The AnalyzePackageTypeReport.py script is intended to take a single package report for a
+  	 single package type and try to determine such things as how many packages should exist
+	 but do not, how many checksum files should exist but do not, how many of the packages
+	 that do exist are "too small" or "smaller than normal".
+
+	 The comments at the beginning of the AnalyzePackageTypeReport.py script explain what
+	 that code deems to be "too small".  
+
+	 The logic for deciding that a package is "too small" can be "overridden" by putting 
+	 a comment starting with "SMALL_OK:" in the notes field for a record.  The 
+	 GeneratePackageReportHCP.sh script uses some logic to insert some "SMALL_OK:" notes
+	 for some package types, but it is imperfect and some "by hand" investigation of 
+	 some packages may still be necessary.  Notes prefaced with SMALL_OK: can be inserted
+	 by simply editing the appropriate TSV file.
+
+
