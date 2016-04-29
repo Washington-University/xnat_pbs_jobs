@@ -1,19 +1,23 @@
 #!/bin/bash
 
 # home directory for these XNAT PBS job scripts
-XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
+XNAT_PBS_JOBS_HOME=${HOME}/pipeline_tools/xnat_pbs_jobs
 echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
 
 # home directory for XNAT pipeline engine installation
-XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
+XNAT_PIPELINE_HOME=${HOME}/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 
 # home directory for XNAT utilities
-XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
+XNAT_UTILS_HOME=${HOME}/pipeline_tools/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
+# root directory for HCP data
+HCP_ROOT="/HCP"
+echo "HCP_ROOT: ${HCP_ROOT}"
+
 # main build directory
-BUILD_HOME="/HCP/hcpdb/build_ssd/chpc/BUILD"
+BUILD_HOME="${HCP_ROOT}/hcpdb/build_ssd/chpc/BUILD"
 echo "BUILD_HOME: ${BUILD_HOME}"
 
 # set up to run Python
@@ -39,7 +43,7 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
-	unset g_notify
+	unset g_node
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -74,8 +78,8 @@ get_options()
 				g_session=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--notify=*)
-				g_notify=${argument/*=/""}
+			--node=*)
+				g_node=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -121,7 +125,10 @@ get_options()
 	fi
 	echo "Connectome DB Session: ${g_session}"
 
-	echo "Notification Email: ${g_notify}"
+	if [ -z "${g_node}" ]; then
+		echo "Node (--node=) required"
+		exit 1
+	fi
 }
 
 main()
@@ -148,7 +155,8 @@ main()
 
 	# Submit jobs for each task
 
-	for task in ${task_scan_names} ; do
+	#for task in ${task_scan_names} ; do
+	for task in SOCIAL ; do
 
 		echo "--------------------------------------------------"
 		echo "Submitting jobs for task: ${task}"
@@ -157,7 +165,6 @@ main()
 		# Get token user id and password
 		echo "Getting token user id and password"
 		get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user}"
-		echo "get_token_cmd: ${get_token_cmd}"
 		get_token_cmd+=" --password=${g_password}"
 		new_tokens=`${get_token_cmd}`
 		token_username=${new_tokens% *}
@@ -190,7 +197,6 @@ main()
 		get_session_id_cmd+="--project=${g_project} "
 		get_session_id_cmd+="--subject=${g_subject} "
 		get_session_id_cmd+="--session=${g_session} "
-		echo "get_session_id_cmd: ${get_session_id_cmd}"
 		get_session_id_cmd+=" --password=${g_password}"
 
 		sessionID=`${get_session_id_cmd}`
@@ -208,7 +214,6 @@ main()
 		get_workflow_id_cmd+="-Pipeline PostMsmAllTaskAnalysis_${task} "
 		get_workflow_id_cmd+="-Status Queued "
 		get_workflow_id_cmd+="-JSESSION ${jsession} "
-		echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
 		get_workflow_id_cmd+=" -Password ${g_password}"
 		
 		workflowID=`${get_workflow_id_cmd}`
@@ -230,16 +235,7 @@ main()
 		fi
 
 		touch ${script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=16000mb" >> ${script_file_to_submit}
-		#echo "#PBS -q dque" >> ${script_file_to_submit}
-		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
-		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
-		if [ -n "${g_notify}" ]; then
-			echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
-			echo "#PBS -m abe" >> ${script_file_to_submit}
-		fi
-		echo "" >> ${script_file_to_submit}
-		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostMsmAllTaskAnalysis/PostMsmAllTaskAnalysis.XNAT.sh \\" >> ${script_file_to_submit}
+		echo "${HOME}/pipeline_tools/xnat_pbs_jobs/PostMsmAllTaskAnalysis/PostMsmAllTaskAnalysis.XNAT.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 		echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
@@ -250,11 +246,13 @@ main()
 		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit}
 		echo "  --task=\"${task}\" " >> ${script_file_to_submit}
 
-		submit_cmd="qsub ${script_file_to_submit}"
-		echo "submit_cmd: ${submit_cmd}"
-	
-		processing_job_no=`${submit_cmd}`
-		echo "processing_job_no: ${processing_job_no}"
+		chmod +x ${script_file_to_submit}
+
+		standard_out_file=${working_directory_name}/${g_subject}.PostMsmAllTaskAnalysis.${g_project}.${g_session}.${task}.${current_seconds_since_epoch}.interactive.stdout
+		standard_err_file=${working_directory_name}/${g_subject}.PostMsmAllTaskAnalysis.${g_project}.${g_session}.${task}.${current_seconds_since_epoch}.interactive.stderr
+
+		echo "About to ssh to ${g_node} and execute ${script_file_to_submit}"
+		ssh ${g_node} "source ${HOME}/.bash_profile; ${script_file_to_submit} > ${standard_out_file} 2>${standard_err_file}"
 
 		# Submit job to put the results in the DB
 		put_script_file_to_submit=${LOG_DIR}/${g_subject}.${task}.PostMsmAllTaskAnalysis.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
@@ -263,17 +261,7 @@ main()
 		fi
 		
 		touch ${put_script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
-		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
-		echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
-		echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
-	
-		if [ -n "${g_notify}" ]; then
-			echo "#PBS -M ${g_notify}" >> ${put_script_file_to_submit}
-			echo "#PBS -m abe" >> ${put_script_file_to_submit}
-		fi
-		echo ""
-		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
+		echo "${HOME}/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
 		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
 		echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
 		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
@@ -284,9 +272,11 @@ main()
 		echo "  --resource-suffix=\"tfMRI_${task}_PostMsmAllTaskAnalysis\" \\" >> ${put_script_file_to_submit} 
 		echo "  --reason=\"PostMsmAllTaskAnalysis\" " >> ${put_script_file_to_submit}
 	
-		submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
-		echo "submit_cmd: ${submit_cmd}"
-		${submit_cmd}
+		chmod +x ${put_script_file_to_submit}
+
+		standard_out_file=${working_directory_name}/${g_subject}.PostMsmAllTaskAnalysis.${g_project}.${g_session}.${task}.${current_seconds_since_epoch}.interactive_PUT.stdout
+		standard_err_file=${working_directory_name}/${g_subject}.PostMsmAllTaskAnalysis.${g_project}.${g_session}.${task}.${current_seconds_since_epoch}.interactive_PUT.stderr
+		${put_script_file_to_submit} > ${standard_out_file} 2>${standard_err_file}
 
 	done
 }

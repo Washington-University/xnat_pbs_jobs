@@ -284,8 +284,8 @@ main()
  			echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
  			echo "" >> ${put_script_file_to_submit}
 			echo "${XNAT_PBS_JOBS_HOME}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
- 			echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
- 			echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
+ 			echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
+ 			echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
 			echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
  			echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
  			echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}

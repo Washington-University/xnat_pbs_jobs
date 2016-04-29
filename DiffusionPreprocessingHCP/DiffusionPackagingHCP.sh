@@ -142,8 +142,12 @@ main()
 	pkg_cmd+=" --host ${g_server}"
 	pkg_cmd+=" --user ${g_user}"
 	pkg_cmd+=" --pw ${g_password}"
-	#pkg_cmd+=" --outDir /HCP/hcpdb/packages/prerelease/zip" # should be the same place as below
-	pkg_cmd+=" --outDir /HCP/OpenAccess/prerelease/zip"
+	##pkg_cmd+=" --outDir /HCP/hcpdb/packages/prerelease/zip" # should be the same place as below
+	#pkg_cmd+=" --outDir /HCP/OpenAccess/prerelease/zip"
+
+	# This is a temporary change because the normal package directory is inaccessible
+	pkg_cmd+=" --outDir /HCP/hcpdb/build_ssd/chpc/BUILD/temp_packages_dir"
+
 	pkg_cmd+=" --buildDir ${g_working_dir}"
 	pkg_cmd+=" --project ${g_project}"
 	pkg_cmd+=" --subject ${g_subject}"

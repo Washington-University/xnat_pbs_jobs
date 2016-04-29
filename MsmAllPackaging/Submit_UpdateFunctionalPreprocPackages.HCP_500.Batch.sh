@@ -20,13 +20,15 @@ if [ -z "${interval}" ]; then
 fi
 
 project="HCP_500"
-packages_root="/HCP/hcpdb/packages/live/HCP_500"
-archive_root="/HCP/hcpdb/archive/HCP_500/arc001"
+
+packages_root="/HCP/hcpdb/packages/live/${project}"
+archive_root="/HCP/hcpdb/archive/${project}/arc001"
 
 #packages_tmp="/HCP/hcpdb/packages/temp"
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 
 output_dir="/HCP/hcpdb/packages/PostMsmAll"
+
 scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"
 log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/logs"
 

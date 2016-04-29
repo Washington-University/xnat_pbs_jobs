@@ -10,7 +10,6 @@ fi
 # home directory for these XNAT PBS job scripts
 XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
 #XNAT_PBS_JOBS_HOME=/home/NRG/tbrown01/projects/xnat_pbs_jobs
-echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
 
 # Database Resource names and suffixes
 source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/ResourceNamesAndSuffixes.sh
@@ -409,6 +408,51 @@ link_hcp_struct_preproc_data()
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
     link_from+="/${STRUCTURAL_PREPROC_RESOURCE_NAME}/"
+
+    local link_to=""
+    link_to="${to_study_dir}/${subject}"
+
+	local lndir_cmd=""
+	lndir_cmd="${PATH_TO_LNDIR} ${link_from} ${link_to}"
+	echo "lndir_cmd: ${lndir_cmd}"
+
+	echo "----------" `date` "----------"
+	echo ""
+    ${lndir_cmd}
+
+    popd
+}
+
+link_hcp_supplemental_struct_preproc_data()
+{
+    local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+    local project=${2} # e.g. HCP_500
+    local subject=${3} # e.g. 100307
+    local session=${4} # e.g. 100307_3T
+    local to_study_dir=${5}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Linking HCP Supplemental Structurally Preprocessed data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+    local link_from=""
+    link_from+="${archive}"
+    link_from+="/${project}"
+    link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+    link_from+="/${session}"
+    link_from+="/${DATABASE_RESOURCES_ROOT}"
+    link_from+="/${STRUCTURAL_PREPROC_SUPPLEMENTAL_RESOURCE_NAME}/"
 
     local link_to=""
     link_to="${to_study_dir}/${subject}"
