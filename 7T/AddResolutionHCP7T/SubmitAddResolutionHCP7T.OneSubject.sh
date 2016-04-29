@@ -2,18 +2,31 @@
 
 # This pipeline's name
 PIPELINE_NAME="AddResolutionHCP7T"
+SCRIPT_NAME="SubmitAddResoultionHCP7T.OneSubject.sh"
+DEFAULT_RESOURCE_NAME="Structural_preproc_supplemental"
+
+# echo a message with the script name as a prefix
+inform()
+{
+	local msg=${1}
+	echo "${SCRIPT_NAME}: ${msg}"
+}
 
 # home directory for XNAT pipeline engine installation
 XNAT_PIPELINE_HOME=${HOME}/pipeline
-echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
+inform "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 
 # home directory for XNAT utilities
 XNAT_UTILS_HOME=${HOME}/pipeline_tools/xnat_utilities
-echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
+inform "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
+
+# Root directory for HCP data
+HCP_ROOT="/HCP"
+inform "HCP_ROOT: ${HCP_ROOT}"
 
 # main build directory
-BUILD_HOME="/HCP/hcpdb/build_ssd/chpc/BUILD"
-echo "BUILD_HOME: ${BUILD_HOME}"
+BUILD_HOME="${HCP_ROOT}/hcpdb/build_ssd/chpc/BUILD"
+inform "BUILD_HOME: ${BUILD_HOME}"
 
 get_options() 
 {
@@ -26,11 +39,9 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
-#	unset g_seed
-#	unset g_brainsize
-#	unset g_put_server
 	unset g_output_resource
 	unset g_setup_script
+	unset g_clean_output_resource_first
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -73,9 +84,13 @@ get_options()
 				g_setup_script=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
+			--do-not-clean-first)
+				g_clean_output_resource_first="FALSE"
+				index=$(( index + 1 ))
+				;;
 			*)
-				echo "ERROR: unrecognized option: ${argument}"
-				echo ""
+				inform "ERROR: unrecognized option: ${argument}"
+				inform ""
 				exit 1
 				;;
 		esac
@@ -98,36 +113,39 @@ get_options()
 	if [ -z "${g_server}" ]; then
 		g_server="db.humanconnectome.org"
 	fi
-	echo "Connectome DB Server: ${g_server}"
+	inform "Connectome DB Server: ${g_server}"
 
 	if [ -z "${g_project}" ]; then
 		g_project="HCP_Staging"
 	fi
-    echo "Connectome DB Project: ${g_project}"
+    inform "Connectome DB Project: ${g_project}"
 
 	if [ -z "${g_subject}" ]; then
 		printf "Enter Connectome DB Subject: "
 		read g_subject
 	fi
-	echo "Connectome DB Subject: ${g_subject}"
+	inform "Connectome DB Subject: ${g_subject}"
 
 	if [ -z "${g_session}" ]; then
 		g_session=${g_subject}_3T
 	fi
-	echo "Connectome DB Session: ${g_session}"
-
-#	if [ -z "${g_put_server}" ]; then
-#		g_put_server="db.humanconnectome.org"
-#	fi
-#	echo "PUT server: ${g_put_server}"
+	inform "Connectome DB Session: ${g_session}"
 
 	if [ -z "${g_output_resource}" ]; then
-		g_output_resource="Structural_preproc"
+		g_output_resource="${DEFAULT_RESOURCE_NAME}"
 	fi
-	echo "output resource: ${g_output_resource}"
+	inform "output resource: ${g_output_resource}"
 
-	if [ ! -z "${g_setup_script}" ]; then
-		echo "setup script: ${g_setup_script}"
+	if [ -z "${g_clean_output_resource_first}" ]; then
+		g_clean_output_resource_first="TRUE"
+	fi
+	inform "clean output resource first: ${g_clean_output_resource_first}"
+
+	if [ -z "${g_setup_script}" ]; then
+		inform "ERROR: set up script (--setup-script=) required"
+		exit 1
+	else
+		inform "setup script: ${g_setup_script}"
 	fi
 }
 
@@ -136,53 +154,70 @@ main()
 	get_options $@
 
 	# Get token user id and password
-	echo "Setting up to run Python"
+	inform "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-	echo "Getting token user id and password"
+	inform "Getting token user id and password"
 	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
 	new_tokens=`${get_token_cmd}`
 	token_username=${new_tokens% *}
 	token_password=${new_tokens#* }
-	echo "token_username: ${token_username}"
-	echo "token_password: ${token_password}"
+	inform "token_username: ${token_username}"
+	inform "token_password: ${token_password}"
 
 	current_seconds_since_epoch=`date +%s`
 	working_directory_name="${BUILD_HOME}/${g_project}/AddResolutionHCP7T.${g_subject}.${current_seconds_since_epoch}"
 
 	# Make the working directory
-	echo "Making working directory: ${working_directory_name}"
+	inform "Making working directory: ${working_directory_name}"
 	mkdir -p ${working_directory_name}
 
 	# Get JSESSION ID
-	echo "Getting JSESSION ID"
+	inform "Getting JSESSION ID"
 	curl_cmd="curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION"
 	jsession=`${curl_cmd}`
-	echo "jsession: ${jsession}"
+	inform "jsession: ${jsession}"
 
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
-	echo "Getting XNAT Session ID"
+	inform "Getting XNAT Session ID"
 	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=${g_server} --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
 	sessionID=`${get_session_id_cmd}`
-	echo "XNAT session ID: ${sessionID}"
+	inform "XNAT session ID: ${sessionID}"
 
 	# Get XNAT Workflow ID
 	server="https://db.humanconnectome.org/"
-	echo "Getting XNAT workflow ID for this job from server: ${server}"
+	inform "Getting XNAT workflow ID for this job from server: ${server}"
 	get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline ${PIPELINE_NAME} -Status Queued -JSESSION ${jsession}"
 	get_workflow_id_cmd+=" -Password ${g_password}"
 
 	workflowID=`${get_workflow_id_cmd}`
 	if [ $? -ne 0 ]; then
-		echo "Fetching workflow failed. Aborting"
-		echo "workflowID: ${workflowID}"
+		inform "Fetching workflow failed. Aborting"
+		inform "workflowID: ${workflowID}"
 		exit 1
 	elif [[ ${workflowID} == HTTP* ]]; then
-		echo "Fetching workflow failed. Aborting"
-		echo "worflowID: ${workflowID}"
+		inform "Fetching workflow failed. Aborting"
+		inform "worflowID: ${workflowID}"
 		exit 1
 	fi
-	echo "XNAT workflow ID: ${workflowID}"
+	inform "XNAT workflow ID: ${workflowID}"
+
+	# Clean the output resource (unless told not to)
+	if [ "${g_clean_output_resource_first}" = "TRUE" ] ; then
+		inform "Deleting resource: ${g_output_resource} for:"
+		inform "  project: ${g_project}"
+		inform "  subject: ${g_subject}"
+		inform "  session: ${g_session}"
+		${HOME}/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/DeleteResource.sh \
+			--user=${g_user} \
+			--password=${g_password} \
+			--server=${g_server} \
+			--project=${g_project} \
+			--subject=${g_subject} \
+			--session=${g_session} \
+			--resource=${g_output_resource} \
+			--force
+	fi
 
 	# Submit job to actually do the work
 	script_file_to_submit=${working_directory_name}/${g_subject}.AddResolutionHCP7T.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
@@ -191,14 +226,11 @@ main()
 	fi
 
 	touch ${script_file_to_submit}
-	echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=16000mb" >> ${script_file_to_submit}
+	echo "#PBS -l nodes=1:ppn=1,walltime=1:00:00,vmem=4000mb" >> ${script_file_to_submit}
 	echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 	echo "" >> ${script_file_to_submit}
-
-~/pipeline_tools/xnat_pbs_jobs/7T/AddResolutionHCP7T/
-
-	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/7T/AddResolutionHCP7T/AddResolutionHCP7T.XNAT.sh \\" >> ${script_file_to_submit}
+	echo "${HOME}/pipeline_tools/xnat_pbs_jobs/7T/AddResolutionHCP7T/AddResolutionHCP7T.XNAT.sh \\" >> ${script_file_to_submit}
 	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 	echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 	echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
@@ -207,23 +239,46 @@ main()
 	echo "  --session=\"${g_session}\" \\" >> ${script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
 	echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit} 
-	echo "  --xnat-session-id=${sessionID}" >> ${script_file_to_submit}
+	echo "  --xnat-session-id=${sessionID} \\" >> ${script_file_to_submit}
+	echo "  --setup-script=${g_setup_script}" >> ${script_file_to_submit}
 
 	chmod +x ${script_file_to_submit}
 
 	submit_cmd="qsub ${script_file_to_submit}"
-	echo "submit_cmd: ${submit_cmd}"
+	inform "submit_cmd: ${submit_cmd}"
 
 	processing_job_no=`${submit_cmd}`
-	echo "procesing_job_no: ${processing_job_no}"
+	inform "processing_job_no: ${processing_job_no}"
 
 	# Submit job to put the results in the DB
+	put_script_file_to_submit=${working_directory_name}/${g_subject}.${PIPELINE_NAME}.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+	if [ -e "${put_script_file_to_submit}" ]; then
+		rm -f "${put_script_file_to_submit}"
+	fi
 
-	# ici
+	touch ${put_script_file_to_submit}
+	echo "#PBS -l no"
+	echo "#PBS -l nodes=1:ppn=1,walltime=2:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
+	echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
+	echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
+	echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
+	echo "" >> ${put_script_file_to_submit}
+	echo "${HOME}/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
+	echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
+	echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
+	echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
+	echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
+	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
+	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
+	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
+	#echo "  --resource-suffix=\"Structural_preproc_supplemental\" " >> ${put_script_file_to_submit} 
+	echo "  --resource-suffix=\"${g_output_resource}\" " >> ${put_script_file_to_submit}
 
+	chmod +x ${put_script_file_to_submit}
 
-
-
+	submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
+	inform "submit_cmd: ${submit_cmd}"
+	${submit_cmd}
 }
 
 # Invoke the main function to get things started

@@ -3,29 +3,40 @@
 # This pipeline's name 
 PIPELINE_NAME="FunctionalPreprocessingHCP7T"
 
+# echo a message with the script name as a prefix
+inform()
+{
+	local msg=${1}
+	echo "SubmitFunctionalPreprocessingHCP7T.OneSubject.sh: ${msg}"
+}
+
 # home directory for these XNAT PBS job scripts
-XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
-echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
+XNAT_PBS_JOBS_HOME=${HOME}/pipeline_tools/xnat_pbs_jobs
+inform "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
 
 # home directory for XNAT pipeline engine installation
-XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
-echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
+XNAT_PIPELINE_HOME=${HOME}/pipeline
+inform "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 
 # home directory for XNAT utilities
-XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
-echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
+XNAT_UTILS_HOME=${HOME}/pipeline_tools/xnat_utilities
+inform "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
+
+# Root directory for HCP data
+HCP_DATA_ROOT="/HCP"
+inform "HCP_DATA_ROOT: ${HCP_DATA_ROOT}"
 
 # main build directory
-BUILD_HOME="/HCP/hcpdb/build_ssd/chpc/BUILD"
-echo "BUILD_HOME: ${BUILD_HOME}"
+BUILD_HOME="${HCP_DATA_ROOT}/hcpdb/build_ssd/chpc/BUILD"
+inform "BUILD_HOME: ${BUILD_HOME}"
 
 # set up to run Python
-echo "Setting up to run Python"
+inform "Setting up to run Python"
 source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 # root directory of the XNAT database archive
-DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
-echo "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
+DATABASE_ARCHIVE_ROOT="${HCP_DATA_ROOT}/hcpdb/archive"
+inform "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
 
 TASK_FMRI_PREFIX="tfMRI"
 RESTING_STATE_FMRI_PREFIX="rfMRI"
@@ -49,6 +60,8 @@ get_options()
 	unset g_structural_reference_project
 	unset g_structural_reference_session
 	unset g_put_server
+	unset g_clean_output_resource_first
+	unset g_setup_script
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -95,6 +108,14 @@ get_options()
 				g_put_server=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
+			--do-not-clean-first)
+				g_clean_output_resource_first="FALSE"
+				index=$(( index + 1 ))
+				;;
+			--setup-script=*)
+				g_setup_script=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
 			*)
 				echo "ERROR: unrecognized option: ${argument}"
 				echo ""
@@ -120,38 +141,52 @@ get_options()
 	if [ -z "${g_server}" ]; then
 		g_server="db.humanconnectome.org"
 	fi
-	echo "Connectome DB Server: ${g_server}"
+	inform "Connectome DB Server: ${g_server}"
 
 	if [ -z "${g_project}" ]; then
 		g_project="HCP_Staging_7T"
 	fi
-    echo "Connectome DB Project: ${g_project}"
+    inform "Connectome DB Project: ${g_project}"
 
 	if [ -z "${g_subject}" ]; then
 		printf "Enter Connectome DB Subject: "
 		read g_subject
 	fi
-	echo "Connectome DB Subject: ${g_subject}"
+	inform "Connectome DB Subject: ${g_subject}"
 
 	if [ -z "${g_session}" ]; then
 		g_session=${g_subject}_7T
 	fi
-	echo "Connectome DB Session: ${g_session}"
+	inform "Connectome DB Session: ${g_session}"
 
 	if [ -z "${g_structural_reference_project}" ]; then
-		g_structural_reference_project="HCP_900"
+		inform "ERROR: --structural-reference-project= required"
+		exit 1
+	else
+		inform "Connectome DB Structural Reference Project: ${g_structural_reference_project}"
 	fi
-	echo "Connectome DB Structural Reference Project: ${g_structural_reference_project}"
 
 	if [ -z "${g_structural_reference_session}" ]; then
 		g_structural_reference_session=${g_subject}_3T
 	fi
-	echo "Connectome DB Structural Reference Session: ${g_structural_reference_session}"
+	inform "Connectome DB Structural Reference Session: ${g_structural_reference_session}"
 
 	if [ -z "${g_put_server}" ]; then
 		g_put_server="db.humanconnectome.org"
 	fi
-	echo "PUT server: ${g_put_server}"
+	inform "PUT server: ${g_put_server}"
+
+	if [ -z "${g_clean_output_resource_first}" ]; then
+		g_clean_output_resource_first="TRUE"
+	fi
+	inform "clean output resource first: ${g_clean_output_resource_first}"
+
+	if [ -z "${g_setup_script}" ]; then
+		inform "ERROR: set up script (--setup-script=) required"
+		exit 1
+	else
+		inform "set up script: ${g_setup_script}"
+	fi
 }
 
 main()
@@ -172,7 +207,7 @@ main()
 
 	popd
 
-	echo "Resting state scans available for subject: ${resting_state_scan_names}"
+	inform "Resting state scans available for subject: ${resting_state_scan_names}"
 
 	# NOTE: Since the resting state scans are not taken in pairs of phase encoding 
 	#       directions, the values in resting_state_scan_names will include the
@@ -192,7 +227,7 @@ main()
 
 	popd
 
-	echo "Task scans available for subject: ${task_scan_names}"
+	inform "Task scans available for subject: ${task_scan_names}"
 
 	# NOTE: Since the task scans are not taken in pairs of phase encoding
 	#       directions, the values in task_scan_names will include the 
@@ -202,20 +237,20 @@ main()
 
 	for scan_name in ${resting_state_scan_names} ${task_scan_names} ; do
 
-		echo "scan_name: ${scan_name}"
+		inform "scan_name: ${scan_name}"
 		
 		resting_match_check=${resting_state_scan_names#*${scan_name}}
 		task_match_check=${task_scan_names#*${scan_name}}
 
 		if [ "${resting_match_check}" != "${resting_state_scan_names}" ] ; then
-			echo "${scan_name} is a resting state scan"
+			inform "${scan_name} is a resting state scan"
 			prefix="${RESTING_STATE_FMRI_PREFIX}"
 		elif [ "${task_match_check}" != "${task_scan_names}" ] ; then
-			echo "${scan_name} is a task scan"
+			inform "${scan_name} is a task scan"
 			prefix="${TASK_FMRI_PREFIX}"
 		else
-			echo "Unable to determine whether ${scan_name} is a resting state or task scan"
-			echo "ABORTING"
+			inform "Unable to determine whether ${scan_name} is a resting state or task scan"
+			inform "ABORTING"
 			exit 1
 		fi
 
@@ -224,10 +259,11 @@ main()
 		# ------------------------------------------------------
 
 		scan="${prefix}_${scan_name}"
+		output_resource=${scan}_preproc
 
-		echo "--------------------------------------------------"
-		echo "Submitting jobs for scan: ${scan}"
-		echo "--------------------------------------------------"
+		inform "--------------------------------------------------"
+		inform "Submitting jobs for scan: ${scan}"
+		inform "--------------------------------------------------"
 
 		# Get token user id and password
 		echo "Getting token user id and password"
@@ -246,16 +282,16 @@ main()
 		working_directory_name="${BUILD_HOME}/${g_project}/${PIPELINE_NAME}.${g_subject}.${scan}.${current_seconds_since_epoch}"
 
 		# Make the working directory
-		echo "Making working directory: ${working_directory_name}"
+		inform "Making working directory: ${working_directory_name}"
 		mkdir -p ${working_directory_name}
 
 		# Get JSESSION ID
-		echo "Getting JSESSION ID"
+		inform "Getting JSESSION ID"
 		jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
-		echo "jsession: ${jsession}"
+		inform "jsession: ${jsession}"
 
 		# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
-		echo "Getting XNAT Session ID"
+		inform "Getting XNAT Session ID"
 		get_session_id_cmd=""
 		get_session_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py "
 		get_session_id_cmd+="--server=db.humanconnectome.org "
@@ -266,11 +302,11 @@ main()
 		get_session_id_cmd+=" --password=${g_password}"
 
 		sessionID=`${get_session_id_cmd}`
-		echo "XNAT session ID: ${sessionID}"
+		inform "XNAT session ID: ${sessionID}"
 
 		# Get XNAT Workflow ID
 		server="https://db.humanconnectome.org/"
-		echo "Getting XNAT workflow ID for this job from server: ${server}"
+		inform "Getting XNAT workflow ID for this job from server: ${server}"
 		get_workflow_id_cmd=""
 		get_workflow_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py"
 		get_workflow_id_cmd+=" -User ${g_user}"
@@ -284,16 +320,34 @@ main()
 			
 		workflowID=`${get_workflow_id_cmd}`
 		if [ $? -ne 0 ]; then
-			echo "Fetching workflow failed. Aborting"
-			echo "workflowID: ${workflowID}"
+			inform "Fetching workflow failed. Aborting"
+			inform "workflowID: ${workflowID}"
 			exit 1
 		elif [[ ${workflowID} == HTTP* ]]; then
-			echo "Fetching workflow failed. Aborting"
-			echo "worflowID: ${workflowID}"
+			inform "Fetching workflow failed. Aborting"
+			inform "worflowID: ${workflowID}"
 			exit 1
 		fi
-		echo "XNAT workflow ID: ${workflowID}"
-			
+		inform "XNAT workflow ID: ${workflowID}"
+
+		# Clean the output resource (unless told not to)
+		if [ "${g_clean_output_resource_first}" = "TRUE" ] ; then
+			inform "Deleting resource: ${output_resource} for:"
+			inform "  project: ${g_project}"
+			inform "  subject: ${g_subject}"
+			inform "  session: ${g_session}"
+
+			${HOME}/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/DeleteResource.sh \
+				--user=${g_user} \
+				--password=${g_password} \
+				--server=${g_server} \
+				--project=${g_project} \
+				--subject=${g_subject} \
+				--session=${g_session} \
+				--resource=${output_resource} \
+				--force
+		fi
+
 		# Submit job to actually do the work
 		script_file_to_submit=${working_directory_name}/${g_subject}.${scan}.${PIPELINE_NAME}.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
 		if [ -e "${script_file_to_submit}" ]; then
@@ -317,23 +371,24 @@ main()
 		echo "  --scan=\"${scan}\" \\" >> ${script_file_to_submit}
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${script_file_to_submit}
 		echo "  --workflow-id=\"${workflowID}\" \\" >> ${script_file_to_submit} 
-		echo "  --xnat-session-id=${sessionID} " >> ${script_file_to_submit}
+		echo "  --xnat-session-id=${sessionID} \\" >> ${script_file_to_submit}
+		echo "  --setup-script=${g_setup_script}" >> ${script_file_to_submit}
 		
 		chmod +x ${script_file_to_submit}
 
 		submit_cmd="qsub ${script_file_to_submit}"
-		echo "submit_cmd: ${submit_cmd}"			
+		inform "submit_cmd: ${submit_cmd}"			
 
 		processing_job_no=`${submit_cmd}`
-		echo "processing_job_no: ${processing_job_no}"
+		inform "processing_job_no: ${processing_job_no}"
 
 		if [ -z "${processing_job_no}" ] ; then
-			echo "ERROR SUBMITTING PROCESSING JOB - ABORTING"
+			inform "ERROR SUBMITTING PROCESSING JOB - ABORTING"
 			exit 1
 		fi
 
 		# Submit job to put the results in the DB
- 		put_script_file_to_submit=${LOG_DIR}/${g_subject}.${scan}.${PIPELINE_NAME}.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+ 		put_script_file_to_submit=${working_directory_name}/${g_subject}.${scan}.${PIPELINE_NAME}.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
  		if [ -e "${put_script_file_to_submit}" ]; then
  			rm -f "${put_script_file_to_submit}"
  		fi
@@ -345,23 +400,23 @@ main()
  		echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
  		echo "" >> ${put_script_file_to_submit}
 		echo "${XNAT_PBS_JOBS_HOME}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
- 		echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
- 		echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
 		echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
  		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
  		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
  		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
  		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-		echo "  --resource-suffix=\"${scan}_preproc\" \\" >> ${put_script_file_to_submit}
+		echo "  --resource-suffix=\"${output_resource}\" \\" >> ${put_script_file_to_submit}
 		echo "  --reason=\"${scan}_${PIPELINE_NAME}\" " >> ${put_script_file_to_submit}
 
 		chmod +x ${put_script_file_to_submit}
 
 		put_submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
-		echo "put_submit_cmd: ${put_submit_cmd}"
+		inform "put_submit_cmd: ${put_submit_cmd}"
 		
 		put_job_no=`${put_submit_cmd}`
-		echo "put_job_no: ${put_job_no}"
+		inform "put_job_no: ${put_job_no}"
 
 	done
 }
