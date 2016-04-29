@@ -243,7 +243,7 @@ main()
 		inform "worflowID: ${workflowID}"
 		exit 1
 	fi
-	echo "XNAT workflow ID: ${workflowID}"
+	inform "XNAT workflow ID: ${workflowID}"
 
 	# Clean the output resource (unless told not to)
 	if [ "${g_clean_output_resource_first}" = "TRUE" ] ; then
