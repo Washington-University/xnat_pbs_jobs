@@ -62,6 +62,7 @@ get_options()
 	unset g_put_server
 	unset g_clean_output_resource_first
 	unset g_setup_script
+	unset g_scan
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -116,6 +117,11 @@ get_options()
 				g_setup_script=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
+			--scan=*)
+				g_scan=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+				
 			*)
 				echo "ERROR: unrecognized option: ${argument}"
 				echo ""
@@ -204,15 +210,15 @@ main()
 		resting_state_scan_names=${resting_state_scan_names//$scan_name/}
 		resting_state_scan_names+=" ${scan_name}"
 	done
-
+	
 	popd
-
+	
 	inform "Resting state scans available for subject: ${resting_state_scan_names}"
-
+	
 	# NOTE: Since the resting state scans are not taken in pairs of phase encoding 
 	#       directions, the values in resting_state_scan_names will include the
 	#       phase encoding directions.
-
+	
 	# Determine what task scans are available for the subject
 	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES
 	
@@ -224,24 +230,34 @@ main()
 		task_scan_names=${task_scan_names//$scan_name/}
 		task_scan_names+=" ${scan_name}"
 	done
-
+	
 	popd
-
+	
 	inform "Task scans available for subject: ${task_scan_names}"
-
+	
 	# NOTE: Since the task scans are not taken in pairs of phase encoding
 	#       directions, the values in task_scan_names will include the 
 	#       phase encoding directions.
 
-	# Submit jobs for each functional scan (resting state or task)
 
-	for scan_name in ${resting_state_scan_names} ${task_scan_names} ; do
+	if [ -z "${g_scan}" ] ; then
+		# user did not specify a particular scan, so do 'em all
+		scan_list="${resting_state_scan_names} ${task_scan_names}"
 
+	else
+		# user specified a particular scan e.g. REST1_PA, REST2_AP, MOVIE1_AP, RETCON_PA, etc.
+		scan_list="${g_scan}"
+	fi
+
+	# Submit jobs
+		
+	for scan_name in ${scan_list} ; do
+			
 		inform "scan_name: ${scan_name}"
 		
 		resting_match_check=${resting_state_scan_names#*${scan_name}}
 		task_match_check=${task_scan_names#*${scan_name}}
-
+		
 		if [ "${resting_match_check}" != "${resting_state_scan_names}" ] ; then
 			inform "${scan_name} is a resting state scan"
 			prefix="${RESTING_STATE_FMRI_PREFIX}"
@@ -253,7 +269,7 @@ main()
 			inform "ABORTING"
 			exit 1
 		fi
-
+		
 		# ------------------------------------------------------
 		#  Submit jobs 
 		# ------------------------------------------------------

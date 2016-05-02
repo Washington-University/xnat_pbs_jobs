@@ -18,7 +18,7 @@ project="HCP_Staging"
 server="db-shadow${shadow_number}.nrg.mir:8080"
 
 
-at now <<EOF
+at now + 10 hours <<EOF
 
   /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/RunDiffusionPreprocessingHCP.OneSubject.sh \
 	--user=${userid} \
