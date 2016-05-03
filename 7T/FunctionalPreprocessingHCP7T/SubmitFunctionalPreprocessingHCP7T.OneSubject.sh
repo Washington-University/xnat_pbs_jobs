@@ -371,7 +371,17 @@ main()
 		fi
 
 		touch ${script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=36:00:00,vmem=50000mb" >> ${script_file_to_submit}
+
+		if [[ ${scan} == *REST* ]] ; then
+			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=30000mb" >> ${script_file_to_submit}
+		elif [[ ${scan} == *MOVIE* ]]; then
+			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=30000mb" >> ${script_file_to_submit}
+		elif [[ ${scan} == *RET* ]]; then
+			echo "#PBS -l nodes=1:ppn=1,walltime=12:00:00,vmem=8000mb" >> ${script_file_to_submit}
+		else
+			echo "#PBS -l nodes=1:ppn=1,walltime=36:00:00,vmem=30000mb" >> ${script_file_to_submit}
+		fi
+
 		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 		echo "" >> ${script_file_to_submit}
