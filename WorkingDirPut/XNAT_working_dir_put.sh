@@ -264,6 +264,12 @@ main()
 	mv ${g_working_dir}/${g_subject}/* ${g_working_dir}
 	rm -rf ${g_working_dir}/${g_subject}
 
+	# Mask password (${g_password})
+	files=`find ${g_working_dir} -maxdepth 1 -print`
+	for file in ${files} ; do
+		${XNAT_PBS_JOBS_HOME}/WorkingDirPut/mask_password --password="${g_password}" --file="${file}" --verbose
+	done
+
 	# Push the data into the DB
 	db_working_dir=${g_working_dir/HCP/data}
 	echo "-------------------------------------------------"
