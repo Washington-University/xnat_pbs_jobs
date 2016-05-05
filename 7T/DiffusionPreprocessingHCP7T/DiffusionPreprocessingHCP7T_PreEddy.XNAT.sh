@@ -221,6 +221,7 @@ get_options()
             fi
         fi
     fi
+	inform "g_phase_encoding_dirs: ${g_phase_encoding_dirs}"
 	
 	if [ -z "${g_setup_script}" ] ; then
 		inform "ERROR: set up script (--setup-script=) required"
@@ -400,12 +401,12 @@ main()
 	PreEddy_cmd+=" --path=${g_working_dir}"
 	PreEddy_cmd+=" --subject=${g_subject}"
 
-	if [ "${g_phase_encoding_dir}" = "RLLR" ] ; then
+	if [ "${g_phase_encoding_dirs}" = "RLLR" ] ; then
 		PreEddy_cmd+=" --PEdir=1"
-	elif [ "${g_phase_encoding_dir}" = "PAAP" ] ; then
+	elif [ "${g_phase_encoding_dirs}" = "PAAP" ] ; then
 		PreEddy_cmd+=" --PEdir=2"
 	else
-		inform "ERROR: Unrecognized phase encoding dir specifier: ${g_phase_encoding_dir} - ABORTING"
+		inform "ERROR: Unrecognized phase encoding dir specifier: ${g_phase_encoding_dirs} - ABORTING"
 		exit 1
 	fi
 

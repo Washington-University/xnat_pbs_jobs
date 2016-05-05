@@ -9,7 +9,7 @@ inform()
 }
 
 if [ -z "${SUBJECT_FILES_DIR}" ]; then
-	echo "Environment variable SUBJECT_FILES_DIR must be set!"
+	inform "Environment variable SUBJECT_FILES_DIR must be set!"
 	exit 1
 fi
 
@@ -51,13 +51,6 @@ for subject_spec in ${subjects} ; do
 		parsing_subject_spec=${parsing_subject_spec#*:}
 
 		comments=${parsing_subject_spec}
-
-		#project=${project_refproject_subject%%:*}
-		#
-		#refproject=${project_refproject_subject%:*}
-		#refproject=${refproject#*:}
-		#
-		#subject=${project_refproject_subject##*:}
 		
 		server="db-shadow${shadow_number}.nrg.mir:8080"
 

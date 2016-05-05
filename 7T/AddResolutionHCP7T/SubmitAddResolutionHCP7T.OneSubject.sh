@@ -231,8 +231,11 @@ main()
 	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 	echo "" >> ${script_file_to_submit}
 	echo "${HOME}/pipeline_tools/xnat_pbs_jobs/7T/AddResolutionHCP7T/AddResolutionHCP7T.XNAT.sh \\" >> ${script_file_to_submit}
-	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
-	echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
+#	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
+#	echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
+	echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}
+	echo "  --password=\"${g_password}\" \\" >> ${script_file_to_submit}
+#
 	echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
 	echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
 	echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
@@ -251,6 +254,12 @@ main()
 	inform "processing_job_no: ${processing_job_no}"
 
 	# Submit job to put the results in the DB
+	# Note: Since the actual username and password are used in the PUT script below, this file should not be 
+	#       placed in the working directory. If it is placed in the working directory, it gets put in the
+	#       database archive leaving a valid username and password combination in the database archive.
+	#       The token username and token password are not used here because by the time the PUT job gets
+	#       to run, the tokens are likely to have expired.
+#	put_script_file_to_submit=${LOG_DIR}/${g_subject}.${PIPELINE_NAME}.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 	put_script_file_to_submit=${working_directory_name}/${g_subject}.${PIPELINE_NAME}.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 	if [ -e "${put_script_file_to_submit}" ]; then
 		rm -f "${put_script_file_to_submit}"
@@ -264,14 +273,13 @@ main()
 	echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
 	echo "" >> ${put_script_file_to_submit}
 	echo "${HOME}/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
-	echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
-	echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
+	echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
+	echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
 	echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}
 	echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
 	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
 	echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-	#echo "  --resource-suffix=\"Structural_preproc_supplemental\" " >> ${put_script_file_to_submit} 
 	echo "  --resource-suffix=\"${g_output_resource}\" " >> ${put_script_file_to_submit}
 
 	chmod +x ${put_script_file_to_submit}

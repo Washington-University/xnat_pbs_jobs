@@ -282,13 +282,13 @@ main()
 		inform "--------------------------------------------------"
 
 		# Get token user id and password
-		echo "Getting token user id and password"
-		get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
-		new_tokens=`${get_token_cmd}`
-		token_username=${new_tokens% *}
-		token_password=${new_tokens#* }
-		echo "token_username: ${token_username}"
-		echo "token_password: ${token_password}"
+		# echo "Getting token user id and password"
+		# get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
+		# new_tokens=`${get_token_cmd}`
+		# token_username=${new_tokens% *}
+		# token_password=${new_tokens#* }
+		# echo "token_username: ${token_username}"
+		# echo "token_password: ${token_password}"
 
 		# make sure working directories don't have the same name based on the 
 		# same start time by sleeping a few seconds
@@ -386,8 +386,11 @@ main()
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 		echo "" >> ${script_file_to_submit}
 		echo "${XNAT_PBS_JOBS_HOME}/7T/FunctionalPreprocessingHCP7T/FunctionalPreprocessingHCP7T.XNAT.sh \\" >> ${script_file_to_submit}
-		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
-		echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
+#		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
+#		echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
+		echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}
+		echo "  --password=\"${g_password}\" \\" >> ${script_file_to_submit}
+#
 		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
 		echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
 		echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
@@ -426,8 +429,8 @@ main()
  		echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
  		echo "" >> ${put_script_file_to_submit}
 		echo "${XNAT_PBS_JOBS_HOME}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
- 		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
- 		echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
+ 		echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
 		echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
  		echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
  		echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}

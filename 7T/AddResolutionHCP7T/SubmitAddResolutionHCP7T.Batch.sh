@@ -22,7 +22,6 @@ read password
 echo ""
 stty echo
 
-#project="HCP_900"
 subject_file_name=${SUBJECT_FILES_DIR}/7T.subjects
 inform "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
