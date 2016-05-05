@@ -1,10 +1,16 @@
 #!/bin/bash
 
-echo "Job started on `hostname` at `date`"
+inform() 
+{
+	local msg=${1}
+	echo "StructuralPackagingHCP.sh: ${msg}"
+}
+
+inform "Job started on `hostname` at `date`"
 
 # home directory for scripts to be sourced to setup the environment
 SCRIPTS_HOME=${HOME}/SCRIPTS
-echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
+inform "SCRIPTS_HOME: ${SCRIPTS_HOME}"
 
 # root directory of the XNAT database archive
 export XNAT_ARCHIVE_ROOT="/HCP/hcpdb/archive"
@@ -12,7 +18,7 @@ echo "XNAT_ARCHIVE_ROOT: ${XNAT_ARCHIVE_ROOT}"
 
 usage()
 {
-	echo "usage: TBW"
+	inform "usage: TBW"
 }
 
 # Parse specified command line options and verify that required options are 
@@ -68,8 +74,8 @@ get_options()
 				;;
 			*)
 				usage
-				echo "ERROR: unrecognized option: ${argument}"
-				echo ""
+				inform "ERROR: unrecognized option: ${argument}"
+				inform ""
 				exit 1
 				;;
 		esac
@@ -79,49 +85,49 @@ get_options()
 
 	# check required parameters
 	if [ -z "${g_user}" ]; then
-		echo "ERROR: user (--user=) required"
+		inform "ERROR: user (--user=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		echo "g_user: ${g_user}"
+		inform "g_user: ${g_user}"
 	fi
 
 	if [ -z "${g_password}" ]; then
 		echo "ERROR: password (--password=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		echo "g_password: *******"
+		inform "g_password: *******"
 	fi
 
 	if [ -z "${g_server}" ]; then
-		echo "ERROR: server (--server=) required"
+		inform "ERROR: server (--server=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		echo "g_server: ${g_server}"
+		inform "g_server: ${g_server}"
 	fi
 
 	if [ -z "${g_project}" ]; then
-		echo "ERROR: project (--project=) required"
+		inform "ERROR: project (--project=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		echo "g_project: ${g_project}"
+		inform "g_project: ${g_project}"
 	fi
 
 	if [ -z "${g_subject}" ]; then
-		echo "ERROR: subject (--subject=) required"
+		inform "ERROR: subject (--subject=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		echo "g_subject: ${g_subject}"
+		inform "g_subject: ${g_subject}"
 	fi
 
 	if [ -z "${g_working_dir}" ]; then
-		echo "ERROR: working directory (--working-dir=) required"
+		inform "ERROR: working directory (--working-dir=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		echo "g_working_dir: ${g_working_dir}"
+		inform "g_working_dir: ${g_working_dir}"
 	fi
 
 	if [ ${error_count} -gt 0 ]; then
-		echo "For usage information, use --help"
+		inform "For usage information, use --help"
 		exit 1
 	fi
 }
@@ -131,17 +137,16 @@ main()
 {
 	get_options $@
 
-	echo "Setting up to run Python"
+	inform "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-	echo "Setting up to run Groovy"
+	inform "Setting up to run Groovy"
 	source ${SCRIPTS_HOME}/groovy_setup.sh
 
 	pkg_cmd=""
 	pkg_cmd+="${NRG_PACKAGES}/tools/packaging/callPackager.sh "
 	pkg_cmd+=" --host ${g_server}"
 	pkg_cmd+=" --user ${g_user}"
-	pkg_cmd+=" --pw ${g_password}"
 	#pkg_cmd+=" --outDir /HCP/hcpdb/packages/prerelease/zip" # should be the same place as below
 	pkg_cmd+=" --outDir /HCP/OpenAccess/prerelease/zip"
 	pkg_cmd+=" --buildDir ${g_working_dir}"
@@ -151,9 +156,11 @@ main()
 	pkg_cmd+=" --outputType PREPROC"   # [UNPROC | PREPROC | ANALYSIS | FIX]
 	pkg_cmd+=" --packet STRUCTURAL"    # [STRUCTURAL | FUNCTIONAL | DIFFUSION]
 
-	echo ""
-	echo "pkg_cmd: ${pkg_cmd}"
-	echo ""
+	inform ""
+	inform "pkg_cmd: ${pkg_cmd}"
+	inform ""
+
+	pkg_cmd+=" --pw ${g_password}"
 
 	${pkg_cmd}
 	if [ $? -ne 0 ]; then
