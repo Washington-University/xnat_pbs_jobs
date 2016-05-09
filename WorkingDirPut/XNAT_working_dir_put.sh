@@ -267,7 +267,7 @@ main()
 	# Mask password (${g_password})
 	files=`find ${g_working_dir} -maxdepth 1 -print`
 	for file in ${files} ; do
-		${XNAT_PBS_JOBS_HOME}/WorkingDirPut/mask_password --password="${g_password}" --file="${file}" --verbose
+		${XNAT_PBS_JOBS_HOME}/WorkingDirPut/mask_password.sh --password="${g_password}" --file="${file}" --verbose
 	done
 
 	# Push the data into the DB

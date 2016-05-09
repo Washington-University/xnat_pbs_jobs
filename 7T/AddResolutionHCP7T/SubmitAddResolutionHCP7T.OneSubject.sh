@@ -157,13 +157,13 @@ main()
 	inform "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-	inform "Getting token user id and password"
-	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
-	new_tokens=`${get_token_cmd}`
-	token_username=${new_tokens% *}
-	token_password=${new_tokens#* }
-	inform "token_username: ${token_username}"
-	inform "token_password: ${token_password}"
+	# inform "Getting token user id and password"
+	# get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
+	# new_tokens=`${get_token_cmd}`
+	# token_username=${new_tokens% *}
+	# token_password=${new_tokens#* }
+	# inform "token_username: ${token_username}"
+	# inform "token_password: ${token_password}"
 
 	current_seconds_since_epoch=`date +%s`
 	working_directory_name="${BUILD_HOME}/${g_project}/AddResolutionHCP7T.${g_subject}.${current_seconds_since_epoch}"
@@ -226,6 +226,8 @@ main()
 	fi
 
 	touch ${script_file_to_submit}
+	chmod 700 ${script_file_to_submit}
+
 	echo "#PBS -l nodes=1:ppn=1,walltime=1:00:00,vmem=4000mb" >> ${script_file_to_submit}
 	echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
@@ -245,7 +247,7 @@ main()
 	echo "  --xnat-session-id=${sessionID} \\" >> ${script_file_to_submit}
 	echo "  --setup-script=${g_setup_script}" >> ${script_file_to_submit}
 
-	chmod +x ${script_file_to_submit}
+	#chmod +x ${script_file_to_submit}
 
 	submit_cmd="qsub ${script_file_to_submit}"
 	inform "submit_cmd: ${submit_cmd}"
@@ -254,19 +256,14 @@ main()
 	inform "processing_job_no: ${processing_job_no}"
 
 	# Submit job to put the results in the DB
-	# Note: Since the actual username and password are used in the PUT script below, this file should not be 
-	#       placed in the working directory. If it is placed in the working directory, it gets put in the
-	#       database archive leaving a valid username and password combination in the database archive.
-	#       The token username and token password are not used here because by the time the PUT job gets
-	#       to run, the tokens are likely to have expired.
-#	put_script_file_to_submit=${LOG_DIR}/${g_subject}.${PIPELINE_NAME}.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 	put_script_file_to_submit=${working_directory_name}/${g_subject}.${PIPELINE_NAME}.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 	if [ -e "${put_script_file_to_submit}" ]; then
 		rm -f "${put_script_file_to_submit}"
 	fi
 
 	touch ${put_script_file_to_submit}
-	echo "#PBS -l no"
+	chmod 700 ${put_script_file_to_submit}
+
 	echo "#PBS -l nodes=1:ppn=1,walltime=2:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
 	echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
 	echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
@@ -282,7 +279,7 @@ main()
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
 	echo "  --resource-suffix=\"${g_output_resource}\" " >> ${put_script_file_to_submit}
 
-	chmod +x ${put_script_file_to_submit}
+	#chmod +x ${put_script_file_to_submit}
 
 	submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
 	inform "submit_cmd: ${submit_cmd}"
