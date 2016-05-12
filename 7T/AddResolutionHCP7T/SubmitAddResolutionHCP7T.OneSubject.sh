@@ -153,17 +153,8 @@ main()
 {
 	get_options $@
 
-	# Get token user id and password
 	inform "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
-
-	# inform "Getting token user id and password"
-	# get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
-	# new_tokens=`${get_token_cmd}`
-	# token_username=${new_tokens% *}
-	# token_password=${new_tokens#* }
-	# inform "token_username: ${token_username}"
-	# inform "token_password: ${token_password}"
 
 	current_seconds_since_epoch=`date +%s`
 	working_directory_name="${BUILD_HOME}/${g_project}/AddResolutionHCP7T.${g_subject}.${current_seconds_since_epoch}"
@@ -233,11 +224,8 @@ main()
 	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 	echo "" >> ${script_file_to_submit}
 	echo "${HOME}/pipeline_tools/xnat_pbs_jobs/7T/AddResolutionHCP7T/AddResolutionHCP7T.XNAT.sh \\" >> ${script_file_to_submit}
-#	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
-#	echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 	echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}
 	echo "  --password=\"${g_password}\" \\" >> ${script_file_to_submit}
-#
 	echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
 	echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
 	echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
