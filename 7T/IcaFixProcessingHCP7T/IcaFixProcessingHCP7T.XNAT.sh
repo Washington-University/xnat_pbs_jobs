@@ -257,7 +257,7 @@ main()
 	inform "----- Platform Information: End -----"
 
 	# Set up step counters
-	total_steps=10 # ICI ICI ICI TODO 
+	total_steps=10
 	current_step=0
 
 	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
@@ -269,8 +269,10 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Link functionally preprocessed data from DB" ${step_percent}
 
+	preproc_scan=${g_scan%_7T*}${g_scan##*_7T}
+	inform "preproc_scan: ${preproc_scan}"
 	link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" \
-		"${g_session}" "${g_scan}" "${g_working_dir}"
+		"${g_session}" "${preproc_scan}" "${g_working_dir}"
 
 	# Step - Link Supplemental Structurally preprocessed data from DB
 	#      - the higher resolution greyordinates space

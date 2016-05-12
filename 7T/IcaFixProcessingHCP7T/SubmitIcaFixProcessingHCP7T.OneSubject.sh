@@ -273,21 +273,24 @@ main()
 			exit 1
 		fi
 
-		scan="${prefix}_${scan_name}"
-		output_resource=${scan}_FIX
-		
+		# scan="${prefix}_${scan_name}" # e.g. tfMRI_MOVIE4_AP
+		# output_resource=${scan}_FIX
+
+		# e.g. ${scan_name} = MOVIE4_AP
+		scan_without_pe_dir=${scan_name%_*} # scan_without_pe_dir = MOVIE4
+		inform "scan_without_pe_dir: ${scan_without_pe_dir}"
+		pe_dir=${scan_name##*_} # pe_dir = AP
+		inform "pe_dir: ${pe_dir}"
+
+		scan="${prefix}_${scan_without_pe_dir}_7T_${pe_dir}"
+		inform "scan: ${scan}" # tfMRI_MOVIE4_7T_AP
+
+		output_resource="${prefix}_${scan_without_pe_dir}_${pe_dir}_FIX"
+		inform "output_resource: ${output_resource}"
+
 		inform "--------------------------------------------------"
 		inform "Submitting jobs for scan: ${scan}"
 		inform "--------------------------------------------------"
-
-		# Get token user id and password
-		echo "Getting token user id and password"
-		get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
-		new_tokens=`${get_token_cmd}`
-		token_username=${new_tokens% *}
-		token_password=${new_tokens#* }
-		inform "token_username: ${token_username}"
-		inform "token_password: ${token_password}"
 
 		# make sure working directories don't have the same name based on the 
 		# same start time by sleeping a few seconds
@@ -375,11 +378,8 @@ main()
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 		echo "" >> ${script_file_to_submit}
 		echo "${XNAT_PBS_JOBS_HOME}/7T/IcaFixProcessingHCP7T/IcaFixProcessingHCP7T.XNAT.sh \\" >> ${script_file_to_submit}
-#		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
-#		echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 		echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}
 		echo "  --password=\"${g_password}\" \\" >> ${script_file_to_submit}
-#
 		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
 		echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
 		echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
