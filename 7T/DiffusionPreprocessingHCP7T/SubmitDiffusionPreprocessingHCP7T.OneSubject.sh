@@ -215,15 +215,6 @@ main()
 {
 	get_options $@
 
-	# Get token user id and password
-	inform "Getting token user id and password"
-	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
-	new_tokens=`${get_token_cmd}`
-	token_username=${new_tokens% *}
-	token_password=${new_tokens#* }
-	inform "token_username: ${token_username}"
-	inform "token_password: ${token_password}"
-
 	# make sure working directories don't have the same name based on the 
 	# same start time by sleeping a few seconds
 	sleep 5s
@@ -305,17 +296,15 @@ main()
 	fi
 
 	touch ${pre_eddy_script_file_to_submit}
+	chmod 700 ${pre_eddy_script_file_to_submit}
 
 	echo "#PBS -l nodes=1:ppn=1,walltime=10:00:00,vmem=16000mb" >> ${pre_eddy_script_file_to_submit}
  	echo "#PBS -o ${working_directory_name}" >> ${pre_eddy_script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${pre_eddy_script_file_to_submit}
 	echo "" >> ${pre_eddy_script_file_to_submit}
 	echo "${XNAT_PBS_JOBS_HOME}/7T/DiffusionPreprocessingHCP7T/DiffusionPreprocessingHCP7T_PreEddy.XNAT.sh \\" >> ${pre_eddy_script_file_to_submit}
-#	echo "  --user=\"${token_username}\" \\" >> ${pre_eddy_script_file_to_submit}
-#	echo "  --password=\"${token_password}\" \\" >> ${pre_eddy_script_file_to_submit}
 	echo "  --user=\"${g_user}\" \\" >> ${pre_eddy_script_file_to_submit}
 	echo "  --password=\"${g_password}\" \\" >> ${pre_eddy_script_file_to_submit}
-#
 	echo "  --server=\"${g_server}\" \\" >> ${pre_eddy_script_file_to_submit}
 	echo "  --project=\"${g_project}\" \\" >> ${pre_eddy_script_file_to_submit}
 	echo "  --subject=\"${g_subject}\" \\" >> ${pre_eddy_script_file_to_submit}
@@ -326,8 +315,6 @@ main()
 	echo "  --workflow-id=\"${workflowID}\" \\" >> ${pre_eddy_script_file_to_submit} 
 	echo "  --setup-script=${g_setup_script} \\" >> ${pre_eddy_script_file_to_submit}
 	echo "  --phase-encoding-dirs=\"${g_phase_encoding_dirs}\" " >> ${pre_eddy_script_file_to_submit}
-
-	chmod +x ${pre_eddy_script_file_to_submit}
 
 	submit_cmd="qsub ${pre_eddy_script_file_to_submit}"
 	inform "submit_cmd: ${submit_cmd}"			
@@ -347,23 +334,20 @@ main()
 	fi
 
 	touch ${eddy_script_file_to_submit}
+	chmod 700 ${eddy_script_file_to_submit}
+
 	echo "#PBS -l nodes=1:ppn=3:gpus=1,walltime=16:00:00" >> ${eddy_script_file_to_submit}
-	echo "#PBS -o ${working_directory_name}" >> ${eddy_script_file_to_submit}
-	echo "#PBS -e ${working_directory_name}" >> ${eddy_script_file_to_submit}
+	echo "#PBS -o ${LOG_DIR}" >> ${eddy_script_file_to_submit}
+	echo "#PBS -e ${LOG_DIR}" >> ${eddy_script_file_to_submit}
 	echo "" >> ${eddy_script_file_to_submit}
 	echo "${XNAT_PBS_JOBS_HOME}/7T/DiffusionPreprocessingHCP7T/DiffusionPreprocessingHCP7T_Eddy.XNAT.sh \\" >> ${eddy_script_file_to_submit}
-#	echo "  --user=\"${token_username}\" \\" >> ${eddy_script_file_to_submit}
-#	echo "  --password=\"${token_password}\" \\" >> ${eddy_script_file_to_submit}
 	echo "  --user=\"${g_user}\" \\" >> ${eddy_script_file_to_submit}
 	echo "  --password=\"${g_password}\" \\" >> ${eddy_script_file_to_submit}
-#
 	echo "  --server=\"${g_server}\" \\" >> ${eddy_script_file_to_submit}
 	echo "  --subject=\"${g_subject}\" \\" >> ${eddy_script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${eddy_script_file_to_submit}
 	echo "  --workflow-id=\"${workflowID}\" \\" >> ${eddy_script_file_to_submit}
-	echo "  --setup-script=${g_setup_script} \\" >> ${eddy_script_file_to_submit}
-
-	chmod +x ${eddy_script_file_to_submit}
+	echo "  --setup-script=${g_setup_script} " >> ${eddy_script_file_to_submit}
 
 	submit_cmd="qsub -W depend=afterok:${pre_eddy_jobno} ${eddy_script_file_to_submit}"
 	inform "submit_cmd: ${submit_cmd}"
@@ -383,24 +367,21 @@ main()
 	fi
 
 	touch ${post_eddy_script_file_to_submit}
+	chmod 700 ${post_eddy_script_file_to_submit}
+
 	echo "#PBS -l nodes=1:ppn=1,walltime=03:00:00,vmem=20000mb" >> ${post_eddy_script_file_to_submit}
 	echo "#PBS -o ${working_directory_name}" >> ${post_eddy_script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${post_eddy_script_file_to_submit}
 	echo "" >> ${post_eddy_script_file_to_submit}
-	echo "${XNAT_PBS_JOBS_HOME}/7T/DiffusionPreprocessingHCP7T/DiffusionPreprocessingHCP7T_PostEddy.XNAT.sh \\" >> ${eddy_script_file_to_submit}
-#	echo "  --user=\"${token_username}\" \\" >> ${post_eddy_script_file_to_submit}
-#	echo "  --password=\"${token_password}\" \\" >> ${post_eddy_script_file_to_submit}
+	echo "${XNAT_PBS_JOBS_HOME}/7T/DiffusionPreprocessingHCP7T/DiffusionPreprocessingHCP7T_PostEddy.XNAT.sh \\" >> ${post_eddy_script_file_to_submit}
 	echo "  --user=\"${g_user}\" \\" >> ${post_eddy_script_file_to_submit}
 	echo "  --password=\"${g_password}\" \\" >> ${post_eddy_script_file_to_submit}
-#
 	echo "  --server=\"${g_server}\" \\" >> ${post_eddy_script_file_to_submit}
 	echo "  --subject=\"${g_subject}\" \\" >> ${post_eddy_script_file_to_submit}
 	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${post_eddy_script_file_to_submit}
 	echo "  --workflow-id=\"${workflowID}\" \\" >> ${post_eddy_script_file_to_submit}
-	echo "  --setup-script=${g_setup_script} \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --setup-script=${g_setup_script} " >> ${post_eddy_script_file_to_submit}
 	
-	chmod +x ${post_eddy_script_file_to_submit}
-
 	submit_cmd="qsub -W depend=afterok:${eddy_jobno} ${post_eddy_script_file_to_submit}"
 	inform "submit_cmd: ${submit_cmd}"
 
@@ -419,17 +400,16 @@ main()
  	fi
 
  	touch ${put_script_file_to_submit}
+	chmod 700 ${put_script_file_to_submit}
+
  	echo "#PBS -l nodes=1:ppn=1,walltime=2:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
  	echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
  	echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
  	echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
  	echo "" >> ${put_script_file_to_submit}
 	echo "${XNAT_PBS_JOBS_HOME}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
-# 	echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
-# 	echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
  	echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
  	echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
-#
 	echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}
  	echo "  --project=\"${g_project}\" \\" >> ${put_script_file_to_submit}
  	echo "  --subject=\"${g_subject}\" \\" >> ${put_script_file_to_submit}
@@ -437,8 +417,6 @@ main()
  	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
 	echo "  --resource-suffix=\"${g_output_resource}\" \\" >> ${put_script_file_to_submit}
 	echo "  --reason=\"${PIPELINE_NAME}\" " >> ${put_script_file_to_submit}
-
-	chmod +x ${put_script_file_to_submit}
 
 	put_submit_cmd="qsub -W depend=afterok:${post_eddy_jobno} ${put_script_file_to_submit}"
 	inform "put_submit_cmd: ${put_submit_cmd}"
