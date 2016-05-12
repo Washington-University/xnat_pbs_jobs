@@ -63,6 +63,7 @@ get_options()
 	unset g_clean_output_resource_first
 	unset g_setup_script
 	unset g_scan
+	g_incomplete_only="FALSE"
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -121,7 +122,10 @@ get_options()
 				g_scan=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-				
+			--incomplete-only)
+				g_incomplete_only="TRUE"
+				index=$(( index + 1 ))
+				;;
 			*)
 				echo "ERROR: unrecognized option: ${argument}"
 				echo ""
@@ -193,6 +197,11 @@ get_options()
 	else
 		inform "set up script: ${g_setup_script}"
 	fi
+
+	if [ -z "${g_incomplete_only}" ]; then
+		g_incomplete_only="FALSE"
+	fi
+	inform "run incomplete scans only: ${g_incomplete_only}"
 }
 
 main()
@@ -255,6 +264,29 @@ main()
 			
 		inform "scan_name: ${scan_name}"
 		
+
+		if [ "${g_incomplete_only}" = "TRUE" ]; then
+			${HOME}/pipeline_tools/xnat_pbs_jobs/MonitorPipelines/PipelineCompletionChecks/7T/FunctionalPreprocessingHCP7T/CheckForFunctionalPreprocessingHCP7TCompletion.sh \
+				--project=${g_project} \
+				--subject=${g_subject} \
+				--scan=${scan_name} \
+				--quiet
+			if [ $? -eq 0 ]; then
+				# already complete, so should not run
+				should_run="FALSE"
+			else
+				# not already complete, so should run
+				should_run="TRUE"
+			fi
+		else
+			# run whether already complete or not
+			should_run="TRUE"
+		fi
+
+		if [ "${should_run}" = "FALSE" ]; then
+			continue
+		fi
+
 		resting_match_check=${resting_state_scan_names#*${scan_name}}
 		task_match_check=${task_scan_names#*${scan_name}}
 		
@@ -280,15 +312,6 @@ main()
 		inform "--------------------------------------------------"
 		inform "Submitting jobs for scan: ${scan}"
 		inform "--------------------------------------------------"
-
-		# Get token user id and password
-		# echo "Getting token user id and password"
-		# get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user} --password=${g_password}"
-		# new_tokens=`${get_token_cmd}`
-		# token_username=${new_tokens% *}
-		# token_password=${new_tokens#* }
-		# echo "token_username: ${token_username}"
-		# echo "token_password: ${token_password}"
 
 		# make sure working directories don't have the same name based on the 
 		# same start time by sleeping a few seconds
@@ -371,11 +394,12 @@ main()
 		fi
 
 		touch ${script_file_to_submit}
+		chmod 700 ${script_file_to_submit}
 
 		if [[ ${scan} == *REST* ]] ; then
-			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=30000mb" >> ${script_file_to_submit}
+			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=32000mb,vmem=50000mb" >> ${script_file_to_submit}
 		elif [[ ${scan} == *MOVIE* ]]; then
-			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=30000mb" >> ${script_file_to_submit}
+			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=32000mb,vmem=50000mb" >> ${script_file_to_submit}
 		elif [[ ${scan} == *RET* ]]; then
 			echo "#PBS -l nodes=1:ppn=1,walltime=12:00:00,vmem=8000mb" >> ${script_file_to_submit}
 		else
@@ -386,11 +410,8 @@ main()
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 		echo "" >> ${script_file_to_submit}
 		echo "${XNAT_PBS_JOBS_HOME}/7T/FunctionalPreprocessingHCP7T/FunctionalPreprocessingHCP7T.XNAT.sh \\" >> ${script_file_to_submit}
-#		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
-#		echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 		echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}
 		echo "  --password=\"${g_password}\" \\" >> ${script_file_to_submit}
-#
 		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
 		echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
 		echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
@@ -403,8 +424,6 @@ main()
 		echo "  --xnat-session-id=${sessionID} \\" >> ${script_file_to_submit}
 		echo "  --setup-script=${g_setup_script}" >> ${script_file_to_submit}
 		
-		chmod +x ${script_file_to_submit}
-
 		submit_cmd="qsub ${script_file_to_submit}"
 		inform "submit_cmd: ${submit_cmd}"			
 
@@ -423,7 +442,9 @@ main()
  		fi
 
  		touch ${put_script_file_to_submit}
- 		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=12000mb" >> ${put_script_file_to_submit}
+		chmod 700 ${put_script_file_to_submit}
+
+ 		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
  		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
  		echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
  		echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
@@ -438,8 +459,6 @@ main()
  		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
 		echo "  --resource-suffix=\"${output_resource}\" \\" >> ${put_script_file_to_submit}
 		echo "  --reason=\"${scan}_${PIPELINE_NAME}\" " >> ${put_script_file_to_submit}
-
-		chmod +x ${put_script_file_to_submit}
 
 		put_submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
 		inform "put_submit_cmd: ${put_submit_cmd}"
