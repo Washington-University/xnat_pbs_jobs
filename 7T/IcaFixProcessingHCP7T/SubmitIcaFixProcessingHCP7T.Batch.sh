@@ -74,7 +74,7 @@ for subject_spec in ${subjects} ; do
 				--subject=${subject} \
 				--structural-reference-project=${refproject} \
 				--structural-reference-session=${subject}_3T \
-				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_IcaFixProcessingHCP7T.sh
+				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_IcaFixProcessingHCP7T.sh 
 				#--scan=${scan} \
 				#--do-not-clean-first
 			
@@ -89,8 +89,7 @@ for subject_spec in ${subjects} ; do
 				--structural-reference-project=${refproject} \
 				--structural-reference-session=${subject}_3T \
 				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_IcaFixProcessingHCP7T.sh \
-				--scan=${scan} \
-				#--do-not-clean-first \
+				--scan=${scan} 
 
 		fi
 

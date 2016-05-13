@@ -257,7 +257,7 @@ main()
 	inform "----- Platform Information: End -----"
 
 	# Set up step counters
-	total_steps=10
+	total_steps=12
 	current_step=0
 
 	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
@@ -353,19 +353,54 @@ main()
 	inform "Sourcing ${SCRIPTS_HOME}/R_setup.sh"
 	source ${SCRIPTS_HOME}/R_setup.sh
 
+	# Step - run hcp_fix
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "run hcp_fix" ${step_percent}
+
 	icafix_cmd=""
-	icafix_cmd+="${ICAFIX}/hcp_fix"
+	icafix_cmd+="${HCPPIPEDIR_FIX}/hcp_fix"
 	icafix_cmd+=" ${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_scan}/${g_scan}.nii.gz"
 	icafix_cmd+=" 2000"
+	icafix_cmd+=" ${FSL_FIXDIR}/training_files/HCP7T_hp2000.RData"
 
-	echo ""
-	echo "icafix_cmd: ${icafix_cmd}"
-	echo ""
+	inform ""
+	inform "icafix_cmd: ${icafix_cmd}"
+	inform ""
 
 	pushd ${g_working_dir}
 	${icafix_cmd}
 	if [ $? -ne 0 ]; then
 		die 
+	fi
+	popd
+
+	# Step - run ReApplyFixPipeline for 59k low res mesh
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "run ReApplyFixPipeline for 59k low res mesh" ${step_percent}
+
+	reapplyfix_cmd=""
+	reapplyfix_cmd+="${HCPPIPEDIR}/ReApplyFix/ReApplyFixPipeline.sh"
+	reapplyfix_cmd+=" --path=${g_working_dir} "
+	reapplyfix_cmd+=" --subject=${g_subject} "
+	reapplyfix_cmd+=" --fmri-name=${g_scan} "
+	reapplyfix_cmd+=" --high-pass=2000 "
+	reapplyfix_cmd+=" --reg-name=MSMSulc "
+	reapplyfix_cmd+=" --low-res-mesh=59 "
+
+	inform ""
+	inform "reapplyfix_cmd: ${reapplyfix_cmd}"
+	inform ""
+
+	pushd ${g_working_dir}
+	${reapplyfix_cmd}
+	if [ $? -ne 0 ]; then
+		die
 	fi
 	popd
 
@@ -412,31 +447,3 @@ main()
 
 # Invoke the main function to get things started
 main $@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
