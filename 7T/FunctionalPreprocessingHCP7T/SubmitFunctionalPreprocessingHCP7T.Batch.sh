@@ -94,6 +94,7 @@ for subject_spec in ${subjects} ; do
 				--structural-reference-session=${subject}_3T \
 				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_7T_FunctionalPreprocessing.sh 
 				# --do-not-clean-first
+				# --queue=old # doesn't work because old nodes don't have mount points or DNS access
 
 		elif [ "${scan}" = "incomplete" ] ; then
 
@@ -108,6 +109,7 @@ for subject_spec in ${subjects} ; do
 				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_7T_FunctionalPreprocessing.sh \
 				--incomplete-only
 				# --do-not-clean-first
+				# --queue=old # doesn't work because old nodes don't have mount points or DNS access
 
 		else
 
@@ -122,6 +124,7 @@ for subject_spec in ${subjects} ; do
 				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_7T_FunctionalPreprocessing.sh \
 				--scan=${scan}
 				# --do-not-clean-first
+				# --queue=old # doesn't work because old nodes don't have mount points or DNS access
 
 		fi
 

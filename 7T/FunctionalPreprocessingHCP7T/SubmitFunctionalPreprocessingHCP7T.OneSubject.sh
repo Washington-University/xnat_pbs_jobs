@@ -64,6 +64,7 @@ get_options()
 	unset g_setup_script
 	unset g_scan
 	g_incomplete_only="FALSE"
+	unset g_queue
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -124,6 +125,10 @@ get_options()
 				;;
 			--incomplete-only)
 				g_incomplete_only="TRUE"
+				index=$(( index + 1 ))
+				;;
+			--queue=*)
+				g_queue=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -202,6 +207,10 @@ get_options()
 		g_incomplete_only="FALSE"
 	fi
 	inform "run incomplete scans only: ${g_incomplete_only}"
+
+	if [ ! -z "${g_queue}" ]; then
+		inform "submit to queue: ${g_queue}"
+	fi
 }
 
 main()
@@ -397,9 +406,11 @@ main()
 		chmod 700 ${script_file_to_submit}
 
 		if [[ ${scan} == *REST* ]] ; then
-			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=32000mb,vmem=50000mb" >> ${script_file_to_submit}
+			#echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=32000mb,vmem=50000mb" >> ${script_file_to_submit}
+			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=40000mb,vmem=64000mb" >> ${script_file_to_submit}
 		elif [[ ${scan} == *MOVIE* ]]; then
-			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=32000mb,vmem=50000mb" >> ${script_file_to_submit}
+			#echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=32000mb,vmem=50000mb" >> ${script_file_to_submit}
+			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=40000mb,vmem=64000mb" >> ${script_file_to_submit}
 		elif [[ ${scan} == *RET* ]]; then
 			echo "#PBS -l nodes=1:ppn=1,walltime=12:00:00,vmem=8000mb" >> ${script_file_to_submit}
 		else
@@ -408,6 +419,11 @@ main()
 
 		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
+
+		if [ ! -z "${g_queue}" ]; then
+			echo "#PBS -q ${g_queue}" >> ${script_file_to_submit}
+		fi
+
 		echo "" >> ${script_file_to_submit}
 		echo "${XNAT_PBS_JOBS_HOME}/7T/FunctionalPreprocessingHCP7T/FunctionalPreprocessingHCP7T.XNAT.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}
