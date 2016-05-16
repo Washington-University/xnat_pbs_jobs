@@ -30,7 +30,8 @@ subjects="`echo "${subject_list_from_file[@]}"`"
 start_shadow_number=1
 max_shadow_number=8
 
-shadow_number=${start_shadow_number}
+#shadow_number=${start_shadow_number}
+shadow_number=`shuf -i ${start_shadow_number}-${max_shadow_number} -n 1`
 
 for subject_spec in ${subjects} ; do
 
