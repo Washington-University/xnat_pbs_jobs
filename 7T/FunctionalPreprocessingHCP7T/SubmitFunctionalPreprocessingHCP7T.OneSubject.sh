@@ -63,8 +63,10 @@ get_options()
 	unset g_clean_output_resource_first
 	unset g_setup_script
 	unset g_scan
-	g_incomplete_only="FALSE"
+	unset g_incomplete_only
 	unset g_queue
+	unset g_build_home
+	unset g_build_project_dir
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -129,6 +131,14 @@ get_options()
 				;;
 			--queue=*)
 				g_queue=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--build-home=*)
+				g_build_home=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--build-project-dir=*)
+				g_build_project_dir=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -211,6 +221,16 @@ get_options()
 	if [ ! -z "${g_queue}" ]; then
 		inform "submit to queue: ${g_queue}"
 	fi
+
+	if [ -z "${g_build_home}" ]; then
+		g_build_home="${BUILD_HOME}"
+	fi
+	inform "build home: ${g_build_home}"
+
+	if [ -z "${g_build_project_dir}" ]; then
+		g_build_project_dir="${g_project}"
+	fi
+	inform "build project dir: ${g_build_project_dir}"
 }
 
 main()
@@ -327,7 +347,8 @@ main()
 		sleep 5s
 
 		current_seconds_since_epoch=`date +%s`
-		working_directory_name="${BUILD_HOME}/${g_project}/${PIPELINE_NAME}.${g_subject}.${scan}.${current_seconds_since_epoch}"
+		#working_directory_name="${BUILD_HOME}/${g_project}/${PIPELINE_NAME}.${g_subject}.${scan}.${current_seconds_since_epoch}"
+		working_directory_name="${g_build_home}/${g_build_project_dir}/${PIPELINE_NAME}.${g_subject}.${scan}.${current_seconds_since_epoch}"
 
 		# Make the working directory
 		inform "Making working directory: ${working_directory_name}"

@@ -92,7 +92,9 @@ for subject_spec in ${subjects} ; do
 				--subject=${subject} \
 				--structural-reference-project=${refproject} \
 				--structural-reference-session=${subject}_3T \
-				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_7T_FunctionalPreprocessing.sh 
+				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_7T_FunctionalPreprocessing.sh \
+				--build-project-dir=HCP_Staging_7T.save
+
 				# --do-not-clean-first
 				# --queue=old # doesn't work because old nodes don't have mount points or DNS access
 
@@ -107,7 +109,9 @@ for subject_spec in ${subjects} ; do
 				--structural-reference-project=${refproject} \
 				--structural-reference-session=${subject}_3T \
 				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_7T_FunctionalPreprocessing.sh \
-				--incomplete-only
+				--incomplete-only \
+				--build-project-dir=HCP_Staging_7T.save
+
 				# --do-not-clean-first
 				# --queue=old # doesn't work because old nodes don't have mount points or DNS access
 
@@ -122,7 +126,9 @@ for subject_spec in ${subjects} ; do
 				--structural-reference-project=${refproject} \
 				--structural-reference-session=${subject}_3T \
 				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_7T_FunctionalPreprocessing.sh \
-				--scan=${scan}
+				--scan=${scan} \
+				--build-project-dir=HCP_Staging_7T.save
+
 				# --do-not-clean-first
 				# --queue=old # doesn't work because old nodes don't have mount points or DNS access
 
