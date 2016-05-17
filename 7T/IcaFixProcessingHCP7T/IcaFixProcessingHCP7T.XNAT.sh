@@ -347,8 +347,8 @@ main()
 	inform "Sourcing ${g_setup_script} to set up environment"
 	source ${g_setup_script}
 
-	inform "Sourcing ${SCRIPTS_HOME}/fsl5_setup.sh"
-	source ${SCRIPTS_HOME}/fsl5_setup.sh
+	#inform "Sourcing ${SCRIPTS_HOME}/fsl5_setup.sh"
+	#source ${SCRIPTS_HOME}/fsl5_setup.sh
 
 	inform "Sourcing ${SCRIPTS_HOME}/R_setup.sh"
 	source ${SCRIPTS_HOME}/R_setup.sh
