@@ -5,16 +5,15 @@ if [ -z "${SUBJECT_FILES_DIR}" ]; then
     exit 1
 fi
 
-project="HCP_500"
-packages_root="/HCP/hcpdb/packages/live/HCP_500"
-archive_root="/HCP/hcpdb/archive/HCP_500/arc001"
+project="HCP_Staging_RT"
+packages_root="/HCP/hcpdb/packages/prerelease/zip/${project}"
+archive_root="/HCP/hcpdb/archive/${project}/arc001"
 
-#packages_tmp="/HCP/hcpdb/packages/temp"
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 
-output_dir="/HCP/hcpdb/packages/PostMsmAll"
-scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"
-log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/logs"
+output_dir="/HCP/hcpdb/packages/PostMsmAll/${project}"
+scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/scripts_to_submit"
+log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/logs"
 
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.UpdateFixPackage.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
@@ -41,12 +40,12 @@ for subject in ${subjects} ; do
         echo "#PBS -e ${log_dir}" >> ${script_file_to_submit}
 
 		echo ""
-		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage.sh \\" >> ${script_file_to_submit}
+		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/UpdateFixPackage.sh \\" >> ${script_file_to_submit}
 		echo "  --packages-root=${packages_root} \\" >> ${script_file_to_submit}
 		echo "  --archive-root=${archive_root} \\" >> ${script_file_to_submit}
 		echo "  --tmp-dir=${packages_tmp} \\" >> ${script_file_to_submit}
-		echo "  --release-notes-template-file=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/FixPackageReleaseNotes.txt \\" >> ${script_file_to_submit}
-		echo "  --output-dir=${output_dir}/${project} \\" >> ${script_file_to_submit}
+		echo "  --release-notes-template-file=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/FixPackageReleaseNotes.txt \\" >> ${script_file_to_submit}
+		echo "  --output-dir=${output_dir} \\" >> ${script_file_to_submit}
 		echo "  --subject=${subject} \\" >> ${script_file_to_submit}
 		echo "  --create-checksum \\" >> ${script_file_to_submit}
 

@@ -11,8 +11,8 @@ archive_root="/HCP/hcpdb/archive/HCP_500/arc001"
 
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 
-scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"
-log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/logs"
+scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/scripts_to_submit"
+log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/logs"
 
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.UpdateFixPackageInPlace.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
@@ -39,11 +39,11 @@ for subject in ${subjects} ; do
         echo "#PBS -e ${log_dir}" >> ${script_file_to_submit}
 
 		echo ""
-		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackageInPlace.sh \\" >> ${script_file_to_submit}
+		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/UpdateFixPackageInPlace.sh \\" >> ${script_file_to_submit}
 		echo "  --packages-root=${packages_root} \\" >> ${script_file_to_submit}
 		echo "  --archive-root=${archive_root} \\" >> ${script_file_to_submit}
 		echo "  --tmp-dir=${packages_tmp} \\" >> ${script_file_to_submit}
-		echo "  --release-notes-template-file=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/FixPackageReleaseNotes.txt \\" >> ${script_file_to_submit}
+		echo "  --release-notes-template-file=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/FixPackageReleaseNotes.txt \\" >> ${script_file_to_submit}
 		echo "  --subject=${subject} \\" >> ${script_file_to_submit}
 		echo "  --create-checksum \\" >> ${script_file_to_submit}
 
