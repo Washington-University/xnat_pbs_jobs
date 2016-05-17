@@ -1,15 +1,29 @@
 # Path to tools used
-if [ "${CLUSTER}" = "1.0" ] ; then
-	PATH_TO_LNDIR="/export/lndir-1.0.1/bin/lndir"
-elif [ "${CLUSTER}" = "2.0" ]; then
+if [ "${COMPUTE}" = "CHPC" ]; then
+	if [ "${CLUSTER}" = "1.0" ] ; then
+		PATH_TO_LNDIR="/export/lndir-1.0.1/bin/lndir"
+	elif [ "${CLUSTER}" = "2.0" ]; then
+		PATH_TO_LNDIR="${HOME}/export/lndir-1.0.1/bin/lndir"
+	else
+		echo "GetHcpDataUtils.sh: ERROR - Unable to set PATH_TO_LNDIR value based on CLUSTER: ${CLUSTER}"
+		exit 1
+	fi
+elif [ "${COMPUTE}" = "NRG" ]; then
 	PATH_TO_LNDIR="${HOME}/export/lndir-1.0.1/bin/lndir"
 else
-	echo "ERROR - ${CLUSTER} value unsupported by GetHcpDataUtils.sh"
+	echo "GetHcpDataUtils.sh: ERROR - Unable to set PATH_TO_LNDIR value based on COMPUTE: ${COMPUTE}"
+	exit 1
 fi
 
 # home directory for these XNAT PBS job scripts
-XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
-#XNAT_PBS_JOBS_HOME=/home/NRG/tbrown01/projects/xnat_pbs_jobs
+if [ "${COMPUTE}" = "CHPC" ]; then
+	XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
+elif [ "${COMPUTE}" = "NRG" ]; then
+	XNAT_PBS_JOBS_HOME=/home/NRG/tbrown01/projects/xnat_pbs_jobs
+else
+	echo "GetHcpDataUtils.sh: ERROR - Unable to set XNAT_PBS_JOBS_HOME value based on COMPUTE: ${COMPUTE}"
+	exit 1
+fi
 
 # Database Resource names and suffixes
 source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/ResourceNamesAndSuffixes.sh
