@@ -35,7 +35,7 @@ if [ -z "${interval}" ] ; then
 	interval=0
 fi
 
-subject_file_name="${SUBJECT_FILES_DIR}/FunctionalPreprocessingHCP7T.subjects"
+subject_file_name="${SUBJECT_FILES_DIR}/FunctionalPreprocessingHCP7T.TEST_SUBJECTS.subjects"
 inform "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
@@ -82,6 +82,9 @@ for subject_spec in ${subjects} ; do
 		inform " Submission delayed until ${delay} minutes from now"
 		inform "--------------------------------------------------------------------------------"
 
+		setup_file_to_use=${SCRIPTS_HOME}/SetUpHCPPipeline_7T_FunctionalPreprocessing.TEST_SUBJECTS.sh
+		output_resource_suffix_to_use="TEST_SUBJECTS"
+
 		if [ "${scan}" = "all" ] ; then
 
 			${HOME}/pipeline_tools/xnat_pbs_jobs/7T/FunctionalPreprocessingHCP7T/SubmitFunctionalPreprocessingHCP7T.OneSubject.sh \
@@ -92,7 +95,8 @@ for subject_spec in ${subjects} ; do
 				--subject=${subject} \
 				--structural-reference-project=${refproject} \
 				--structural-reference-session=${subject}_3T \
-				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_7T_FunctionalPreprocessing.sh
+				--setup-script=${setup_file_to_use} \
+				--output-resource-suffix=${output_resource_suffix_to_use}
 
 				# --build-project-dir=HCP_Staging_7T.save
 				# --do-not-clean-first
@@ -108,7 +112,8 @@ for subject_spec in ${subjects} ; do
 				--subject=${subject} \
 				--structural-reference-project=${refproject} \
 				--structural-reference-session=${subject}_3T \
-				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_7T_FunctionalPreprocessing.sh \
+				--setup-script=${setup_file_to_use} \
+				--output-resource-suffix=${output_resource_suffix_to_use} \
 				--incomplete-only 
 
 				# --build-project-dir=HCP_Staging_7T.save
@@ -125,7 +130,8 @@ for subject_spec in ${subjects} ; do
 				--subject=${subject} \
 				--structural-reference-project=${refproject} \
 				--structural-reference-session=${subject}_3T \
-				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_7T_FunctionalPreprocessing.sh \
+				--setup-script=${setup_file_to_use} \
+				--output-resource-suffix=${output_resource_suffix_to_use} \
 				--scan=${scan}
 
 				# --build-project-dir=HCP_Staging_7T.save

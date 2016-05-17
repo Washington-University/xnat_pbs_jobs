@@ -67,6 +67,7 @@ get_options()
 	unset g_queue
 	unset g_build_home
 	unset g_build_project_dir
+	unset g_output_resource_suffix
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -139,6 +140,10 @@ get_options()
 				;;
 			--build-project-dir=*)
 				g_build_project_dir=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--output-resource-suffix=*)
+				g_output_resource_suffix=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -231,6 +236,10 @@ get_options()
 		g_build_project_dir="${g_project}"
 	fi
 	inform "build project dir: ${g_build_project_dir}"
+
+	if [ ! -z "${g_output_resource_suffix}" ]; then
+		inform "output resource suffix: ${g_output_resource_suffix}"
+	fi
 }
 
 main()
@@ -293,13 +302,8 @@ main()
 			
 		inform "scan_name: ${scan_name}"
 		
-
 		if [ "${g_incomplete_only}" = "TRUE" ]; then
-			${HOME}/pipeline_tools/xnat_pbs_jobs/MonitorPipelines/PipelineCompletionChecks/7T/FunctionalPreprocessingHCP7T/CheckForFunctionalPreprocessingHCP7TCompletion.sh \
-				--project=${g_project} \
-				--subject=${g_subject} \
-				--scan=${scan_name} \
-				--quiet
+			./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${g_project} --subject=${g_subject} --scan=${scan_name} --quiet
 			if [ $? -eq 0 ]; then
 				# already complete, so should not run
 				should_run="FALSE"
@@ -337,6 +341,10 @@ main()
 
 		scan="${prefix}_${scan_name}"
 		output_resource=${scan}_preproc
+
+		if [ ! -z "${g_output_resource_suffix}" ]; then
+			output_resource+="_${g_output_resource_suffix}"
+		fi
 
 		inform "--------------------------------------------------"
 		inform "Submitting jobs for scan: ${scan}"
