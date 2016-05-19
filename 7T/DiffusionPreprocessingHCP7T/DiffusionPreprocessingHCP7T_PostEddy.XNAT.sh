@@ -206,7 +206,7 @@ main()
 	PostEddy_cmd+=" --dwiname=Diffusion_7T"
 
 	inform ""
-	inform "PostEddy_cmd: ${Eddy_cmd}"
+	inform "PostEddy_cmd: ${PostEddy_cmd}"
 	inform ""
 
 	${PostEddy_cmd}

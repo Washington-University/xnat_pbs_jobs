@@ -337,8 +337,8 @@ main()
 	chmod 700 ${eddy_script_file_to_submit}
 
 	echo "#PBS -l nodes=1:ppn=3:gpus=1,walltime=16:00:00" >> ${eddy_script_file_to_submit}
-	echo "#PBS -o ${LOG_DIR}" >> ${eddy_script_file_to_submit}
-	echo "#PBS -e ${LOG_DIR}" >> ${eddy_script_file_to_submit}
+	echo "#PBS -o ${working_directory_name}" >> ${eddy_script_file_to_submit}
+	echo "#PBS -e ${working_directory_name}" >> ${eddy_script_file_to_submit}
 	echo "" >> ${eddy_script_file_to_submit}
 	echo "${XNAT_PBS_JOBS_HOME}/7T/DiffusionPreprocessingHCP7T/DiffusionPreprocessingHCP7T_Eddy.XNAT.sh \\" >> ${eddy_script_file_to_submit}
 	echo "  --user=\"${g_user}\" \\" >> ${eddy_script_file_to_submit}
