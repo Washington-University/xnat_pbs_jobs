@@ -402,7 +402,7 @@ main()
 			exit 1
 		elif [[ ${workflowID} == HTTP* ]]; then
 			inform "Fetching workflow failed. Aborting"
-			inform "worflowID: ${workflowID}"
+			inform "workflowID: ${workflowID}"
 			exit 1
 		fi
 		inform "XNAT workflow ID: ${workflowID}"
