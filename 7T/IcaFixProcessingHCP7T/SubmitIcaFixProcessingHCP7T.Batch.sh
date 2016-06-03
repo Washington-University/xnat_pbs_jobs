@@ -65,6 +65,8 @@ for subject_spec in ${subjects} ; do
 		inform "       server: ${server}"
 		inform "--------------------------------------------------------------------------------"		
 
+		setup_file=${SCRIPTS_HOME}/SetUpHCPPipeline_IcaFixProcessingHCP7T.sh
+
 		if [ "${scan}" = "all" ] ; then
 
 			${HOME}/pipeline_tools/xnat_pbs_jobs/7T/IcaFixProcessingHCP7T/SubmitIcaFixProcessingHCP7T.OneSubject.sh \
@@ -75,10 +77,21 @@ for subject_spec in ${subjects} ; do
 				--subject=${subject} \
 				--structural-reference-project=${refproject} \
 				--structural-reference-session=${subject}_3T \
-				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_IcaFixProcessingHCP7T.sh 
-				#--scan=${scan} \
-				#--do-not-clean-first
-			
+				--setup-script=${setup_file}
+
+		elif [ "${scan}" = "incomplete" ] ; then
+
+			${HOME}/pipeline_tools/xnat_pbs_jobs/7T/IcaFixProcessingHCP7T/SubmitIcaFixProcessingHCP7T.OneSubject.sh \
+				--user=${userid} \
+				--password=${password} \
+				--put-server=${server} \
+				--project=${project} \
+				--subject=${subject} \
+				--structural-reference-project=${refproject} \
+				--structural-reference-session=${subject}_3T \
+				--setup-script=${setup_file} \
+				--incomplete-only
+
 		else
 
 			${HOME}/pipeline_tools/xnat_pbs_jobs/7T/IcaFixProcessingHCP7T/SubmitIcaFixProcessingHCP7T.OneSubject.sh \
@@ -89,7 +102,7 @@ for subject_spec in ${subjects} ; do
 				--subject=${subject} \
 				--structural-reference-project=${refproject} \
 				--structural-reference-session=${subject}_3T \
-				--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_IcaFixProcessingHCP7T.sh \
+				--setup-script=${setup_file} \
 				--scan=${scan} 
 
 		fi

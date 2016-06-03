@@ -60,6 +60,7 @@ get_options()
 	unset g_clean_output_resource_first
 	unset g_setup_script
 	unset g_scan
+	unset g_incomplete_only
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -116,6 +117,10 @@ get_options()
 				;;
 			--scan=*)
 				g_scan=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--incomplete-only)
+				g_incomplete_only="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -190,6 +195,11 @@ get_options()
 	else
 		inform "set up script: ${g_setup_script}"
 	fi
+
+	if [ -z "${g_incomplete_only}" ]; then
+		g_incomplete_only="FALSE"
+	fi
+	inform "run incomplete scans only: ${g_incomplete_only}"
 }
 
 main()
@@ -257,6 +267,24 @@ main()
 
 	for scan_name in ${scan_list} ; do
 		inform "scan_name: ${scan_name}"
+
+		if [ "${g_incomplete_only}" = "TRUE" ]; then
+			./CheckIcaFixProcessingHCP7TCompletion.sh --project=${g_project} --subject=${g_subject} --scan=${scan_name} --quiet
+			if [ $? -eq 0 ]; then
+				# already complete, so should not run
+				should_run="FALSE"
+			else
+				# not already complete, so should run
+				should_run="TRUE"
+			fi
+		else
+			# run whether already complete or not
+			should_run="TRUE"
+		fi
+
+		if [ "${should_run}" = "FALSE" ]; then
+			continue
+		fi
 
 		resting_match_check=${resting_state_scan_names#*${scan_name}}
 		task_match_check=${task_scan_names#*${scan_name}}
