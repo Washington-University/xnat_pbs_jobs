@@ -72,6 +72,17 @@ for subject_spec in ${subjects} ; do
 				--subject=${subject} \
 				--setup-script=${setup_script}
 			
+		elif [ "${scan}" = "incomplete" ] ; then
+			
+			${HOME}/pipeline_tools/xnat_pbs_jobs/7T/PostFixHCP7T/SubmitPostFixHCP7T.OneSubject.sh \
+				--user=${userid} \
+				--password=${password} \
+				--put-server=${server} \
+				--project=${project} \
+				--subject=${subject} \
+				--setup-script=${setup_script} \
+				--incomplete-only
+			
 		else
 
 			${HOME}/pipeline_tools/xnat_pbs_jobs/7T/PostFixHCP7T/SubmitPostFixHCP7T.OneSubject.sh \
