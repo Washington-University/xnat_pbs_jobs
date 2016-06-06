@@ -260,42 +260,32 @@ main()
 				g_all_files_exist="TRUE"
 
 
-				results_dir=${fix_resource_dir}/MNINonLinear/Results # rfMRI_REST1_PA_FIX/MNINonLinear/Results
+				results_dir=${fix_resource_dir} # rfMRI_REST1_PA_FIX   Note: The MNINonLinear/Results directories are removed from FIX results resources
 				results_scan_dir=${results_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir} # rfMRI_REST1_7T_FIX/MNINonLinear/Results/rfMRI_REST1_7T_PA
-				ica_dir=${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_hp2000.ica  # rfMRI_REST1_7T_FIX/MNINonLinear/Results/rfMRI_REST1_7T_PA/rfMRI_REST1_7T_PA_hp2000.ica
+				ica_dir=${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_hp2000.ica  # rfMRI_REST1_7T_FIX/MNINonLinear/Results/rfMRI_REST1_7T_PA/rfMRI_REST1_7T_PA_hp2000.ica
 				
 				check_dir=${ica_dir}
 				verbose_msg "1. check_dir: ${check_dir}"
 
 				check_file_exists "${check_dir}/Atlas_hp_preclean.dtseries.nii"
 				check_file_exists "${check_dir}/Atlas.nii.gz"
-				check_file_exists "${check_dir}/fix4melview_HCP7T_hp2000_thr10.txt"
 				check_file_exists "${check_dir}/mask.nii.gz"
-				check_file_exists "${check_dir}/Noise.txt"
-				check_file_exists "${check_dir}/Signal.txt"
 
 				check_dir=${ica_dir}/filtered_func_data.ica # rfMRI_REST1_7T_FIX/MNINonLinear/Results/rfMRI_REST1_7T_PA/rfMRI_REST1_PA_hp2000.ica/filtered_func_data.ica
 				check_dir=$(readlink -m "${check_dir}")
 				verbose_msg "2. check_dir: ${check_dir}"
 
 				check_file_exists "${check_dir}/eigenvalues_percent"
-				check_file_exists "${check_dir}/ICAVolumeSpace.txt"
 				check_file_exists "${check_dir}/log.txt"
 				check_file_exists "${check_dir}/mask.nii.gz"
 				check_file_exists "${check_dir}/mean.nii.gz"
 				check_file_exists "${check_dir}/melodic_dewhite"
 				check_file_exists "${check_dir}/melodic_FTdewhite"
 				check_file_exists "${check_dir}/melodic_FTmix"
-				check_file_exists "${check_dir}/melodic_FTmix.sdseries.nii"
 				check_file_exists "${check_dir}/melodic_IC.nii.gz"
 				check_file_exists "${check_dir}/melodic_ICstats"
 				check_file_exists "${check_dir}/melodic_mix"
-				check_file_exists "${check_dir}/melodic_mix.sdseries.nii"
-				check_file_exists "${check_dir}/melodic_oIC.dscalar.nii"
-				check_file_exists "${check_dir}/melodic_oIC.dtseries.nii"
 				check_file_exists "${check_dir}/melodic_oIC.nii.gz"
-				check_file_exists "${check_dir}/melodic_oIC_vol.dscalar.nii"
-				check_file_exists "${check_dir}/melodic_oIC_vol.dtseries.nii"
 				check_file_exists "${check_dir}/melodic_pcaD"
 				check_file_exists "${check_dir}/melodic_pcaE"
 				check_file_exists "${check_dir}/melodic_pca.nii.gz"
