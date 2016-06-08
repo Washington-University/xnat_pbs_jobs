@@ -243,8 +243,9 @@ main()
 		pe_dir=${scan#*_}
 		verbose_msg "pe_dir: ${pe_dir}"
 
-		short_dedrift_resource=MSMAllDeDrift
-		dedrift_resource=${resources_dir}/${short_dedrift_resource}
+		short_dedrift_resource_dir=MSMAllDeDrift
+		dedrift_resource_dir=${resources_dir}/${short_dedrift_resource_dir}
+		verbose_msg "dedrift_resource_dir: ${dedrift_resource_dir}"
 
 		# Does unprocessed resource for this scan exist?
 		if [ -d "${unproc_resource_dir}" ] ; then

@@ -34,15 +34,21 @@ ARCHIVE_ROOT="${HCP_DATA_ROOT}/hcpdb/archive"
 ARCHIVE_PROJ_SUBDIR="arc001"
 TESLA_SPEC="_7T"
 
-ICA_FIX_SCANS_LIST=""
-ICA_FIX_SCANS_LIST+=" REST1_PA "
-ICA_FIX_SCANS_LIST+=" REST2_AP "
-ICA_FIX_SCANS_LIST+=" REST3_PA "
-ICA_FIX_SCANS_LIST+=" REST4_AP "
-ICA_FIX_SCANS_LIST+=" MOVIE1_AP "
-ICA_FIX_SCANS_LIST+=" MOVIE2_PA "
-ICA_FIX_SCANS_LIST+=" MOVIE3_PA "
-ICA_FIX_SCANS_LIST+=" MOVIE4_AP "
+SCANS_LIST=""
+SCANS_LIST+=" REST1_PA "
+SCANS_LIST+=" REST2_AP "
+SCANS_LIST+=" REST3_PA "
+SCANS_LIST+=" REST4_AP "
+SCANS_LIST+=" MOVIE1_AP "
+SCANS_LIST+=" MOVIE2_PA "
+SCANS_LIST+=" MOVIE3_PA "
+SCANS_LIST+=" MOVIE4_AP "
+SCANS_LIST+=" RETBAR1_AP "
+SCANS_LIST+=" RETBAR2_PA "
+SCANS_LIST+=" RETCCW_AP "
+SCANS_LIST+=" RETCON_PA "
+SCANS_LIST+=" RETCW_PA "
+SCANS_LIST+=" RETEXP_AP "
 
 RESTING_PREFIX="rfMRI_"
 TASK_PREFIX="tfMRI_"
@@ -60,7 +66,6 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_details
-	unset g_scans
 	unset g_report_level
 
     # parse arguments
@@ -82,12 +87,6 @@ get_options()
 				;;
 			--details)
 				g_details="TRUE"
-				index=$(( index + 1 ))
-                ;;
-			--scan=*)
-				g_scans+=" "
-				g_scans+=${argument/*=/""}
-				g_scans+=" "
 				index=$(( index + 1 ))
                 ;;
 			--quiet)
@@ -125,10 +124,6 @@ get_options()
 
 	if [ -z "${g_details}" ]; then
 		g_details="FALSE"
-	fi
-
-	if [ -z "${g_scans}" ]; then
-		g_scans=${ICA_FIX_SCANS_LIST}
 	fi
 
 	if [ -z "${g_report_level}" ]; then
@@ -206,7 +201,7 @@ main()
 	archive_dir="${ARCHIVE_ROOT}/${g_project}/${ARCHIVE_PROJ_SUBDIR}/${g_subject}${TESLA_SPEC}"
 	resources_dir="${archive_dir}/RESOURCES"
 
-	for scan in ${g_scans} ; do
+	for scan in ${SCANS_LIST} ; do
 
 		verbose_msg "scan: ${scan}"
 
@@ -248,65 +243,74 @@ main()
 		pe_dir=${scan#*_}
 		verbose_msg "pe_dir: ${pe_dir}"
 
-		# Does preprocessed resource for this scan exist?
-		if [ -d "${preproc_resource_dir}" ] ; then
-			verbose_msg "Preprocessed resource directory for this scan does exist"
+		short_dedrift_resource_dir=MSMAllDeDrift_HighRes
+		dedrift_resource_dir=${resources_dir}/${short_dedrift_resource_dir}
+		verbose_msg "dedrift_resource_dir: ${dedrift_resource_dir}"
 
-			# Does PostFix resource for this scan exist?
-			if [ -d "${postfix_resource_dir}" ] ; then
-				verbose_msg "POSTFIX resource exists, I've got some further checking to do"
-				postfix_resource_exists="TRUE"
+		# Does unprocessed resource for this scan exist?
+		if [ -d "${unproc_resource_dir}" ] ; then
+			verbose_msg "Unprocessed resource directory for this scan does exist"
 
-				postfix_resource_date=$(stat -c %y ${postfix_resource_dir})
-				postfix_resource_date=${postfix_resource_date%%\.*}
+			# Does dedrift resource exist?
+			if [ -d "${dedrift_resource_dir}" ] ; then
+				verbose_msg "DeDrift resource exists, I've got some further checking to do"
+				dedrift_resource_exists="TRUE"
+
+				dedrift_resource_date=$(stat -c %y ${dedrift_resource_dir})
+				dedrift_resource_date=${dedrift_resource_date%%\.*}
 
 				# Do the expected files exist
 				g_all_files_exist="TRUE"
 
-				results_dir=${postfix_resource_dir} # rfMRI_REST1_PA_PostFix
-				results_scan_dir=${results_dir}/MNINonLinear/Results/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir} # rfMRI_REST1_7T_PostFix/MNINonLinear/Results/rfMRI_REST1_7T_PA
+				results_dir=${dedrift_resource_dir} # MSMAllDeDrift
 
-				check_file_exists "${results_scan_dir}/${g_subject}_${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_ICA_Classification_dualscreen.scene"
-				check_file_exists "${results_scan_dir}/${g_subject}_${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_ICA_Classification_singlescreen.scene"
-				check_file_exists "${results_scan_dir}/ReclassifyAsNoise.txt"
-				check_file_exists "${results_scan_dir}/ReclassifyAsSignal.txt"
-				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas_hp2000.dtseries.nii"
+				results_scan_dir=${results_dir}/MNINonLinear/Results/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir} # MSMAllDeDrift/MNINonLinear/Results/rfMRI_REST1_7T_PA
 
-				ica_dir=${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_hp2000.ica  # rfMRI_REST1_7T_PostFix/MNINonLinear/Results/rfMRI_REST1_7T_PA/rfMRI_REST1_7T_PA_hp2000.ica
+				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas_MSMAll.dtseries.nii"
+				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_MSMAll.L.atlasroi.32k_fs_LR.func.gii"
+				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_MSMAll.R.atlasroi.32k_fs_LR.func.gii"
+				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_s2_MSMAll.L.atlasroi.32k_fs_LR.func.gii"
+				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_s2_MSMAll.R.atlasroi.32k_fs_LR.func.gii"
 
-				check_file_exists "${ica_dir}/Noise.txt"
-				check_file_exists "${ica_dir}/Signal.txt"
 
-				filtered_func_data_dir=${ica_dir}/filtered_func_data.ica # rfMRI_REST1_7T_PostFix/MNINonLinear/Results/rfMRI_REST1_7T_PA/rfMRI_REST1_7T_PA_hp2000.ica/filtered_func_data.ica
+				if [[ (${resting_state_scan} = "TRUE") || (${movie_scan} = "TRUE") ]]; then
 
-				check_file_exists "${filtered_func_data_dir}/ICAVolumeSpace.txt"
-				check_file_exists "${filtered_func_data_dir}/mask.nii.gz"
-				check_file_exists "${filtered_func_data_dir}/melodic_FTmix.sdseries.nii"
-				check_file_exists "${filtered_func_data_dir}/melodic_mix.sdseries.nii"
-				check_file_exists "${filtered_func_data_dir}/melodic_oIC.dscalar.nii"
-				check_file_exists "${filtered_func_data_dir}/melodic_oIC.dtseries.nii"
-				check_file_exists "${filtered_func_data_dir}/melodic_oIC_vol.dscalar.nii"
-				check_file_exists "${filtered_func_data_dir}/melodic_oIC_vol.dtseries.nii"
+					check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas_MSMAll_hp2000_clean.dtseries.nii"
+					check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_hp2000.ica"
+					
+					ica_dir=${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_hp2000.ica  # MSMAllDeDrift/MNINonLinear/Results/rfMRI_REST1_7T_PA/rfMRI_REST1_7T_PA_hp2000.ica
+					
+					check_file_exists "${ica_dir}/Atlas.dtseries.nii"
+					check_file_exists "${ica_dir}/Atlas_hp_preclean.dtseries.nii"
+					check_file_exists "${ica_dir}/Atlas.nii.gz"
+					
+					mc_dir=${ica_dir}/mc
+					
+					check_file_exists "${mc_dir}/prefiltered_func_data_mcf_conf_hp.nii.gz"
+					check_file_exists "${mc_dir}/prefiltered_func_data_mcf_conf.nii.gz"
+					check_file_exists "${mc_dir}/prefiltered_func_data_mcf.par"
+					
+				fi
 
 			else
-				# PostFix resource for this scan does not exist, but should
-				verbose_msg "PostFix resource does not exist but should"
-				postfix_resource_exists="FALSE"
-				postfix_resource_date="N/A"
+				# DeDrift resource for this scan does not exist, but should
+				verbose_msg "DeDrift resource does not exist but should"
+				dedrift_resource_exists="FALSE"
+				dedrift_resource_date="N/A"
 				g_subject_complete="FALSE"
 				g_all_files_exist="FALSE"
 			fi
 
 		else
-			# Preprocessed resource dir for this scan does not exist
-			verbose_msg "preproc does not exist"
-			postfix_resource_exists="---"
-			postfix_resource_date="---"
+			# Unprocessed resource dir for this scan does not exist
+			verbose_msg "unproc does not exist"
+			dedrift_resource_exists="---"
+			dedrift_resource_date="---"
 			g_all_files_exist="---"
 		fi
 
 		if [ "${g_report_level}" != "QUIET" ] ; then
-			echo -e "${g_project}\t${g_subject}\t${short_postfix_resource_dir}\t${postfix_resource_exists}\t${postfix_resource_date}\t${g_all_files_exist}" >> ${tmp_file}
+			echo -e "${g_project}\t${g_subject}\t${short_dedrift_resource_dir}\t${scan}\t${dedrift_resource_exists}\t${dedrift_resource_date}\t${g_all_files_exist}" >> ${tmp_file}
 		fi
 
 	done
