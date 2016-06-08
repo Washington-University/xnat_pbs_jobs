@@ -629,6 +629,7 @@ main()
 	tfMRINames=`echo "$tfMRINames" | sed s/" "/"@"/g`
 
 	MyelinTargetFile="${HCPPIPEDIR}/global/templates/MSMAll/Q1-Q6_RelatedParcellation210.MyelinMap_BC_MSMAll_2_d41_WRN_DeDrift.59k_fs_LR.dscalar.nii"
+	InRegName="_1.6mm"
 
 	# Run DeDriftAndResamplePipeline.sh script
 	d_cmd=""
@@ -647,6 +648,7 @@ main()
 	d_cmd+="  --smoothing-fwhm=${SmoothingFWHM} "
 	d_cmd+="  --highpass=${HighPass}"
 	d_cmd+="  --myelin-target-file=${MyelinTargetFile}"
+	d_cmd+="  --input-reg-name=${InRegName}"
 
 	inform "d_cmd: ${d_cmd}"
 
