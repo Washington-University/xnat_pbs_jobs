@@ -264,20 +264,83 @@ main()
 
 				results_dir=${dedrift_resource_dir} # MSMAllDeDrift
 
+				mni_non_linear_dir=${dedrift_resource_dir}/MNINonLinear
+
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.1.6mm_MSMAll.164k_fs_LR.wb.spec"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.ArealDistortion_1.6mm_MSMAll.164k_fs_LR.dscalar.nii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.corrThickness_1.6mm_MSMAll.164k_fs_LR.dscalar.nii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.curvature_1.6mm_MSMAll.164k_fs_LR.dscalar.nii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.EdgeDistortion_1.6mm_MSMAll.164k_fs_LR.dscalar.nii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.L.inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.L.midthickness_1.6mm_MSMAll.164k_fs_LR.surf.gii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.L.pial_1.6mm_MSMAll.164k_fs_LR.surf.gii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.L.very_inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.L.white_1.6mm_MSMAll.164k_fs_LR.surf.gii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.MyelinMap_BC_1.6mm_MSMAll.164k_fs_LR.dscalar.nii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.R.inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.R.midthickness_1.6mm_MSMAll.164k_fs_LR.surf.gii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.R.pial_1.6mm_MSMAll.164k_fs_LR.surf.gii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.R.very_inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.R.white_1.6mm_MSMAll.164k_fs_LR.surf.gii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.SmoothedMyelinMap_BC_1.6mm_MSMAll.164k_fs_LR.dscalar.nii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.SphericalDistortion_1.6mm_MSMAll.164k_fs_LR.dscalar.nii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.sulc_1.6mm_MSMAll.164k_fs_LR.dscalar.nii"
+				check_file_exists "${mni_non_linear_dir}/${g_subject}.thickness_1.6mm_MSMAll.164k_fs_LR.dscalar.nii"
+
+				fsave_dir=${mni_non_linear_dir}/fsaverage_LR59k
+
+				check_file_exists "${fsave_dir}/${g_subject}.1.6mm_MSMAll.59k_fs_LR.wb.spec"
+				check_file_exists "${fsave_dir}/${g_subject}.ArealDistortion_1.6mm_MSMAll.59k_fs_LR.dscalar.nii"
+				check_file_exists "${fsave_dir}/${g_subject}.atlas_MyelinMap_BC.59k_fs_LR.dscalar.nii"
+				check_file_exists "${fsave_dir}/${g_subject}.BiasField_1.6mm_MSMAll.59k_fs_LR.dscalar.nii"
+				check_file_exists "${fsave_dir}/${g_subject}.corrThickness_1.6mm_MSMAll.59k_fs_LR.dscalar.nii"
+				check_file_exists "${fsave_dir}/${g_subject}.curvature_1.6mm_MSMAll.59k_fs_LR.dscalar.nii"
+				check_file_exists "${fsave_dir}/${g_subject}.EdgeDistortion_1.6mm_MSMAll.59k_fs_LR.dscalar.nii"
+				check_file_exists "${fsave_dir}/${g_subject}.L.inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii"
+				check_file_exists "${fsave_dir}/${g_subject}.L.midthickness_1.6mm_MSMAll.59k_fs_LR.surf.gii"
+				check_file_exists "${fsave_dir}/${g_subject}.L.pial_1.6mm_MSMAll.59k_fs_LR.surf.gii"
+				check_file_exists "${fsave_dir}/${g_subject}.L.very_inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii"
+				check_file_exists "${fsave_dir}/${g_subject}.L.white_1.6mm_MSMAll.59k_fs_LR.surf.gii"
+				check_file_exists "${fsave_dir}/${g_subject}.MyelinMap_1.6mm_MSMAll.59k_fs_LR.dscalar.nii"
+				check_file_exists "${fsave_dir}/${g_subject}.MyelinMap_BC_1.6mm_MSMAll.59k_fs_LR.dscalar.nii"
+				check_file_exists "${fsave_dir}/${g_subject}.R.inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii"
+				check_file_exists "${fsave_dir}/${g_subject}.R.midthickness_1.6mm_MSMAll.59k_fs_LR.surf.gii"
+				check_file_exists "${fsave_dir}/${g_subject}.R.pial_1.6mm_MSMAll.59k_fs_LR.surf.gii"
+				check_file_exists "${fsave_dir}/${g_subject}.R.very_inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii"
+				check_file_exists "${fsave_dir}/${g_subject}.R.white_1.6mm_MSMAll.59k_fs_LR.surf.gii"
+				check_file_exists "${fsave_dir}/${g_subject}.SmoothedMyelinMap_BC_1.6mm_MSMAll.59k_fs_LR.dscalar.nii"
+				check_file_exists "${fsave_dir}/${g_subject}.SphericalDistortion_1.6mm_MSMAll.59k_fs_LR.dscalar.nii"
+				check_file_exists "${fsave_dir}/${g_subject}.sulc_1.6mm_MSMAll.59k_fs_LR.dscalar.nii"
+				check_file_exists "${fsave_dir}/${g_subject}.thickness_1.6mm_MSMAll.59k_fs_LR.dscalar.nii"
+
+				native_dir=${mni_non_linear_dir}/Native
+
+				check_file_exists "${native_dir}/${g_subject}.ArealDistortion_1.6mm_MSMAll.native.dscalar.nii"
+				check_file_exists "${native_dir}/${g_subject}.BiasField_1.6mm_MSMAll.native.dscalar.nii"
+				check_file_exists "${native_dir}/${g_subject}.EdgeDistortion_1.6mm_MSMAll.native.dscalar.nii"
+				check_file_exists "${native_dir}/${g_subject}.L.ArealDistortion_1.6mm_MSMAll.native.shape.gii"
+				check_file_exists "${native_dir}/${g_subject}.L.EdgeDistortion_1.6mm_MSMAll.native.shape.gii"
+				check_file_exists "${native_dir}/${g_subject}.L.sphere.1.6mm_MSMAll.native.surf.gii"
+				check_file_exists "${native_dir}/${g_subject}.MyelinMap_BC_1.6mm_MSMAll.native.dscalar.nii"
+				check_file_exists "${native_dir}/${g_subject}.native.wb.spec"
+				check_file_exists "${native_dir}/${g_subject}.R.ArealDistortion_1.6mm_MSMAll.native.shape.gii"
+				check_file_exists "${native_dir}/${g_subject}.R.EdgeDistortion_1.6mm_MSMAll.native.shape.gii"
+				check_file_exists "${native_dir}/${g_subject}.R.sphere.1.6mm_MSMAll.native.surf.gii"
+				check_file_exists "${native_dir}/${g_subject}.SmoothedMyelinMap_BC_1.6mm_MSMAll.native.dscalar.nii"
+
 				results_scan_dir=${results_dir}/MNINonLinear/Results/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir} # MSMAllDeDrift/MNINonLinear/Results/rfMRI_REST1_7T_PA
 
-				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas_MSMAll.dtseries.nii"
-				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_MSMAll.L.atlasroi.32k_fs_LR.func.gii"
-				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_MSMAll.R.atlasroi.32k_fs_LR.func.gii"
-				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_s2_MSMAll.L.atlasroi.32k_fs_LR.func.gii"
-				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_s2_MSMAll.R.atlasroi.32k_fs_LR.func.gii"
-
+				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas_1.6mm_MSMAll.dtseries.nii"
+				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_1.6mm_MSMAll.L.atlasroi.59k_fs_LR.func.gii"
+				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_1.6mm_MSMAll.R.atlasroi.59k_fs_LR.func.gii"
+				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_s1.60_1.6mm_MSMAll.L.atlasroi.59k_fs_LR.func.gii"
+				check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_s1.60_1.6mm_MSMAll.R.atlasroi.59k_fs_LR.func.gii"
 
 				if [[ (${resting_state_scan} = "TRUE") || (${movie_scan} = "TRUE") ]]; then
 
-					check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas_MSMAll_hp2000_clean.dtseries.nii"
+					check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii"
 					check_file_exists "${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_hp2000.ica"
-					
+
 					ica_dir=${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_hp2000.ica  # MSMAllDeDrift/MNINonLinear/Results/rfMRI_REST1_7T_PA/rfMRI_REST1_7T_PA_hp2000.ica
 					
 					check_file_exists "${ica_dir}/Atlas.dtseries.nii"

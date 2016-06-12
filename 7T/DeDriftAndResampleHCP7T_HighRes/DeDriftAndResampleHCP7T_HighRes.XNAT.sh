@@ -231,7 +231,7 @@ main()
 	inform "----- Platform Information: End -----"
 
 	# Set up step counters
-	total_steps=14
+	total_steps=15
 	current_step=0
 
 	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
@@ -389,6 +389,16 @@ main()
 	# Therefore, it is important to consider the order in which we call the link_hcp... functions
 	# below.  We should call them in order from the results of the latest prerequisite pipelines
 	# to the earliest prerequisite pipelines.
+
+	# Step - Link previous DeDriftAndResampleHCP7T data
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+ 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Link previous DeDriftAndResampleHCP7T Data from DB" ${step_percent}
+
+	# Note: This is a "get" instead of a "link" because it is a relatively small amount of data 
+	#       AND some of these files (notably some .spec files) are modified by this pipeline.
+	get_hcp_resampled_and_dedrifted_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
 
 	# Step - Link Group Average Drift Data from DB
 	current_step=$(( current_step + 1 ))

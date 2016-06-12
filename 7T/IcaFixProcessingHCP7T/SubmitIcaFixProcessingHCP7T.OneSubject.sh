@@ -402,7 +402,7 @@ main()
 
 		touch ${script_file_to_submit}
 		#echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=55000mb" >> ${script_file_to_submit}
-		echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=40gb,vmem=55gb" >> ${script_file_to_submit}
+		echo "#PBS -l nodes=1:ppn=1,walltime=36:00:00,mem=40gb,vmem=55gb" >> ${script_file_to_submit}
 		echo "#PBS -p 30" >> ${script_file_to_submit}
 		echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 		echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
