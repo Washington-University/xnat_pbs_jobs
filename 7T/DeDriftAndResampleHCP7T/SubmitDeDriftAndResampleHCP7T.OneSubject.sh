@@ -277,7 +277,7 @@ main()
 	touch ${script_file_to_submit}
 	echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=16gb" >> ${script_file_to_submit}
 	# ICI: THIS IS TEMPORARY IN ORDER TO GET A TEST JOB RUNNING
-	echo "#PBS -q HCPput" >> ${script_file_to_submit}
+	# echo "#PBS -q HCPput" >> ${script_file_to_submit}
 	# ICI: THIS IS TEMPORARY IN ORDER TO GET A TEST JOB RUNNING
 	echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
