@@ -61,7 +61,7 @@ for subject_spec in ${subjects} ; do
 		echo "  --three-t-project=${refproject} \\" >> ${script_file_to_submit}
 		echo "  --seven-t-project=${project} \\" >> ${script_file_to_submit}
 		echo "  --tmp-dir=${packages_tmp} \\" >> ${script_file_to_submit}
-		echo "  --release-notes-template-file=${HOME}/pipeline_tools/xnat_pbs_jobs/7T/CreateStructuralPreprocPackage/StructuralPreprocPackageReleaseNotes.txt \\" >> ${script_file_to_submit}
+		echo "  --release-notes-template-file=${HOME}/pipeline_tools/xnat_pbs_jobs/7T/CreateStructuralPreprocPackage/ReleaseNotes.txt \\" >> ${script_file_to_submit}
 		echo "  --output-dir=${output_dir} \\" >> ${script_file_to_submit}
 		echo "  --create-checksum \\" >> ${script_file_to_submit}
 
