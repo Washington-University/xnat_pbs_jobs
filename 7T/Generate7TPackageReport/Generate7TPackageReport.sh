@@ -40,7 +40,6 @@ PACKAGES_ROOT_DIR="/HCP/hcpdb/packages/prerelease/zip/HCP_Staging_7T"
 subjects=""
 subjects+=" 102311 "
 subjects+=" 105923 "
-subjects+=" 109123 "
 subjects+=" 111312 "
 subjects+=" 111514 "
 subjects+=" 125525 "
@@ -136,9 +135,14 @@ scans+=" tfMRI_RETEXP "
 for unproc_scan in ${scans} ; do
 
 	echo ""
+	echo "Unproc Package: ${unproc_scan}"
+	echo ""
+	echo -e "\t\tSubject\tPackage\tSize\tDate"
 
+	count=0
 	for subject in ${subjects} ; do
-
+		
+		count=$(( count + 1 ))
 		package_file=${PACKAGES_ROOT_DIR}/${subject}/unproc/${subject}_7T_${unproc_scan}_unproc.zip
 		md5_file=${package_file}.md5
 		
@@ -150,7 +154,7 @@ for unproc_scan in ${scans} ; do
 		
 		short_package_file=${package_file##*/}
 		
-		echo -e "${subject}\t${short_package_file}\t${package_file_size}\t${package_file_date}"
+		echo -e "\t${count}\t${subject}\t${short_package_file}\t${package_file_size}\t${package_file_date}"
 
 	done
 
@@ -174,9 +178,14 @@ preproc_packages+=" 7T_Structural_preproc.zip "
 for preproc_package in ${preproc_packages} ; do
 
 	echo ""
-	
+	echo "Preproc Package: ${preproc_package}"
+	echo ""
+	echo -e "\t\tSubject\tPackage\tSize\tDate"
+
+	count=0
 	for subject in ${subjects} ; do
 
+		count=$(( count + 1 ))
 		package_file=${PACKAGES_ROOT_DIR}/${subject}/preproc/${subject}_${preproc_package}
 		md5_file=${package_file}.md5
 
@@ -184,7 +193,7 @@ for preproc_package in ${preproc_packages} ; do
 		get_date ${package_file} package_file_date
 
 		short_package_file=${package_file##*/}
-		echo -e "${subject}\t${short_package_file}\t${package_file_size}\t${package_file_date}"
+		echo -e "\t${count}\t${subject}\t${short_package_file}\t${package_file_size}\t${package_file_date}"
 
 	done
 
@@ -200,10 +209,15 @@ fix_packages+=" 7T_REST_Volume_fix.zip "
 
 for fix_package in ${fix_packages} ; do 
 
-	echo "fix_package: ${fix_package}"
+	echo ""
+	echo "FIX Package: ${fix_package}"
+	echo ""
+	echo -e "\t\tSubject\tPackage\tSize\tDate"
 
+	count=0
 	for subject in ${subjects} ; do
 
+		count=$(( count + 1 ))
 		package_file=${PACKAGES_ROOT_DIR}/${subject}/fix/${subject}_${fix_package}
 		md5_file=${package_file}.md5
 
@@ -211,7 +225,7 @@ for fix_package in ${fix_packages} ; do
 		get_date ${package_file} package_file_date
 
 		short_package_file=${package_file##*/}
-		echo -e "${subject}\t${short_package_file}\t${package_file_size}\t${package_file_date}"
+		echo -e "\t${count}\t${subject}\t${short_package_file}\t${package_file_size}\t${package_file_date}"
 
 	done
 
