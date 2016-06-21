@@ -7,10 +7,11 @@ SEPARATOR = ':'
 
 class Hcp7TSubjectInfo:
     
-    def __init__(self, project = None, structural_reference_project = None, subject_id = None): 
+    def __init__(self, project = None, structural_reference_project = None, subject_id = None, extra = None): 
         self.__subject_id = subject_id
         self.__project = project
         self.__structural_reference_project = structural_reference_project
+        self.__extra = extra
 
     @property
     def subject_id(self):
@@ -38,20 +39,31 @@ class Hcp7TSubjectInfo:
     def structural_reference_project(self, structural_reference_project):
         self.__structural_reference_project = structural_reference_project
 
-    def __str__(self):
-        return str(self.project + SEPARATOR + self.structural_reference_project + SEPARATOR + self.subject_id)
+    @property
+    def extra(self):
+        return self.__extra
 
+    @extra.setter
+    def extra(self, extra):
+        self.__extra = extra
+
+    def __str__(self):
+        return str(self.project + SEPARATOR + self.structural_reference_project + SEPARATOR + self.subject_id + SEPARATOR + self.extra)
 
 def read_subject_info_list(file_name):
     subject_info_list = []
 
     input_file = open(file_name, 'r')
     for line in input_file:
+        # remove new line character
         if os.linesep == line[-1]:
             line = line[:-1]
-        (project, structural_ref_project, subject_id) = line.split(SEPARATOR)
-        subject_info = Hcp7TSubjectInfo(project, structural_ref_project, subject_id)
-        subject_info_list.append(subject_info)
+
+        # ignore comment lines - starting with #
+        if line[0] != '#':
+            (project, structural_ref_project, subject_id, extra) = line.split(SEPARATOR)
+            subject_info = Hcp7TSubjectInfo(project, structural_ref_project, subject_id, extra)
+            subject_info_list.append(subject_info)
 
     return subject_info_list
 

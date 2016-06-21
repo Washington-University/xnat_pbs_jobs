@@ -4,25 +4,31 @@ import os
 
 DEFAULT_COMPUTE_PLATFORM = 'CHPC'
 
-def xnat_archive_root():
-    compute = os.getenv('COMPUTE', DEFAULT_COMPUTE_PLATFORM)
+class XNAT_Archive:
 
-    if compute == 'CHPC':
-        hcp_root = '/HCP'
-    elif compute == 'NRG':
-        hcp_root = '/data'
-    else:
-        raise ValueError('Unrecognized value for COMPUTE environment variable: ' + compute)
+    def __init__(self):
+        self.__compute_platform = os.getenv('COMPUTE', DEFAULT_COMPUTE_PLATFORM)
 
-    return hcp_root + '/hcpdb/archive'
+        if self.__compute_platform == 'CHPC':
+            self.__hcp_root = '/HCP'
+        elif self.__compute_platform == 'NRG':
+            self.__hcp_root = '/data'
+        else:
+            raise ValueError('Unrecognized value for COMPUTE environment variable: ' + self.__compute_platform)
 
-def project_archive_root(project_name):
-    return xnat_archive_root() + '/' + project_name + '/arc001'
+    @property
+    def archive_root(self):
+        return self.__hcp_root + '/hcpdb/archive'
 
-def project_resources_root(project_name):
-    return xnat_archive_root() + '/' + project_name + '/resources'
+    def project_archive_root(self, project_name):
+        return self.archive_root + '/' + project_name + '/arc001'
+
+    def project_resources_root(self, project_name):
+        return self.archive_root + '/' + project_name + '/resources'
 
 if __name__ == "__main__":
-    print('xnat_archive_root(): ' + xnat_archive_root())
-    print('project_archive_root(\'HCP_Staging_7T\'): ' + project_archive_root('HCP_Staging_7T'))
-    print('project_resources_root(\'HCP_Staging_7T\'): ' + project_resources_root('HCP_Staging_7T'))
+    archive = XNAT_Archive()
+
+    print('archive_root: ' + archive.archive_root)
+    print('project_archive_root(\'HCP_Staging_7T\'): ' + archive.project_archive_root('HCP_Staging_7T'))
+    print('project_resources_root(\'HCP_Staging_7T\'): ' + archive.project_resources_root('HCP_Staging_7T'))
