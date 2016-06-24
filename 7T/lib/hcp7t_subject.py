@@ -9,12 +9,14 @@ in simple text files.
 # import of built-in modules
 import os
 import shutil
+import sys
 
 # import of third party modules
 pass
 
 # path changes and import of local modules
-pass
+sys.path.append('../../lib')
+import str_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -104,12 +106,14 @@ def read_subject_info_list(file_name):
 
     input_file = open(file_name, 'r')
     for line in input_file:
-        # remove new line character
-        if os.linesep == line[-1]:
-            line = line[:-1]
+        # remove new line characters
+        line = str_utils.remove_ending_new_lines(line)
 
-        # ignore comment lines - starting with #
-        if line[0] != '#':
+        # remove leading and training spaces
+        line = line.strip()
+
+        # ignore blank lines and comment lines - starting with #
+        if line != '' and line[0] != '#':
             (project, structural_ref_project, subject_id, extra) = line.split(__SEPARATOR__)
             # Make the string 'None' in the file translate to a None type instead of just the 
             # string itself
