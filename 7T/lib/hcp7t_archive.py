@@ -21,6 +21,14 @@ __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
+def inform(msg):
+    """Inform the user of this program by outputing a message that is prefixed by the file name.
+
+    :param msg: Message to output
+    :type msg: str
+    """
+    print(os.path.basename(__file__) + ": " + msg)
+
 class Hcp7T_Archive:
     """This class provides information about direct access to an HCP 7T project data archive.
     
@@ -271,10 +279,95 @@ class Hcp7T_Archive:
         :type scan_name: str
         """
 
-        # NOTE: This needs to be modified to do more than simply check to see if the resource exists.
-        # It needs to also do the check to see if all the appropriate files exist.
-        return self.does_FIX_processed_exist(hcp7t_subject_info, scan_name)
+        # If the output resource does not exist, then the processing has not been done.
+        if not self.does_FIX_processed_exist(hcp7t_subject_info, scan_name):
+            return False
 
+        # If we reach here, then the FIX processed resource at least exists.  
+        # Next we need to check to see if the expected files exist.
+
+        results_dir = self.subject_resources_dir(hcp7t_subject_info) + os.sep + self.FIX_processed_resource_name(scan_name)
+        results_scan_dir = results_dir + os.sep + self.functional_scan_long_name(scan_name)
+        ica_dir = results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000.ica'
+
+        file_name_list = []        
+        file_name_list.append(ica_dir + os.sep + 'Atlas_hp_preclean.dtseries.nii') 
+        file_name_list.append(ica_dir + os.sep + 'Atlas.nii.gz')
+        file_name_list.append(ica_dir + os.sep + 'mask.nii.gz')
+
+        filtered_func_dir = ica_dir + os.sep + 'filtered_func_data.ica'
+
+        file_name_list.append(filtered_func_dir + os.sep + 'eigenvalues_percent')
+        file_name_list.append(filtered_func_dir + os.sep + 'log.txt')
+        file_name_list.append(filtered_func_dir + os.sep + 'mask.nii.gz')
+        file_name_list.append(filtered_func_dir + os.sep + 'mean.nii.gz')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_dewhite')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_FTdewhite')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_FTmix')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_IC.nii.gz')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_ICstats')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_mix')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_oIC.nii.gz')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_pcaD')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_pcaE')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_pca.nii.gz')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_PPCA')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_Tmodes')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_unmix')
+        file_name_list.append(filtered_func_dir + os.sep + 'melodic_white')
+        file_name_list.append(filtered_func_dir + os.sep + 'Noise__inv.nii.gz')
+
+        fix_dir = ica_dir + os.sep + 'fix'
+
+        file_name_list.append(fix_dir + os.sep + 'fastsg_mixeltype.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'fastsg_seg.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'features.csv')
+        file_name_list.append(fix_dir + os.sep + 'features_info.csv')
+        file_name_list.append(fix_dir + os.sep + 'features.mat')
+        file_name_list.append(fix_dir + os.sep + 'highres2std.mat')
+        file_name_list.append(fix_dir + os.sep + 'hr2exf.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'hr2exfTMP.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'hr2exfTMP.txt')
+        file_name_list.append(fix_dir + os.sep + 'logMatlab.txt')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc0dil2.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc0dil.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc0.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc1dil2.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc1dil.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc1.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc2dil2.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc2dil.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc2.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc3dil2.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc3dil.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std1mm2exfunc3.nii.gz')
+        file_name_list.append(fix_dir + os.sep + 'std2exfunc.mat')
+        file_name_list.append(fix_dir + os.sep + 'std2highres.mat')
+        file_name_list.append(fix_dir + os.sep + 'subcort.nii.gz')
+
+        reg_dir = ica_dir + os.sep + 'reg'
+
+        file_name_list.append(reg_dir + os.sep + 'highres2example_func.mat')
+        file_name_list.append(reg_dir + os.sep + 'veins_exf.nii.gz')
+        file_name_list.append(reg_dir + os.sep + 'veins.nii.gz')
+
+        mc_dir = ica_dir + os.sep + 'mc'
+
+        file_name_list.append(mc_dir + os.sep + 'prefiltered_func_data_mcf_conf_hp.nii.gz')
+        file_name_list.append(mc_dir + os.sep + 'prefiltered_func_data_mcf_conf.nii.gz')
+        file_name_list.append(mc_dir + os.sep + 'prefiltered_func_data_mcf.par')
+
+        for file_name in file_name_list:
+            #inform("Checking for existance of file: " + file_name)
+            if os.path.isfile(file_name):
+                continue
+            # If we get here, the most recently checked file does not exist
+            inform("FILE DOES NOT EXIST: " + file_name)
+            return False
+
+        # If we get here, all files that were checked exist
+        return True
+        
     def available_resting_state_preproc_dirs(self, hcp7t_subject_info):
         """Returns a list of full paths to functionally preprocessed resting state scan resources.
 
