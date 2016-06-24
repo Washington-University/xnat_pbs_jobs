@@ -85,16 +85,20 @@ class IcaFix7TBatchSubmitter:
             inform("--------------------------------------------------------------------------------")
 
             setup_file = scripts_home + os.sep + 'SetUpHCPPipeline_IcaFixProcessingHCP7T.sh'
-            clean_output_first = False
+            clean_output_first = True
 
             if scan == 'all':
+                # want to run them all without regard to whether they are previously complete
                 scan_spec = None
                 incomplete_only = False
             elif scan == 'incomplete':
+                # want to look at all of them and run only those that are incomplete
                 scan_spec = None
                 incomplete_only = True
             else:
+                # want to run this specific one without regard to whether it is previously complete
                 scan_spec = scan
+                incomplete_only = False
 
             self._one_subject_submitter.submit_jobs(userid, password, 'https://db.humanconnectome.org',
                                                     subject.project, subject.subject_id, subject.subject_id + '_7T',
@@ -132,24 +136,24 @@ if __name__ == "__main__":
     subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
 
     if subject_files_dir == None:
-        inform('Environment variable SUBJECT_FILES_DIR must be set!')
+        inform("Environment variable SUBJECT_FILES_DIR must be set!")
         sys.exit(1)
 
     scripts_home = os.getenv('SCRIPTS_HOME')
 
     if scripts_home == None:
-        inform('Environment variable SCRIPTS_HOME must be set!')
+        inform("Environment variable SCRIPTS_HOME must be set!")
         sys.exit(1)
 
     home = os.getenv('HOME')
 
     if home == None:
-        inform('Environment variable HOME must be set!')
+        inform("Environment variable HOME must be set!")
         sys.exit(1)
 
     # Get Connectome DB credentials
-    userid = input('Connectome DB Username: ')
-    password = getpass.getpass('Connectome DB Password: ')
+    userid = input("Connectome DB Username: ")
+    password = getpass.getpass("Connectome DB Password: ")
 
     # Get list of subjects to process
     subject_file_name = subject_files_dir + os.sep + 'IcaFixProcessingHCP7T.subjects'
