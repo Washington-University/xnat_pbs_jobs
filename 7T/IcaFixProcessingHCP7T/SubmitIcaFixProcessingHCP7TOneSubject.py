@@ -8,6 +8,9 @@ import sys
 import argparse
 import time
 import contextlib
+import urllib
+import stat
+import subprocess
 
 # import of third party modules
 pass
@@ -19,6 +22,7 @@ import hcp7t_subject
 
 sys.path.append('../../lib')
 import xnat_access
+import str_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -32,6 +36,17 @@ def inform(msg):
     :type msg: str
     """
     print(os.path.basename(__file__) + ": " + msg)
+
+def get_server_name(url):
+    (scheme, location, path, params, query, fragment) = urllib.parse.urlparse(url)
+    return location
+
+def get_required_env_value(var_name):
+    value = os.getenv(var_name)
+    if value == None:
+        inform("Environment variable " + var_name + " must be set!")
+        sys.exit(1)
+    return value
 
 class MyArgumentParser(argparse.ArgumentParser):
     """This subclass of ArgumentParser prints out the help message when an error is found in parsing."""
@@ -55,6 +70,11 @@ class IcaFix7TOneSubjectSubmitter:
         self._archive = hcp7t_archive
         self._build_home = build_home
 
+        home = get_required_env_value('HOME')
+        self._xnat_pbs_jobs_home = home + os.sep + 'pipeline_tools' + os.sep + 'xnat_pbs_jobs'
+
+        self._log_dir = get_required_env_value('LOG_DIR')
+
     @property
     def PIPELINE_NAME(self):
         return "IcaFixProcessingHCP7T"
@@ -68,6 +88,16 @@ class IcaFix7TOneSubjectSubmitter:
     def build_home(self):
         """Returns the temporary (or build space) root directory."""
         return self._build_home
+
+    @property
+    def xnat_pbs_jobs_home(self):
+        """Returns the home directory for the XNAT PBS job scripts."""
+        return self._xnat_pbs_jobs_home
+
+    @property
+    def log_dir(self):
+        """Returns the log directory in which to place put logs."""
+        return self._log_dir
 
     def submit_jobs(self, 
                     username, password, server,
@@ -147,7 +177,7 @@ class IcaFix7TOneSubjectSubmitter:
         for scan_name in scan_list:
             if self.archive.FIX_processed(subject_info, scan_name) and incomplete_only:
                 inform("scan: " + scan_name + " is already FIX processed")
-                inform("I have been asked to only submit jobs for incomplete scans - skipping")
+                inform("Only submitted jobs for incomplete scans - skipping " + scan_name)
                 continue
 
             long_scan_name = self.archive.functional_scan_long_name(scan_name)
@@ -208,7 +238,18 @@ class IcaFix7TOneSubjectSubmitter:
                 inform("  subject: " + subject)
                 inform("  session: " + session)
 
-                inform("  TO BE IMPLEMENTED  ")
+                # re-implement this functionality as a Python class or function to be called?
+                delete_resource_cmd = self.xnat_pbs_jobs_home + os.sep + 'WorkingDirPut' + os.sep + 'DeleteResource.sh'
+                delete_resource_cmd += ' --user=' + username
+                delete_resource_cmd += ' --password=' + password
+                delete_resource_cmd += ' --server=' + get_server_name(server)
+                delete_resource_cmd += ' --project=' + project
+                delete_resource_cmd += ' --subject=' + subject
+                delete_resource_cmd += ' --session=' + session
+                delete_resource_cmd += ' --resource=' + output_resource_name
+                delete_resource_cmd += ' --force'
+
+                completed_delete_process = subprocess.run(delete_resource_cmd, shell=True, check=True)
 
             script_file_start_name = working_directory_name
             script_file_start_name += os.sep + subject 
@@ -217,64 +258,91 @@ class IcaFix7TOneSubjectSubmitter:
             script_file_start_name += '.' + project 
             script_file_start_name += '.' + session 
 
-            # Submit job to set up data
-            # setup_data_script_file_name = script_file_start_name + '.DATA_SETUP_job.sh'
+            # Create script to submit to set up data
+            # setup_script_name = script_file_start_name + '.DATA_SETUP_job.sh'
             # with contextlib.suppress(FileNotFoundError):
-            #     os.remove(setup_data_script_file_name)
+            #     os.remove(setup_script_name)
                 
-            # setup_data_script_file = open(setup_data_script_file_name, 'w')
+            # setup_script = open(setup_script_name, 'w')
             
-            # setup_data_script_file.write("#PBS -l nodes-1:ppn=1,walltime=4:00:00,vmem=12gb" + os.linesep)
-            # setup_data_script_file.write("#PBS -o " + working_directory_name + os.linesep)
-            # setup_data_script_file.write("#PBS -e " + working_directory_name + os.linesep)
-            # setup_data_script_file.write("")
+            # setup_script.write('#PBS -l nodes-1:ppn=1,walltime=4:00:00,vmem=12gb' + os.linesep)
+            # setup_script.write('#PBS -o ' + working_directory_name + os.linesep)
+            # setup_script.write('#PBS -e ' + working_directory_name + os.linesep)
+            # setup_script.write(os.linesep)
 
-            # setup_data_script_file.close()
-            
-            
-            # Submit job to do the actual work
-            script_file_to_do_work_name = script_file_start_name + '.XNAT_PBS_job.sh'
+            # setup_script.close()
+            # os.chmod(setup_script_name, stat.S_IRWXU | stat.S_IRWXG)
+                        
+            # Create script to submit to do the actual work
+            work_script_name = script_file_start_name + '.XNAT_PBS_job.sh'
             with contextlib.suppress(FileNotFoundError):
-                os.remove(script_file_to_do_work_name)
+                os.remove(work_script_name)
 
-            script_file_to_do_work = open(script_file_to_do_work_name, 'w')
+            work_script = open(work_script_name, 'w')
 
-            script_file_to_do_work.write("#PBS -l nodes=1:ppn=1,walltime=36:00:00,mem=40gb,vmem=55gb" + os.linesep)
-            script_file_to_do_work.write("#PBS -o " + working_directory_name + os.linesep)
-            script_file_to_do_work.write("#PBS -e " + working_directory_name + os.linesep)
-            script_file_to_do_work.write(os.linesep)
-            script_file_to_do_work.write("${XNAT_PBS_JOBS_HOME}/7T/IcaFixProcessingHCP7T/IcaFixProcessingHCP7T.XNAT.sh \\" + os.linesep)
-            script_file_to_do_work.write("  --user=\"${g_user}\" \\" + os.linesep)
-            script_file_to_do_work.write("  --password=\"${g_password}\" \\" + os.linesep)
-            script_file_to_do_work.write("  --server=\"${g_server}\" \\" + os.linesep)
-            script_file_to_do_work.write("  --project=\"${g_project}\" \\" + os.linesep)
-            script_file_to_do_work.write("  --subject=\"${g_subject}\" \\" + os.linesep)
-            script_file_to_do_work.write("  --session=\"${g_session}\" \\" + os.linesep)
-            script_file_to_do_work.write("  --structural-reference-project=\"${g_structural_reference_project}\" \\" + os.linesep)
-            script_file_to_do_work.write("  --structural-reference-session=\"${g_structural_reference_session}\" \\" + os.linesep)
-            script_file_to_do_work.write("  --scan=\"${scan}\" \\" + os.linesep)
-            script_file_to_do_work.write("  --working-dir=\"${working_directory_name}\" \\" + os.linesep)
-            script_file_to_do_work.write("  --workflow-id=\"${workflowID}\" \\" + os.linesep)
-            script_file_to_do_work.write("  --xnat-session-id=${sessionID}  \\" + os.linesep)
-            script_file_to_do_work.write("  --setup-script=${g_setup_script}"   + os.linesep)
+            work_script.write('#PBS -l nodes=1:ppn=1,walltime=36:00:00,mem=40gb,vmem=55gb' + os.linesep)
+            work_script.write('#PBS -o ' + working_directory_name + os.linesep)
+            work_script.write('#PBS -e ' + working_directory_name + os.linesep)
+            work_script.write(os.linesep)
+            work_script.write(self.xnat_pbs_jobs_home + os.sep + '7T' + os.sep + 'IcaFixProcessingHCP7T' + os.sep + 'IcaFixProcessingHCP7T.XNAT.sh \\' + os.linesep)
+            work_script.write('  --user="' + username +'" \\' + os.linesep)
+            work_script.write('  --password="' + password + '" \\' + os.linesep)
+            work_script.write('  --server="' + get_server_name(server) + '" \\' + os.linesep)
+            work_script.write('  --project="' + project + '" \\' + os.linesep)
+            work_script.write('  --subject="' + subject + '" \\' + os.linesep)
+            work_script.write('  --session="' + session + '" \\' + os.linesep)
+            work_script.write('  --structural-reference-project="' + structural_reference_project + '" \\' + os.linesep)
+            work_script.write('  --structural-reference-session="' + structural_reference_session + '" \\' + os.linesep)
+            work_script.write('  --scan="' + long_scan_name + '" \\' + os.linesep)
+            work_script.write('  --working-dir="' + working_directory_name + '" \\' + os.linesep)
+            work_script.write('  --workflow-id="' + workflow_id + '" \\' + os.linesep)
+            work_script.write('  --xnat-session-id=' + xnat_session_id + '\\' + os.linesep)
+            work_script.write('  --setup-script=' + setup_script + os.linesep)
 
+            work_script.close()
+            os.chmod(work_script_name, stat.S_IRWXU | stat.S_IRWXG)
 
+            # Create script to put the results into the DB
+            put_script_name = script_file_start_name + '.XNAT_PBS_PUT_job.sh'
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(put_script_name)
 
+            put_script = open(put_script_name, 'w')
 
+            put_script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=12gb' + os.linesep)
+            put_script.write('#PBS -q HCPput' + os.linesep)
+            put_script.write('#PBS -o ' + self.log_dir + os.linesep)
+            put_script.write('#PBS -e ' + self.log_dir + os.linesep)
+            put_script.write(os.linesep)
+            put_script.write(self.xnat_pbs_jobs_home + os.sep + 'WorkingDirPut' + os.sep + 'XNAT_working_dir_put.sh \\' + os.linesep)
+            put_script.write('  --user="' + username +'" \\' + os.linesep)
+            put_script.write('  --password="' + password + '" \\' + os.linesep)
+            put_script.write('  --server="' + get_server_name(put_server) + '" \\' + os.linesep)
+            put_script.write('  --project="' + project + '" \\' + os.linesep)
+            put_script.write('  --subject="' + subject + '" \\' + os.linesep)
+            put_script.write('  --session="' + session + '" \\' + os.linesep)
+            put_script.write('  --working-dir="' + working_directory_name + '" \\' + os.linesep)
+            put_script.write('  --resource-suffix="' + output_resource_name + '"' + os.linesep)
+            put_script.write('  --reason="' + scan_name + '_' + self.PIPELINE_NAME + '"' + os.linesep)
 
+            put_script.close()
+            os.chmod(put_script_name, stat.S_IRWXU | stat.S_IRWXG)
 
+            # Submit the job to do the work
+            work_submit_cmd = 'qsub ' + work_script_name
+            inform("work_submit_cmd: " + work_submit_cmd)
 
+            completed_work_submit_process = subprocess.run(work_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            work_job_no = str_utils.remove_ending_new_lines(completed_work_submit_process.stdout)
+            inform("work_job_no: " + work_job_no)
 
+            # Submit the job put the results in the DB
+            put_submit_cmd = 'qsub -W depend=afterok:' + work_job_no + ' ' + put_script_name
+            inform("put_submit_cmd: " + put_submit_cmd)
 
-            # Submit job to put the results into the DB
-
-
-
-
-
-
-
-
+            completed_put_submit_process = subprocess.run(put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
+            inform("put_job_no: " + put_job_no)
 
 if __name__ == "__main__":
 
