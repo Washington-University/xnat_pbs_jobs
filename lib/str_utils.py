@@ -27,4 +27,7 @@ def remove_ending_new_lines(input_str):
 
 def get_server_name(url):
     (scheme, location, path, params, query, fragment) = urllib.parse.urlparse(url)
-    return location
+    if location == '':
+        return url
+    else:
+        return location

@@ -16,6 +16,15 @@ __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
+def _inform(msg):
+    """Inform the user of this program by outputing a message that is prefixed by the file name.
+
+    :param msg: Message to output
+    :type msg: str
+    """
+    print(os.path.basename(__file__) + ": " + msg)
+
+
 class XNAT_Archive:
     """This class provides information about direct access to an XNAT data archive.
 
@@ -70,9 +79,15 @@ class XNAT_Archive:
         """
         return self.archive_root + '/' + project_name + '/resources'
 
-if __name__ == "__main__":
+
+def _simple_interactive_demo():
     archive = XNAT_Archive()
 
-    print('archive_root: ' + archive.archive_root)
-    print('project_archive_root(\'HCP_Staging_7T\'): ' + archive.project_archive_root('HCP_Staging_7T'))
-    print('project_resources_root(\'HCP_Staging_7T\'): ' + archive.project_resources_root('HCP_Staging_7T'))
+    _inform('archive_root: ' + archive.archive_root)
+    _inform('project_archive_root(\'HCP_Staging_7T\'): ' + archive.project_archive_root('HCP_Staging_7T'))
+    _inform('project_resources_root(\'HCP_Staging_7T\'): ' + archive.project_resources_root('HCP_Staging_7T'))
+
+
+if __name__ == "__main__":
+    _simple_interactive_demo()
+

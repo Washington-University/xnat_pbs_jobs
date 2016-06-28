@@ -11,7 +11,6 @@ import subprocess
 pass
 
 # import of local modules
-sys.path.append('../lib')
 import xnat_access
 import str_utils
 import my_argparse
@@ -30,9 +29,7 @@ def _inform(msg):
     """
     print(os.path.basename(__file__) + ": " + msg)
 
-def delete_resource(user, password, server, 
-                    project, subject, session, resource,
-                    perform_delete = True):
+def delete_resource(user, password, server, project, subject, session, resource, perform_delete = True):
     # get XNAT session id
     xnat_session_id = xnat_access.get_session_id(
         server = str_utils.get_server_name(server),
@@ -60,13 +57,20 @@ def delete_resource(user, password, server,
     delete_cmd += ' -r ' + resource_uri
 
     if perform_delete:
+        _inform("Deleting")
+        _inform("    Server: " + server)
+        _inform("   Project: " + project)
+        _inform("   Subject: " + subject)
+        _inform("   Session: " + session)
+        _inform("  Resource: " + resource)
+
         completed_delete_process = subprocess.run(delete_cmd, shell=True, check=True)
+
     else:
         _inform("delete_cmd: " + delete_cmd)
         _inform("Deletion not attempted")
 
-if __name__ == "__main__":
-
+def main():
     # create a parser object for getting the command line options
     parser = my_argparse.MyArgumentParser(description="Program to delete a DB resource.")
 
@@ -86,16 +90,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # show parsed arguments
-    _inform("Username: " + args.user)
-    _inform("Password: " + "*** password mask ***")
-    _inform("Server: "   + args.server)
-    _inform("Project: "  + args.project)
-    _inform("Subject: "  + args.subject)
-    _inform("Session: "  + args.session)
-    _inform("Resource: " + args.resource)
-    _inform("Force: "    + str(args.force))
-
-    delete_it = False
+    _inform("Parsed arguments:")
+    _inform("  Username: " + args.user)
+    _inform("  Password: " + "*** password mask ***")
+    _inform("    Server: " + args.server)
+    _inform("   Project: " + args.project)
+    _inform("   Subject: " + args.subject)
+    _inform("   Session: " + args.session)
+    _inform("  Resource: " + args.resource)
+    _inform("     Force: " + str(args.force))
 
     if args.force:
         delete_it = True
@@ -107,3 +110,6 @@ if __name__ == "__main__":
     delete_resource(args.user, args.password, args.server, 
                     args.project, args.subject, args.session, args.resource,
                     delete_it)
+
+if __name__ == '__main__':
+    main()

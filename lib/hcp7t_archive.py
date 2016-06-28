@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""hcp7t_archive.py: Provide information to allow direct access to an HCP 7T project archive."""
+"""hcp7t_archive.py: Provide direct access to an HCP 7T project archive."""
 
 # import of built-in modules
 import os
@@ -12,272 +12,44 @@ pass
 
 # path changes and import of local modules
 import hcp7t_subject
-
-sys.path.append('../../lib')
-import xnat_archive
+#import xnat_archive
+import hcp_archive
 
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
-def inform(msg):
-    """Inform the user of this program by outputing a message that is prefixed by the file name.
+def _inform(msg):
+    """Inform the user by writing out a message that is prefixed by the file name.
 
     :param msg: Message to output
     :type msg: str
     """
     print(os.path.basename(__file__) + ": " + msg)
 
-class Hcp7T_Archive:
-    """This class provides information about direct access to an HCP 7T project data archive.
+class Hcp7T_Archive(hcp_archive.HcpArchive):
+    """This class provides access to an HCP 7T project data archive.
     
-    This access goes 'behind the scenes' and uses the actual underlying file system and 
-    assumes a particular organization of directories, resources, and file naming conventions.
-    Because of this, a change in XNAT implemenation or a change in conventions could cause
-    this code to no longer be correct.
+    This access goes 'behind the scenes' and uses the actual underlying file
+    system and assumes a particular organization of directories, resources, and 
+    file naming conventions. Because of this, a change in XNAT implementation 
+    or a change in conventions could cause this code to no longer be correct.
     """
-
-    @property
-    def FUNCTIONAL_SCAN_MARKER(self):
-        """Prefix to a resource directory name that indicates that the resource is for a functional MRI."""
-        return 'fMRI'
-
-    @property
-    def RESTING_STATE_SCAN_MARKER(self):
-        """Prefix to a resource directory name that indicates that the resource is for a resting state MRI."""
-        return 'rfMRI'
-
-    @property
-    def TASK_SCAN_MARKER(self):
-        """Prefix to a resource directory name that indicates that the resource is for a task scan."""
-        return 'tfMRI'
-
-    @property
-    def UNPROC_SUFFIX(self):
-        """Suffix to a resource directory name that indicates that the resource contains unprocessed data."""
-        return 'unproc'
-
-    @property
-    def PREPROC_SUFFIX(self):
-        """Suffix to a resource directory name that indicates that the resource contains preprocessed data."""
-        return 'preproc'
-
-    @property
-    def FIX_PROCESSED_SUFFIX(self):
-        """Suffix to a resource directory name that indicates that the resource contains FIX processed data."""
-        return 'FIX'
-
-    @property
-    def NAME_DELIMITER(self):
-        """Character (or string) used to delimit the parts of a resource name.
-
-        Separates the prefix that indicates the type of the scan (e.g. tfMRI, rfMRI, etc.)
-        from the general name of the scan (e.g. REST2, MOVIE1, RETBAR1) and from the 
-        suffix that indicates the state of the data (e.g. unproc, preproc, FIX)
-        """
-        return '_'
 
     @property
     def TESLA_SPEC(self):
         """String to indicate the tesla rating of the scanner used."""
         return '7T'
 
+
     def __init__(self):
         """Constructs an Hcp7T_Archive object for direct access to an HCP 7T project data archive."""
-        self._xnat_archive = xnat_archive.XNAT_Archive()
+        super().__init__()
 
-    @property
-    def build_home(self):
-        """Returns the temporary build/processing directory root."""
-        return self._xnat_archive.build_space_root
-
-    def session_name(self, hcp7t_subject_info):
-        """Returns the conventional session name for a subject in this HCP 7T project archive.
-
-        :param hcp7t_subject_info: specification of the subject for which a session name will be returned
-        :type hcp7t_subject_info: Hcp7TSubjectInfo
-
-        :Example:
-
-        If hcp7t_subject_info.subject_id is 100307, this method would return 100307_7T.
-        """
-        return hcp7t_subject_info.subject_id + self.NAME_DELIMITER + self.TESLA_SPEC
-
-    def session_dir(self, hcp7t_subject_info):
-        """Returns the full path to the conventional session for a subject in this HCP 7T project archive.
-
-        :param hcp7t_subject_info: specification of the subject for which a session directory path 
-                                   will be returned
-        :type hcp7t_subject_info: Hcp7TSubjectInfo
-        """
-        return self._xnat_archive.project_archive_root(hcp7t_subject_info.project) + '/' + self.session_name(hcp7t_subject_info)
-
-    def subject_resources_dir(self, hcp7t_subject_info):
-        """Returns the full path to the conventional subject-level resources directory for a subject in this HCP 7T project archive.
-
-        :param hcp7t_subject_info: specification of the subject for which a subject-level resources path will be returned
-        :type hcp7t_subject_info: Hcp7TSubjectInfo
-        """
-        return self.session_dir(hcp7t_subject_info) + '/RESOURCES'
-
-    def available_functional_unproc_dirs(self, hcp7t_subject_info):
-        """Returns a list of full paths to unprocessed functional scan resources.
-
-        :param hcp7t_subject_info: specification of the subject for which a list of resource dirs will be returned
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-        """
-        dir_list = glob.glob(self.subject_resources_dir(hcp7t_subject_info) + '/*' + self.FUNCTIONAL_SCAN_MARKER + '*' + self.UNPROC_SUFFIX) 
-        return sorted(dir_list)
-
-    def _get_scan_name_from_path(self, path):
-        short_path = os.path.basename(path)
-        last_char = short_path.rfind(self.NAME_DELIMITER)
-        name = short_path[:last_char]
-        return name
-
-    def available_functional_unproc_names(self, hcp7t_subject_info):
-        """Returns a list of scan names (not full paths) of available unprocessed functional resources.
-
-        :param hcp7t_subject_info: specification of the subject for which a list of unprocessed functional names will be returned
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-
-        :Example:
-        
-        If the full paths to the available unprocessed functional scans for the specified subject are:
-
-        /HCP/hcpddb/archive/HCP_Staging_7T/arc001/102311_7T/RESOURCES/rfMRI_REST1_PA_unproc
-        /HCP/hcpddb/archive/HCP_Staging_7T/arc001/102311_7T/RESOURCES/rfMRI_REST2_AP_unproc
-        /HCP/hcpddb/archive/HCP_Staging_7T/arc001/102311_7T/RESOURCES/tfMRI_MOVIE1_AP_unproc
-        /HCP/hcpddb/archive/HCP_Staging_7T/arc001/102311_7T/RESOURCES/tfMRI_MOVIE2_PA_unproc
-        /HCP/hcpddb/archive/HCP_Staging_7T/arc001/102311_7T/RESOURCES/tfMRI_RETCCW_AP_unproc
-        /HCP/hcpddb/archive/HCP_Staging_7T/arc001/102311_7T/RESOURCES/tfMRI_RETEXP_AP_unproc
-
-        Then the list of scan names returned by this method will be:
- 
-        rfMRI_REST1_PA
-        rfMRI_REST2_AP
-        tfMRI_MOVIE1_AP
-        tfMRI_MOVIE2_PA
-        tfMRI_RETCCW_AP
-        tfMRI_RETEXP_AP
-
-        Notice that not only is the path to the scans not included, the suffix indicating the state of the data,
-        unproc, is removed leaving just the scan 'name'.
-        """
-        dir_list = self.available_functional_unproc_dirs(hcp7t_subject_info)
-        name_list = []
-        for directory in dir_list:
-            name_list.append(self._get_scan_name_from_path(directory))
-        return name_list
-
-    def available_diffusion_unproc_dirs(self, hcp7t_subject_info):
-        """Returns a list of full paths to unprocessed diffusion resources.
-
-        :param hcp7t_subject_info: specification of the subject for which a list of resource dirs will be returned
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-        """
-        dir_list = glob.glob(self.subject_resources_dir(hcp7t_subject_info) + '/Diffusion*' + self.UNPROC_SUFFIX)
-        return sorted(dir_list)
-
-    def available_diffusion_unproc_names(self, hcp7t_subject_info):
-        """Returns a list of scan resource names (not full paths) for unprocessed diffusion resources.
-
-        :param hcp7t_subject_info: specification of subject
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-        """
-        dir_list = self.available_diffusion_unproc_dirs(hcp7t_subject_info)
-        name_list = []
-        for directory in dir_list:
-            name_list.append(self._get_scan_name_from_path(directory))
-        return name_list
-
-    def available_functional_preproc_dirs(self, hcp7t_subject_info):
-        """Returns a list of full paths to preprocessed functional scan resources.
-
-        :param hcp7t_subject_info: specification of the subject for which a list of resource dirs will be returned
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-        """
-        dir_list = glob.glob(self.subject_resources_dir(hcp7t_subject_info) + '/*' + self.FUNCTIONAL_SCAN_MARKER + '*' + self.PREPROC_SUFFIX) 
-        return sorted(dir_list)
-
-    def available_functional_preproc_names(self, hcp7t_subject_info):
-        """Returns a list of scan names (not full paths) of available preprocessed functional resources.
-
-        :param hcp7t_subject_info: specification of the subject for which a list of preprocessed functional names will be returned
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-        """
-        dir_list = self.available_functional_preproc_dirs(hcp7t_subject_info)
-        name_list = []
-        for directory in dir_list:
-            name_list.append(self._get_scan_name_from_path(directory))
-        return name_list
-
-    def does_functional_preproc_exist(self, hcp7t_subject_info, scan_name):
-        """Returns True if there is a functional preproc resource available for the specified scan name.
-
-        :param hcp7t_subject_info: specification of the subject 
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-        :param scan_name: name of scan for which to check for a functional preproc resource (e.g. tfMRI_MOVIE2_PA)
-        :type scan_name: str
-        """
-        return scan_name in self.available_functional_preproc_names(hcp7t_subject_info)
-
-    def functionally_preprocessed(self, hcp7t_subject_info, scan_name):
-        """Returns True if the specified scan has been functionally preprocessed for the specified subject.
-
-        :param hcp7t_subject_info: specification of the subject
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-        :param scan_name: name of scan for which to determine if the scan has been functionally preprocessed
-        :type scan_name: str
-        """
-
-        # NOTE: This needs to be modified to do more than simply check to see if the resource exists.
-        # It needs to also do the check to see if all the appropriate files exist.
-        return self.does_functional_preproc_exist(hcp7t_subject_info, scan_name)
-
-    def available_FIX_processed_dirs(self, hcp7t_subject_info):
-        """Returns a list of full paths to FIX processed scan resources.
-
-        :param hcp7t_subject_info: specification of subject for which a list of resource dirs will be returned
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-        """
-        dir_list = glob.glob(self.subject_resources_dir(hcp7t_subject_info) + '/*' + self.FUNCTIONAL_SCAN_MARKER + '*' + self.FIX_PROCESSED_SUFFIX)
-        return sorted(dir_list)
-
-    def available_FIX_processed_names(self, hcp7t_subject_info):
-        """Returns a list of scan names (not full paths) of available FIX processed scans.
-
-        :param hcp7t_subject_info: specificatioin of the subject for which a list of preprocessed functional names will be returned
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-        """
-        dir_list = self.available_FIX_processed_dirs(hcp7t_subject_info)
-        name_list = []
-        for directory in dir_list:
-            name_list.append(self._get_scan_name_from_path(directory))
-        return name_list
-
-    def FIX_processed_resource_name(self, scan_name):
-        return scan_name + self.NAME_DELIMITER + self.FIX_PROCESSED_SUFFIX
-
-    def does_FIX_processed_exist(self, hcp7t_subject_info, scan_name):
-        """Returns True if there is a FIX processed resource available for the specified scan name.
-
-        :param hcp7t_subject_info: specification of subject
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-        :param scan_name: name of scan for which to check for a FIX processed resource (e.g. rfMRI_REST1_AP)
-        :type scan_name: str
-        """
-        return scan_name in self.available_FIX_processed_names(hcp7t_subject_info)
 
     def FIX_processed(self, hcp7t_subject_info, scan_name):
-        """Returns True if the specified scan has been FIX processed for the specified subject.
-
-        :param hcp7t_subject_info: specification of the subject
-        :type hcp7t_subject_info: HCP7TSubjectInfo
-        :param scan_name: name of scan for which to determine if the scan has been FIX processed
-        :type scan_name: str
-        """
+        """Returns True if the specified scan has been FIX processed for the specified subject."""
 
         # If the output resource does not exist, then the processing has not been done.
         if not self.does_FIX_processed_exist(hcp7t_subject_info, scan_name):
@@ -358,123 +130,54 @@ class Hcp7T_Archive:
         file_name_list.append(mc_dir + os.sep + 'prefiltered_func_data_mcf.par')
 
         for file_name in file_name_list:
-            #inform("Checking for existance of file: " + file_name)
+            #_inform("Checking for existance of file: " + file_name)
             if os.path.isfile(file_name):
                 continue
             # If we get here, the most recently checked file does not exist
-            inform("FILE DOES NOT EXIST: " + file_name)
+            _inform("FILE DOES NOT EXIST: " + file_name)
             return False
 
         # If we get here, all files that were checked exist
         return True
         
-    def available_resting_state_preproc_dirs(self, hcp7t_subject_info):
-        """Returns a list of full paths to functionally preprocessed resting state scan resources.
 
-        :param hcp7t_subject_info: specification of the subject for which a list of resource dirs will be returned
-        :type hcp7t_subject_info: Hcp7TSubjectInfo
-        """
-        dir_list = glob.glob(self.subject_resources_dir(hcp7t_subject_info) + '/*' + self.RESTING_STATE_SCAN_MARKER + '*' + self.PREPROC_SUFFIX)
+    def available_movie_preproc_dirs(self, subject_info):
+        """Returns a list of full paths to functionally preprocessed MOVIE task scan resources."""
+        dir_list = glob.glob(self.subject_resources_dir(subject_info) + '/*' + 
+                             self.TASK_SCAN_MARKER + '*MOVIE*' + self.PREPROC_SUFFIX)
         return sorted(dir_list)
 
-    def available_resting_state_preproc_names(self, hcp7t_subject_info):
-        """Returns a list of scan names (not full paths) of available preprocessed resting state scan resources.
 
-        :param hcp7t_subject_info: specification of the subject
-        :type hcp7t_subject_info: Hcp7TSubjectInfo
-        """
-        dir_list = self.available_resting_state_preproc_dirs(hcp7t_subject_info)
+    def available_movie_preproc_names(self, subject_info):
+        """Returns a list of scan names (not full paths) of available preprocessed 
+        MOVIE task scan resources."""
+        dir_list = self.available_movie_preproc_dirs(subject_info)
         name_list = []
         for directory in dir_list:
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
-    def available_task_preproc_dirs(self, hcp7t_subject_info):
-        """Returns a list of full paths to functionally preprocessed task scan resources.
-        
-        :param hcp7t_subject_info: specification of the subject
-        :type hcp7t_subject_info: Hcp7TSubjectInfo
-        """
-        dir_list = glob.glob(self.subject_resources_dir(hcp7t_subject_info) + '/*' + self.TASK_SCAN_MARKER + '*' + self.PREPROC_SUFFIX)
+    
+    def available_retinotopy_preproc_dirs(self, subject_info):
+        """Returns a list of full paths to functionally preprocessed retinotopy task scan 
+        resources."""
+        dir_list = glob.glob(self.subject_resources_dir(subject_info) + '/*' +
+                             self.TASK_SCAN_MARKER + '*RET*' + self.PREPROC_SUFFIX)
         return sorted(dir_list)
 
-    def available_task_preproc_names(self, hcp7t_subject_info):
-        """Returns a list of scan names (not full paths) of available preprocessed task scan resources.
 
-        :param hcp7t_subject_info: specification of the subject
-        :type hcp7t_subject_info: Hcp7TSubjectInfo
-        """
-        dir_list = self.available_task_preproc_dirs(hcp7t_subject_info)
+    def available_retinotopy_preproc_names(self, subject_info):
+        """Returns a list of scan names (not full paths) of available functionally
+        preprocessed retinotopy task scan resources."""
+        dir_list = self.available_retinotopy_preproc_dirs(subject_info)
         name_list = []
         for directory in dir_list:
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
-    def available_movie_preproc_dirs(self, hcp7t_subject_info):
-        """Returns a list of full paths to functionally preprocessed MOVIE task scan resources.
-        
-        :param hcp7t_subject_info: specification of the subject
-        :type hcp7t_subject_info: Hcp7TSubjectInfo
-        """
-        dir_list = glob.glob(self.subject_resources_dir(hcp7t_subject_info) + '/*' + self.TASK_SCAN_MARKER + '*MOVIE*' + self.PREPROC_SUFFIX)
-        return sorted(dir_list)
-
-    def available_movie_preproc_names(self, hcp7t_subject_info):
-        """Returns a list of scan names (not full paths) of available preprocessed MOVIE task scan resources.
-
-        :param hcp7t_subject_info: specification of the subject
-        :type hcp7t_subject_info: Hcp7TSubjectInfo
-        """
-        dir_list = self.available_movie_preproc_dirs(hcp7t_subject_info)
-        name_list = []
-        for directory in dir_list:
-            name_list.append(self._get_scan_name_from_path(directory))
-        return name_list
-
-    def functional_scan_prefix(self, functional_scan_name):
-        """Extracts and returns the 'prefix' part of a functional scan name.
-        
-        :param functional_scan_name: name of scan (e.g. rfMRI_REST3_PA)
-        :type functional_scan_name: str
-
-        :Example:
-
-        functional_scan_prefix('rfMRI_REST3_PA') returns 'rfMRI'
-        """
-        (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
-        return prefix
-
-    def functional_scan_base_name(self, functional_scan_name):
-        """Extracts and returns the 'base_name' part of a functional scan name.
-
-        :param functional_scan_name: name of scan (e.g. rfMRI_REST3_PA)
-        :type functional_scan_name: str
-
-        :Example:
-
-        functional_scan_base_name('rfMRI_REST3_PA') returns 'REST3'
-        """
-        (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
-        return base_name
-
-    def functional_scan_pe_dir(self, functional_scan_name):
-        """Extracts and returns the phase encoding direction, 'pe_dir', part of a functional scan name.
-
-        :param functional_scan_name: name of scan (e.g. rfMRI_REST3_PA)
-        :type functional_scan_name: str
-
-        :Example:
-
-        functional_scan_pe_dir('rfMRI_REST3_PA') returns 'PA'
-        """
-        (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
-        return pe_dir
 
     def functional_scan_long_name(self, functional_scan_name):
         """Returns the 'long form' of the specified functional scan name.
-
-        :param functional_scan_name: name of scan (e.g. rfMRI_REST3_PA)
-        :type functional_scan_name: str
 
         This 'long form' is used in some processing contexts as the fMRIName.
 
@@ -484,61 +187,158 @@ class Hcp7T_Archive:
         """
         (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
         return prefix + self.NAME_DELIMITER + base_name + self.NAME_DELIMITER + self.TESLA_SPEC + self.NAME_DELIMITER + pe_dir
+
     
+def _simple_interactive_demo():
 
-if __name__ == "__main__":
-
-    hcp7t_archive = Hcp7T_Archive()
+    archive = Hcp7T_Archive()
     
-    subject = hcp7t_subject.Hcp7TSubjectInfo('HCP_Staging_7T', 'HCP_500', '102311')
-    print('HCP7T session dir: ' + hcp7t_archive.session_dir(subject))
+    _inform("archive.FUNCTIONAL_SCAN_MARKER: " + archive.FUNCTIONAL_SCAN_MARKER)
+    _inform("archive.RESTING_STATE_SCAN_MARKER: " + archive.RESTING_STATE_SCAN_MARKER)
+    _inform("archive.TASK_SCAN_MARKER: " + archive.TASK_SCAN_MARKER)
+    _inform("archive.UNPROC_SUFFIX: " + archive.UNPROC_SUFFIX)
+    _inform("archive.PREPROC_SUFFIX: " + archive.PREPROC_SUFFIX)
+    _inform("archive.FIX_PROCESSED_SUFFIX: " + archive.FIX_PROCESSED_SUFFIX)
+    _inform("archive.NAME_DELIMITER: " + archive.NAME_DELIMITER)
+    _inform("archive.TESLA_SPEC: " + archive.TESLA_SPEC)
+    _inform("archive.build_home: " + archive.build_home)
 
-    print(os.linesep + 'Available functional unproc dirs: ')
-    for directory in hcp7t_archive.available_functional_unproc_dirs(subject):
-        print(directory)
+    subject_info = hcp7t_subject.Hcp7TSubjectInfo('HCP_Staging_7T', 'HCP_500', '102311')
+    _inform("created subject_info: " + str(subject_info))
+    _inform("archive.session_name(subject_info): " + archive.session_name(subject_info))
+    _inform("archive.session_dir(subject_infor): " + archive.session_dir(subject_info))
+    _inform("archive.subject_resources_dir(subject_info): " + 
+            archive.subject_resources_dir(subject_info))
 
-    print(os.linesep + 'Available functional unproc scan names: ')
-    for name in hcp7t_archive.available_functional_unproc_names(subject):
-        print(name)
+    _inform("")
+    _inform("Available functional unproc dirs: ")
+    for directory in archive.available_functional_unproc_dirs(subject_info):
+        _inform(directory)
+
+    _inform("")
+    _inform("Available functional unproc scan names: ")
+    for name in archive.available_functional_unproc_names(subject_info):
+        _inform(name)
+
+    _inform("")
+    _inform("Available diffusion unproc dirs: ")
+    for directory in archive.available_diffusion_unproc_dirs(subject_info):
+        _inform(directory)
+
+    _inform("")
+    _inform("Available diffusion unproc scan names: ")
+    for name in archive.available_diffusion_unproc_names(subject_info):
+        _inform(name)
+
+    _inform("")
+    _inform("Available functional preproc dirs: ")
+    for directory in archive.available_functional_preproc_dirs(subject_info):
+        _inform(directory)
+
+    _inform("")
+    _inform("Available functional preproc scan names: ")
+    for name in archive.available_functional_preproc_names(subject_info):
+        _inform(name)
+
+    _inform("")
+    _inform("Are the following functional scans preprocessed")
+    for name in archive.available_functional_unproc_names(subject_info):
+        _inform("scan name: " + name + " " + "\tfunctionally preprocessed: " + 
+              str(archive.functionally_preprocessed(subject_info, name)))
+
+    _inform("")
+    _inform("Available FIX processed dirs: ")
+    for directory in archive.available_FIX_processed_dirs(subject_info):
+        _inform(directory)
+
+    _inform("")
+    _inform("Available FIX processed scan names: ")
+    for name in archive.available_FIX_processed_names(subject_info):
+        _inform(name)
+
+    _inform("")
+    _inform("Are the following functional scans FIX processed")
+    for name in archive.available_functional_unproc_names(subject_info):
+        _inform('scan name: ' + name + ' ' + '\tFIX processed: ' + 
+              str(archive.FIX_processed(subject_info, name)))
+
+    _inform("")
+    _inform("Available resting state preproc dirs: ")
+    for directory in archive.available_resting_state_preproc_dirs(subject_info):
+        _inform(directory)
     
-    print(os.linesep + 'Available diffusion unproc dirs: ')
-    for directory in hcp7t_archive.available_diffusion_unproc_dirs(subject):
-        print(directory)
+    _inform("")
+    _inform("Available resting state preproc names: ")
+    for name in archive.available_resting_state_preproc_names(subject_info):
+        _inform(name)
 
-    print(os.linesep + 'Available diffusion unproc scan names: ')
-    for name in hcp7t_archive.available_diffusion_unproc_names(subject):
-        print(name)
+    _inform("")
+    _inform("Available task preproc dirs: ")
+    for directory in archive.available_task_preproc_dirs(subject_info):
+        _inform(directory)
+    
+    _inform("")
+    _inform("Available task preproc names: ")
+    for name in archive.available_task_preproc_names(subject_info):
+        _inform(name)
 
-    print(os.linesep + 'Available functional preproc dirs: ')
-    for directory in hcp7t_archive.available_functional_preproc_dirs(subject):
-        print(directory)
+    _inform("")
+    _inform("Available MOVIE preproc dirs: ")
+    for directory in archive.available_movie_preproc_dirs(subject_info):
+        _inform(directory)
 
-    print(os.linesep + 'Available functional preproc scan names: ')
-    for name in hcp7t_archive.available_functional_preproc_names(subject):
-        print(name)
+    _inform("")
+    _inform("Available MOVIE preproc names: ")
+    for name in archive.available_movie_preproc_names(subject_info):
+        _inform(name)
 
-    print(os.linesep + 'Are the following functional scans preprocessed')
-    for name in hcp7t_archive.available_functional_unproc_names(subject):
-        print('scan name: ' + name + ' ' + '\tfunctionally preprocessed: ' + str(hcp7t_archive.functionally_preprocessed(subject, name)))
+    _inform("")
+    _inform("Available RETINOTOPY preproc dirs: ")
+    for directory in archive.available_retinotopy_preproc_dirs(subject_info):
+        _inform(directory)
 
-    print(os.linesep + 'Available FIX processed dirs: ')
-    for directory in hcp7t_archive.available_FIX_processed_dirs(subject):
-        print(directory)
+    _inform("")
+    _inform("Available RETINOTOPY preproc names: ")
+    for name in archive.available_retinotopy_preproc_names(subject_info):
+        _inform(name)
 
-    print(os.linesep + 'Available FIX processed scan names: ')
-    for name in hcp7t_archive.available_FIX_processed_names(subject):
-        print(name)
+    _inform("")
+    _inform("Available functional unprocessed scan names: ")
+    for name in archive.available_functional_unproc_names(subject_info):
+        _inform(name + '\t' +
+                '\tprefix: '    + archive.functional_scan_prefix(name) +
+                '\tbase_name: ' + archive.functional_scan_base_name(name) +
+                '\tpe_dir: '    + archive.functional_scan_pe_dir(name) +
+                '\tlong_name: ' + archive.functional_scan_long_name(name))
 
-    print(os.linesep + 'Are the following functional scans FIX processed')
-    for name in hcp7t_archive.available_functional_unproc_names(subject):
-        print('scan name: ' + name + ' ' + '\tFIX processed: ' + str(hcp7t_archive.FIX_processed(subject, name)))
+    _inform("")
+    _inform("Available session dirs for project: " + subject_info.project)
+    for session in archive.available_session_dirs(subject_info.project):
+        _inform(session)
 
-    print(os.linesep + 'Available unprocessed scan names: ')
-    for name in hcp7t_archive.available_functional_unproc_names(subject):
-        print(name + '\t' +
-              '\tprefix: '    + hcp7t_archive.functional_scan_prefix(name) +
-              '\tbase_name: ' + hcp7t_archive.functional_scan_base_name(name) +
-              '\tpe_dir: '    + hcp7t_archive.functional_scan_pe_dir(name) +
-              '\tlong_name: ' + hcp7t_archive.functional_scan_long_name(name))
+    _inform("")
+    _inform("Available session names for project: " + subject_info.project)
+    for name in archive.available_session_names(subject_info.project):
+        _inform(name)
 
+    _inform("")
+    _inform("Available subject ids for project: " + subject_info.project)
+    for subject_id in archive.available_subject_ids(subject_info.project):
+        _inform(subject_id)
 
+    _inform("")
+    _inform("Number of available subject ids for project: " + subject_info.project + " " + 
+            str(archive.subject_count(subject_info.project)))
+
+    _inform("")
+    _inform("Available diffusion scans: ")
+    for scan in archive.available_diffusion_scans(subject_info):
+        _inform(scan)
+
+    _inform("")
+    _inform("Available diffusion scan names: ")
+    for scan_name in archive.available_diffusion_scan_names(subject_info):
+        _inform(scan_name)
+    
+if __name__ == '__main__':
+    _simple_interactive_demo()

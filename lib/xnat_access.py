@@ -30,7 +30,7 @@ __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
-def inform(msg):
+def _inform(msg):
     """Inform the user of this program by outputing a message that is prefixed by the file name.
 
     :param msg: Message to output
@@ -40,41 +40,41 @@ def inform(msg):
 
 DEBUG = False
 
-def debug(msg):
+def _debug(msg):
     """ """
     # Note inspect.stack()[1][3] gives the name of the function that called this debug function
     if DEBUG:
-        inform(inspect.stack()[1][3] + ": DEBUG: " + msg)
+        _inform(inspect.stack()[1][3] + ": DEBUG: " + msg)
 
 def get_session_id(server, username, password, project, subject, session):
 
     request_url = 'https://' + server + '/data/projects/' + project + '/subjects/' + subject + '/experiments'
-    debug("request_url: " + request_url)
+    _debug("request_url: " + request_url)
 
     response = requests.get(request_url, auth=(username, password))
-    debug("response: " + str(response))
-    debug("response.headers: " + str(response.headers))
-    debug("response.text: " + str(response.text))
+    _debug("response: " + str(response))
+    _debug("response.headers: " + str(response.headers))
+    _debug("response.text: " + str(response.text))
 
     if (response.status_code != 200):
-        inform(inspect.stack()[0][3] + ": Cannot get response from request: " + request_url)
+        _inform(inspect.stack()[0][3] + ": Cannot get response from request: " + request_url)
         sys.exit(1)
 
     if not 'application/json' in response.headers['content-type']:
-        inform(inspect.stack()[0][3] + ": Unexpected response content-type: " + response.headers['content-type'] + " from " + request_url)
+        _inform(inspect.stack()[0][3] + ": Unexpected response content-type: " + response.headers['content-type'] + " from " + request_url)
         sys.exit(1)
 
     json_response = json.loads(response.text)
-    debug("json_response: " + str(json_response))
+    _debug("json_response: " + str(json_response))
 
     json_result_set = json_response['ResultSet']
-    debug("json_result_set: " + str(json_result_set))
+    _debug("json_result_set: " + str(json_result_set))
 
     json_record_count = int(json_result_set['totalRecords'])
-    debug("json_record_count: " + str(json_record_count))
+    _debug("json_record_count: " + str(json_record_count))
 
     json_result = json_result_set['Result']
-    debug("json_result: " + str(json_result))
+    _debug("json_result: " + str(json_result))
 
     session_and_session_id_list = []
     for i in range(0, json_record_count):
@@ -83,7 +83,7 @@ def get_session_id(server, username, password, project, subject, session):
             item_list.append(str(json_result[i][key]))
         session_and_session_id_list.append(item_list)
 
-    debug("session_and_session_id_list: " + str(session_and_session_id_list))
+    _debug("session_and_session_id_list: " + str(session_and_session_id_list))
 
     for session_and_session_id in session_and_session_id_list:
         if session == session_and_session_id[0]:
@@ -97,10 +97,10 @@ def get_jsession_id(server, username, password):
     response = requests.get(request_url, auth=(username, password))
 
     if (response.status_code != 200):
-        inform(inspect.stack()[0][3] + ": Cannot get response from request: " + request_url)
+        _inform(inspect.stack()[0][3] + ": Cannot get response from request: " + request_url)
         sys.exit(1)
 
-    debug("response.text: " + str(response.text))
+    _debug("response.text: " + str(response.text))
     return str(response.text)
 
 class Workflow():
@@ -230,3 +230,9 @@ class Workflow():
         sys.exit()
 
 
+def _simple_interactive_demo():
+    _inform("Interactive Demo TBW")
+
+
+if __name__ == '__main__':
+    _simple_interactive_demo()
