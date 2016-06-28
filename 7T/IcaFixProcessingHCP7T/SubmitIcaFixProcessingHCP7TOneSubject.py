@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-"""SubmitIcaFixProcessingHCP7TOneSubject.py: Submit ICA+FIX processing jobs for one HCP 7T subject."""
+"""
+SubmitIcaFixProcessingHCP7TOneSubject.py: Submit ICA+FIX processing jobs 
+for one HCP 7T subject.
+"""
 
 # import of built-in modules
 import os
@@ -16,13 +19,12 @@ import subprocess
 pass
 
 # path changes and import of local modules
-sys.path.append('../lib')
+sys.path.append(os.path.abspath('../../lib'))
 import hcp7t_archive
 import hcp7t_subject
-
-sys.path.append('../../lib')
 import xnat_access
 import str_utils
+import delete_resource
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -30,7 +32,7 @@ __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
 def inform(msg):
-    """Inform the user of this program by outputing a message that is prefixed by the file name.
+    """Outputs a message that is prefixed by the module file name.
 
     :param msg: Message to output
     :type msg: str
@@ -49,14 +51,16 @@ def get_required_env_value(var_name):
     return value
 
 class MyArgumentParser(argparse.ArgumentParser):
-    """This subclass of ArgumentParser prints out the help message when an error is found in parsing."""
+    """This subclass of ArgumentParser prints out the help message 
+    when an error is found in parsing."""
     def error(self, message):
         sys.stderr.write('error: %s\n' % message)
         self.print_help()
         sys.exit(2)
 
 class IcaFix7TOneSubjectSubmitter:
-    """This class submits a set of dependent jobs for ICA+FIX processing for a single HCP 7T subject."""
+    """This class submits a set of dependent jobs for ICA+FIX processing 
+    for a single HCP 7T subject."""
 
     def __init__(self, hcp7t_archive, build_home):
         """Constructs an IcaFix7TOneSubjectSubmitter.
@@ -71,7 +75,9 @@ class IcaFix7TOneSubjectSubmitter:
         self._build_home = build_home
 
         home = get_required_env_value('HOME')
-        self._xnat_pbs_jobs_home = home + os.sep + 'pipeline_tools' + os.sep + 'xnat_pbs_jobs'
+        self._xnat_pbs_jobs_home = home + os.sep 
+        self._xnat_pbs_jobs_home += 'pipeline_tools' + os.sep 
+        self._xnat_pbs_jobs_home += 'xnat_pbs_jobs'
 
         self._log_dir = get_required_env_value('LOG_DIR')
 
@@ -104,8 +110,12 @@ class IcaFix7TOneSubjectSubmitter:
                     project, subject, session,
                     structural_reference_project, structural_reference_session,
                     put_server, clean_output_resource_first, setup_script, 
-                    incomplete_only, scan = None):
-        """Submit job(s) to perform IcaFixProcessing for HCP 7T data for specified subject.
+                    incomplete_only, scan = None, 
+                    walltime_limit_hours = 36,
+                    mem_limit_gbs = 40,
+                    vmem_limit_gbs = 55):
+        """Submit job(s) to perform IcaFixProcessing for HCP 7T data for the
+        specified subject.
 
         Parameters related to connecting to ConnectomeDB 
 
@@ -129,13 +139,15 @@ class IcaFix7TOneSubjectSubmitter:
         :param session: ConnectomeDB session
         :type session: str
 
-        Parameters that specify where additional information about the subject can be found
-        in other projects and sessions
+        Parameters that specify where additional information about the subject 
+        can be found in other projects and sessions
 
-        :param structural_reference_project: ConnectomeDB structural reference project
+        :param structural_reference_project: ConnectomeDB structural reference 
+                                             project
         :type structural_reference_project: str
 
-        :param structural_reference_session: ConnectomeDB structural reference session
+        :param structural_reference_session: ConnectomeDB structural reference 
+                                             session
         :type structural_reference_session: str
 
         Other miscellaneous parameters
@@ -144,36 +156,57 @@ class IcaFix7TOneSubjectSubmitter:
         :type put_server: str
 
         :param clean_output_resource_first: indication of whether output resource 
-                                            should be deleted prior to starting processing
+                                            should be deleted prior to starting 
+                                            processing
         :type clean_output_resource_first: bool
 
         :param setup_script: path to set up script
         :type setup_script: str 
 
-        :param incomplete_only: indication of whether to submit jobs for incomplete scans only
+        :param incomplete_only: indication of whether to submit jobs for 
+                                incomplete scans only
         :type incomplete_only: bool
 
-        :param scan: indication of scan to process. If None, then process all scans that should
-                     have ICA FIX processing done for this subject.
+        :param scan: indication of scan to process. If None, then process all 
+                     scans that should have ICA FIX processing done for this 
+                     subject.
         :type scan: str
+
+        :param walltime_limit_hrs: the walltime limit (specified in hours) for 
+                                   the processing job
+        :type walltime_limit_hrs: int
+
+        :param mem_limit_gbs: the memory limit (specified in GBs) for the processing 
+                              job
+        :type mem_limit_gbs: int
+
+        :param vmem_limit_gbs: the virtual memory limit (specified in GBs) for 
+                               the processing job
+        :type vmem_limit_gbs: int                     
         """
         
-        subject_info = hcp7t_subject.Hcp7TSubjectInfo(project, structural_reference_project, subject)
+        subject_info = hcp7t_subject.Hcp7TSubjectInfo(project, 
+                                                      structural_reference_project,
+                                                      subject)
 
-        # determine names of the preprocessed resting state scans that are available for the subject
+        # determine names of the preprocessed resting state scans that are 
+        # available for the subject
         resting_state_scan_names = self.archive.available_resting_state_preproc_names(subject_info)
-        inform("Preprocessed resting state scans available for subject: " + str(resting_state_scan_names))
+        inform("Preprocessed resting state scans available for subject: " + 
+               str(resting_state_scan_names))
 
         # determine names of the preprocessed MOVIE task scans that are available for the subject
         movie_scan_names = self.archive.available_movie_preproc_names(subject_info)
         inform("Preprocessed movie scans available for subject " + str(movie_scan_names))
 
+        # build list of scans to process
         scan_list = []
         if scan == None:
             scan_list = resting_state_scan_names + movie_scan_names
         else:
             scan_list.append(scan)
 
+        # process specified scans
         for scan_name in scan_list:
             if self.archive.FIX_processed(subject_info, scan_name) and incomplete_only:
                 inform("scan: " + scan_name + " is already FIX processed")
@@ -238,18 +271,9 @@ class IcaFix7TOneSubjectSubmitter:
                 inform("  subject: " + subject)
                 inform("  session: " + session)
 
-                # re-implement this functionality as a Python class or function to be called?
-                delete_resource_cmd = self.xnat_pbs_jobs_home + os.sep + 'WorkingDirPut' + os.sep + 'DeleteResource.sh'
-                delete_resource_cmd += ' --user=' + username
-                delete_resource_cmd += ' --password=' + password
-                delete_resource_cmd += ' --server=' + get_server_name(server)
-                delete_resource_cmd += ' --project=' + project
-                delete_resource_cmd += ' --subject=' + subject
-                delete_resource_cmd += ' --session=' + session
-                delete_resource_cmd += ' --resource=' + output_resource_name
-                delete_resource_cmd += ' --force'
-
-                completed_delete_process = subprocess.run(delete_resource_cmd, shell=True, check=True)
+                delete_resource.delete_resource(
+                    username, password, get_server_name(server), 
+                    project, subject, session, output_resource_name)
 
             script_file_start_name = working_directory_name
             script_file_start_name += os.sep + subject 
@@ -280,7 +304,7 @@ class IcaFix7TOneSubjectSubmitter:
 
             work_script = open(work_script_name, 'w')
 
-            work_script.write('#PBS -l nodes=1:ppn=1,walltime=36:00:00,mem=40gb,vmem=55gb' + os.linesep)
+            work_script.write('#PBS -l nodes=1:ppn=1,walltime=' + str(walltime_limit_hours) + ':00:00,mem=' + str(mem_limit_gbs) + 'gb,vmem=' + str(vmem_limit_gbs) + 'gb' + os.linesep)
             work_script.write('#PBS -o ' + working_directory_name + os.linesep)
             work_script.write('#PBS -e ' + working_directory_name + os.linesep)
             work_script.write(os.linesep)
@@ -360,15 +384,18 @@ if __name__ == "__main__":
     parser.add_argument("-ss" , "--setup-script", dest="setup_script", required=True, type=str)
 
     # optional arguments
-    parser.add_argument("-ser", "--server", dest="server", required=False, default="db.humanconnectome.org", type=str)
-    parser.add_argument("-pr" , "--project", dest="project", required=False, default="HCP_Staging_7T", type=str)
-    parser.add_argument("-ses", "--session", dest="session", required=False, default=None, type=str)
-    parser.add_argument("-srs", "--structural-reference-session", dest="structural_reference_session", required=False, default=None, type=str)
-    parser.add_argument("-ps" , "--put-server", dest="put_server", required=False, default="db.humanconnectome.org", type=str)
-    parser.add_argument("-dnc", "--do-not-clean-first", action="store_false", dest="clean_output_resource_first", required=False, default=True)
-    parser.add_argument("-io" , "--incomplete-only", action="store_true", dest="incomplete_only", required=False, default=False)
-    parser.add_argument("-sc" , "--scan", required=False, default=None, type=str)
-
+    parser.add_argument("-ser" , "--server", dest="server", required=False, default="db.humanconnectome.org", type=str)
+    parser.add_argument("-pr"  , "--project", dest="project", required=False, default="HCP_Staging_7T", type=str)
+    parser.add_argument("-ses" , "--session", dest="session", required=False, default=None, type=str)
+    parser.add_argument("-srs" , "--structural-reference-session", dest="structural_reference_session", required=False, default=None, type=str)
+    parser.add_argument("-ps"  , "--put-server", dest="put_server", required=False, default="db.humanconnectome.org", type=str)
+    parser.add_argument("-dnc" , "--do-not-clean-first", action="store_false", dest="clean_output_resource_first", required=False, default=True)
+    parser.add_argument("-io"  , "--incomplete-only", action="store_true", dest="incomplete_only", required=False, default=False)
+    parser.add_argument("-sc"  , "--scan", dest="scan", required=False, default=None, type=str)
+    parser.add_argument("-wtl" , "--wall-time-limit", dest="wall_time_limit", required=False, default=36, type=int)
+    parser.add_argument("-vmem", "--vmem-limit", dest="vmem_limit", required=False, default=55, type=int)
+    parser.add_argument("-mem" , "--mem-limit", dest="mem_limit", required=False, default=40, type=int)
+ 
     # parse the comment line arguments
     args = parser.parse_args()
 
@@ -392,6 +419,9 @@ if __name__ == "__main__":
     inform("Set up Script: " + args.setup_script)
     inform("Run incomplete scans only: " + str(args.incomplete_only))
     inform("Scan: " + str(args.scan))
+    inform("Wall time limit: " + str(args.wall_time_limit) + " hours")
+    inform("Memory limit: " + str(args.mem_limit) + " GBs")
+    inform("Virtual memory limit: " + str(args.vmem_limit) + " GBs")
 
     # create a submitter
     submitter = IcaFix7TOneSubjectSubmitter(archive, archive.build_home)
@@ -401,5 +431,6 @@ if __name__ == "__main__":
                           args.project, args.subject, args.session,
                           args.structural_reference_project, args.structural_reference_session,
                           args.put_server, args.clean_output_resource_first, args.setup_script, 
-                          args.incomplete_only, args.scan)
+                          args.incomplete_only, args.scan, 
+                          args.wall_time_limit, args.mem_limit, args.vmem_limit)
 
