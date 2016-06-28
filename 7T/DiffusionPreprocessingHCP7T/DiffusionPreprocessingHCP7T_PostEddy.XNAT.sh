@@ -204,6 +204,7 @@ main()
 	PostEddy_cmd+=" --subject=${g_subject}"
 	PostEddy_cmd+=" --gdcoeffs=${HCPPIPEDIR}/global/config/trunc.CMRR_7TAS_coeff_SC72CD.grad"
 	PostEddy_cmd+=" --dwiname=Diffusion_7T"
+	PostEddy_cmd+=" --dof=12"
 
 	inform ""
 	inform "PostEddy_cmd: ${PostEddy_cmd}"

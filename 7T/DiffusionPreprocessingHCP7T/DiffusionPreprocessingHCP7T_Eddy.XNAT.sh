@@ -211,7 +211,7 @@ main()
 	Eddy_cmd+=" --rms=True"
 	Eddy_cmd+=" --ff=10"
 	Eddy_cmd+=" --dont_peas"
-	Eddy_cmd+=" --fwhm=0"
+	Eddy_cmd+=" --fwhm=10,0,0,0,0"
 
 	echo ""
 	echo "Eddy_cmd: ${Eddy_cmd}"
