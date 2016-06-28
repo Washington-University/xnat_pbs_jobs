@@ -8,12 +8,13 @@ import sys
 import getpass
 import random
 import subprocess
+import configparser
 
 # import of third party modules
 pass
 
 # path changes and import of local modules
-sys.path.append('../lib')
+sys.path.append(os.path.abspath('../../lib'))
 import hcp7t_subject
 import hcp7t_archive
 
@@ -24,7 +25,7 @@ __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
-def inform(msg):
+def _inform(msg):
     """Inform the user of this program by outputing a message that is prefixed by the file name.
 
     :param msg: Message to output
@@ -69,24 +70,50 @@ class IcaFix7TBatchSubmitter:
         :type subject_list: list of Hcp7TSubjectInfo objects
         """
 
+        # read configuration file
+        config_file_name = os.path.basename(__file__)
+        if config_file_name.endswith('.py'):
+            config_file_name = config_file_name[:-3]
+        config_file_name += '.ini'
+        
+        _inform("")
+        _inform("--------------------------------------------------------------------------------")
+        _inform("Reading configuration from file: " + config_file_name)
+
+        config = configparser.ConfigParser()
+        config.read(config_file_name)
+
+        # submit jobs for listed subjects
         for subject in subject_list:
+
             put_server = 'http://db-shadow' + str(self._current_shadow_number) + '.nrg.mir:8080'
+
+            # get information for subject from configuration file
+            setup_file = scripts_home + os.sep + config[subject.subject_id]['SetUpFile']
+            clean_output_first = bool(config[subject.subject_id]['CleanOutputFirst'])
+            wall_time_limit = int(config[subject.subject_id]['WalltimeLimit'])
+            mem_limit = int(config[subject.subject_id]['MemLimit'])
+            vmem_limit = int(config[subject.subject_id]['VmemLimit'])
 
             scan = subject.extra
 
-            inform("")
-            inform("--------------------------------------------------------------------------------")
-            inform(" Submitting IcaFixProcessingHCP7T jobs for: ")
-            inform("      project: " + subject.project )
-            inform("   refproject: " + subject.structural_reference_project )
-            inform("      subject: " + subject.subject_id )
-            inform("         scan: " + scan )
-            inform("   put_server: " + put_server )
-            inform("--------------------------------------------------------------------------------")
+            _inform("")
+            _inform("--------------------------------------------------------------------------------")
+            _inform(" Submitting IcaFixProcessingHCP7T jobs for: ")
+            _inform("            project: " + subject.project )
+            _inform("         refproject: " + subject.structural_reference_project )
+            _inform("            subject: " + subject.subject_id )
+            _inform("               scan: " + scan )
+            _inform("         put_server: " + put_server )
+            _inform("         setup_file: " + setup_file )
+            _inform(" clean_output_first: " + str(clean_output_first) )
+            _inform("    wall_time_limit: " + str(wall_time_limit) )
+            _inform("          mem_limit: " + str(mem_limit) )
+            _inform("         vmem_limit: " + str(vmem_limit) )
+            _inform("--------------------------------------------------------------------------------")
 
-            setup_file = scripts_home + os.sep + 'SetUpHCPPipeline_IcaFixProcessingHCP7T.sh'
-            clean_output_first = True
-
+            # figure out the specification of the scan(s) to process and whether
+            # to only process incomplete scans
             if scan == 'all':
                 # want to run them all without regard to whether they are previously complete
                 scan_spec = None
@@ -100,33 +127,13 @@ class IcaFix7TBatchSubmitter:
                 scan_spec = scan
                 incomplete_only = False
 
+            # Use the "one subject submitter" to submit the jobs for the current subject
             self._one_subject_submitter.submit_jobs(userid, password, 'https://db.humanconnectome.org',
                                                     subject.project, subject.subject_id, subject.subject_id + '_7T',
                                                     subject.structural_reference_project, subject.subject_id + '_3T',
                                                     put_server, clean_output_first, setup_file, 
-                                                    incomplete_only, scan_spec)
-
-            # cmd = home + os.sep + 'pipeline_tools' + os.sep + 'xnat_pbs_jobs' + os.sep + '7T' + os.sep + 'IcaFixProcessingHCP7T' + os.sep + 'SubmitIcaFixProcessingHCP7T.OneSubject.sh'
-            # cmd += ' --user=' + userid
-            # cmd += ' --password=' + password
-            # cmd += ' --put-server=' + server
-            # cmd += ' --project=' + subject.project
-            # cmd += ' --subject=' + subject.subject_id
-            # cmd += ' --structural-reference-project=' + subject.structural_reference_project
-            # cmd += ' --structural-reference-session=' + subject.structural_reference_project + '_3T'
-            # cmd += ' --setup-script=' + setup_file
-        
-            # if scan == 'all':
-            #     pass
-
-            # elif scan == 'incomplete':
-            #     cmd += ' --incomplete-only'
-
-            # else:
-            #     cmd += ' --scan=' + scan
-
-            # subprocess.run(cmd, shell=True, check=True)
-
+                                                    incomplete_only, scan_spec, 
+                                                    wall_time_limit, mem_limit, vmem_limit)
             self.increment_shadow_number
 
 
@@ -136,19 +143,19 @@ if __name__ == "__main__":
     subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
 
     if subject_files_dir == None:
-        inform("Environment variable SUBJECT_FILES_DIR must be set!")
+        _inform("Environment variable SUBJECT_FILES_DIR must be set!")
         sys.exit(1)
 
     scripts_home = os.getenv('SCRIPTS_HOME')
 
     if scripts_home == None:
-        inform("Environment variable SCRIPTS_HOME must be set!")
+        _inform("Environment variable SCRIPTS_HOME must be set!")
         sys.exit(1)
 
     home = os.getenv('HOME')
 
     if home == None:
-        inform("Environment variable HOME must be set!")
+        _inform("Environment variable HOME must be set!")
         sys.exit(1)
 
     # Get Connectome DB credentials
@@ -157,7 +164,7 @@ if __name__ == "__main__":
 
     # Get list of subjects to process
     subject_file_name = subject_files_dir + os.sep + 'IcaFixProcessingHCP7T.subjects'
-    inform('Retrieving subject list from: ' + subject_file_name)
+    _inform('Retrieving subject list from: ' + subject_file_name)
     subject_list = hcp7t_subject.read_subject_info_list(subject_file_name)
 
     # Process subjects in list
