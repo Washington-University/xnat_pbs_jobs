@@ -48,14 +48,21 @@ def main():
             dir97_scan_RL_scan_name = subject_info.subject_id + '_3T_DWI_dir97_RL.nii.gz' 
 
 
-            if ((dir95_scan_LR_scan_name in available_diffusion_scan_names) and 
-                (dir95_scan_RL_scan_name in available_diffusion_scan_names) and
-                (dir96_scan_LR_scan_name in available_diffusion_scan_names) and
+            if ((dir96_scan_LR_scan_name in available_diffusion_scan_names) and 
                 (dir96_scan_RL_scan_name in available_diffusion_scan_names) and
-                (dir97_scan_LR_scan_name not in available_diffusion_scan_names) and
-                (dir97_scan_RL_scan_name not in available_diffusion_scan_names)):
+                (dir97_scan_LR_scan_name in available_diffusion_scan_names) and
+                (dir97_scan_RL_scan_name in available_diffusion_scan_names)):
+
+                if ((dir95_scan_LR_scan_name in available_diffusion_scan_names) and
+                    (dir95_scan_RL_scan_name not in available_diffusion_scan_names)):
                 
-                _inform("Subject: " + str(subject_info) + " has all dir95 scans and all dir96 scans, but no dir97 scans.")
+                    _inform("Subject: " + str(subject_info) + " has all dir96 and dir97 scans and only dir95_LR.")
+
+                elif ((dir95_scan_LR_scan_name not in available_diffusion_scan_names) and
+                      (dir95_scan_RL_scan_name in available_diffusion_scan_names)):
+
+                    _inform("Subject: " + str(subject_info) + " has all dir96 and dir97 scans and only dir95_RL.")
+                
 
 
 if __name__ == "__main__":

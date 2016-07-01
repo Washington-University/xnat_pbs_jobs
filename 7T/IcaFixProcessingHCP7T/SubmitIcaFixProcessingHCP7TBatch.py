@@ -8,17 +8,17 @@ import sys
 import getpass
 import random
 import subprocess
-import configparser
 
 # import of third party modules
 pass
 
 # path changes and import of local modules
-sys.path.append(os.path.abspath('../../lib'))
-import hcp7t_subject
-import hcp7t_archive
+import hcp.hcp7t.subject as hcp7t_subject
+import hcp.hcp7t.archive as hcp7t_archive
+import utils.my_configparser as my_configparser
 
 import SubmitIcaFixProcessingHCP7TOneSubject
+
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -80,7 +80,7 @@ class IcaFix7TBatchSubmitter:
         _inform("--------------------------------------------------------------------------------")
         _inform("Reading configuration from file: " + config_file_name)
 
-        config = configparser.ConfigParser()
+        config = my_configparser.MyConfigParser()
         config.read(config_file_name)
 
         # submit jobs for listed subjects
@@ -89,11 +89,11 @@ class IcaFix7TBatchSubmitter:
             put_server = 'http://db-shadow' + str(self._current_shadow_number) + '.nrg.mir:8080'
 
             # get information for subject from configuration file
-            setup_file = scripts_home + os.sep + config[subject.subject_id]['SetUpFile']
-            clean_output_first = bool(config[subject.subject_id]['CleanOutputFirst'])
-            wall_time_limit = int(config[subject.subject_id]['WalltimeLimit'])
-            mem_limit = int(config[subject.subject_id]['MemLimit'])
-            vmem_limit = int(config[subject.subject_id]['VmemLimit'])
+            setup_file = scripts_home + os.sep + config.get_value(subject.subject_id, 'SetUpFile')
+            clean_output_first = bool(config.get_value(subject.subject_id, 'CleanOutputFirst'))
+            wall_time_limit = int(config.get_value(subject.subject_id, 'WalltimeLimit'))
+            mem_limit = int(config.get_value(subject.subject_id, 'MemLimit'))
+            vmem_limit = int(config.get_value(subject.subject_id, 'VmemLimit'))
 
             scan = subject.extra
 

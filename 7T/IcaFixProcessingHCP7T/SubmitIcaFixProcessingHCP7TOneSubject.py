@@ -19,12 +19,12 @@ import subprocess
 pass
 
 # path changes and import of local modules
-sys.path.append(os.path.abspath('../../lib'))
-import hcp7t_archive
-import hcp7t_subject
-import xnat_access
-import str_utils
-import delete_resource
+#sys.path.append(os.path.abspath('../../lib'))
+import hcp.hcp7t.archive as hcp7t_archive
+import hcp.hcp7t.subject as hcp7t_subject
+import xnat.xnat_access as xnat_access
+import utils.str_utils as str_utils
+import utils.delete_resource as delete_resource
 
 # authorship information
 __author__ = "Timothy B. Brown"

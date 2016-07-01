@@ -51,11 +51,18 @@ def main():
             if ((dir95_scan_LR_scan_name in available_diffusion_scan_names) and 
                 (dir95_scan_RL_scan_name in available_diffusion_scan_names) and
                 (dir96_scan_LR_scan_name in available_diffusion_scan_names) and
-                (dir96_scan_RL_scan_name in available_diffusion_scan_names) and
-                (dir97_scan_LR_scan_name not in available_diffusion_scan_names) and
-                (dir97_scan_RL_scan_name not in available_diffusion_scan_names)):
+                (dir96_scan_RL_scan_name in available_diffusion_scan_names)):
+
+                if ((dir97_scan_LR_scan_name in available_diffusion_scan_names) and
+                    (dir97_scan_RL_scan_name not in available_diffusion_scan_names)):
                 
-                _inform("Subject: " + str(subject_info) + " has all dir95 scans and all dir96 scans, but no dir97 scans.")
+                    _inform("Subject: " + str(subject_info) + " has all dir95 and dir96 scans and only dir97_LR.")
+
+                elif ((dir97_scan_LR_scan_name not in available_diffusion_scan_names) and
+                      (dir97_scan_RL_scan_name in available_diffusion_scan_names)):
+
+                    _inform("Subject: " + str(subject_info) + " has all dir95 and dir96 scans and only dir97_RL.")
+                
 
 
 if __name__ == "__main__":
