@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""hcp3t_subject.py: Maintain information about an HCP 3T subject.
+"""hcp/hcp7t/subject.py: Maintain information about an HCP 7T subject.
 
 The module also provides services for reading and writing lists of such subjects 
 in simple text files.
@@ -14,8 +14,8 @@ import sys
 pass
 
 # import of local modules
-import hcp_subject
-import str_utils
+import hcp.subject as hcp_subject
+import utils.str_utils as str_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -32,8 +32,40 @@ def _inform(msg):
     print(os.path.basename(__file__) + ": " + str(msg))
 
 
-class Hcp3TSubjectInfo(hcp_subject.HcpSubjectInfo):
-    """This class maintains information about an HCP 3T subject."""
+class Hcp7TSubjectInfo(hcp_subject.HcpSubjectInfo):
+    """This class maintains information about an HCP 7T subject."""
+
+ 
+    def __init__(self, project = None, structural_reference_project = None, subject_id = None, extra = None): 
+        """Constructs an Hcp7TSubjectInfo object.
+
+        :param project: project to which this subject belongs (e.g. HCP_Staging_7T)
+        :type project: str
+
+        :param structural_reference_project: project where this subjects structural reference scans exist (e.g. HCP_900)
+        :type structural_reference_project: str
+
+        :param subject_id: subject id (e.g. 100307)
+        :type subject_id: str
+
+        :param extra: extra information used for processing the subject 
+                      (e.g. incomplete = means only process scans for which the current processing is incomplete)
+        :type extra: str
+        """
+        super().__init__(project, subject_id, extra)
+        self._structural_reference_project = structural_reference_project
+
+
+    @property
+    def structural_reference_project(self):
+        """Project in which subject's structural reference scans exist."""
+        return self._structural_reference_project
+
+
+    def __str__(self):
+        """Returns the informal string representation."""
+        return str(self.project + self.SEPARATOR + self.structural_reference_project + self.SEPARATOR + self.subject_id + self.SEPARATOR + str(self.extra))
+
 
 def read_subject_info_list(file_name):
     """Reads a subject information list from the specified file.
@@ -42,7 +74,7 @@ def read_subject_info_list(file_name):
     :type file_name: str
     """
     subject_info_list = []
-    dummy_subject_info = Hcp3TSubjectInfo()
+    dummy_subject_info = Hcp7TSubjectInfo()
 
     input_file = open(file_name, 'r')
     for line in input_file:
@@ -54,12 +86,12 @@ def read_subject_info_list(file_name):
 
         # ignore blank lines and comment lines - starting with #
         if line != '' and line[0] != '#':
-            (project, subject_id, extra) = line.split(dummy_subject_info.SEPARATOR)
+            (project, structural_ref_project, subject_id, extra) = line.split(dummy_subject_info.SEPARATOR)
             # Make the string 'None' in the file translate to a None type instead of just the 
             # string itself
             if extra == 'None':
                 extra = None
-            subject_info = Hcp3TSubjectInfo(project, subject_id, extra)
+            subject_info = Hcp7TSubjectInfo(project, structural_ref_project, subject_id, extra)
             subject_info_list.append(subject_info)
 
     return subject_info_list
@@ -85,31 +117,31 @@ def write_subject_info_list(file_name, subject_info_list):
 
 def _simple_interactive_demo():
 
-    test_file_name = 'hcp3t_subject.test_subjects.txt'
+    test_file_name = 'hcp7t_subject.test_subjects.txt'
 
     _inform(os.linesep)
-    _inform("-- Creating 2 Hcp3TSubjectInfo objects --")
-    subject_info1 = Hcp3TSubjectInfo('HCP_900', '100206')
-    subject_info2 = Hcp3TSubjectInfo('HCP_500', '100307')
+    _inform("-- Creating 2 Hcp7TSubjectInfo objects --")
+    subject_info1 = Hcp7TSubjectInfo('HCP_Staging_7T', 'HCP_900', '100206')
+    subject_info2 = Hcp7TSubjectInfo('HCP_Staging_7T', 'HCP_500', '100307')
     
     _inform(os.linesep)
-    _inform("-- Showing the Hcp3TSubjectInfo objects --")
+    _inform("-- Showing the Hcp7TSubjectInfo objects --")
     _inform(str(subject_info1))
     _inform(str(subject_info2))
 
     _inform(os.linesep)
-    _inform("-- Writing the Hcp3TSubjectInfo objects to a text file: " + test_file_name + " --")
+    _inform("-- Writing the Hcp7TSubjectInfo objects to a text file: " + test_file_name + " --")
     subject_info_list_out = []
     subject_info_list_out.append(subject_info1)
     subject_info_list_out.append(subject_info2)
     write_subject_info_list(test_file_name, subject_info_list_out)
 
     _inform(os.linesep)
-    _inform("-- Retrieving the list of Hcp3TSubjectInfo objects from the text file: " + test_file_name + " --") 
+    _inform("-- Retrieving the list of Hcp7TSubjectInfo objects from the text file: " + test_file_name + " --") 
     subject_info_list_in = read_subject_info_list(test_file_name)
 
     _inform(os.linesep)
-    _inform("-- Showing the list of Hcp3TSubjectInfo objects --")
+    _inform("-- Showing the list of Hcp7TSubjectInfo objects --")
     for subject_info in subject_info_list_in:
         _inform(subject_info)
     

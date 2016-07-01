@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""hcp3t_archive.py: Provide direct access to an HCP 3T project archive."""
+"""hcp/hcp3t/archive.py: Provide direct access to an HCP 3T project archive."""
 
 # import of built-in modules
 import os
@@ -9,8 +9,8 @@ import os
 pass
 
 # import of local modules
-import hcp_archive
-import hcp3t_subject
+import hcp.hcp3t.subject as hcp3t_subject
+import hcp.archive as hcp_archive
 
 # authorship information
 __author__ = "Timothy B. Brown"

@@ -17,6 +17,7 @@ __maintainer__ = "Timothy B. Brown"
 
 class MyArgumentParser(argparse.ArgumentParser):
     """This subclass of ArgumentParser prints out the help message when an error is found in parsing."""
+
     def error(self, message):
         sys.stderr.write('error: %s\n' % message)
         self.print_help()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""hcp_subject.py: Maintain information about an HCP subject."""
+"""hcp/subject.py: Maintain information about an HCP subject."""
 
 # import of built-in modules
 import os
@@ -28,7 +28,6 @@ def _inform(msg):
 
 class HcpSubjectInfo:
     """This class maintains information about an HCP subject."""
-
 
     @property
     def SEPARATOR(self):

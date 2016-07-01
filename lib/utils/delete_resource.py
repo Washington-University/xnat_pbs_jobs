@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""delete_resource.py: Delete a Connectome DB Resource."""
+"""utils/delete_resource.py: Delete a Connectome DB Resource."""
 
 # import of built-in modules
 import sys
@@ -11,10 +11,10 @@ import subprocess
 pass
 
 # import of local modules
-import xnat_access
-import str_utils
-import my_argparse
-import user_utils
+import xnat.xnat_access as xnat_access
+import utils.str_utils as str_utils
+import utils.my_argparse as my_argparse
+import utils.user_utils as user_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"

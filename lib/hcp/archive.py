@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""hcp_archive.py: Provide direct access to an HCP project archive."""
+"""hcp/archive.py: Provide direct access to an HCP project archive."""
 
 # import of built-in modules
 import os
@@ -11,7 +11,7 @@ import glob
 pass
 
 # import of local modules
-import xnat_archive
+import xnat.xnat_archive as xnat_archive
 
 # authorship information
 __author__ = "Timothy B. Brown"

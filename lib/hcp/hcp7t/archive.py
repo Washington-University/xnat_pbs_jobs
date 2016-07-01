@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""hcp7t_archive.py: Provide direct access to an HCP 7T project archive."""
+"""hcp/hcp7t/archive.py: Provide direct access to an HCP 7T project archive."""
 
 # import of built-in modules
 import os
@@ -11,9 +11,8 @@ import glob
 pass
 
 # path changes and import of local modules
-import hcp7t_subject
-#import xnat_archive
-import hcp_archive
+import hcp.hcp7t.subject as hcp7t_subject
+import hcp.archive as hcp_archive
 
 # authorship information
 __author__ = "Timothy B. Brown"
