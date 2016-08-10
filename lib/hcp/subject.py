@@ -18,10 +18,8 @@ __maintainer__ = "Timothy B. Brown"
 
 
 def _inform(msg):
-    """Inform the user by writing out a message that is prefixed by the file name.
-
-    :param msg: Message to output
-    :type msg: str
+    """Inform the user by writing out a message that is prefixed by the module's
+    file name.
     """
     print(os.path.basename(__file__) + ": " + msg)
 

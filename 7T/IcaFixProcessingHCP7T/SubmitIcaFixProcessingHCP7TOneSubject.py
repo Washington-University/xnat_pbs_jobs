@@ -18,13 +18,15 @@ import subprocess
 # import of third party modules
 pass
 
-# path changes and import of local modules
-#sys.path.append(os.path.abspath('../../lib'))
+# import of local modules
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
+import hcp.one_subject_submitter as one_subject_submitter
 import xnat.xnat_access as xnat_access
 import utils.str_utils as str_utils
 import utils.delete_resource as delete_resource
+import utils.os_utils as os_utils
+import utils.my_argparse as my_argparse
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -39,26 +41,7 @@ def inform(msg):
     """
     print(os.path.basename(__file__) + ": " + msg)
 
-def get_server_name(url):
-    (scheme, location, path, params, query, fragment) = urllib.parse.urlparse(url)
-    return location
-
-def get_required_env_value(var_name):
-    value = os.getenv(var_name)
-    if value == None:
-        inform("Environment variable " + var_name + " must be set!")
-        sys.exit(1)
-    return value
-
-class MyArgumentParser(argparse.ArgumentParser):
-    """This subclass of ArgumentParser prints out the help message 
-    when an error is found in parsing."""
-    def error(self, message):
-        sys.stderr.write('error: %s\n' % message)
-        self.print_help()
-        sys.exit(2)
-
-class IcaFix7TOneSubjectSubmitter:
+class IcaFix7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter):
     """This class submits a set of dependent jobs for ICA+FIX processing 
     for a single HCP 7T subject."""
 
@@ -71,39 +54,11 @@ class IcaFix7TOneSubjectSubmitter:
         :param build_home: path to build space
         :type build_home: str
         """
-        self._archive = hcp7t_archive
-        self._build_home = build_home
-
-        home = get_required_env_value('HOME')
-        self._xnat_pbs_jobs_home = home + os.sep 
-        self._xnat_pbs_jobs_home += 'pipeline_tools' + os.sep 
-        self._xnat_pbs_jobs_home += 'xnat_pbs_jobs'
-
-        self._log_dir = get_required_env_value('LOG_DIR')
+        super().__init__(hcp7t_archive, build_home)
 
     @property
     def PIPELINE_NAME(self):
         return "IcaFixProcessingHCP7T"
-
-    @property
-    def archive(self):
-        """Returns the archive with which this submitter is to work."""
-        return self._archive
-
-    @property
-    def build_home(self):
-        """Returns the temporary (or build space) root directory."""
-        return self._build_home
-
-    @property
-    def xnat_pbs_jobs_home(self):
-        """Returns the home directory for the XNAT PBS job scripts."""
-        return self._xnat_pbs_jobs_home
-
-    @property
-    def log_dir(self):
-        """Returns the log directory in which to place put logs."""
-        return self._log_dir
 
     def submit_jobs(self, 
                     username, password, server,
@@ -272,7 +227,7 @@ class IcaFix7TOneSubjectSubmitter:
                 inform("  session: " + session)
 
                 delete_resource.delete_resource(
-                    username, password, get_server_name(server), 
+                    username, password, str_utils.get_server_name(server), 
                     project, subject, session, output_resource_name)
 
             script_file_start_name = working_directory_name
@@ -311,7 +266,7 @@ class IcaFix7TOneSubjectSubmitter:
             work_script.write(self.xnat_pbs_jobs_home + os.sep + '7T' + os.sep + 'IcaFixProcessingHCP7T' + os.sep + 'IcaFixProcessingHCP7T.XNAT.sh \\' + os.linesep)
             work_script.write('  --user="' + username +'" \\' + os.linesep)
             work_script.write('  --password="' + password + '" \\' + os.linesep)
-            work_script.write('  --server="' + get_server_name(server) + '" \\' + os.linesep)
+            work_script.write('  --server="' + str_utils.get_server_name(server) + '" \\' + os.linesep)
             work_script.write('  --project="' + project + '" \\' + os.linesep)
             work_script.write('  --subject="' + subject + '" \\' + os.linesep)
             work_script.write('  --session="' + session + '" \\' + os.linesep)
@@ -341,7 +296,7 @@ class IcaFix7TOneSubjectSubmitter:
             put_script.write(self.xnat_pbs_jobs_home + os.sep + 'WorkingDirPut' + os.sep + 'XNAT_working_dir_put.sh \\' + os.linesep)
             put_script.write('  --user="' + username +'" \\' + os.linesep)
             put_script.write('  --password="' + password + '" \\' + os.linesep)
-            put_script.write('  --server="' + get_server_name(put_server) + '" \\' + os.linesep)
+            put_script.write('  --server="' + str_utils.get_server_name(put_server) + '" \\' + os.linesep)
             put_script.write('  --project="' + project + '" \\' + os.linesep)
             put_script.write('  --subject="' + subject + '" \\' + os.linesep)
             put_script.write('  --session="' + session + '" \\' + os.linesep)
@@ -374,10 +329,10 @@ if __name__ == "__main__":
     archive = hcp7t_archive.Hcp7T_Archive()
 
     # create a parser object for getting the command line options
-    parser = MyArgumentParser(description="Program to submit ICA+FIX processing jobs for one HCP 7T subject.")
+    parser = my_argparse.MyArgumentParser(description="Program to submit ICA+FIX processing jobs for one HCP 7T subject.")
 
     # mandatory arguments
-    parser.add_argument("-u"  , "--user", dest="user", required=True, type=str)
+    parser.add_argument('-u'  , '--user', dest='user', required=True, type=str)
     parser.add_argument("-pw" , "--password", dest="password", required=True, type=str)
     parser.add_argument("-sub", "--subject", dest="subject", required=True, type=str)
     parser.add_argument("-srp", "--structural-reference-project", dest="structural_reference_project", required=True, type=str)
@@ -396,7 +351,7 @@ if __name__ == "__main__":
     parser.add_argument("-vmem", "--vmem-limit", dest="vmem_limit", required=False, default=55, type=int)
     parser.add_argument("-mem" , "--mem-limit", dest="mem_limit", required=False, default=40, type=int)
  
-    # parse the comment line arguments
+    # parse the command line arguments
     args = parser.parse_args()
 
     if args.session == None:
@@ -427,10 +382,11 @@ if __name__ == "__main__":
     submitter = IcaFix7TOneSubjectSubmitter(archive, archive.build_home)
 
     # submit jobs for specified subject
-    submitter.submit_jobs(args.user, args.password, args.server,
-                          args.project, args.subject, args.session,
-                          args.structural_reference_project, args.structural_reference_session,
-                          args.put_server, args.clean_output_resource_first, args.setup_script, 
-                          args.incomplete_only, args.scan, 
-                          args.wall_time_limit, args.mem_limit, args.vmem_limit)
+    submitter.submit_jobs(
+        args.user, args.password, args.server,
+        args.project, args.subject, args.session,
+        args.structural_reference_project, args.structural_reference_session,
+        args.put_server, args.clean_output_resource_first, args.setup_script, 
+        args.incomplete_only, args.scan, 
+        args.wall_time_limit, args.mem_limit, args.vmem_limit)
 

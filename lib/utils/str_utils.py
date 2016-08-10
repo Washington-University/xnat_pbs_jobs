@@ -9,7 +9,7 @@ import urllib
 # import of third party modules
 pass
 
-# path changes and import of local modules
+# import of local modules
 pass
 
 # authorship information
