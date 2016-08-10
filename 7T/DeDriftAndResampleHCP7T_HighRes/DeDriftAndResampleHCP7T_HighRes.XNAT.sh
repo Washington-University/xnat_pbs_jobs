@@ -629,6 +629,10 @@ main()
 
 	tfMRINames=${tfMRINames% } # remove trailing space
 
+	if [ -z "${tfMRINames}" ]; then
+		tfMRINames="NONE"
+	fi
+
 	local SmoothingFWHM="1.60" #Should equal previous grayordiantes smoothing (because we are resampling from unsmoothed native mesh timeseries
 	# For value of HighPass, see step above in which prefiltered_func_data_mcf.par files are copied.
 	#local HighPass="2000" #For resting state fMRI
