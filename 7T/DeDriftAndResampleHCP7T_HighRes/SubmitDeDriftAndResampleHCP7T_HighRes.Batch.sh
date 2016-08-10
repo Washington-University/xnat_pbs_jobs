@@ -22,6 +22,19 @@ read password
 echo ""
 stty echo
 
+printf "Delay until first submission (minutes) [0]: "
+read delay
+
+if [ -z "${delay}" ]; then
+	delay=0
+fi
+
+printf "Interval between submissions (minutes) [0]: "
+read interval
+if [ -z "${interval}" ]; then
+	interval=0
+fi
+
 subject_file_name="${SUBJECT_FILES_DIR}/DeDriftAndResampleHCP7T_HighRes.subjects"
 inform "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
@@ -30,6 +43,8 @@ subjects="`echo "${subject_list_from_file[@]}"`"
 start_shadow_number=1
 max_shadow_number=8
 shadow_number=`shuf -i ${start_shadow_number}-${max_shadow_number} -n 1`
+
+full_delay=${delay}
 
 for subject_spec in ${subjects} ; do
 
@@ -57,7 +72,10 @@ for subject_spec in ${subjects} ; do
 		inform "   refproject: ${refproject}"
 		inform "      subject: ${subject}"
 		inform "       server: ${server}"
+		inform "   full_delay: ${full_delay} minutes"
 		inform "--------------------------------------------------------------------------------"
+
+		at now + ${full_delay} minutes <<EOF
 
 		${HOME}/pipeline_tools/xnat_pbs_jobs/7T/DeDriftAndResampleHCP7T_HighRes/SubmitDeDriftAndResampleHCP7T_HighRes.OneSubject.sh \
 			--user=${userid} \
@@ -69,10 +87,13 @@ for subject_spec in ${subjects} ; do
 			--structural-reference-session=${subject}_3T \
 			--setup-script=${SCRIPTS_HOME}/SetUpHCPPipeline_DeDriftAndResampleHCP7T_HighRes.sh
 
+EOF
 		shadow_number=$(( shadow_number+1 ))
 		if [ "${shadow_number}" -gt "${max_shadow_number}" ]; then
 			shadow_number=${start_shadow_number}
 		fi
+
+		full_delay=$(( full_delay + interval ))
 
 	fi
 
