@@ -481,7 +481,7 @@ main()
  			echo "  --user=\"${g_user}\" \\" >> ${create_fsfs_file_to_submit}
  			echo "  --password=\"${g_password}\" \\" >> ${create_fsfs_file_to_submit}
 			echo "  --server=\"${put_server_without_port}\" \\" >> ${create_fsfs_file_to_submit}
-			echo "  --working-dir=\"${create_fsfs_working_dir}"
+			echo "  --working-dir=\"${create_fsfs_working_dir}\" \\" >> ${create_fsfs_file_to_submit}
 			echo "  --project=\"${g_project}\" \\" >> ${create_fsfs_file_to_submit}
 			echo "  --subject=\"${g_subject}\" \\" >> ${create_fsfs_file_to_submit}
 			echo "  --series=\"${scan_without_dir}\" " >> ${create_fsfs_file_to_submit}
