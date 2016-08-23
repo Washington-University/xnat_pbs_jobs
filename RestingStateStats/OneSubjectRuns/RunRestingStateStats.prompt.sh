@@ -27,7 +27,8 @@ fi
 #shadow_number=2
 min_shadow_number=1
 max_shadow_number=8
-shadow_number=`shuf -i ${min_shadow_number}-${max_shadow_number} -n 1`
+#shadow_number=`shuf -i ${min_shadow_number}-${max_shadow_number} -n 1`
+shadow_number=2
 
 project="HCP_Staging"
 server="db-shadow${shadow_number}.nrg.mir:8080"
@@ -53,4 +54,3 @@ at now + ${delay} minutes <<EOF
 	> /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats/OneSubjectRuns/${subject}.${node}.stdout \
 	2>/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats/OneSubjectRuns/${subject}.${node}.stderr
 EOF
-
