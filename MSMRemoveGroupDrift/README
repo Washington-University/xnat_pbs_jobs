@@ -1,0 +1,2 @@
+This "pipeline" is not to be run on each individual subject, but on an entire group of subjects.
+It also is somewhat miss named, as it does not "remove" the group drift so much as "compute" the group drift.

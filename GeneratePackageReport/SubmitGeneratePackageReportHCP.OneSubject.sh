@@ -100,7 +100,7 @@ main()
 		rm -f "${script_file_to_submit}"
 	fi
 
-	results_dir="${HOME}/pipeline_tools/xnat_pbs_jobs/MonitorPipelines/GeneratePackageReport/Package_${g_package_project}.Archive_${g_archive_project}"
+	results_dir="${HOME}/pipeline_tools/xnat_pbs_jobs/GeneratePackageReport/Package_${g_package_project}.Archive_${g_archive_project}"
 
 	touch ${script_file_to_submit}
 	echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${script_file_to_submit}
@@ -109,7 +109,7 @@ main()
 	echo "#PBS -e ${LOG_DIR}" >> ${script_file_to_submit}
 	echo "" >> ${script_file_to_submit}
 
-	echo "${HOME}/pipeline_tools/xnat_pbs_jobs/MonitorPipelines/GeneratePackageReport/GeneratePackageReportHCP.sh \\" >> ${script_file_to_submit}
+	echo "${HOME}/pipeline_tools/xnat_pbs_jobs/GeneratePackageReport/GeneratePackageReportHCP.sh \\" >> ${script_file_to_submit}
 	echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
 	echo "  --package-project=${g_package_project} \\" >> ${script_file_to_submit}
 	echo "  --archive-project=${g_archive_project} \\" >> ${script_file_to_submit}

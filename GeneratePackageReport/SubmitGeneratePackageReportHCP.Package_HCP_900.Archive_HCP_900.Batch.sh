@@ -22,7 +22,7 @@ for subject in ${subjects} ; do
 		echo " Submitting job to Generate Package Report for subject: ${subject}"
 		echo "--------------------------------------------------------------------------------"
 
-		${HOME}/pipeline_tools/xnat_pbs_jobs/MonitorPipelines/GeneratePackageReport/SubmitGeneratePackageReportHCP.OneSubject.sh \
+		${HOME}/pipeline_tools/xnat_pbs_jobs/GeneratePackageReport/SubmitGeneratePackageReportHCP.OneSubject.sh \
 			--subject=${subject} \
 			--archive-project=${archive_project} \
 			--package-project=${package_project}

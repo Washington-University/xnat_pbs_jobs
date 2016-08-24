@@ -218,9 +218,9 @@ main()
 	echo -e "${g_subject}\t\t${g_project}\t\tStructural_preproc_supplemental\t${resource_exists}\t${resource_date}\t${all_files_exist}" >> ${tmp_file}
 
 	if [ "${subject_complete}" = "TRUE" ]; then
-		cat ${tmp_file} >> ${g_project}.complete.txt
+		cat ${tmp_file} >> ${g_project}.complete.status
 	else
-		cat ${tmp_file} >> ${g_project}.incomplete.txt
+		cat ${tmp_file} >> ${g_project}.incomplete.status
 	fi
 	cat ${tmp_file}
 	rm -f ${tmp_file}
