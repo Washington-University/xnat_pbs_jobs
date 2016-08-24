@@ -151,9 +151,9 @@ main() {
 	done
 
 	if [ "${subject_complete}" = "TRUE" ]; then
-		cat ${tmp_file} >> ${g_project}.complete.txt
+		cat ${tmp_file} >> ${g_project}.complete.status
 	else
-		cat ${tmp_file} >> ${g_project}.incomplete.txt
+		cat ${tmp_file} >> ${g_project}.incomplete.status
 	fi
 	cat ${tmp_file}
 	rm -f ${tmp_file}
