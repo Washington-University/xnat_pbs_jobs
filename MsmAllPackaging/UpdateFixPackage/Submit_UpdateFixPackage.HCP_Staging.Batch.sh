@@ -13,8 +13,8 @@ packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 
 output_dir="/HCP/hcpdb/packages/PostMsmAll/${project}"
 
-scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/scripts_to_submit"
-log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/logs"
+scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"
+log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/logs"
 
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.UpdateFixPackage.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"

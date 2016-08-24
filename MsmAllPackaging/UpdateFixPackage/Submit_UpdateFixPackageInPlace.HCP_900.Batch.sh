@@ -11,8 +11,8 @@ archive_root="/HCP/hcpdb/archive/HCP_900/arc001"
 
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 
-scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/scripts_to_submit"
-log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixPackage/logs"
+scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"
+log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/logs"
 
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.UpdateFixPackageInPlace.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"

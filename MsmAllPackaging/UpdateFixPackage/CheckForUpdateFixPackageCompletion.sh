@@ -2,6 +2,10 @@
 
 PATCH_NAME_SUFFIX="_S500_to_S900_extension"
 
+usage() {
+	echo "Usage information TBW"
+}
+
 debug_msg() {
 	msg=${1}
 	if [ "${g_debug}" = "TRUE" ]; then
