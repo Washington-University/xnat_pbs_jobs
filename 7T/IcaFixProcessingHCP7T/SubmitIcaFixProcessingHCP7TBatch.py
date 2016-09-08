@@ -6,24 +6,23 @@
 import os
 import sys
 import getpass
-import random
-import subprocess
 
 # import of third party modules
 pass
 
-# path changes and import of local modules
+# import of local modules
 import hcp.hcp7t.subject as hcp7t_subject
 import hcp.hcp7t.archive as hcp7t_archive
 import utils.my_configparser as my_configparser
-
+import utils.file_utils as file_utils
+import hcp.batch_submitter as batch_submitter
 import SubmitIcaFixProcessingHCP7TOneSubject
-
 
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
+
 
 def _inform(msg):
     """Inform the user of this program by outputing a message that is prefixed by the file name.
@@ -33,36 +32,16 @@ def _inform(msg):
     """
     print(os.path.basename(__file__) + ": " + msg)
 
-class IcaFix7TBatchSubmitter:
+
+class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
     """This class submits batches of ICA+FIX processing jobs for the HCP 7T project."""
-
-    @property
-    def START_SHADOW_NUMBER(self):
-        """Starting ConnectomeDB shadow server number."""
-        return 1
-
-    @property
-    def MAX_SHADOW_NUMBER(self):
-        """Maximum ConnectomeDB shadow server number."""
-        return 8
 
     def __init__(self):
         """Construct an IcaFix7TBatchSubmitter"""
-        self._current_shadow_number = random.randint(self.START_SHADOW_NUMBER, self.MAX_SHADOW_NUMBER)
-        self._archive = hcp7t_archive.Hcp7T_Archive()
-        self._one_subject_submitter = SubmitIcaFixProcessingHCP7TOneSubject.IcaFix7TOneSubjectSubmitter(self._archive, self._archive.build_home)
+        super().__init__(hcp7t_archive.Hcp7T_Archive())
+        self._one_subject_submitter = SubmitIcaFixProcessingHCP7TOneSubject.IcaFix7TOneSubjectSubmitter(
+            self._archive, self._archive.build_home)
 
-    @property
-    def shadow_number(self):
-        """shadow number"""
-        return self._current_shadow_number
-
-    def increment_shadow_number(self):
-        """Increments the current shadow_number and cycles it around if it goes past the maximum."""
-        self._current_shadow_number = self._current_shadow_number + 1
-        if self._current_shadow_number > self.MAX_SHADOW_NUMBER:
-            self._current_shadow_number = self.START_SHADOW_NUMBER
-        
     def submit_jobs(self, subject_list):
         """Submit a batch of ICA+FIX processing jobs.
 
@@ -71,11 +50,8 @@ class IcaFix7TBatchSubmitter:
         """
 
         # read configuration file
-        config_file_name = os.path.basename(__file__)
-        if config_file_name.endswith('.py'):
-            config_file_name = config_file_name[:-3]
-        config_file_name += '.ini'
-        
+        config_file_name = file_utils.get_config_file_name(__file__)
+
         _inform("")
         _inform("--------------------------------------------------------------------------------")
         _inform("Reading configuration from file: " + config_file_name)
@@ -90,7 +66,12 @@ class IcaFix7TBatchSubmitter:
 
             # get information for subject from configuration file
             setup_file = scripts_home + os.sep + config.get_value(subject.subject_id, 'SetUpFile')
-            clean_output_first = bool(config.get_value(subject.subject_id, 'CleanOutputFirst'))
+
+            if config.get_value(subject.subject_id, 'CleanOutputFirst') == 'True':
+                clean_output_first = True
+            else:
+                clean_output_first = False
+            
             wall_time_limit = int(config.get_value(subject.subject_id, 'WalltimeLimit'))
             mem_limit = int(config.get_value(subject.subject_id, 'MemLimit'))
             vmem_limit = int(config.get_value(subject.subject_id, 'VmemLimit'))
@@ -128,12 +109,13 @@ class IcaFix7TBatchSubmitter:
                 incomplete_only = False
 
             # Use the "one subject submitter" to submit the jobs for the current subject
-            self._one_subject_submitter.submit_jobs(userid, password, 'https://db.humanconnectome.org',
-                                                    subject.project, subject.subject_id, subject.subject_id + '_7T',
-                                                    subject.structural_reference_project, subject.subject_id + '_3T',
-                                                    put_server, clean_output_first, setup_file, 
-                                                    incomplete_only, scan_spec, 
-                                                    wall_time_limit, mem_limit, vmem_limit)
+            self._one_subject_submitter.submit_jobs(
+                userid, password, 'https://db.humanconnectome.org',
+                subject.project, subject.subject_id, subject.subject_id + '_7T',
+                subject.structural_reference_project, subject.subject_id + '_3T',
+                put_server, clean_output_first, setup_file, 
+                incomplete_only, scan_spec, 
+                wall_time_limit, mem_limit, vmem_limit)
             self.increment_shadow_number
 
 
@@ -141,19 +123,16 @@ if __name__ == "__main__":
 
     # Get environment variables
     subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
-
     if subject_files_dir == None:
         _inform("Environment variable SUBJECT_FILES_DIR must be set!")
         sys.exit(1)
 
     scripts_home = os.getenv('SCRIPTS_HOME')
-
     if scripts_home == None:
         _inform("Environment variable SCRIPTS_HOME must be set!")
         sys.exit(1)
 
     home = os.getenv('HOME')
-
     if home == None:
         _inform("Environment variable HOME must be set!")
         sys.exit(1)
@@ -169,5 +148,4 @@ if __name__ == "__main__":
 
     # Process subjects in list
     submitter = IcaFix7TBatchSubmitter()
-
     submitter.submit_jobs(subject_list)
