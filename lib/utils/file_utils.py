@@ -20,3 +20,10 @@ def writeln(file, line):
     file.write(line + os.linesep)
 
 wl = writeln
+
+def get_config_file_name(source_file_name):
+    config_file_name = os.path.basename(source_file_name)
+    if config_file_name.endswith('.py'):
+        config_file_name = config_file_name[:-3]
+    config_file_name += '.ini'
+    return config_file_name

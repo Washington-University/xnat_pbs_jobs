@@ -47,8 +47,8 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         super().__init__()
 
 
-    def FIX_processed(self, hcp7t_subject_info, scan_name):
-        """Returns True if the specified scan has been FIX processed for the specified subject."""
+    def FIX_processing_complete(self, hcp7t_subject_info, scan_name):
+        """Returns True if the specified scan has completed FIX processing for the specified subject."""
 
         # If the output resource does not exist, then the processing has not been done.
         if not self.does_FIX_processed_exist(hcp7t_subject_info, scan_name):
@@ -129,7 +129,60 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         file_name_list.append(mc_dir + os.sep + 'prefiltered_func_data_mcf.par')
 
         for file_name in file_name_list:
-            #_inform("Checking for existance of file: " + file_name)
+            #_inform("Checking for existence of file: " + file_name)
+            if os.path.isfile(file_name):
+                continue
+            # If we get here, the most recently checked file does not exist
+            _inform("FILE DOES NOT EXIST: " + file_name)
+            return False
+
+        # If we get here, all files that were checked exist
+        return True
+
+
+    def PostFix_processing_complete(self, hcp7t_subject_info, scan_name):
+        """Returns True if the specified scan has completed PostFix processing for the specified subject."""
+
+        # If the output resource does not exist, then the PostFix processing has not been done
+        if not self.does_PostFix_processed_resource_exist(hcp7t_subject_info, scan_name):
+            return False
+
+        # If we reach here, the the PostFix processed resource at least exists.
+        # Next we need to check to see if the expected files exist.
+        results_dir = self.subject_resources_dir(hcp7t_subject_info) + os.sep + self.PostFix_processed_resource_name(scan_name)
+        results_scan_dir = results_dir + os.sep + 'MNINonLinear' + os.sep + 'Results' + os.sep + self.functional_scan_long_name(scan_name)
+
+        file_name_list = []
+
+        # files in results_scan_dir
+        file_name_list.append(results_scan_dir + os.sep + hcp7t_subject_info.subject_id + '_' + 
+                              self.functional_scan_long_name(scan_name) + '_ICA_Classification_dualscreen.scene')
+        file_name_list.append(results_scan_dir + os.sep + hcp7t_subject_info.subject_id + '_' + 
+                              self.functional_scan_long_name(scan_name) + '_ICA_Classification_singlescreen.scene')
+        file_name_list.append(results_scan_dir + os.sep + 'ReclassifyAsNoise.txt')
+        file_name_list.append(results_scan_dir + os.sep + 'ReclassifyAsSignal.txt')
+        file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_hp2000.dtseries.nii')
+
+        # files in ica_dir
+        ica_dir = results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000.ica'
+
+        file_name_list.append(ica_dir + os.sep + 'Noise.txt')
+        file_name_list.append(ica_dir + os.sep + 'Signal.txt')
+
+        # files in filtered_func_data_dir
+        filtered_func_data_dir = ica_dir + os.sep + 'filtered_func_data.ica'
+
+        file_name_list.append(filtered_func_data_dir + os.sep + 'ICAVolumeSpace.txt')
+        file_name_list.append(filtered_func_data_dir + os.sep + 'mask.nii.gz')
+        file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_FTmix.sdseries.nii')
+        file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_mix.sdseries.nii')
+        file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_oIC.dscalar.nii')
+        file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_oIC.dtseries.nii')
+        file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_oIC_vol.dscalar.nii')
+        file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_oIC_vol.dtseries.nii')
+
+        for file_name in file_name_list:
+            _inform("Checking for existence of file: " + file_name)
             if os.path.isfile(file_name):
                 continue
             # If we get here, the most recently checked file does not exist

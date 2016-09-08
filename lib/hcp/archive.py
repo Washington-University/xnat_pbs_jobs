@@ -73,6 +73,10 @@ class HcpArchive(abc.ABC):
         """Suffix to a resource directory name that indicates that the resource contains FIX processed data."""
         return 'FIX'
 
+    @property
+    def POSTFIX_PROCESSED_SUFFIX(self):
+        """Suffix to a resource directory name that indicates that the resource contains PostFix processed data."""
+        return 'PostFix'
 
     @property
     def NAME_DELIMITER(self):
@@ -265,6 +269,20 @@ class HcpArchive(abc.ABC):
         _inform("appropriate check.")
         return self.does_functional_preproc_exist(subject_info, scan_name)
 
+    def available_PostFix_processed_dirs(self, subject_info):
+        """Returns a list of full paths to PostFix processed scan resources"""
+        dir_list = glob.glob(self.subject_resources_dir(subject_info) + '/*' +
+                             self.FUNCTIONAL_SCAN_MARKER + '*' + self.POSTFIX_PROCESSED_SUFFIX)
+        return sorted(dir_list)
+
+
+    def available_PostFix_names(self, subject_info):
+        """Returns a list of scan names (not full paths) of availabe PostFix processed scans."""
+        dir_list = self.available_PostFix_processed_dirs(subject_info)
+        name_list = []
+        for directory in dir_list:
+            name_list.append(self._get_scan_name_from_path(directory))
+        return name_list
 
     def available_FIX_processed_dirs(self, subject_info):
         """Returns a list of full paths to FIX processed scan resources."""
@@ -281,28 +299,46 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
-
     def FIX_processed_resource_name(self, scan_name):
         return scan_name + self.NAME_DELIMITER + self.FIX_PROCESSED_SUFFIX
-
 
     def does_FIX_processed_exist(self, subject_info, scan_name):
         """Returns True if there is a FIX processed resource available for the specified 
         scan name."""
         return scan_name in self.available_FIX_processed_names(subject_info)
 
+    def PostFix_processed_resource_name(self, scan_name):
+        return scan_name + self.NAME_DELIMITER + self.POSTFIX_PROCESSED_SUFFIX
 
-    def FIX_processed(self, subject_info, scan_name):
+    def does_PostFix_processed_resource_exist(self, subject_info, scan_name):
+        """Returns True if there is a PostFix resource available for the specified 
+        scan name."""
+        return scan_name in self.available_PostFix_names(subject_info)
+
+#    def FIX_processed(self, subject_info, scan_name):
+#        return self.FIX_processing_complete(subject_info, scan_name)
+
+    def FIX_processing_complete(self, subject_info, scan_name):
         """Returns True if the specified scan has been FIX processed for the specified subject."""
 
         # NOTE: This needs to be overridden in a subclass to do more than simply check
         #       to see if the resource exists. It needs to also do the check to see 
         #       if all the appropriate files exist.
-        _inform("FIX_processed method of HcpArchive class being called.")
-        _inform("This method should be overriddent in a subclass to do")
+        _inform("FIX_processing_complete method of HcpArchive class being called.")
+        _inform("This method should be overridden in a subclass to do")
         _inform("a more appropriate check.")
         return self.does_FIX_processed_exist(subject_info, scan_name)
 
+    def PostFix_processing_complete(self, subject_info, scan_name):
+        """Returns True if the specified scan has completed PostFix processing for the specified subject."""
+
+        # NOTE: This needs to be overridden in a subclass to do more than simply check
+        #       to see if the resource exists. It needs to also do the check to see
+        #       if all the appropriate files exist.
+        _inform("PostFix_processing_complete method of HcpArchive class being called.")
+        _inform("This method should be overriden in a subclass to do")
+        _inform("a more appropriate check.")
+        return self.does_PostFix_processed_resource_exist(subject_info, scan_name)
 
     def available_resting_state_preproc_dirs(self, subject_info):
         """Returns a list of full paths to functionally preprocessed resting state scan resources."""
