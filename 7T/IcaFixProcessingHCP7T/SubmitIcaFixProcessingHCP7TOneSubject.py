@@ -6,14 +6,11 @@ for one HCP 7T subject.
 """
 
 # import of built-in modules
-import os
-import sys
-import argparse
-import time
 import contextlib
-import urllib
+import os
 import stat
 import subprocess
+import time
 
 # import of third party modules
 pass
@@ -22,11 +19,10 @@ pass
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
 import hcp.one_subject_submitter as one_subject_submitter
-import xnat.xnat_access as xnat_access
-import utils.str_utils as str_utils
 import utils.delete_resource as delete_resource
 import utils.os_utils as os_utils
-import utils.my_argparse as my_argparse
+import utils.str_utils as str_utils
+import xnat.xnat_access as xnat_access
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -65,10 +61,10 @@ class IcaFix7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter):
                     project, subject, session,
                     structural_reference_project, structural_reference_session,
                     put_server, clean_output_resource_first, setup_script, 
-                    incomplete_only, scan = None, 
-                    walltime_limit_hours = 36,
-                    mem_limit_gbs = 40,
-                    vmem_limit_gbs = 55):
+                    incomplete_only, scan, 
+                    walltime_limit_hours,
+                    mem_limit_gbs,
+                    vmem_limit_gbs):
         """Submit job(s) to perform IcaFixProcessing for HCP 7T data for the
         specified subject.
 
@@ -163,7 +159,7 @@ class IcaFix7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter):
 
         # process specified scans
         for scan_name in scan_list:
-            if self.archive.FIX_processed(subject_info, scan_name) and incomplete_only:
+            if self.archive.FIX_processing_complete(subject_info, scan_name) and incomplete_only:
                 inform("scan: " + scan_name + " is already FIX processed")
                 inform("Only submitted jobs for incomplete scans - skipping " + scan_name)
                 continue
@@ -225,7 +221,7 @@ class IcaFix7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter):
                 inform("  project: " + project)
                 inform("  subject: " + subject)
                 inform("  session: " + session)
-
+                
                 delete_resource.delete_resource(
                     username, password, str_utils.get_server_name(server), 
                     project, subject, session, output_resource_name)
@@ -283,29 +279,11 @@ class IcaFix7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter):
 
             # Create script to put the results into the DB
             put_script_name = script_file_start_name + '.XNAT_PBS_PUT_job.sh'
-            with contextlib.suppress(FileNotFoundError):
-                os.remove(put_script_name)
-
-            put_script = open(put_script_name, 'w')
-
-            put_script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=12gb' + os.linesep)
-            put_script.write('#PBS -q HCPput' + os.linesep)
-            put_script.write('#PBS -o ' + self.log_dir + os.linesep)
-            put_script.write('#PBS -e ' + self.log_dir + os.linesep)
-            put_script.write(os.linesep)
-            put_script.write(self.xnat_pbs_jobs_home + os.sep + 'WorkingDirPut' + os.sep + 'XNAT_working_dir_put.sh \\' + os.linesep)
-            put_script.write('  --user="' + username +'" \\' + os.linesep)
-            put_script.write('  --password="' + password + '" \\' + os.linesep)
-            put_script.write('  --server="' + str_utils.get_server_name(put_server) + '" \\' + os.linesep)
-            put_script.write('  --project="' + project + '" \\' + os.linesep)
-            put_script.write('  --subject="' + subject + '" \\' + os.linesep)
-            put_script.write('  --session="' + session + '" \\' + os.linesep)
-            put_script.write('  --working-dir="' + working_directory_name + '" \\' + os.linesep)
-            put_script.write('  --resource-suffix="' + output_resource_name + '"' + os.linesep)
-            put_script.write('  --reason="' + scan_name + '_' + self.PIPELINE_NAME + '"' + os.linesep)
-
-            put_script.close()
-            os.chmod(put_script_name, stat.S_IRWXU | stat.S_IRWXG)
+            self.create_put_script(put_script_name, 
+                                   username, password, put_server, 
+                                   project, subject, session, 
+                                   working_directory_name, output_resource_name,
+                                   scan_name + '_' + self.PIPELINE_NAME)
 
             # Submit the job to do the work
             work_submit_cmd = 'qsub ' + work_script_name
@@ -322,71 +300,4 @@ class IcaFix7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter):
             completed_put_submit_process = subprocess.run(put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
             put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
             inform("put_job_no: " + put_job_no)
-
-if __name__ == "__main__":
-
-    # create an Hcp7T_Archive object
-    archive = hcp7t_archive.Hcp7T_Archive()
-
-    # create a parser object for getting the command line options
-    parser = my_argparse.MyArgumentParser(description="Program to submit ICA+FIX processing jobs for one HCP 7T subject.")
-
-    # mandatory arguments
-    parser.add_argument('-u'  , '--user', dest='user', required=True, type=str)
-    parser.add_argument("-pw" , "--password", dest="password", required=True, type=str)
-    parser.add_argument("-sub", "--subject", dest="subject", required=True, type=str)
-    parser.add_argument("-srp", "--structural-reference-project", dest="structural_reference_project", required=True, type=str)
-    parser.add_argument("-ss" , "--setup-script", dest="setup_script", required=True, type=str)
-
-    # optional arguments
-    parser.add_argument("-ser" , "--server", dest="server", required=False, default="db.humanconnectome.org", type=str)
-    parser.add_argument("-pr"  , "--project", dest="project", required=False, default="HCP_Staging_7T", type=str)
-    parser.add_argument("-ses" , "--session", dest="session", required=False, default=None, type=str)
-    parser.add_argument("-srs" , "--structural-reference-session", dest="structural_reference_session", required=False, default=None, type=str)
-    parser.add_argument("-ps"  , "--put-server", dest="put_server", required=False, default="db.humanconnectome.org", type=str)
-    parser.add_argument("-dnc" , "--do-not-clean-first", action="store_false", dest="clean_output_resource_first", required=False, default=True)
-    parser.add_argument("-io"  , "--incomplete-only", action="store_true", dest="incomplete_only", required=False, default=False)
-    parser.add_argument("-sc"  , "--scan", dest="scan", required=False, default=None, type=str)
-    parser.add_argument("-wtl" , "--wall-time-limit", dest="wall_time_limit", required=False, default=36, type=int)
-    parser.add_argument("-vmem", "--vmem-limit", dest="vmem_limit", required=False, default=55, type=int)
-    parser.add_argument("-mem" , "--mem-limit", dest="mem_limit", required=False, default=40, type=int)
- 
-    # parse the command line arguments
-    args = parser.parse_args()
-
-    if args.session == None:
-        args.session = args.subject + archive.NAME_DELIMITER + archive.TESLA_SPEC
-
-    if args.structural_reference_session == None:
-        args.structural_reference_session = args.subject + archive.NAME_DELIMITER + '3T'
-
-    # show parsed arguments
-    inform("ConnectomeDB Username: " + args.user)
-    inform("ConnectomeDB Password: " + "*** password mask ***")
-    inform("ConnectomeDB Server: "   + args.server)
-    inform("ConnectomeDB Project: "  + args.project)
-    inform("ConnectomeDB Subject: "  + args.subject)
-    inform("ConnectomeDB Session: "  + args.session)
-    inform("ConnectomeDB Structural Reference Project: " + args.structural_reference_project)
-    inform("ConnectomeDB Structural Reference Session: " + args.structural_reference_session)
-    inform("PUT Server: " + args.put_server)
-    inform("Clean output resource first: " + str(args.clean_output_resource_first))
-    inform("Set up Script: " + args.setup_script)
-    inform("Run incomplete scans only: " + str(args.incomplete_only))
-    inform("Scan: " + str(args.scan))
-    inform("Wall time limit: " + str(args.wall_time_limit) + " hours")
-    inform("Memory limit: " + str(args.mem_limit) + " GBs")
-    inform("Virtual memory limit: " + str(args.vmem_limit) + " GBs")
-
-    # create a submitter
-    submitter = IcaFix7TOneSubjectSubmitter(archive, archive.build_home)
-
-    # submit jobs for specified subject
-    submitter.submit_jobs(
-        args.user, args.password, args.server,
-        args.project, args.subject, args.session,
-        args.structural_reference_project, args.structural_reference_session,
-        args.put_server, args.clean_output_resource_first, args.setup_script, 
-        args.incomplete_only, args.scan, 
-        args.wall_time_limit, args.mem_limit, args.vmem_limit)
 
