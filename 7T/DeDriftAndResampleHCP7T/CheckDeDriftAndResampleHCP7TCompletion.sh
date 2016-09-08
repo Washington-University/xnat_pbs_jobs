@@ -317,9 +317,9 @@ main()
 
 	if [ "${g_report_level}" != "QUIET" ]; then
 		if [ "${g_subject_complete}" = "TRUE" ]; then
-			cat ${tmp_file} >> ${start_dir}/${g_project}.complete.txt
+			cat ${tmp_file} >> ${start_dir}/${g_project}.complete.status
 		else
-			cat ${tmp_file} >> ${start_dir}/${g_project}.incomplete.txt
+			cat ${tmp_file} >> ${start_dir}/${g_project}.incomplete.status
 		fi
 
 		cat ${tmp_file}
