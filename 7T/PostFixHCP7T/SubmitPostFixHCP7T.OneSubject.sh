@@ -181,7 +181,7 @@ main()
 {
 	get_options $@
 
-	# Determine what FIX processed scans are available for the subject
+	# Determine what unprocessed resting state scans are available for the subject
 	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES
 
     resting_state_scan_names=""
