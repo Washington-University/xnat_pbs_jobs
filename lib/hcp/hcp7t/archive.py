@@ -182,7 +182,7 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_oIC_vol.dtseries.nii')
 
         for file_name in file_name_list:
-            _inform("Checking for existence of file: " + file_name)
+            #_inform("Checking for existence of file: " + file_name)
             if os.path.isfile(file_name):
                 continue
             # If we get here, the most recently checked file does not exist
