@@ -37,3 +37,12 @@ class MyConfigParser(configparser.ConfigParser):
         return self[section_to_use][key]
 
         
+    def get_bool_value(self, section, key, default_section='DEFAULT'):
+        if self.get_value(section, key, default_section) == 'True':
+            return True
+        else:
+            return False
+
+
+    def get_int_value(self, section, key, default_section='DEFAULT'):
+        return int(self.get_value(section, key, default_section))

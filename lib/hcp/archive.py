@@ -299,8 +299,12 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
+    def DeDrift_processed_resource_name(self):
+        return 'MSMAllDeDrift'
+
     def FIX_processed_resource_name(self, scan_name):
         return scan_name + self.NAME_DELIMITER + self.FIX_PROCESSED_SUFFIX
+
 
     def does_FIX_processed_exist(self, subject_info, scan_name):
         """Returns True if there is a FIX processed resource available for the specified 

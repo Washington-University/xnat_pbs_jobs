@@ -27,6 +27,11 @@ def _inform(msg):
     print(os.path.basename(__file__) + ": " + msg)
 
 
+def _debug(msg):
+    #debug_msg = "DEBUG: " + msg
+    #_inform(debug_msg)
+    pass
+
 class BatchSubmitter:
     """This class is an abstract base class for classes that are used to submit jobs for one
     pipeline for a batch of subjects.
@@ -54,12 +59,16 @@ class BatchSubmitter:
 
     def increment_shadow_number(self):
         """Increments the current shadow number and cycles it around if it goes pass the maximum."""
+        _debug("increment_shadow_number: orig current_shadow_number: " + str(self._current_shadow_number))
         self._current_shadow_number = self._current_shadow_number + 1
         if self._current_shadow_number > self.MAX_SHADOW_NUMBER:
             self._current_shadow_number = self.START_SHADOW_NUMBER
+        _debug("increment_shadow_number: new current_shadow_number: " + str(self._current_shadow_number))
+
 
     @abc.abstractmethod
     def submit_jobs(self, subject_list):
         """Submit a batch of jobs for the specified subject list."""
+        _inform("ERROR: Calling abstract method submit_jobs")
         pass
 
