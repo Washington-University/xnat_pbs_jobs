@@ -3,20 +3,20 @@
 """SubmitPostFixHCP7TBatch.py: Submit a batch of PostFix processing jobs for the HCP 7T project."""
 
 # import of built-in modules
+import getpass
 import os
 import sys
-import getpass
 
 # import of third party modules
 pass
 
 # import of local modules
-import hcp.hcp7t.subject as hcp7t_subject
-import hcp.hcp7t.archive as hcp7t_archive
+import SubmitPostFixHCP7TOneSubject
 import hcp.batch_submitter as batch_submitter
+import hcp.hcp7t.archive as hcp7t_archive
+import hcp.hcp7t.subject as hcp7t_subject
 import utils.file_utils as file_utils
 import utils.my_configparser as my_configparser
-import SubmitPostFixHCP7TOneSubject
 
 # authorship information
 __author__ = "Timothy B. Brown"

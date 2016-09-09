@@ -148,8 +148,6 @@ class PostFixHCP7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter)
             # get XNAT Workflow ID
             workflow_obj = xnat_access.Workflow(username, password, server, jsession_id)
             workflow_id = workflow_obj.create_workflow(xnat_session_id, project, self.PIPELINE_NAME, 'Queued')
-            # ici
-
             inform("workflow_id: " + workflow_id)
 
             # Clean the output resource if requested
@@ -203,10 +201,10 @@ class PostFixHCP7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter)
             # Create script to put the results into the DB
             put_script_name = script_file_start_name + '.XNAT_PBS_PUT_job.sh'
             self.create_put_script(put_script_name,
-                                    username, password, put_server,
-                                    project, subject, session,
-                                    working_directory_name, output_resource_name,
-                                    scan_name + '_' + self.PIPELINE_NAME)
+                                   username, password, put_server,
+                                   project, subject, session,
+                                   working_directory_name, output_resource_name,
+                                   scan_name + '_' + self.PIPELINE_NAME)
 
             # Submit the job to do the work
             work_submit_cmd = 'qsub ' + work_script_name
@@ -216,7 +214,7 @@ class PostFixHCP7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter)
             work_job_no = str_utils.remove_ending_new_lines(completed_work_submit_process.stdout)
             inform("work_job_no: " + work_job_no)
 
-            # Submit the job put the results in the DB
+            # Submit the job to put the results in the DB
             put_submit_cmd = 'qsub -W depend=afterok:' + work_job_no + ' ' + put_script_name
             inform("put_submit_cmd: " + put_submit_cmd)
 
