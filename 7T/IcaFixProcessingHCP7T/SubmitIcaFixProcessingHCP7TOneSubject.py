@@ -159,7 +159,7 @@ class IcaFix7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter):
 
         # process specified scans
         for scan_name in scan_list:
-            if self.archive.FIX_processing_complete(subject_info, scan_name) and incomplete_only:
+            if incomplete_only and self.archive.FIX_processing_complete(subject_info, scan_name):
                 inform("scan: " + scan_name + " is already FIX processed")
                 inform("Only submitted jobs for incomplete scans - skipping " + scan_name)
                 continue
