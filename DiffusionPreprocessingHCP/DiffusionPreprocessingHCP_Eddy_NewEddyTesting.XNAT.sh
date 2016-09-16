@@ -241,6 +241,7 @@ main()
 	Eddy_cmd+=" --ff=10"
 	Eddy_cmd+=" --dont_peas"
 	Eddy_cmd+=" --fwhm=10,0,0,0,0"
+	Eddy_cmd+=" --ol_nstd=5"
 
 	echo ""
 	echo "Eddy_cmd: ${Eddy_cmd}"
