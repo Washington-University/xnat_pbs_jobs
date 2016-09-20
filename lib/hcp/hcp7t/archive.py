@@ -47,6 +47,12 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         return '7T'
 
 
+    @property
+    def DEDRIFT_AND_RESAMPLE_HIGHRES_RESOURCE_NAME(self):
+        """Name of MSM All DeDriftAndResample HighRes resource"""
+        return 'MSMAllDeDrift_HighRes'
+
+
     def __init__(self):
         """Constructs an Hcp7T_Archive object for direct access to an HCP 7T project data archive."""
         super().__init__()
@@ -249,7 +255,16 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
         return prefix + self.NAME_DELIMITER + base_name + self.NAME_DELIMITER + self.TESLA_SPEC + self.NAME_DELIMITER + pe_dir
 
+
+    def available_DeDriftAndResample_HighRes_processed_dirs(self, subject_info):
+        dir_list = glob.glob(self.DeDriftAndResample_HighRes_processed_dir_name(subject_info))
+        return sorted(dir_list)
+
     
+    def DeDriftAndResample_HighRes_processed_dir_name(self, subject_info):
+        return self.subject_resources_dir(subject_info) + os.sep + self.DEDRIFT_AND_RESAMPLE_HIGHRES_RESOURCE_NAME
+
+
 def _simple_interactive_demo():
 
     archive = Hcp7T_Archive()
