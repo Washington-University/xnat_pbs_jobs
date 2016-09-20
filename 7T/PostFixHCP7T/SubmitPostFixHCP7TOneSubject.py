@@ -12,10 +12,13 @@ import stat
 import subprocess
 import time
 
+
 # import of third party modules
 pass
 
+
 # import of local modules
+import CheckPostFixHCP7TCompletionOneSubject
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
 import hcp.one_subject_submitter as one_subject_submitter
@@ -23,6 +26,7 @@ import utils.delete_resource as delete_resource
 import utils.my_argparse as my_argparse
 import utils.str_utils as str_utils
 import xnat.xnat_access as xnat_access
+
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -95,10 +99,12 @@ class PostFixHCP7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter)
 
         # process specified scans
         for scan_name in scan_list:
-            if incomplete_only and self.archive.PostFix_processing_complete(subject_info, scan_name):
-                inform("scan: " + scan_name + " has already completed PostFix processing")
-                inform("Only submitted jobs for incomplete scans - skipping " + scan_name)
-                continue
+            if incomplete_only:
+                completion_checker = CheckPostFixHCP7TCompletionOneSubject.PostFixHCP7TOneSubjectCompletionChecker()
+                if completion_checker.is_processing_complete(self.archive, subject_info, scan_name):
+                    inform("scan: " + scan_name + " has already completed PostFixHCP7T processing")
+                    inform("Only submitting jobs for incomplete scans - skipping " + scan_name)
+                    continue
 
             long_scan_name = self.archive.functional_scan_long_name(scan_name)
             output_resource_name = self.archive.PostFix_processed_resource_name(scan_name)
