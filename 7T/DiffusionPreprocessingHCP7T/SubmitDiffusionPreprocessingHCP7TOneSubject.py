@@ -202,9 +202,6 @@ class DiffusionPreprocessing7TOneSubjectSubmitter(
         walltime_limit = str(self._post_eddy_walltime_limit_hours) + ':00:00'
         vmem_limit = str(self._post_eddy_vmem_limit_gbs) + 'gb'
 
-
-
-
         
     def submit_jobs(self,
                     username, password, server,
