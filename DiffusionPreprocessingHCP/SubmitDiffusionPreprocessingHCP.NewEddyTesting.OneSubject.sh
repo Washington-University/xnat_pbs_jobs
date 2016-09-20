@@ -313,38 +313,38 @@ main()
 	fi
 
 	# Submit job to do PostEddy work
-	# post_eddy_script_file_to_submit=${working_directory_name}/${g_subject}.DiffusionPreprocHCP_PostEddy.${g_project}.${g_subject}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
+	post_eddy_script_file_to_submit=${working_directory_name}/${g_subject}.DiffusionPreprocHCP_PostEddy.${g_project}.${g_subject}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
 
-	# if [ -e "${post_eddy_script_file_to_submit}" ]; then
-	# 	rm -f "${post_eddy_script_file_to_submit}"
-	# fi
+	if [ -e "${post_eddy_script_file_to_submit}" ]; then
+ 		rm -f "${post_eddy_script_file_to_submit}"
+	fi
 
-	# touch ${post_eddy_script_file_to_submit}
-	# echo "#PBS -l nodes=1:ppn=1,walltime=03:00:00,vmem=20000mb" >> ${post_eddy_script_file_to_submit}
-	# #echo "#PBS -q dque" >> ${post_eddy_script_file_to_submit}
-	# echo "#PBS -o ${working_directory_name}" >> ${post_eddy_script_file_to_submit}
-	# echo "#PBS -e ${working_directory_name}" >> ${post_eddy_script_file_to_submit}
-	# echo "" >> ${post_eddy_script_file_to_submit}
-	# echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/DiffusionPreprocessingHCP_PostEddy_repol.XNAT.sh \\" >> ${post_eddy_script_file_to_submit}
-	# echo "  --user=\"${token_username}\" \\" >> ${post_eddy_script_file_to_submit}
-	# echo "  --password=\"${token_password}\" \\" >> ${post_eddy_script_file_to_submit}
-	# echo "  --server=\"${g_server}\" \\" >> ${post_eddy_script_file_to_submit}
-	# echo "  --subject=\"${g_subject}\" \\" >> ${post_eddy_script_file_to_submit}
-	# echo "  --working-dir=\"${working_directory_name}\" \\" >> ${post_eddy_script_file_to_submit}
-	# echo "  --workflow-id=\"${workflowID}\" \\" >> ${post_eddy_script_file_to_submit}
+	touch ${post_eddy_script_file_to_submit}
+	echo "#PBS -l nodes=1:ppn=1,walltime=03:00:00,vmem=20000mb" >> ${post_eddy_script_file_to_submit}
+	#echo "#PBS -q dque" >> ${post_eddy_script_file_to_submit}
+	echo "#PBS -o ${working_directory_name}" >> ${post_eddy_script_file_to_submit}
+	echo "#PBS -e ${working_directory_name}" >> ${post_eddy_script_file_to_submit}
+	echo "" >> ${post_eddy_script_file_to_submit}
+	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/DiffusionPreprocessingHCP_PostEddy_NewEddyTesting.XNAT.sh \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --user=\"${token_username}\" \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --password=\"${token_password}\" \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --server=\"${g_server}\" \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --subject=\"${g_subject}\" \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --working-dir=\"${working_directory_name}\" \\" >> ${post_eddy_script_file_to_submit}
+	echo "  --workflow-id=\"${workflowID}\" \\" >> ${post_eddy_script_file_to_submit}
 
-	# chmod +x ${post_eddy_script_file_to_submit}
+	chmod +x ${post_eddy_script_file_to_submit}
 
-	# submit_cmd="qsub -W depend=afterok:${eddy_jobno} ${post_eddy_script_file_to_submit}"
-	# inform "submit_cmd: ${submit_cmd}"
+	submit_cmd="qsub -W depend=afterok:${eddy_jobno} ${post_eddy_script_file_to_submit}"
+	inform "submit_cmd: ${submit_cmd}"
 
-	# post_eddy_jobno=`${submit_cmd}`
-	# inform "post_eddy_jobno: ${post_eddy_jobno}"
+	post_eddy_jobno=`${submit_cmd}`
+	inform "post_eddy_jobno: ${post_eddy_jobno}"
 
-	# if [ -z "${post_eddy_jobno}" ] ; then
-	# 	inform "ERROR SUBMITTING POST-EDDY JOB - ABORTING"
-	# 	exit 1
-	# fi
+	if [ -z "${post_eddy_jobno}" ] ; then
+	 	inform "ERROR SUBMITTING POST-EDDY JOB - ABORTING"
+	 	exit 1
+	fi
 
 	# Submit job to put the results in the DB
 	# put_script_file_to_submit=${LOG_DIR}/${g_subject}.DiffusionPreprocHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh

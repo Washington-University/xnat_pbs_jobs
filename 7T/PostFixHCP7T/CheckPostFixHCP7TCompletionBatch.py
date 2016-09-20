@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 # import of built-in modules
+import datetime
 import os
 import sys
-import datetime
 
 
 # import of third party modules
@@ -11,7 +11,7 @@ pass
 
 
 # import of local modules
-import CheckPostFixHCP7TCompletionOneSubject
+import PostFixHCP7T_OneSubjectCompletionChecker
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
 
@@ -27,7 +27,7 @@ def _inform(msg):
     print(os.path.basename(__file__) + ": " + msg)
 
 
-def is_subject_complete(subject_results_dict):
+def _is_subject_complete(subject_results_dict):
     for scan, scan_results in subject_results_dict.items():
         if scan_results['scan_complete'] == 'FALSE':
             return False
@@ -35,7 +35,7 @@ def is_subject_complete(subject_results_dict):
     return True
 
 
-def write_subject_info(subject, subject_results_dict, afile):
+def _write_subject_info(subject, subject_results_dict, afile):
 
     for scan, scan_results in sorted(subject_results_dict.items()):
         output_str = "HCP_Staging_7T" + '\t' + subject.subject_id + '\t' 
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     archive = hcp7t_archive.Hcp7T_Archive()
 
     # Create PostFixHCP7T One Subject completion checker
-    completion_checker = CheckPostFixHCP7TCompletionOneSubject.PostFixHCP7TOneSubjectCompletionChecker()
+    completion_checker = PostFixHCP7T_OneSubjectCompletionChecker.PostFixHCP7T_OneSubjectCompletionChecker()
 
     # Check completion for subjects
     for subject in subject_list:
@@ -127,10 +127,10 @@ if __name__ == "__main__":
 
 
 
-        if is_subject_complete(subject_results_dict):
-            write_subject_info(subject, subject_results_dict, complete_file)
+        if _is_subject_complete(subject_results_dict):
+            _write_subject_info(subject, subject_results_dict, complete_file)
         else:
-            write_subject_info(subject, subject_results_dict, incomplete_file)
+            _write_subject_info(subject, subject_results_dict, incomplete_file)
 
 
 

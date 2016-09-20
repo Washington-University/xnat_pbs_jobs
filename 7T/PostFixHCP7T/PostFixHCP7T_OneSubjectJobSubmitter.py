@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-SubmitPostFixHCP7TOneSubject.py: Submit PostFix processing jobs for one 
+PostFixHCP7T_OneSubjectJobSubmitter.py: Submit PostFixHCP7T processing jobs for one 
 HCP 7T subject.
 """
 
@@ -18,7 +18,7 @@ pass
 
 
 # import of local modules
-import CheckPostFixHCP7TCompletionOneSubject
+import PostFixHCP7T_OneSubjectCompletionChecker
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
 import hcp.one_subject_submitter as one_subject_submitter
@@ -41,8 +41,8 @@ def inform(msg):
     """
     print(os.path.basename(__file__) + ": " + msg)
 
-class PostFixHCP7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter):
-    """This class submits a set of dependent jobs for PostFix processing for
+class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_submitter.OneSubjectSubmitter):
+    """This class submits a set of dependent jobs for PostFixHCP7T processing for
     a single HCP 7T subject."""
 
     def __init__(self, hcp7t_archive, build_home):
@@ -100,7 +100,7 @@ class PostFixHCP7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter)
         # process specified scans
         for scan_name in scan_list:
             if incomplete_only:
-                completion_checker = CheckPostFixHCP7TCompletionOneSubject.PostFixHCP7TOneSubjectCompletionChecker()
+                completion_checker = PostFixHCP7T_OneSubjectCompletionChecker.PostFixHCP7T_OneSubjectCompletionChecker()
                 if completion_checker.is_processing_complete(self.archive, subject_info, scan_name):
                     inform("scan: " + scan_name + " has already completed PostFixHCP7T processing")
                     inform("Only submitting jobs for incomplete scans - skipping " + scan_name)

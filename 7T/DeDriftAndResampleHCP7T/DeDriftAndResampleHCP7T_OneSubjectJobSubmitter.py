@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-SubmitDeDriftAndResampleHCP7TOneSubject.py: Submit DeDriftAndResample processing jobs for one
-HCP 7T subject.
+DeDriftAndResampleHCP7T_OneSubjectJobSubmitter.py: Submit DeDriftAndResampleHCP7T processing 
+jobs for one HCP 7T subject.
 """
 
 # import of built-in modules
@@ -12,8 +12,10 @@ import stat
 import subprocess
 import time
 
+
 # import of third party modules
 pass
+
 
 # import of local modules
 import hcp.hcp7t.subject as hcp7t_subject
@@ -21,6 +23,7 @@ import hcp.one_subject_submitter as one_subject_submitter
 import utils.delete_resource as delete_resource
 import utils.str_utils as str_utils
 import xnat.xnat_access as xnat_access
+
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -43,7 +46,7 @@ def _debug(msg):
     pass
 
 
-class DeDriftAndResampleHCP7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter):
+class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_submitter.OneSubjectSubmitter):
 
     def __init__(self, hcp7t_archive, build_home):
         super().__init__(hcp7t_archive, build_home)
@@ -61,6 +64,7 @@ class DeDriftAndResampleHCP7TOneSubjectSubmitter(one_subject_submitter.OneSubjec
         self._setup_script = None
         self._walltime_limit_hours = None
         self._vmem_limit_gbs = None
+
 
     @property
     def PIPELINE_NAME(self):
@@ -304,7 +308,7 @@ class DeDriftAndResampleHCP7TOneSubjectSubmitter(one_subject_submitter.OneSubjec
             _inform("workflow_id: " + workflow_id)
 
             # Determine the output resource name
-            output_resource_name = self.archive.DeDrift_processed_resource_name()
+            output_resource_name = self.archive.DEDRIFT_AND_RESAMPLE_RESOURCE_NAME
             _inform("output_resource_name: " + output_resource_name)
 
             # Clean the output resource if requested

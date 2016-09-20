@@ -10,12 +10,15 @@ in simple text files.
 import os
 import sys
 
+
 # import of third party modules
 pass
+
 
 # import of local modules
 import hcp.subject as hcp_subject
 import utils.str_utils as str_utils
+
 
 # authorship information
 __author__ = "Timothy B. Brown"

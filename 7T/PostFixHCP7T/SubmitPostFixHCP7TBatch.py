@@ -11,7 +11,7 @@ import sys
 pass
 
 # import of local modules
-import SubmitPostFixHCP7TOneSubject
+import PostFixHCP7T_OneSubjectJobSubmitter
 import hcp.batch_submitter as batch_submitter
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
@@ -37,7 +37,7 @@ class PostFixHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
     def __init__(self):
         """Construct a PostFixHcp7TBatchSubmitter"""
         super().__init__(hcp7t_archive.Hcp7T_Archive())
-        self._one_subject_submitter = SubmitPostFixHCP7TOneSubject.PostFixHCP7TOneSubjectSubmitter(
+        self._one_subject_submitter = PostFixHCP7T_OneSubjectJobSubmitter.PostFixHCP7T_OneSubjectJobSubmitter(
             self._archive, self._archive.build_home)
 
     def submit_jobs(self, subject_list):

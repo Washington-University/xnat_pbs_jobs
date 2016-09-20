@@ -11,7 +11,7 @@ import sys
 pass
 
 # import of local modules
-import SubmitDeDriftAndResampleHCP7TOneSubject
+import DeDriftAndResampleHCP7T_OneSubjectJobSubmitter
 import hcp.batch_submitter as batch_submitter
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
@@ -83,7 +83,7 @@ class DeDriftAndResampleHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
             _inform("--------------------------------------------------------------------------------")
                
             _debug("Create and configure an appropriate 'one subject submitter'")
-            one_subject_submitter = SubmitDeDriftAndResampleHCP7TOneSubject.DeDriftAndResampleHCP7TOneSubjectSubmitter(
+            one_subject_submitter = DeDriftAndResampleHCP7T_OneSubjectJobSubmitter.DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(
                 self._archive, self._archive.build_home)
             _debug("one_subject_submitter: " + str(one_subject_submitter))
 

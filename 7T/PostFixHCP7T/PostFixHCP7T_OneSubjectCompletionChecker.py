@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-CheckPostFixHCP7TCompletionOneSubject.py: Check PostFix processing completion status
+PostFixHCP7T_OneSubjectCompletionChecer.py: Check PostFixHCP7T processing completion status
 for one HCP 7T Subject.
 """
 
@@ -25,13 +25,13 @@ def _inform(msg):
     print(os.path.basename(__file__) + ": " + msg)
 
 
-class PostFixHCP7TOneSubjectCompletionChecker:
+class PostFixHCP7T_OneSubjectCompletionChecker:
 
     def __init__(self):
         super().__init__()
 
     def does_processed_resource_exist(self, archive, hcp7t_subject_info, scan_name):
-        return scan_name in archive.available_PostFix_names(hcp7t_subject_info)
+        return scan_name in archive.available_PostFix_processed_names(hcp7t_subject_info)
 
     def is_processing_complete(self, archive, hcp7t_subject_info, scan_name):
         """
@@ -39,7 +39,7 @@ class PostFixHCP7TOneSubjectCompletionChecker:
         PostFixHCP7T processing for the specified subject.
         """
 
-        # If the output resource does not exists, the the PostFixHCP7T processing
+        # If the output resource does not exist, then the PostFixHCP7T processing
         # has not been done.
         if not self.does_processed_resource_exist(archive, hcp7t_subject_info, scan_name):
             return False
