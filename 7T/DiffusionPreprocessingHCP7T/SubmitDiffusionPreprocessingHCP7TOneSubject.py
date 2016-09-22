@@ -6,10 +6,10 @@ jobs for one HCP 7T subject.
 """
 
 # import of built-in modules
-import os
-import time
 import contextlib
+import os
 import stat
+import time
 
 # import of third party modules
 pass
@@ -17,7 +17,7 @@ pass
 # import of local modules
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
-import hcp.one_subject_submitter as one_subject_submitter
+import hcp.one_subject_job_submitter as one_subject_job_submitter
 import hcp.pe_dirs as pe_dirs
 import xnat.xnat_access as xnat_access
 import utils.os_utils as os_utils
@@ -36,13 +36,13 @@ def _inform(msg):
     print(os.path.basename(__file__) + ": " + msg)
 
 
-class DiffusionPreprocessing7TOneSubjectSubmitter(
-    one_subject_submitter.OneSubjectSubmitter):
+class DiffusionPreprocessing7TOneSubjectJobSubmitter(
+    one_subject_job_submitter.OneSubjectJobSubmitter):
     """This class submits a set of dependent jobs for Diffusion Preprocessing
     for a single HCP 7T subject."""
 
     def __init__(self, hcp7t_archive, build_home):
-        """Constructs a DiffusionPreprocessing7TOneSubjectSubmitter.
+        """Constructs a DiffusionPreprocessing7TOneSubjectJobSubmitter.
 
         :param hcp7t_archive: HCP 7T Archive
         :type hcp7t_archive: Hcp7T_Archive
@@ -404,7 +404,7 @@ if __name__ == "__main__":
     _inform("Set up script: " + args.setup_script)
 
     # create a job submitter
-    submitter = DiffusionPreprocessing7TOneSubjectSubmitter(archive, archive.build_home)
+    submitter = DiffusionPreprocessing7TOneSubjectJobSubmitter(archive, archive.build_home)
     
     # _inform("")
     # _inform("submitter.PIPELINE_NAME: " + submitter.PIPELINE_NAME)

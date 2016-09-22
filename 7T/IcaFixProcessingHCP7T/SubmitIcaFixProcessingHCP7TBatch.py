@@ -39,7 +39,7 @@ class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
     def __init__(self):
         """Construct an IcaFix7TBatchSubmitter"""
         super().__init__(hcp7t_archive.Hcp7T_Archive())
-        self._one_subject_submitter = SubmitIcaFixProcessingHCP7TOneSubject.IcaFix7TOneSubjectSubmitter(
+        self._one_subject_submitter = SubmitIcaFixProcessingHCP7TOneSubject.IcaFix7TOneSubjectJobSubmitter(
             self._archive, self._archive.build_home)
 
     def submit_jobs(self, subject_list):

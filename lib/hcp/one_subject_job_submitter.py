@@ -31,14 +31,14 @@ def _inform(msg):
     print(os.path.basename(__file__) + ": " + msg)
 
 
-class OneSubjectSubmitter:
+class OneSubjectJobSubmitter:
     """This class is an abstract base class for classes that are used
     to submit jobs for one pipeline for one subject.
     """
 
 
     def __init__(self, archive, build_home):
-        """Constructs a OneSubjectSubmitter.
+        """Constructs a OneSubjectJobSubmitter.
 
         :param archive: Archive with which this submitter is to work.
         :type archive: HcpArchive

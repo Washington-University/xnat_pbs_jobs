@@ -150,7 +150,7 @@ def _simple_interactive_demo():
     completion_checker = DeDriftAndResampleHCP7T_HighRes_OneSubjectCompletionChecker()
 
     _inform("")
-    _inform("Checking subject: 102311")
+    _inform("Checking subject: " + hcp7t_subject_info.subject_id)
     _inform("")
     _inform("hcp7t_subject_info: " + str(hcp7t_subject_info))
 

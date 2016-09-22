@@ -21,7 +21,7 @@ pass
 import PostFixHCP7T_OneSubjectCompletionChecker
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
-import hcp.one_subject_submitter as one_subject_submitter
+import hcp.one_subject_job_submitter as one_subject_job_submitter
 import utils.delete_resource as delete_resource
 import utils.my_argparse as my_argparse
 import utils.str_utils as str_utils
@@ -41,12 +41,12 @@ def inform(msg):
     """
     print(os.path.basename(__file__) + ": " + msg)
 
-class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_submitter.OneSubjectSubmitter):
+class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_submitter.OneSubjectJobSubmitter):
     """This class submits a set of dependent jobs for PostFixHCP7T processing for
     a single HCP 7T subject."""
 
     def __init__(self, hcp7t_archive, build_home):
-        """Constructs a PostFixHCP7TOneSubjectSubmitter.
+        """Constructs a PostFixHCP7TOneSubjectJobSubmitter.
 
         :param hcp7t_archive: HCP 7T Archive
         :type hcp7t_archive: Hcp7T_Archive

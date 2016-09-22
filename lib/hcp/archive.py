@@ -201,6 +201,17 @@ class HcpArchive(abc.ABC):
         return name_list
 
 
+    def diffusion_preproc_dir_path(self, subject_info):
+        """Returns full path to preprocessed diffusion resource directory"""
+        return self.subject_resources_dir(subject_info) + '/Diffusion_' + self.PREPROC_SUFFIX
+
+
+    def available_diffusion_preproc_dirs(self, subject_info):
+        """Returns a list of full paths to preprocessed diffusion resources."""
+        dir_list = glob.glob(self.diffusion_preproc_dir_path(subject_info))
+        return sorted(dir_list)
+
+
     def available_diffusion_unproc_dirs(self, subject_info):
         """Returns a list of full paths to unprocessed diffusion resources."""
         dir_list = glob.glob(self.subject_resources_dir(subject_info) + 

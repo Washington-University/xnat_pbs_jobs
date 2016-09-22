@@ -18,7 +18,7 @@ pass
 # import of local modules
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
-import hcp.one_subject_submitter as one_subject_submitter
+import hcp.one_subject_job_submitter as one_subject_job_submitter
 import utils.delete_resource as delete_resource
 import utils.os_utils as os_utils
 import utils.str_utils as str_utils
@@ -37,12 +37,12 @@ def inform(msg):
     """
     print(os.path.basename(__file__) + ": " + msg)
 
-class IcaFix7TOneSubjectSubmitter(one_subject_submitter.OneSubjectSubmitter):
+class IcaFix7TOneSubjectJobSubmitter(one_subject_submitter.OneSubjectJobSubmitter):
     """This class submits a set of dependent jobs for ICA+FIX processing 
     for a single HCP 7T subject."""
 
     def __init__(self, hcp7t_archive, build_home):
-        """Constructs an IcaFix7TOneSubjectSubmitter.
+        """Constructs an IcaFix7TOneSubjectJobSubmitter.
 
         :param hcp7t_archive: HCP 7T Archive
         :type hcp7t_archive: Hcp7T_Archive

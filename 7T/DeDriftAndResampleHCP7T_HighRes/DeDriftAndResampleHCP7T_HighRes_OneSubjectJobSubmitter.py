@@ -19,7 +19,7 @@ pass
 
 # import of local modules
 import hcp.hcp7t.subject as hcp7t_subject
-import hcp.one_subject_submitter as one_subject_submitter
+import hcp.one_subject_job_submitter as one_subject_job_submitter
 import utils.delete_resource as delete_resource
 import utils.str_utils as str_utils
 import xnat.xnat_access as xnat_access
@@ -41,12 +41,12 @@ def _inform(msg):
 
 
 def _debug(msg):
-    #debug_msg = "DEBUG: " + msg
-    #_inform(debug_msg)
+    # debug_msg = "DEBUG: " + msg
+    # _inform(debug_msg)
     pass
 
 
-class DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(one_subject_submitter.OneSubjectSubmitter):
+class DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     def __init__(self, hcp7t_archive, build_home):
         super().__init__(hcp7t_archive, build_home)
@@ -305,7 +305,7 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(one_subject_submitt
             _inform("workflow_id: " + workflow_id)
 
             # Determine the output resource name
-            output_resource_name = self.archive.DEDRIFT_AND_RESAMPLE_RESOURCE_NAME
+            output_resource_name = self.archive.DEDRIFT_AND_RESAMPLE_HIGHRES_RESOURCE_NAME
             _inform("output_resource_name: " + output_resource_name)
 
             # Clean the output resource if requested
