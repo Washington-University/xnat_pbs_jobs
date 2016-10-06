@@ -9,6 +9,7 @@ Submit jobs to perform HCP 7T diffusion preprocessing for one HCP 7T Subject.
 import contextlib
 import os
 import stat
+import subprocess
 import time
 
 
@@ -255,7 +256,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
 
     def validate_parameters(self):
-        valid_configuraton = True
+        valid_configuration = True
 
         if self.project == None:
             valid_configuration = False
@@ -465,7 +466,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         futils.wl(post_eddy_script, '')
         futils.wl(post_eddy_script, script_line   + self._continue)
         futils.wl(post_eddy_script, user_line     + self._continue)
-        futils.wl(post_eddy_script, pasword_line  + self._continue)
+        futils.wl(post_eddy_script, password_line + self._continue)
         futils.wl(post_eddy_script, server_line   + self._continue)
         futils.wl(post_eddy_script, subject_line  + self._continue)
         futils.wl(post_eddy_script, wdir_line     + self._continue)
@@ -507,10 +508,20 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
             # get JSESSION ID
             jsession_id = xnat_access.get_jsession_id(
-                server = 'db.humanconnectome.org',
+                server   = 'db.humanconnectome.org',
                 username = self.username,
                 password = self.password)
             _inform("jsession_id: " + jsession_id)
+
+            # get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
+            xnat_session_id = xnat_access.get_session_id(
+                server   = 'db.humanconnectome.org',
+                username = self.username,
+                password = self.password,
+                project  = self.project,
+                subject  = self.subject,
+                session  = self.session)
+            _inform("xnat_session_id: " + xnat_session_id)
 
             # get XNAT Workflow ID
             workflow_obj = xnat_access.Workflow(self.username, self.password,
@@ -554,11 +565,45 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
                                    self._working_directory_name, self._output_resource_name,
                                    self.PIPELINE_NAME)
 
+            # Submit the job to do the Pre-Eddy work
+            pre_eddy_submit_cmd = 'qsub ' + self._pre_eddy_script_name
+            _inform("pre_eddy_submit_cmd: " + pre_eddy_submit_cmd)
 
+            completed_pre_eddy_submit_process = subprocess.run(
+                pre_eddy_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                universal_newlines=True)
+            pre_eddy_job_no = str_utils.remove_ending_new_lines(completed_pre_eddy_submit_process.stdout)
+            _inform("pre_eddy_job_no: " + pre_eddy_job_no)
 
-            # ici submit jobs
+            # Submit the job to do the Eddy work
+            eddy_submit_cmd = 'qsub -W depend=afterok:' + pre_eddy_job_no + ' ' + self._eddy_script_name
+            _inform("eddy_submit_cmd: " + eddy_submit_cmd)
 
+            completed_eddy_submit_process = subprocess.run(
+                eddy_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                universal_newlines=True)
+            eddy_job_no = str_utils.remove_ending_new_lines(completed_eddy_submit_process.stdout)
+            _inform("eddy_job_no: " + eddy_job_no)
 
+            # Submit the job to do the Post-Eddy work
+            post_eddy_submit_cmd = 'qsub -W depend=afterok:' + eddy_job_no + ' ' + self._post_eddy_script_name
+            _inform("post_eddy_submit_cmd: " + post_eddy_submit_cmd)
+
+            completed_post_eddy_submit_process = subprocess.run(
+                post_eddy_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                universal_newlines=True)
+            post_eddy_job_no = str_utils.remove_ending_new_lines(completed_post_eddy_submit_process.stdout)
+            _inform("post_eddy_job_no: " + post_eddy_job_no)
+
+            # Submit the job to put the results in the DB
+            put_submit_cmd = 'qsub -W depend=afterok:' + post_eddy_job_no + ' ' + put_script_name
+            _inform("put_submit_cmd: " + put_submit_cmd)
+
+            completed_put_submit_process = subprocess.run(
+                put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                universal_newlines=True)
+            put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
+            _inform("pub_job_no: " + put_job_no)
 
         else:
             _inform("Unable to submit jobs")

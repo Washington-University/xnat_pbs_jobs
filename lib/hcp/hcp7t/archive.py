@@ -68,7 +68,7 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         # If we reach here, then the FIX processed resource at least exists.  
         # Next we need to check to see if the expected files exist.
 
-        results_dir = self.subject_resources_dir(hcp7t_subject_info) + os.sep + self.FIX_processed_resource_name(scan_name)
+        results_dir = self.subject_resources_dir_fullpath(hcp7t_subject_info) + os.sep + self.FIX_processed_resource_name(scan_name)
         results_scan_dir = results_dir + os.sep + self.functional_scan_long_name(scan_name)
         ica_dir = results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000.ica'
 
@@ -160,7 +160,7 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
 
     #     # If we reach here, then the PostFix processed resource at least exists.
     #     # Next we need to check to see if the expected files exist.
-    #     results_dir = self.subject_resources_dir(hcp7t_subject_info) + os.sep + self.PostFix_processed_resource_name(scan_name)
+    #     results_dir = self.subject_resources_dir_fullpath(hcp7t_subject_info) + os.sep + self.PostFix_processed_resource_name(scan_name)
     #     results_scan_dir = results_dir + os.sep + 'MNINonLinear' + os.sep + 'Results' + os.sep + self.functional_scan_long_name(scan_name)
 
     #     file_name_list = []
@@ -210,7 +210,7 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
 
     def available_movie_preproc_dirs(self, subject_info):
         """Returns a list of full paths to functionally preprocessed MOVIE task scan resources."""
-        dir_list = glob.glob(self.subject_resources_dir(subject_info) + '/*' + 
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' + 
                              self.TASK_SCAN_MARKER + '*MOVIE*' + self.PREPROC_SUFFIX)
         return sorted(dir_list)
 
@@ -228,7 +228,7 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
     def available_retinotopy_preproc_dirs(self, subject_info):
         """Returns a list of full paths to functionally preprocessed retinotopy task scan 
         resources."""
-        dir_list = glob.glob(self.subject_resources_dir(subject_info) + '/*' +
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
                              self.TASK_SCAN_MARKER + '*RET*' + self.PREPROC_SUFFIX)
         return sorted(dir_list)
 
@@ -262,7 +262,7 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
 
     
     def DeDriftAndResample_HighRes_processed_dir_name(self, subject_info):
-        return self.subject_resources_dir(subject_info) + os.sep + self.DEDRIFT_AND_RESAMPLE_HIGHRES_RESOURCE_NAME
+        return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.DEDRIFT_AND_RESAMPLE_HIGHRES_RESOURCE_NAME
 
 
 def _simple_interactive_demo():
@@ -282,13 +282,13 @@ def _simple_interactive_demo():
     subject_info = hcp7t_subject.Hcp7TSubjectInfo('HCP_Staging_7T', 'HCP_500', '102311')
     _inform("created subject_info: " + str(subject_info))
     _inform("archive.session_name(subject_info): " + archive.session_name(subject_info))
-    _inform("archive.session_dir(subject_infor): " + archive.session_dir(subject_info))
-    _inform("archive.subject_resources_dir(subject_info): " + 
-            archive.subject_resources_dir(subject_info))
+    _inform("archive.session_dir_fullpath(subject_info): " + archive.session_dir_fullpath(subject_info))
+    _inform("archive.subject_resources_dir_fullpath(subject_info): " + 
+            archive.subject_resources_dir_fullpath(subject_info))
 
     _inform("")
     _inform("Available functional unproc dirs: ")
-    for directory in archive.available_functional_unproc_dirs(subject_info):
+    for directory in archive.available_functional_unproc_dir_fullpaths(subject_info):
         _inform(directory)
 
     _inform("")
@@ -298,7 +298,7 @@ def _simple_interactive_demo():
 
     _inform("")
     _inform("Available diffusion unproc dirs: ")
-    for directory in archive.available_diffusion_unproc_dirs(subject_info):
+    for directory in archive.available_diffusion_unproc_dir_fullpaths(subject_info):
         _inform(directory)
 
     _inform("")
@@ -408,7 +408,7 @@ def _simple_interactive_demo():
 
     _inform("")
     _inform("Available diffusion scans: ")
-    for scan in archive.available_diffusion_scans(subject_info):
+    for scan in archive.available_diffusion_scan_fullpaths(subject_info):
         _inform(scan)
 
     _inform("")

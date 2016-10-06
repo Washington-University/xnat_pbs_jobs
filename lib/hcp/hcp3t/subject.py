@@ -35,6 +35,7 @@ def _inform(msg):
 class Hcp3TSubjectInfo(hcp_subject.HcpSubjectInfo):
     """This class maintains information about an HCP 3T subject."""
 
+
 def read_subject_info_list(file_name):
     """Reads a subject information list from the specified file.
 
@@ -49,7 +50,7 @@ def read_subject_info_list(file_name):
         # remove new line characters
         line = str_utils.remove_ending_new_lines(line)
 
-        # remove leading and training spaces
+        # remove leading and trailing spaces
         line = line.strip()
 
         # ignore blank lines and comment lines - starting with #

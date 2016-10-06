@@ -28,7 +28,7 @@ for project_subject in ${subjects} ; do
 		project=${project_subject%%:*}
 		subject=${project_subject##*:}
 
-		./CheckForAddResolutionHCP7TCompletion.sh --project=${project} --subject=${subject} --details
+		./CheckForAddResolutionHCP7TCompletion.sh --project=${project} --subject=${subject} #--details
 
 	fi
 

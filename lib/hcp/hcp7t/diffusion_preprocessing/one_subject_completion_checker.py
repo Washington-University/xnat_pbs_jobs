@@ -31,8 +31,9 @@ def _inform(msg):
 
 class OneSubjectCompletionChecker:
 
+
     def does_processed_resource_exist(self, archive, hcp7t_subject_info):
-        dir_list = archive.available_diffusion_preproc_dirs(hcp7t_subject_info)
+        dir_list = archive.available_diffusion_preproc_dir_fullpaths(hcp7t_subject_info)
         return len(dir_list) > 0
 
 
@@ -49,7 +50,7 @@ class OneSubjectCompletionChecker:
         # Build a list of expected files
         file_name_list = []
 
-        diffusion_7T_dir = archive.diffusion_preproc_dir_path(hcp7t_subject_info) + os.sep + 'Diffusion_7T'
+        diffusion_7T_dir = archive.diffusion_preproc_dir_fullpath(hcp7t_subject_info) + os.sep + 'Diffusion_7T'
         diffusion_7T_data_dir = diffusion_7T_dir + os.sep + 'data'
 
         file_name_list.append(diffusion_7T_data_dir + os.sep + 'bvals')
@@ -132,7 +133,7 @@ class OneSubjectCompletionChecker:
         file_name_list.append(diffusion_7T_topup_dir + os.sep + 'topup_Pos_Neg_b0_fieldcoef.nii.gz')
         file_name_list.append(diffusion_7T_topup_dir + os.sep + 'topup_Pos_Neg_b0_movpar.txt')
 
-        T1w_dir = archive.diffusion_preproc_dir_path(hcp7t_subject_info) + os.sep + 'T1w'
+        T1w_dir = archive.diffusion_preproc_dir_fullpath(hcp7t_subject_info) + os.sep + 'T1w'
 
         file_name_list.append(T1w_dir + os.sep + hcp7t_subject_info.subject_id + '_3T_T1w_MPR1.nii.gz')
         file_name_list.append(T1w_dir + os.sep + 'aparc.a2009s+aseg_1mm.nii.gz')

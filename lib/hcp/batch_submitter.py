@@ -42,20 +42,24 @@ class BatchSubmitter:
         """Starting ConnectomeDB shadow server number."""
         return 1
 
+
     @property
     def MAX_SHADOW_NUMBER(self):
         """Maximum ConnectomeDB shadow server number."""
         return 8
+
 
     def __init__(self, archive):
         """Construct a BatchSubmitter"""
         self._archive = archive
         self._current_shadow_number = random.randint(self.START_SHADOW_NUMBER, self.MAX_SHADOW_NUMBER)
 
+
     @property
     def shadow_number(self):
         """shadow number"""
         return self._current_shadow_number
+
 
     def increment_shadow_number(self):
         """Increments the current shadow number and cycles it around if it goes pass the maximum."""
@@ -64,6 +68,12 @@ class BatchSubmitter:
         if self._current_shadow_number > self.MAX_SHADOW_NUMBER:
             self._current_shadow_number = self.START_SHADOW_NUMBER
         _debug("increment_shadow_number: new current_shadow_number: " + str(self._current_shadow_number))
+
+
+    def get_and_inc_shadow_number(self):
+        current = self.shadow_number
+        self.increment_shadow_number()
+        return current
 
 
     @abc.abstractmethod

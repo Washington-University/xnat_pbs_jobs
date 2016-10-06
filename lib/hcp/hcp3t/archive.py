@@ -61,13 +61,13 @@ def _simple_interactive_demo():
     subject_info = hcp3t_subject.Hcp3TSubjectInfo('HCP_500', '100307')
     _inform("created subject_info: " + str(subject_info))
     _inform("archive.session_name(subject_info): " + archive.session_name(subject_info))
-    _inform("archive.session_dir(subject_info): " + archive.session_dir(subject_info))
-    _inform("archive.subject_resources_dir(subject_info): " + 
-            archive.subject_resources_dir(subject_info))
+    _inform("archive.session_dir_fullpath(subject_info): " + archive.session_dir_fullpath(subject_info))
+    _inform("archive.subject_resources_dir_fullpath(subject_info): " + 
+            archive.subject_resources_dir_fullpath(subject_info))
 
     _inform("")
     _inform("Available functional unproc dirs: ")
-    for directory in archive.available_functional_unproc_dirs(subject_info):
+    for directory in archive.available_functional_unproc_dir_fullpaths(subject_info):
         _inform(directory)
 
     _inform("")
@@ -77,7 +77,7 @@ def _simple_interactive_demo():
 
     _inform("")
     _inform("Available diffusion unproc dirs: ")
-    for directory in archive.available_diffusion_unproc_dirs(subject_info):
+    for directory in archive.available_diffusion_unproc_dir_fullpaths(subject_info):
         _inform(directory)
 
     _inform("")
@@ -111,11 +111,11 @@ def _simple_interactive_demo():
     for name in archive.available_FIX_processed_names(subject_info):
         _inform(name)
 
-    _inform("")
-    _inform("Are the following functional scans FIX processed")
-    for name in archive.available_functional_unproc_names(subject_info):
-        _inform('scan name: ' + name + ' ' + '\tFIX processed: ' + 
-              str(archive.FIX_processed(subject_info, name)))
+#    _inform("")
+#    _inform("Are the following functional scans FIX processed")
+#    for name in archive.available_functional_unproc_names(subject_info):
+#        _inform('scan name: ' + name + ' ' + '\tFIX processed: ' + 
+#              str(archive.FIX_processed(subject_info, name)))
 
     _inform("")
     _inform("Available resting state preproc dirs: ")
@@ -166,7 +166,7 @@ def _simple_interactive_demo():
 
     _inform("")
     _inform("Available diffusion scans: ")
-    for scan in archive.available_diffusion_scans(subject_info):
+    for scan in archive.available_diffusion_scan_fullpaths(subject_info):
         _inform(scan)
 
     _inform("")

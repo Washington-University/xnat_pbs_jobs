@@ -24,6 +24,7 @@ __maintainer__ = "Timothy B. Brown"
 
 _PROJECT = 'HCP_Staging_7T'
 
+
 def _inform(msg):
     """Outputs a message that is prefixed by the module file name."""
     print(os.path.basename(__file__) + ": " + msg)

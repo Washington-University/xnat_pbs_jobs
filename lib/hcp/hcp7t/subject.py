@@ -84,12 +84,20 @@ def read_subject_info_list(file_name):
         # remove new line characters
         line = str_utils.remove_ending_new_lines(line)
 
-        # remove leading and training spaces
+        # remove leading and trailing spaces
         line = line.strip()
 
         # ignore blank lines and comment lines - starting with #
         if line != '' and line[0] != '#':
-            (project, structural_ref_project, subject_id, extra) = line.split(dummy_subject_info.SEPARATOR)
+            try:
+                (project, structural_ref_project, subject_id, extra) = line.split(dummy_subject_info.SEPARATOR)
+            except ValueError as e:
+                if str(e) == 'not enough values to unpack (expected 4, got 3)':
+                    (project, structural_ref_project, subject_id) = line.split(dummy_subject_info.SEPARATOR)
+                    extra = None
+                else:
+                    raise
+
             # Make the string 'None' in the file translate to a None type instead of just the 
             # string itself
             if extra == 'None':
@@ -97,7 +105,30 @@ def read_subject_info_list(file_name):
             subject_info = Hcp7TSubjectInfo(project, structural_ref_project, subject_id, extra)
             subject_info_list.append(subject_info)
 
+    input_file.close()
     return subject_info_list
+
+
+def read_subject_id_list(file_name):
+    """Reads a subject id list from the specified file."""
+
+    subject_id_list = []
+
+    input_file = open(file_name, 'r')
+    for line in input_file:
+        # remove new line characters
+        line = str_utils.remove_ending_new_lines(line)
+        
+        # remove leading and trailing spaces
+        line = line.strip()
+        
+        # ignore blank lines and comment lines - starting with #
+        if line != '' and line[0] != '#':
+            subject_id = line
+            subject_id_list.append(subject_id)
+
+    input_file.close()
+    return subject_id_list
 
 
 def write_subject_info_list(file_name, subject_info_list):

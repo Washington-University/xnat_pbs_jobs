@@ -27,6 +27,7 @@ def _inform(msg):
 class HcpSubjectInfo:
     """This class maintains information about an HCP subject."""
 
+
     @property
     def SEPARATOR(self):
         return ':'

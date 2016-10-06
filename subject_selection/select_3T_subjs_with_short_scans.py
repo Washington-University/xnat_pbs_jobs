@@ -57,9 +57,9 @@ def main():
 
         for subject_id in subject_ids:
             subject_info = hcp3t_subject.Hcp3TSubjectInfo(project_name, subject_id)
-            available_diffusion_scans = archive.available_diffusion_scans(subject_info)
+            available_diffusion_scan_fullpaths = archive.available_diffusion_scan_fullpaths(subject_info)
 
-            for diffusion_scan in available_diffusion_scans:
+            for diffusion_scan in available_diffusion_scan_fullpaths:
                 #_inform("")
                 volume_count = get_volume_count(diffusion_scan)
                 #_inform("diffusion_scan: " + diffusion_scan + " volume_count: " + str(volume_count))

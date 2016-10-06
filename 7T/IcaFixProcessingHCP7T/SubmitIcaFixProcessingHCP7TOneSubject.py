@@ -37,7 +37,7 @@ def inform(msg):
     """
     print(os.path.basename(__file__) + ": " + msg)
 
-class IcaFix7TOneSubjectJobSubmitter(one_subject_submitter.OneSubjectJobSubmitter):
+class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     """This class submits a set of dependent jobs for ICA+FIX processing 
     for a single HCP 7T subject."""
 

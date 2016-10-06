@@ -388,6 +388,7 @@ main()
 	# build the posData string and the echoSpacing while we're at it
 	positive_scans=`find ${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/Diffusion -maxdepth 1 -name "${g_subject}_${TESLA_SPEC}_DWI_dir*_${positive_dir}.nii.gz" | sort`
 	posData=""
+	posData_count=0
 	for pos_scan in ${positive_scans} ; do
 		if [ -z "${posData}" ] ; then
 			# get echo spacing from the first DWI scan we encounter
@@ -400,20 +401,62 @@ main()
 			posData+="@"
 		fi
 		posData+="${pos_scan}"
+		posData_count=$(( posData_count + 1 ))
 	done
 	echo "posData: ${posData}"
+	echo "posData_count: ${posData_count}"
 
 	# build the negData string
 	negative_scans=`find ${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/Diffusion -maxdepth 1 -name "${g_subject}_${TESLA_SPEC}_DWI_dir*_${negative_dir}.nii.gz" | sort`
-	
 	negData=""
+	negData_count=0
 	for neg_scan in ${negative_scans} ; do
 		if [ ! -z "${negData}" ] ; then
 			# this is not the first negative DWI scan we've encountered, so add a separator to the negData string we are building
 			negData+="@"
 		fi
 		negData+="${neg_scan}"
+		negData_count=$(( negData_count + 1 ))
 	done
+	echo "negData: ${negData}"
+	echo "negData_count: ${negData_count}"
+
+	if [ "${posData_count}" -ne "${negData_count}" ]; then
+
+		posData=""
+		negData=""
+		for diff_directions in 95 96 97 ; do
+			pos_scan=`find ${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/Diffusion -maxdepth 1 -name "${g_subject}_${TESLA_SPEC}_DWI_dir${diff_directions}_${positive_dir}.nii.gz"`
+			echo "pos_scan: ${pos_scan}"
+
+			if [ -n "${posData}" ]; then
+				posData+="@"
+			fi
+
+			if [ -n "${pos_scan}" ]; then
+				posData+="${pos_scan}"
+			else
+				posData+="EMPTY"
+			fi
+
+			neg_scan=`find ${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/Diffusion -maxdepth 1 -name "${g_subject}_${TESLA_SPEC}_DWI_dir${diff_directions}_${negative_dir}.nii.gz"`
+			echo "neg_scan: ${neg_scan}"
+
+			if [ -n "${negData}" ]; then
+				negData+="@"
+			fi
+
+			if [ -n "${neg_scan}" ]; then
+				negData+="${neg_scan}"
+			else
+				negData+="EMPTY"
+			fi
+
+		done
+
+	fi
+
+	echo "posData: ${posData}"
 	echo "negData: ${negData}"
 
 	# ----------------------------------------------------------------------------------------------

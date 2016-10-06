@@ -273,27 +273,6 @@ main()
 	done
 	popd
 
-
-
-
-
-#	# Copy any available T1w volume files into the T1w subdirectory so that they will be placed
-#	# in the output resource. This is just done to match the output resources to the previously
-#	# generated ones.
-#
-#
-#	unproc_T1w_files=`ls 
-#
-#	for 
-
-
-
-
-
-
-
-
-
 	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files
 	# ----------------------------------------------------------------------------------------------

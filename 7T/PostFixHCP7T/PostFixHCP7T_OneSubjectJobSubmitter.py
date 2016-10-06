@@ -41,7 +41,7 @@ def inform(msg):
     """
     print(os.path.basename(__file__) + ": " + msg)
 
-class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_submitter.OneSubjectJobSubmitter):
+class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     """This class submits a set of dependent jobs for PostFixHCP7T processing for
     a single HCP 7T subject."""
 

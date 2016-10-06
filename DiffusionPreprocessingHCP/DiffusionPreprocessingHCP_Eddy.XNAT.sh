@@ -25,6 +25,10 @@
 # the Human Connectome Project for a specified project, subject, session,
 # in the ConnectomeDB (db.humanconnectome.org) XNAT database.
 #
+# 
+# THIS VERSION INCLUDES COMMAND LINE OPTIONS FOR PERFORMING OUTLIER REPLACEMENT
+#
+#
 # The script is run not as an XNAT pipeline (under the control of the
 # XNAT Pipeline Engine), but in an "XNAT-aware" and "pipeline-like" manner.
 # 
@@ -229,6 +233,15 @@ main()
 	Eddy_cmd+="${HCPPIPEDIR}/DiffusionPreprocessing/DiffPreprocPipeline_Eddy.sh"
 	Eddy_cmd+=" --path=${g_working_dir}"
 	Eddy_cmd+=" --subject=${g_subject}"
+	Eddy_cmd+=" --detailed-outlier-stats=True"
+	Eddy_cmd+=" --replace-outliers=True"
+	Eddy_cmd+=" --nvoxhp=2000"
+	Eddy_cmd+=" --sep_offs_move=True"
+	Eddy_cmd+=" --rms=True"
+	Eddy_cmd+=" --ff=10"
+	Eddy_cmd+=" --dont_peas"
+	Eddy_cmd+=" --fwhm=10,0,0,0,0"
+	Eddy_cmd+=" --ol_nstd=5"
 
 	echo ""
 	echo "Eddy_cmd: ${Eddy_cmd}"

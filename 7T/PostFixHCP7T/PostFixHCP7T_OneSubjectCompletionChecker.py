@@ -46,7 +46,7 @@ class PostFixHCP7T_OneSubjectCompletionChecker:
 
         # If we reach here, then the PostFixHCP7T processed resource at least exists.
         # Next we need to check to see if the expected files exist.
-        results_dir = archive.subject_resources_dir(hcp7t_subject_info) + os.sep + archive.PostFix_processed_resource_name(scan_name)
+        results_dir = archive.subject_resources_dir_fullpath(hcp7t_subject_info) + os.sep + archive.PostFix_processed_resource_name(scan_name)
         results_scan_dir = results_dir + os.sep + 'MNINonLinear' + os.sep + 'Results' + os.sep + archive.functional_scan_long_name(scan_name)
 
         file_name_list = []
