@@ -12,7 +12,6 @@ inform()
 
 inform "Job started on `hostname` at `date`"
 
-
 # home directory for scripts to be sourced to setup the environment
 SCRIPTS_HOME=${HOME}/SCRIPTS
 inform "SCRIPTS_HOME: ${SCRIPTS_HOME}"
@@ -42,11 +41,53 @@ source ${XNAT_UTILS_HOME}/xnat_workflow_utilities.sh
 # set up to run Python
 source ${SCRIPTS_HOME}/epd-python_setup.sh
 
+# Show script usage information
+usage()
+{
+	cat <<EOF
+
+Run the HCP Diffusion Preprocessing pipeline Eddy phase script
+(DiffPreprocPipeline_Eddy.sh) in an XNAT-aware and 
+XNAT-pipeline-like manner for HCP 7T data.
+
+For this script to work as expected, the corresponding XNAT-aware
+PreEddy script (DiffusionPreprocessingHCP7T_PreEddy.XNAT.sh) should
+have been run and completed successfully on the working directory.
+
+Usage: ${SCRIPT_NAME} PARAMETER...
+
+PARAMETERs are: [ ] = optional, < > = user-supplied-value
+  [--help]              show usage information and exit with a non-zero return code
+  --user=<username>     XNAT DB username
+  --password=<password> XNAT DB password
+  --server=<server>     XNAT server (e.g. db.humanconnectome.org)
+  --subject=<subject>   XNAT subject ID (e.g. 100307)
+  --working-dir=<dir>   Working directory from which to read data
+                        and in which to produce results
+  --workflow-id=<id>    XNAT Workflow ID to upate as steps are completed
+  --setup-script=<full-path>
+                        Script to source to set up environment before 
+                        running the DiffPreprocPipeline_Eddy.sh script.
+
+Return Status Value:
+
+  0                     help was not requested, all parameters were properly
+                        formed, all required parameters were provided, and
+                        no processing failure was detected
+  Non-zero              Otherwise - help requested, malformed parameters,
+                        some required parameters not provided, or a processing
+                        failure was detected
+
+EOF
+}
+
+# Parse command line options, verify that required options are specified.
+# "Return" the options to use in global variables
 get_options()
 {
 	local arguments=($@)
 
-	# initialize global output variables                                                                                                      
+	# initialize global output variables
     unset g_user
     unset g_password
     unset g_server
@@ -64,6 +105,10 @@ get_options()
         argument=${arguments[index]}
 		
         case ${argument} in
+            --help)
+                usage
+				exit 1
+                ;;
             --user=*)
                 g_user=${argument/*=/""}
                 index=$(( index + 1 ))
@@ -93,6 +138,7 @@ get_options()
                 index=$(( index + 1 ))
                 ;;
             *)
+                usage
                 inform "ERROR: unrecognized option: ${argument}"
                 inform ""
                 exit 1
@@ -153,6 +199,7 @@ get_options()
 	fi
 
     if [ ${error_count} -gt 0 ]; then
+		inform "For usage information, use --help"
         exit 1
     fi
 }
@@ -212,10 +259,14 @@ main()
 	Eddy_cmd+=" --ff=10"
 	Eddy_cmd+=" --dont_peas"
 	Eddy_cmd+=" --fwhm=10,0,0,0,0"
+	Eddy_cmd+=" --ol_nstd=5"
+	Eddy_cmd+=" --extra-eddy-arg=--with_outliers"
+	Eddy_cmd+=" --extra-eddy-arg=--initrand"
+	Eddy_cmd+=" --extra-eddy-arg=--very_verbose"
 
-	echo ""
-	echo "Eddy_cmd: ${Eddy_cmd}"
-	echo ""
+	inform ""
+	inform "Eddy_cmd: ${Eddy_cmd}"
+	inform ""
 
 	${Eddy_cmd}
 	if [ $? -ne 0 ]; then

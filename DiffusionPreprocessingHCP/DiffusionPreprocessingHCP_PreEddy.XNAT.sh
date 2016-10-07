@@ -87,29 +87,38 @@ TESLA_SPEC="3T"
 # Show script usage information
 usage()
 {
-	echo ""
-	echo "  Run the HCP Diffusion Preprocessing pipeline PreEddy phase script "
-	echo "  (DiffPreprocPipeline_PreEddy.sh) in an XNAT-aware and "
-	echo "  XNAT-pipeline-like manner."
-	echo ""
-	echo "  Usage: DiffusionPreprocessingHCP_PreEddy.XNAT.sh <options>"
-	echo ""
-	echo "  Options: [ ] = optional, < > = user-supplied-value"
-	echo ""
-	echo "   [--help] : show usage information and exit"
-	echo ""
-	echo "    --user=<username>      : XNAT DB username"
-	echo "    --password=<password>  : XNAT DB password"
-	echo "    --server=<server>      : XNAT server (e.g. db.humanconnectome.org)"
-	echo "    --project=<project>    : XNAT project (e.g. HCP_500)"
-	echo "    --subject=<subject>    : XNAT subject ID within project (e.g. 100307)"
-	echo "    --session=<session>    : XNAT session ID within project (e.g. 100307_3T)"
-	echo "    --working-dir=<dir>    : Working directory in which to place retrieved data"
-	echo "                             and in which to produce results"
-	echo "    --workflow-id=<id>     : XNAT Workflow ID to update as steps are completed"
-	echo "    --phase-encoding-dir=<dir-indication>"
-	echo "                           : One of {RLLR, PAAP}"
-	echo ""
+	cat <<EOF
+
+Run the HCP Diffusion Preprocessing pipeline PreEddy phase script 
+(DiffPreprocPipeline_PreEddy.sh) in an XNAT-aware and 
+XNAT-pipeline-like manner.
+
+Usage: DiffusionPreprocessingHCP_PreEddy.XNAT.sh PARAMETER...
+
+PARAMETERs are: [ ] = optional, < > = user-supplied-value
+  [--help]              show usage information and exit with a non-zero return code
+  --user=<username>     XNAT DB username
+  --password=<password> XNAT DB password
+  --server=<server>     XNAT server (e.g. db.humanconnectome.org)
+  --project=<project>   XNAT project (e.g. HCP_500)
+  --subject=<subject>   XNAT subject ID within project (e.g. 100307)
+  --session=<session>   XNAT session ID within project (e.g. 100307_3T)
+  --working-dir=<dir>   Working directory in which to place retrieved data
+                        and in which to produce results
+  --workflow-id=<id>    XNAT Workflow ID to update as steps are completed
+  --phase-encoding-dir=<dir-indication>"
+                        One of {RLLR, PAAP}"
+
+Return Status Value:
+
+  0                     help was not requested, all parameters were properly
+                        formed, all required parameters were provided, and
+                        no processing failure was detected
+  Non-zero              Otherwise - help requested, malformed parameters,
+                        some required parameters not provided, or a processing
+                        failure was detected
+ 
+EOF
 }
 
 
