@@ -320,7 +320,7 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
 
                 delete_resource.delete_resource(
                     self.username, self.password, str_utils.get_server_name(self.server),
-                    self.project, self.subject, self.session, output_resource_name)
+                    self.project, self.subject, self.session, output_resource_name, True)
 
             script_file_start_name = working_directory_name
             script_file_start_name += os.sep + self.subject

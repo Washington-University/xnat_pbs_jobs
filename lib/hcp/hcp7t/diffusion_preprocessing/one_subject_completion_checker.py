@@ -4,6 +4,7 @@
 hcp/hcp7t/diffusion_preprocessing/one_subject_completion_checker.py:
 Check HCP 7T diffusion preprocessing status for one HCP 7T subject.
 """
+
 # import of built-in modules
 import os
 
@@ -15,6 +16,7 @@ pass
 # import of local modules
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
+import hcp.one_subject_completion_checker
 
 
 # authorship information
@@ -25,11 +27,14 @@ __maintainer__ = "Timothy B. Brown"
 
 def _inform(msg):
     """Outputs a message that is prefixed by the module file name."""
-    #print('hcp.hcp7t.diffusion_preprocessing.' + os.path.basename(__file__) + ": " + msg)
     print(os.path.basename(__file__) + ": " + msg)
 
 
-class OneSubjectCompletionChecker:
+class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectCompletionChecker):
+
+
+    def __init__(self):
+        super().__init__()
 
 
     def does_processed_resource_exist(self, archive, hcp7t_subject_info):
@@ -50,7 +55,10 @@ class OneSubjectCompletionChecker:
         # Build a list of expected files
         file_name_list = []
 
-        diffusion_7T_dir = archive.diffusion_preproc_dir_fullpath(hcp7t_subject_info) + os.sep + 'Diffusion_7T'
+        diffusion_7T_dir = archive.diffusion_preproc_dir_fullpath(hcp7t_subject_info) 
+        diffusion_7T_dir += os.sep 
+        diffusion_7T_dir += 'Diffusion_7T'
+
         diffusion_7T_data_dir = diffusion_7T_dir + os.sep + 'data'
 
         file_name_list.append(diffusion_7T_data_dir + os.sep + 'bvals')
@@ -63,7 +71,7 @@ class OneSubjectCompletionChecker:
         file_name_list.append(diffusion_7T_data_dir + os.sep + 'nodif_brain.nii.gz')
         file_name_list.append(diffusion_7T_data_dir + os.sep + 'nodif.nii.gz')
         file_name_list.append(diffusion_7T_data_dir + os.sep + 'qa.txt')
-                                                                                                                              
+
         warped_dir = diffusion_7T_data_dir + os.sep + 'warped'
 
         file_name_list.append(warped_dir + os.sep + 'data_warped.nii.gz')
@@ -186,17 +194,7 @@ class OneSubjectCompletionChecker:
         file_name_list.append(T1w_xfms_dir + os.sep + 'T2w_reg_dc.nii.gz')
 
         # Now check to see if expected files actually exist
-        for file_name in file_name_list:
-            if verbose:
-                _inform("Checking for existence of file: " + file_name)
-            if os.path.isfile(file_name):
-                continue
-            # If we get here, the most recently checked file does not exist
-            _inform("FILE DOES NOT EXIST: " + file_name)
-            return False
-
-        # If we get here, all files that were checked exist
-        return True
+        return self.do_all_files_exist(file_name_list, verbose)
 
 
 def _simple_interactive_demo():

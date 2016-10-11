@@ -3,9 +3,9 @@
 """hcp/archive.py: Provide direct access to an HCP project archive."""
 
 # import of built-in modules
-import os
 import abc
 import glob
+import os
 
 # import of third party modules
 pass

@@ -7,8 +7,10 @@ import sys
 import os
 import subprocess
 
+
 # import of third party modules
 pass
+
 
 # import of local modules
 import xnat.xnat_access as xnat_access
@@ -16,10 +18,12 @@ import utils.str_utils as str_utils
 import utils.my_argparse as my_argparse
 import utils.user_utils as user_utils
 
+
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
+
 
 def _inform(msg):
     """Inform the user of this program by outputing a message that is prefixed by the file name.
@@ -28,6 +32,7 @@ def _inform(msg):
     :type msg: str
     """
     print(os.path.basename(__file__) + ": " + msg)
+
 
 def delete_resource(user, password, server, project, subject, session, resource, perform_delete = True):
     # get XNAT session id
@@ -70,6 +75,7 @@ def delete_resource(user, password, server, project, subject, session, resource,
         _inform("delete_cmd: " + delete_cmd)
         _inform("Deletion not attempted")
 
+
 def main():
     # create a parser object for getting the command line options
     parser = my_argparse.MyArgumentParser(description="Program to delete a DB resource.")
@@ -82,7 +88,7 @@ def main():
     parser.add_argument('-ses', '--session',  dest='session',  required=True, type=str)
     parser.add_argument('-r'  , '--resource', dest='resource', required=True, type=str)
 
-    # option arguments
+    # optional arguments
     parser.add_argument('-ser', '--server', dest='server', required=False, default='https://db.humanconnectome.org', type=str)
     parser.add_argument('-f'  , '--force', dest='force', action="store_true", required=False, default=False) 
 
@@ -110,6 +116,7 @@ def main():
     delete_resource(args.user, args.password, args.server, 
                     args.project, args.subject, args.session, args.resource,
                     delete_it)
+
 
 if __name__ == '__main__':
     main()
