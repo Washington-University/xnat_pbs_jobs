@@ -27,10 +27,7 @@ __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
 
-_DEBUG = False
-
 # create and configure a module logger
-
 log = logging.getLogger(__file__)
 log.setLevel(logging.INFO)
 #log.setLevel(logging.DEBUG)
@@ -96,6 +93,10 @@ def _determine_expected_output_volume_count(archive, subject_info):
 
 
 def _get_volume_count(file_name):
+    
+    if not os.path.isfile(file_name):
+        return 0
+
     cmd = 'fslinfo ' + file_name + ' | grep dim4 | grep -v pix'
     completed_process = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, 
                                        universal_newlines=True)

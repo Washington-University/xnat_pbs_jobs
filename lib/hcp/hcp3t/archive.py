@@ -3,19 +3,24 @@
 """hcp/hcp3t/archive.py: Provide direct access to an HCP 3T project archive."""
 
 # import of built-in modules
+import glob
 import os
+
 
 # import of third party modules
 pass
 
+
 # import of local modules
-import hcp.hcp3t.subject as hcp3t_subject
 import hcp.archive as hcp_archive
+import hcp.hcp3t.subject as hcp3t_subject
+
 
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
+
 
 def _inform(msg):
     """Inform the user by writing out a message that is prefixed by the file name.
@@ -24,6 +29,7 @@ def _inform(msg):
     :type msg: str
     """
     print(os.path.basename(__file__) + ": " + msg)
+
 
 class Hcp3T_Archive(hcp_archive.HcpArchive):
     """This class provides access to an HCP 3T project data archive.
@@ -39,9 +45,16 @@ class Hcp3T_Archive(hcp_archive.HcpArchive):
         """String to indicate the tesla rating of the scanner used."""
         return '3T'
 
+
     def __init__(self):
         """Constructs an Hcp3T_Archive object."""
         super().__init__()
+
+
+    def available_supplemental_structural_preproc_dir_fullpaths(self, subject_info):
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + os.sep +
+                             'Structural' + '_' + self.PREPROC_SUFFIX + '_supplemental')
+        return sorted(dir_list)
 
 
 def _simple_interactive_demo():
@@ -87,7 +100,7 @@ def _simple_interactive_demo():
 
     _inform("")
     _inform("Available functional preproc dirs: ")
-    for directory in archive.available_functional_preproc_dirs(subject_info):
+    for directory in archive.available_functional_preproc_dir_fullpaths(subject_info):
         _inform(directory)
 
     _inform("")

@@ -21,6 +21,7 @@ import utils.my_argparse as my_argparse
 import xnat.xnat_archive as xnat_archive
 import utils.delete_resource as delete_resource
 
+
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"

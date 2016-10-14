@@ -66,7 +66,7 @@ XNAT_UTILS_HOME=${PIPELINE_TOOLS_HOME}/xnat_utilities
 inform "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
 # source XNAT workflow utility functions
-inform ${XNAT_UTILS_HOME}/xnat_workflow_utilities.sh
+source ${XNAT_UTILS_HOME}/xnat_workflow_utilities.sh
 
 # set up to run Python
 source ${SCRIPTS_HOME}/epd-python_setup.sh

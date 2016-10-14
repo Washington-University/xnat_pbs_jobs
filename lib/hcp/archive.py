@@ -179,6 +179,12 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
+    def available_functional_preproc_dir_fullpaths(self, subject_info):
+        """Returns a list of full paths to preprocessed functional scan resources."""
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
+                             self.FUNCTIONAL_SCAN_MARKER + '*' + self.PREPROC_SUFFIX) 
+        return sorted(dir_list)
+
 
     def diffusion_unproc_dir_fullpath(self, subject_info):
         """the full path to the unprocessed diffusion resource directory"""
@@ -275,7 +281,6 @@ class HcpArchive(abc.ABC):
 
 
 
-
 # ICI name changes to methods from here down are needed for consistency
 
 
@@ -283,17 +288,12 @@ class HcpArchive(abc.ABC):
 
 
 
-    def available_functional_preproc_dirs(self, subject_info):
-        """Returns a list of full paths to preprocessed functional scan resources."""
-        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
-                             self.FUNCTIONAL_SCAN_MARKER + '*' + self.PREPROC_SUFFIX) 
-        return sorted(dir_list)
 
 
     def available_functional_preproc_names(self, subject_info):
         """Returns a list of scan names (not full paths) of available preprocessed
         functional resources."""
-        dir_list = self.available_functional_preproc_dirs(subject_info)
+        dir_list = self.available_functional_preproc_dir_fullpaths(subject_info)
         name_list = []
         for directory in dir_list:
             name_list.append(self._get_scan_name_from_path(directory))
@@ -439,6 +439,18 @@ class HcpArchive(abc.ABC):
     def is_task_scan_name(self, scan_name):
         return scan_name.startswith(self.TASK_SCAN_MARKER)
 
+
+    def available_structural_unproc_dir_fullpaths(self, subject_info):
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + os.sep +
+                             'T[12]w_' + '*' + self.UNPROC_SUFFIX)
+        return sorted(dir_list)
+
+
+    def available_structural_preproc_dir_fullpaths(self, subject_info):
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + os.sep +
+                             'Structural' + '_' + self.PREPROC_SUFFIX)
+        return sorted(dir_list)
+        
 
     def available_resting_state_preproc_dirs(self, subject_info):
         """Returns a list of full paths to functionally preprocessed resting state scan resources."""

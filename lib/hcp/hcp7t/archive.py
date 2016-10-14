@@ -308,7 +308,7 @@ def _simple_interactive_demo():
 
     _inform("")
     _inform("Available functional preproc dirs: ")
-    for directory in archive.available_functional_preproc_dirs(subject_info):
+    for directory in archive.available_functional_preproc_dir_fullpaths(subject_info):
         _inform(directory)
 
     _inform("")
