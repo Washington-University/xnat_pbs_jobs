@@ -39,15 +39,10 @@ def _from_to(get_from, put_to, copy=False, show_log=False):
     if copy:
         os.makedirs(put_to, exist_ok=True)
 
-
-        #verbose = 1 if show_log else 0
-        #distutils.dir_util.copy_tree(get_from, put_to, update=True, verbose=show_log)
-        #shutil.copytree(get_from, put_to)
-
         if show_log:
-            rsync_cmd = "rsync -auv "
+            rsync_cmd = "rsync -auLv "
         else:
-            rsync_cmd = "rsync -au "
+            rsync_cmd = "rsync -auL "
 
         rsync_cmd += get_from + os.sep + "*" + " " + put_to
         log.info("rsync_cmd: " + rsync_cmd)
@@ -187,6 +182,17 @@ def get_full_data(archive, subject_info, study_dir, copy=False, show_log=False):
         get_preproc_data(archive, subject_info, study_dir, copy, show_log)
 
 
+def get_diffusion_preproc_vetting_data(archive, subject_info, study_dir, copy=False, show_log=False):
+
+    if not copy:
+        get_diffusion_preproc_data(archive, subject_info, study_dir, copy, show_log)
+        get_unproc_data(archive, subject_info, study_dir, copy, show_log)
+
+    else:
+        get_unproc_data(archive, subject_info, study_dir, copy, show_log)
+        get_diffusion_preproc_data(archive, subject_info, study_dir, copy, show_log)
+
+
 def clean_xnat_specific_files(study_dir):
     for root, dirs, files in os.walk(study_dir):
         for filename in files:
@@ -215,17 +221,22 @@ def clean_pbs_job_logs(study_dir):
                 os.remove(fullpath)
 
 
+
+
+
+
 def main():
     # create a parser object for getting the command line arguments
     parser = my_argparse.MyArgumentParser()
 
     # mandatory arguments
-    parser.add_argument('-p', '--project', dest='project', required=True, type=str)
-    parser.add_argument('-s', '--subject', dest='subject', required=True, type=str)
+    parser.add_argument('-p', '--project',   dest='project',   required=True, type=str)
+    parser.add_argument('-s', '--subject',   dest='subject',   required=True, type=str)
     parser.add_argument('-d', '--study-dir', dest='study_dir', required=True, type=str)
 
     # optional arguments
-    parser.add_argument('-c', '--copy', dest='copy', action='store_true', required=False, default=False)
+    parser.add_argument('-c',  '--copy',  dest='copy',  action='store_true', required=False, default=False)
+    parser.add_argument('-ph', '--phase', dest='phase', required=False, default="full")
 
     # parse the command line arguments
     args = parser.parse_args()
@@ -239,11 +250,14 @@ def main():
     subject_info = hcp3t_subject.Hcp3TSubjectInfo(args.project, args.subject)
     archive = hcp3t_archive.Hcp3T_Archive()
 
-    get_full_data(archive, subject_info, args.study_dir, args.copy, show_log=True)
-    clean_xnat_specific_files(args.study_dir)
-    clean_pbs_job_logs(args.study_dir)
+    if (args.phase == "full"):
+        get_full_data(archive, subject_info, args.study_dir, args.copy, show_log=True)
+        clean_xnat_specific_files(args.study_dir)
+        clean_pbs_job_logs(args.study_dir)
 
-
+    elif (args.phase == "diffusion_preproc_vetting"):
+        get_diffusion_preproc_vetting_data(archive, subject_info, args.study_dir, args.copy, show_log=True)
+        clean_xnat_specific_files(args.study_dir)
 
 
 if __name__ == '__main__':
