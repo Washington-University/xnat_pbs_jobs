@@ -61,8 +61,11 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
 
         diffusion_7T_data_dir = diffusion_7T_dir + os.sep + 'data'
 
+        file_name_list.append(diffusion_7T_data_dir + os.sep + 'avg_data.idxs')
         file_name_list.append(diffusion_7T_data_dir + os.sep + 'bvals')
+        file_name_list.append(diffusion_7T_data_dir + os.sep + 'bvals_noRot')
         file_name_list.append(diffusion_7T_data_dir + os.sep + 'bvecs')
+        file_name_list.append(diffusion_7T_data_dir + os.sep + 'bvecs_noRot')
         file_name_list.append(diffusion_7T_data_dir + os.sep + 'data.nii.gz')
         file_name_list.append(diffusion_7T_data_dir + os.sep + 'fullWarp_jacobian.nii.gz')
         file_name_list.append(diffusion_7T_data_dir + os.sep + 'grad_dev.nii.gz')
@@ -82,15 +85,16 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
 
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'acqparams.txt')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.eddy_movement_rms')
+        file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.eddy_outlier_free_data.nii.gz')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.eddy_outlier_map')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.eddy_outlier_n_sqr_stdev_map')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.eddy_outlier_n_stdev_map')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.eddy_outlier_report')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.eddy_parameters')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.eddy_post_eddy_shell_alignment_parameters')
+        file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.eddy_restricted_movement_rms')
+        file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.eddy_results_with_outliers_retained.nii.gz')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.eddy_rotated_bvecs')
-        file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.nii.gz')
-        file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'eddy_unwarped_images.no_outlier_replacement.nii.gz')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'index.txt')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'Neg.bval')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'Neg.bvec')
@@ -103,6 +107,11 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'Pos_Neg.nii.gz')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'Pos_SeriesVolNum.txt')
         file_name_list.append(diffusion_7T_eddy_dir + os.sep + 'series_index.txt')
+
+        diffusion_7T_rawdata_dir = diffusion_7T_dir + os.sep + 'rawdata'
+
+        file_name_list.append(diffusion_7T_rawdata_dir + os.sep + 'AP_SeriesCorrespVolNum.txt')
+        file_name_list.append(diffusion_7T_rawdata_dir + os.sep + 'PA_SeriesCorrespVolNum.txt')
 
         diffusion_7T_reg_dir = diffusion_7T_dir + os.sep + 'reg'
 
@@ -180,6 +189,7 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
         file_name_list.append(T1w_Diffusion_7T_dir + os.sep + 'data.nii.gz')
         file_name_list.append(T1w_Diffusion_7T_dir + os.sep + 'grad_dev.nii.gz')
         file_name_list.append(T1w_Diffusion_7T_dir + os.sep + 'nodif_brain_mask.nii.gz')
+        file_name_list.append(T1w_Diffusion_7T_dir + os.sep + 'nodif_brain_mask_old.nii.gz')
 
         T1w_xfms_dir = T1w_dir + os.sep + 'xfms'
 

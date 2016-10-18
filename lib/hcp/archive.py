@@ -244,6 +244,21 @@ class HcpArchive(abc.ABC):
         return sorted(name_list)
 
 
+    def available_FIX_processed_dir_fullpaths(self, subject_info):
+        """Returns a list of full paths to FIX processed scan resources."""
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' + 
+                             self.FUNCTIONAL_SCAN_MARKER + '*' + self.FIX_PROCESSED_SUFFIX)
+        return sorted(dir_list)
+
+
+    def available_FIX_processed_names(self, subject_info):
+        """Returns a list of scan names (not full paths) of available FIX processed scans."""
+        dir_list = self.available_FIX_processed_dir_fullpaths(subject_info)
+        name_list = []
+        for directory in dir_list:
+            name_list.append(self._get_scan_name_from_path(directory))
+        return name_list
+
 
 
 
@@ -364,20 +379,8 @@ class HcpArchive(abc.ABC):
         return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.scan_PostFix_resource_name(scan)
 
 
-    def available_FIX_processed_dirs(self, subject_info):
-        """Returns a list of full paths to FIX processed scan resources."""
-        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' + 
-                             self.FUNCTIONAL_SCAN_MARKER + '*' + self.FIX_PROCESSED_SUFFIX)
-        return sorted(dir_list)
 
 
-    def available_FIX_processed_names(self, subject_info):
-        """Returns a list of scan names (not full paths) of available FIX processed scans."""
-        dir_list = self.available_FIX_processed_dirs(subject_info)
-        name_list = []
-        for directory in dir_list:
-            name_list.append(self._get_scan_name_from_path(directory))
-        return name_list
 
 
 #    def DeDrift_processed_resource_name(self):

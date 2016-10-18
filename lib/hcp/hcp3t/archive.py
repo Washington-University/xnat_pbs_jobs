@@ -116,7 +116,7 @@ def _simple_interactive_demo():
 
     _inform("")
     _inform("Available FIX processed dirs: ")
-    for directory in archive.available_FIX_processed_dirs(subject_info):
+    for directory in archive.available_FIX_processed_dir_fullpaths(subject_info):
         _inform(directory)
 
     _inform("")

@@ -32,7 +32,7 @@ sh.setFormatter(logging.Formatter('%(name)s: %(message)s'))
 module_logger.addHandler(sh)
 
 
-class OneSubjectCompletionChecker:
+class OneSubjectCompletionChecker(abc.ABC):
     """Abstract base class for classes that are used to check the completion
        of pipeline processing for one subject
     """

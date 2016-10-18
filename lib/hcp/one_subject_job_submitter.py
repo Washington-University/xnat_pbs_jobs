@@ -5,18 +5,22 @@ one_subject_job_submitter.py: Abstract base class for an object
 that submits jobs for a pipeline for one subject.
 """
 
+
 # import of built-in modules
 import abc
 import contextlib
 import os
 import stat
 
+
 # import of third party modules
 pass
+
 
 # import of local modules
 import utils.os_utils as os_utils
 import utils.str_utils as str_utils
+
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -31,7 +35,7 @@ def _inform(msg):
     print(os.path.basename(__file__) + ": " + msg)
 
 
-class OneSubjectJobSubmitter:
+class OneSubjectJobSubmitter(abc.ABC):
     """This class is an abstract base class for classes that are used
     to submit jobs for one pipeline for one subject.
     """

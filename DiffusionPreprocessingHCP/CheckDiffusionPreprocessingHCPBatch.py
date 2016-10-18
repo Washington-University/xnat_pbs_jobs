@@ -52,7 +52,7 @@ if __name__ == "__main__":
     completion_checker = one_subject_completion_checker.OneSubjectCompletionChecker()
 
     # Check completion status for listed subjects
-    print("Project\tSubject ID\tOutput Resource Exists\tFiles Exist\tExpected Output Volumes\tExpected Output Matches")
+    print("Project\tSubject ID\tOutput Resource Exists\tOutput Resource Date\tFiles Exist\tExpected Output Volumes\tExpected Output Matches")
 
     for subject in subject_list:
 
@@ -71,7 +71,8 @@ if __name__ == "__main__":
                     files_exist = "FALSE"
 
                 try:
-                    (success, expected_size, msg) = output_size_checker.check_diffusion_preproc_size(archive, subject)
+                    size_checker = output_size_checker.DiffusionOutputSizeChecker()
+                    (success, expected_size, msg) = size_checker.check_diffusion_preproc_size(archive, subject)
                 except output_size_checker.NoDiffusionPreprocResource as e:
                     success = False
                     expected_size = 0
@@ -97,11 +98,12 @@ if __name__ == "__main__":
             processed_resource_date   = "---"
             files_exist = "---"
             expected_size_str = "---"
-            matches_expected="---"
+            matches_expected = "---"
         
-        output_str = subject.project + '\t'
-        output_str += subject.subject_id + '\t'
-        output_str += processed_resource_exists + '\t'
+        output_str = subject.project + "\t"
+        output_str += subject.subject_id + "\t"
+        output_str += processed_resource_exists + "\t"
+        output_str += processed_resource_date + "\t"
         output_str += files_exist + "\t"
         output_str += expected_size_str + "\t"
         output_str += matches_expected

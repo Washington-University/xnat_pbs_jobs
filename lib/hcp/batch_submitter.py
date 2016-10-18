@@ -32,7 +32,7 @@ def _debug(msg):
     #_inform(debug_msg)
     pass
 
-class BatchSubmitter:
+class BatchSubmitter(abc.ABC):
     """This class is an abstract base class for classes that are used to submit jobs for one
     pipeline for a batch of subjects.
     """
