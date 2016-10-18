@@ -10,6 +10,7 @@ of data for a specified subject within a specified project.
 import abc
 import logging
 import os
+import subprocess
 
 
 # import of third party modules
