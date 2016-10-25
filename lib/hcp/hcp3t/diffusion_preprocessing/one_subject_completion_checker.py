@@ -216,6 +216,17 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
         file_name_list.append(T1w_xfms_dir + os.sep + 'T1w_dc.nii.gz')
         file_name_list.append(T1w_xfms_dir + os.sep + 'T2w_reg_dc.nii.gz')
 
+        eddy_logs_dir = T1w_dir + os.sep + 'Diffusion' + os.sep + 'eddylogs'
+
+        file_name_list.append(eddy_logs_dir + os.sep + 'eddy_unwarped_images.eddy_movement_rms')
+        file_name_list.append(eddy_logs_dir + os.sep + 'eddy_unwarped_images.eddy_outlier_map')
+        file_name_list.append(eddy_logs_dir + os.sep + 'eddy_unwarped_images.eddy_outlier_n_sqr_stdev_map')
+        file_name_list.append(eddy_logs_dir + os.sep + 'eddy_unwarped_images.eddy_outlier_n_stdev_map')
+        file_name_list.append(eddy_logs_dir + os.sep + 'eddy_unwarped_images.eddy_outlier_report')
+        file_name_list.append(eddy_logs_dir + os.sep + 'eddy_unwarped_images.eddy_parameters')
+        file_name_list.append(eddy_logs_dir + os.sep + 'eddy_unwarped_images.eddy_post_eddy_shell_alignment_parameters')
+        file_name_list.append(eddy_logs_dir + os.sep + 'eddy_unwarped_images.eddy_restricted_movement_rms')
+
         # Now check to see if expected files actually exist
         return self.do_all_files_exist(file_name_list, verbose)
 
