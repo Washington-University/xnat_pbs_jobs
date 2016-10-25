@@ -540,7 +540,7 @@ link_hcp_func_preproc_data()
 
 	echo ""
 	echo "----------" `date` "----------"
-    echo "Linking HCP Functionally Preprocessed data from archive"
+    echo "Linking HCP Functional Preprocessed data from archive"
     echo " Archive: ${archive}"
     echo " Project: ${project}"
     echo " Subject: ${subject}"
@@ -587,7 +587,7 @@ get_hcp_func_preproc_data()
 
 	echo ""
 	echo "----------" `date` "----------"
-    echo "Copying HCP Functionally Preprocessed data from archive"
+    echo "Copying HCP Functional Preprocessed data from archive"
     echo " Archive: ${archive}"
     echo " Project: ${project}"
     echo " Subject: ${subject}"
@@ -612,6 +612,95 @@ get_hcp_func_preproc_data()
     local rsync_cmd=""
     rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
     echo "rsync_cmd: ${rsync_cmd}"
+	echo "----------" `date` "----------"
+	echo ""
+    ${rsync_cmd}
+
+    popd
+}
+
+link_hcp_diffusion_preproc_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_500
+	local subject=${3} # e.g. 100307
+	local session=${4} # e.g. 100307_3T
+	local to_study_dir=${5} 
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Linking HCP Diffusion Preprocessed data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local link_from=""
+	link_from+="${archive}"
+	link_from+="/${project}"
+	link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	link_from+="/${session}"
+	link_from+="/${DATABASE_RESOURCES_ROOT}"
+	link_from+="/Diffusion_preproc/"
+
+	local link_to=""
+	link_to="${to_study_dir}/${subject}"
+
+	local lndir_cmd=""
+	lndir_cmd="${PATH_TO_LNDIR} ${link_from} ${link_to}"
+	echo "lndir_cmd: ${lndir_cmd}"
+
+	echo "----------" `date` "----------"
+	echo ""
+    ${lndir_cmd}
+
+    popd
+}
+
+get_hcp_diffusion_preproc_data()
+{
+    local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+    local project=${2} # e.g. HCP_500
+    local subject=${3} # e.g. 100307
+    local session=${4} # e.g. 100307_3T
+    local to_study_dir=${6}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Copying HCP Diffusion Preprocessed data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+    echo " To Study Directory: ${to_study_dir}"
+
+    pushd ${to_study_dir}
+    mkdir --parents ${subject}
+
+    local copy_from=""
+    copy_from+="${archive}"
+    copy_from+="/${project}"
+    copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+    copy_from+="/${session}"
+    copy_from+="/${DATABASE_RESOURCES_ROOT}"
+    copy_from+="/Diffusion_preproc/*"
+
+	local copy_to=""
+	copy_to="${to_study_dir}/${subject}"
+
+	local rsync_cmd=""
+	rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
+	echo "rsync_cmd: ${rsync_cmd}"
 	echo "----------" `date` "----------"
 	echo ""
     ${rsync_cmd}
