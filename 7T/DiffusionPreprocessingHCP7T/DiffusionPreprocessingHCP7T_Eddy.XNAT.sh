@@ -263,6 +263,8 @@ main()
 	Eddy_cmd+=" --extra-eddy-arg=--with_outliers"
 	Eddy_cmd+=" --extra-eddy-arg=--initrand"
 	Eddy_cmd+=" --extra-eddy-arg=--very_verbose"
+	Eddy_cmd+=" --extra-eddy-arg=--b0_flm=quadratic"
+	Eddy_cmd+=" --extra-eddy-arg=--b0_slm=linear"
 
 	inform ""
 	inform "Eddy_cmd: ${Eddy_cmd}"
