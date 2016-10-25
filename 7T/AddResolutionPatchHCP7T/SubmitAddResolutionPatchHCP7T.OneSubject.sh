@@ -2,7 +2,7 @@
 
 # This pipeline's name
 PIPELINE_NAME="AddResolutionPatchHCP7T"
-SCRIPT_NAME="SubmitAddResoultionPatchHCP7T.OneSubject.sh"
+SCRIPT_NAME="SubmitAddResolutionPatchHCP7T.OneSubject.sh"
 DEFAULT_RESOURCE_NAME="Structural_preproc_supplemental"
 
 # echo a message with the script name as a prefix
