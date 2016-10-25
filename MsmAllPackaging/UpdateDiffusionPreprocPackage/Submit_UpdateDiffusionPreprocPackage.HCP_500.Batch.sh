@@ -24,8 +24,14 @@ project="HCP_500"
 # This was a temporary change because the normal packages directory was inaccessible
 # packages_root="/HCP/hcpdb/build_ssd/chpc/BUILD/temp_packages_dir/${project}"
 # It has now been backed out, but is left as a comment in case it needs to be done again.
-packages_root="/HCP/hcpdb/packages/live/${project}"
+#packages_root="/HCP/hcpdb/packages/live/${project}"
+
+packages_root="/HCP/hcpdb/packages/prerelease/zip/${project}"
 archive_root="/HCP/hcpdb/archive/${project}/arc001"
+
+
+
+
 
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 

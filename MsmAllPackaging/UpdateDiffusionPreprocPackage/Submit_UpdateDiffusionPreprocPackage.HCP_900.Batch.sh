@@ -23,16 +23,15 @@ project="HCP_900"
 
 # This is a temporary change because the normal packages directory is inaccessible
 #packages_root="/HCP/hcpdb/packages/live/${project}"
-packages_root="/HCP/hcpdb/build_ssd/chpc/BUILD/temp_packages_dir/${project}"
+#packages_root="/HCP/hcpdb/build_ssd/chpc/BUILD/temp_packages_dir/${project}"
 
+packages_root="/HCP/hcpdb/packages/prerelease/zip/${project}"
 archive_root="/HCP/hcpdb/archive/${project}/arc001"
 
 #packages_tmp="/HCP/hcpdb/packages/temp"
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 
-# This is a temporary change because the normal packages directory is inaccessible
-#output_dir="/HCP/hcpdb/packages/PostMsmAll"
-output_dir="/HCP/hcpdb/build_ssd/chpc/BUILD/temp_packages_dir/PostMsmAll"
+output_dir="/HCP/hcpdb/packages/PostMsmAll"
 
 scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"
 log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/logs"

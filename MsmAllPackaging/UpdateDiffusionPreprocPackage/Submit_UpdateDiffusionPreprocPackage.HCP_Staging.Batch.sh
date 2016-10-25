@@ -20,7 +20,7 @@ if [ -z "${interval}" ]; then
 fi
 
 project="HCP_Staging"
-packages_root="/HCP/hcpdb/packages/prerelease/zip/HCP_Staging"
+packages_root="/HCP/hcpdb/packages/prerelease/zip/${project}"
 archive_root="/HCP/hcpdb/archive/HCP_Staging/arc001"
 
 #packages_tmp="/HCP/hcpdb/packages/temp"
