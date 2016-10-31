@@ -165,7 +165,7 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
 
         T1w_dir = archive.diffusion_preproc_dir_fullpath(hcp3t_subject_info) + os.sep + 'T1w'
 
-        file_name_list.append(T1w_dir + os.sep + hcp3t_subject_info.subject_id + '_3T_T1w_MPR1.nii.gz')
+        #file_name_list.append(T1w_dir + os.sep + hcp3t_subject_info.subject_id + '_3T_T1w_MPR1.nii.gz')
         file_name_list.append(T1w_dir + os.sep + 'aparc.a2009s+aseg_1mm.nii.gz')
         file_name_list.append(T1w_dir + os.sep + 'aparc.a2009s+aseg.nii.gz')
         file_name_list.append(T1w_dir + os.sep + 'aparc+aseg_1mm.nii.gz')
