@@ -28,12 +28,10 @@ get_options()
 	local arguments=($@)
 
 	# initialize global output variables
-	unset g_user
-	unset g_password
-	unset g_server
 	unset g_project
 	unset g_subject
 	unset g_working_dir
+	unset g_destination_root
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -48,28 +46,20 @@ get_options()
 				usage
 				exit 1
 				;;
-			--user=*)
-				g_user=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--password=*)
-				g_password=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--server=*)
-				g_server=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
 			--project=*)
-				g_project=${argument/*=/""}
+				g_project=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			--subject=*)
-				g_subject=${argument/*=/""}
+				g_subject=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			--working-dir=*)
-				g_working_dir=${argument/*=/""}
+				g_working_dir=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--dest-root=*)
+				g_destination_root=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -82,28 +72,6 @@ get_options()
 	done
 
 	local error_count=0
-
-	# check required parameters
-	if [ -z "${g_user}" ]; then
-		inform "ERROR: user (--user=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		inform "g_user: ${g_user}"
-	fi
-
-	if [ -z "${g_password}" ]; then
-		inform "ERROR: password (--password=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		inform "g_password: *******"
-	fi
-
-	if [ -z "${g_server}" ]; then
-		inform "ERROR: server (--server=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		inform "g_server: ${g_server}"
-	fi
 
 	if [ -z "${g_project}" ]; then
 		inform "ERROR: project (--project=) required"
@@ -126,6 +94,13 @@ get_options()
 		inform "g_working_dir: ${g_working_dir}"
 	fi
 
+	if [ -z "${g_destination_root}" ]; then
+		inform "ERROR: destination root (--dest-root=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		inform "g_destination_root: ${g_destination_root}"
+	fi
+
 	if [ ${error_count} -gt 0 ]; then
 		inform "For usage information, use --help"
 		exit 1
@@ -137,35 +112,55 @@ main()
 {
 	get_options $@
 
-	inform "Setting up to run Python"
-	source ${SCRIPTS_HOME}/epd-python_setup.sh
+	inform "Setting up to run Python 3"
+	source activate python3
 
-	inform "Setting up to run Groovy"
-	source ${SCRIPTS_HOME}/groovy_setup.sh
+	inform "Getting CinaB-Style data"
+	${XNAT_PBS_JOBS}/lib/hcp/hcp3t/get_cinab_style_data.py --project=${g_project} --subject=${g_subject} --study-dir=${g_working_dir}
 
-	pkg_cmd=""
-	pkg_cmd+="${NRG_PACKAGES}/tools/packaging/callPackager.sh "
-	pkg_cmd+=" --host ${g_server}"
-	pkg_cmd+=" --user ${g_user}"
-	#pkg_cmd+=" --outDir /HCP/hcpdb/packages/prerelease/zip" # should be the same place as below
-	pkg_cmd+=" --outDir /HCP/OpenAccess/prerelease/zip"
-	pkg_cmd+=" --buildDir ${g_working_dir}"
-	pkg_cmd+=" --project ${g_project}"
-	pkg_cmd+=" --subject ${g_subject}"
-	pkg_cmd+=" --outputFormat PACKAGE" # [CINAB | PACKAGE]
-	pkg_cmd+=" --outputType PREPROC"   # [UNPROC | PREPROC | ANALYSIS | FIX]
-	pkg_cmd+=" --packet DIFFUSION"    # [STRUCTURAL | FUNCTIONAL | DIFFUSION]
+	
+	inform "Creating package build directory"
+	package_build_dir=${g_working_dir}/package_build_dir
+	mkdir -p ${package_build_dir}
+	inform "Package build directory: ${package_build_dir}"
 
-	inform ""
-	inform "pkg_cmd: ${pkg_cmd}"
-	inform ""
+	inform "Copying files into package build directory"
+	mkdir -p ${package_build_dir}/${g_subject}/T1w
+	cp -auvL ${g_working_dir}/${g_subject}/T1w/T1w_acpc_dc_restore_1.25.nii.gz    ${package_build_dir}/${g_subject}/T1w
 
-	pkg_cmd+=" --pw ${g_password}"
+	mkdir -p ${package_build_dir}/${g_subject}/T1w/Diffusion
+	cp -auvL ${g_working_dir}/${g_subject}/T1w/Diffusion/data.nii.gz              ${package_build_dir}/${g_subject}/T1w/Diffusion
+	cp -auvL ${g_working_dir}/${g_subject}/T1w/Diffusion/bvecs                    ${package_build_dir}/${g_subject}/T1w/Diffusion
+	cp -auvL ${g_working_dir}/${g_subject}/T1w/Diffusion/bvals                    ${package_build_dir}/${g_subject}/T1w/Diffusion
+	cp -auvL ${g_working_dir}/${g_subject}/T1w/Diffusion/nodif_brain_mask.nii.gz  ${package_build_dir}/${g_subject}/T1w/Diffusion
+	cp -auvL ${g_working_dir}/${g_subject}/T1w/Diffusion/grad_dev.nii.gz          ${package_build_dir}/${g_subject}/T1w/Diffusion
 
-	${pkg_cmd}
-	if [ $? -ne 0 ]; then
-		exit 1
-	fi
+	mkdir -p ${package_build_dir}/${g_subject}/T1w/Diffusion/eddylogs 
+	cp -auvL ${g_working_dir}/${g_subject}/T1w/Diffusion/eddylogs/*               ${package_build_dir}/${g_subject}/T1w/Diffusion/eddylogs
+
+	mkdir -p ${package_build_dir}/${g_subject}/release-notes
+	cp -vL   ${XNAT_PBS_JOBS}/DiffusionPreprocessingHCP/ReleaseNotes.txt          ${package_build_dir}/${g_subject}/release-notes
+
+	inform "Creating package file"
+	package_file_name=${g_working_dir}/${g_subject}_3T_Diffusion_preproc.zip
+	inform "Package file name: ${package_file_name}"
+
+	pushd ${package_build_dir}
+	zip -r --verbose ${package_file_name} ${g_subject}
+	popd
+
+	inform "Creating checksum file"
+	checksum_file_name=${package_file_name}.md5
+
+	md5sum ${package_file_name} > ${checksum_file_name}
+	chmod u=rw,g=rw,o=r ${checksum_file_name}
+
+	inform "Moving package and checksum to destination"
+	destination_dir=${g_destination_root}/${g_subject}/preproc
+
+	inform "Destination: ${destination_dir}"
+	mv --verbose ${package_file_name}  ${destination_dir}
+	mv --verbose ${checksum_file_name} ${destination_dir}
 
 	rm -rf ${g_working_dir}
 }

@@ -9,9 +9,6 @@ get_options()
 	local arguments=($@)
 
 	# initialize global output variables
-	unset g_user
-	unset g_password
-	unset g_server
 	unset g_project
 	unset g_subject
 
@@ -24,24 +21,12 @@ get_options()
 		argument=${arguments[index]}
 
 		case ${argument} in
-			--user=*)
-				g_user=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--password=*)
-				g_password=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
-			--server=*)
-				g_server=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
 			--project=*)
-				g_project=${argument/*=/""}
+				g_project=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			--subject=*)
-				g_subject=${argument/*=/""}
+				g_subject=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -53,24 +38,6 @@ get_options()
 	done
 
 	# set defaults and prompt for some unspecified parameters
-	if [ -z "${g_user}" ]; then
-		printf "Enter Connectome DB Username: "
-		read g_user
-	fi
-
-	if [ -z "${g_password}" ]; then
-		stty -echo
-		printf "Enter Connectome DB Password: "
-		read g_password
-		echo ""
-		stty echo
-	fi
-
-	if [ -z "${g_server}" ]; then
-		g_server="db.humanconnectome.org"
-	fi
-	echo "Connectome DB Server: ${g_server}"
-
 	if [ -z "${g_project}" ]; then
 		g_project="HCP_500"
 	fi
@@ -89,6 +56,7 @@ main()
 
 	current_seconds_since_epoch=`date +%s`
 	working_directory_name="${BUILD_HOME}/${g_project}/DiffusionPackagingHCP.${g_subject}.${current_seconds_since_epoch}"
+	destination_root=${PACKAGES_ROOT}/prerelease/zip/${g_project}
 
 	# Make the working directory
 	echo "Making working directory: ${working_directory_name}"
@@ -107,12 +75,10 @@ main()
 	echo "#PBS -e ${LOG_DIR}" >> ${script_file_to_submit}
 	echo "" >> ${script_file_to_submit}
 	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/DiffusionPackagingHCP.sh \\" >> ${script_file_to_submit}
-	echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}
-	echo "  --password=\"${g_password}\" \\" >> ${script_file_to_submit}
-	echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
-	echo "  --project=\"${g_project}\" \\" >> ${script_file_to_submit}
-	echo "  --subject=\"${g_subject}\" \\" >> ${script_file_to_submit}
-	echo "  --working-dir=\"${working_directory_name}\" " >> ${script_file_to_submit}
+	echo "  --project=${g_project} \\" >> ${script_file_to_submit}
+	echo "  --subject=${g_subject} \\" >> ${script_file_to_submit}
+	echo "  --working-dir=${working_directory_name} \\" >> ${script_file_to_submit}
+	echo "  --dest-root=${destination_root} " >> ${script_file_to_submit}
 
 	chmod +x ${script_file_to_submit}
 
