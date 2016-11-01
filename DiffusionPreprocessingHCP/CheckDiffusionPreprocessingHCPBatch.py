@@ -30,14 +30,8 @@ def _inform(msg):
 
 if __name__ == "__main__":
 
-    # Get environment variables
-    subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
-    if subject_files_dir == None:
-        _inform("Environment variable SUBJECT_FILES_DIR must be set!")
-        sys.exit(1)
-
     # Get list of subjects to check
-    subject_file_name = subject_files_dir + os.sep + 'CheckDiffusionPreprocessingHCP.subjects'
+    subject_file_name = 'CheckDiffusionPreprocessingHCPBatch.subjects'
     _inform("Retrieving subject list from: " + subject_file_name)
     subject_list = hcp3t_subject.read_subject_info_list(subject_file_name)
 

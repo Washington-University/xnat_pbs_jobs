@@ -3,7 +3,8 @@ HCP 3T Diffusion Preprocessing
 
 Directory: `${XNAT_PBS_JOBS}/DiffusionPreprocessingHCP`
 
-Documentation Date: 31 Oct 2016
+Documentation Date: 01 Nov 2016
+
 
 XNAT-aware Processing
 ---------------------
@@ -19,6 +20,7 @@ XNAT-aware Processing
 * `DiffusionPreprocessingHCP_PostEddy.XNAT.sh`
 
 	Executes third phase (post-eddy) of Diffusion Preprocessing for 3T HCP data
+
 
 Submission of XNAT-aware Processing
 -----------------------------------
@@ -39,7 +41,7 @@ Submission of XNAT-aware Processing
 
 	* Uses `SubmitDiffusionPreprocessingHCP.OneSubject.sh` to submit jobs for a 
 	  batch of subjects from the HCP_500 project listed in 
-	  `${SUBJECT_FILES_DIR}/HCP_500.DiffusionPreprocessingHCP.Batch.subjects`
+	  `HCP_500.DiffusionPreprocessingHCP.Batch.subjects`
 	* Lines in the subject file contain just the subject number, e.g. 100307
 	* Takes care of distributing "PUT" jobs across multiple shadow servers
 
@@ -47,11 +49,14 @@ Submission of XNAT-aware Processing
 
 	* Like `SubmitDiffusionPreprocessingHCP.HCP_500.Batch.sh` except used for
 	  subjects in the HCP_900 project. 
+	* Uses subject file `HCP_900.DiffusionPreprocessingHCP.Batch.subjects`
 
 * `SubmitDiffusionPreprocessingHCP.HCP_Staging.Batch.sh`
 
 	* Like `SubmitDiffusionPreprocessingHCP.HCP_500.Batch.sh` except used for
 	  subjects in the HCP_Staging project. 
+	* Uses subject file `HCP_Staging.DiffusionPreprocessingHCP.Batch.subjects`
+
 
 The CopyEddyLogs Patch
 ----------------------
@@ -92,27 +97,28 @@ Preprocessing anytime after about 21 Oct 2016.
 * `SubmitCopyEddyLogsPatchHCP.Batch.sh`
 
 	* Uses `SubmitCopyEddyLogsPatchHCP.OneSubject.sh` to submit jobs for a 
-	  batch of subjects listed in 
-	  `${SUBJECT_FILES_DIR}/CopyEddyLogsPatchHCP.subjects`
+	  batch of subjects listed in `SubmitCopyEddyLogsPatchHCP.Batch.subjects`
 	* Lines in the subject file contain the project name and the subject number, 
 	  e.g. `HCP_Staging:102109`
 	* Takes care of distributing "PUT" jobs across multiple shadow servers
+
 
 Checking for Diffusion Preprocessing Completion
 -----------------------------------------------
 
 * `CheckDiffusionPreprocessingHCPBatch.py`
 
-	* Checks a batch of subjects listed in `${SUBJECT_FILES_DIR}/CheckDiffusionPreprocessingHCP.subjects`
-	  for completion status.
+	* Checks a batch of subjects listed in the local file 
+	  `CheckDiffusionPreprocessingHCPBatch.subjects` for completion status.
 	* Lines in subject list file take the form `<project>:<subject-id>:None`, 
 	  e.g. `HCP_Staging:102109:None`
 	* The `None` part is required as the code for reading in subject information 
 	  expects a standard 3T subject specification of `<project>:<subject-id>:<processing-directive>`
-	* Generates status information in 2 status files separated into jobs that are
-	  complete (`complete.status`) and jobs that are incomplete (`incomplete.status`)
+	* Generates status information in 2 status files separated into subjects that are
+	  complete (`complete.status`) and subjects that are incomplete (`incomplete.status`)
 	* The status files are Tab Separated Values (TSV) files for easy copying and pasting into 
 	  a spreadsheet program
+
 
 Creating Packages
 -----------------
@@ -141,25 +147,45 @@ Other previously used package creation mechanisms are now obsolete.
 
 	* Uses `SubmitDiffusionPackagingHCP.OneSubject.sh` to submit jobs for a
 	  batch of subjects from the HCP_500 project listed in
-	  `${SUBJECT_FILES_DIR}/HCP_500.DiffusionPackagingHCP.subjects`
+	  `HCP_500.DiffusionPackagingHCP.subjects`
 	* Lines in the subject file contain just the subject number, e.g. 100307
 
 * `SubmitDiffusionPackagingHCP.HCP_900.Batch.sh`
 
 	* Like `SubmitDiffusionPackagingHCP.HCP_500.Batch.sh` but for the
-	  HCP_900 project. _Still needs to be modified_.
+	  HCP_900 project. 
+	* Uses subject file `HCP_900.DiffusionPackagingHCP.subjects`
 
 * `SubmitDiffusionPackagingHCP.HCP_Staging.Batch.sh`
 
 	* Like `SubmitDiffusionPackagingHCP.HCP_500.Batch.sh` but for the
-	  HCP_Staging project. _Still needs to be modified_.
+	  HCP_Staging project. 
+	* Uses subject file `HCP_Staging.DiffusionPackagingHCP.subjects`
 
 * `ReleaseNotes.txt`
 
 	* Contains the Release Notes that will be included in the created
 	  packages
 
-Running the processing without submitting jobs to a scheduler
+
+Generating a Package Report 
+---------------------------
+
+A package report for the Diffusion_preproc packages can be generated.
+
+The package report generated is in TSV format and contains information
+such as the path to the expected package, an indication of whether the
+expected package file exists, the package file's size, etc.
+
+* `GenerateDiffusionPreprocessingPackageReport.py`
+
+	* Creates a package report for a batch of subjects listed in the local
+	  file `GenerateDiffusionPreprocessingPackageReport.subjects`
+	* Lines in subject list file take the form `<project>:<subject-id>:None`, 
+	  e.g. `HCP_Staging:102109:None`
+
+
+Running the Processing without Submitting Jobs to a Scheduler
 -------------------------------------------------------------
 
 Several subjects had to have their processing run on the "old" version of the

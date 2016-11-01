@@ -159,6 +159,14 @@ main()
 	destination_dir=${g_destination_root}/${g_subject}/preproc
 
 	inform "Destination: ${destination_dir}"
+	if [ -f "${destination_dir}" ]; then
+		# ${destination_dir} exists as a _regular_ file (not a directory or device file)
+		# So it needs to be removed so a directory can be created.
+		rm -f ${destination_dir}
+	fi
+
+	mkdir -p ${destination_dir}
+
 	mv --verbose ${package_file_name}  ${destination_dir}
 	mv --verbose ${checksum_file_name} ${destination_dir}
 

@@ -8,11 +8,6 @@ inform()
 	echo "${SCRIPT_NAME}: ${msg}"
 }
 
-if [ -z "${SUBJECT_FILES_DIR}" ]; then
-	inform "Environment variable SUBJECT_FILES_DIR must be set!"
-	exit 1
-fi
-
 printf "Connectome DB Username: "
 read userid
 
@@ -22,7 +17,7 @@ read password
 echo ""
 stty echo
 
-subject_file_name=${SUBJECT_FILES_DIR}/CopyEddyLogsPatchHCP.subjects
+subject_file_name=SubmitCopyEddyLogsPatchHCP.Batch.subjects
 inform "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
@@ -48,6 +43,8 @@ for project_subject in ${subjects} ; do
 		inform "   subject: ${subject}"
 		inform "    server: ${server}"
 		inform "--------------------------------------------------------------------------------"
+
+		continue
 
 		${XNAT_PBS_JOBS}/DiffusionPreprocessingHCP/SubmitCopyEddyLogsPatchHCP.OneSubject.sh \
 			--user=${userid} \
