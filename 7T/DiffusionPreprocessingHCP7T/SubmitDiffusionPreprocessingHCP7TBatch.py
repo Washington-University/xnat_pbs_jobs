@@ -60,7 +60,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             put_server = 'http://db-shadow' + str(self.get_and_inc_shadow_number()) + '.nrg.mir:8080'
 
             # get information for subject from the configuration file
-            setup_file = scripts_home + os.sep + config.get_value(subject.subject_id, 'SetUpFile')
+            setup_file = xnat_pbs_jobs_home + os.sep + config.get_value(subject.subject_id, 'SetUpFile')
             clean_output_first = config.get_bool_value(subject.subject_id, 'CleanOutputFirst')
             pre_eddy_walltime_limit_hrs = config.get_int_value(subject.subject_id, 'PreEddyWalltimeLimit')
             pre_eddy_vmem_limit_gbs = config.get_int_value(subject.subject_id, 'PreEddyVmemLimit')
@@ -109,27 +109,22 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 if __name__ == "__main__":
 
     # Get Environment varialbles
-    subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
-    if subject_files_dir == None:
-        _inform("Environment variable SUBJECT_FILES_DIR must be set!")
+    xnat_pbs_jobs_home = os.getenv('XNAT_PBS_JOBS')
+    if not xnat_pbs_jobs_home:
+        _inform("Environment variable XNAT_PBS_JOBS must be set!")
         sys.exit(1)
 
-    scripts_home = os.getenv('SCRIPTS_HOME')
-    if scripts_home == None:
-        _inform("Environment variable SCRIPTS_HOME must be set!")
-        sys.exit(1)
-
-    home = os.getenv('HOME')
-    if home == None:
-        _inform("Environment variable HOME must be set!")
-        sys.exit(1)
+    # home = os.getenv('HOME')
+    # if home == None:
+    #     _inform("Environment variable HOME must be set!")
+    #     sys.exit(1)
 
     # Get Connectome DB credentials
     userid = input("Connectome DB Username: ")
     password = getpass.getpass("Connectome DB Password: ")
 
     # Get list of subjects to process
-    subject_file_name = subject_files_dir + os.sep + 'DiffusionPreprocessingHCP7T.subjects'
+    subject_file_name = 'SubmitDiffusionPreprocessingHCP7TBatch.subjects'
     _inform('Retrieving subject list from: ' + subject_file_name)
     subject_list = hcp7t_subject.read_subject_info_list(subject_file_name)
 

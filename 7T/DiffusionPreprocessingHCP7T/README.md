@@ -5,6 +5,7 @@ Directory: `${XNAT_PBS_JOBS}/7T/DiffusionPreprocessingHCP7T`
 
 Documentation Date: 01 Nov 2016
 
+
 XNAT-aware Processing
 ---------------------
 
@@ -20,6 +21,7 @@ XNAT-aware Processing
 
 	Executes third phase (post-eddy) of Diffusion Preprocessing for 7T HCP data
 
+
 Submission of XNAT-aware Processing
 -----------------------------------
 
@@ -27,7 +29,7 @@ Submission of XNAT-aware Processing
 
 	* Uses `hcp.hcp7t.diffusion_preprocessing.one_subject_job_submitter.py` to 
 	  submit jobs for a batch of subjects listed in 
-	  `${SUBJECT_FILES_DIR}/DiffusionPreprocessingHCP7T.subjects`
+	  `SubmitDiffusionPreprocessingHCP7TBatch.subject`
 	* Lines in the subject file are of the form 
 	  `<project>:<structural-reference-project>:<subject-id>` 
 	  (e.g. `HCP_Staging_7T:HCP_500:102311`)
@@ -46,13 +48,19 @@ Submission of XNAT-aware Processing
 	* Contains subject-specific _and cross-subject default_ values for 
 	  such things as set up files and resource limits
 
+* `SetUpHCPPipeline_DiffusionPreprocHCP7T.sh`
+
+	* Set up file sourced by XNAT-aware processing scripts to set up environment
+	  variables to point to tools used.
+
+
 Checking for Diffusion Preprocessing Completion
 -----------------------------------------------
 	  
 * `CheckDiffusionPreprocessingHCP7TBatch.py`
 
 	* Checks a batch of subjects listed in 
-	  `${SUBJECT_FILES_DIR}/CheckDiffusionPreprocessingHCP7T.subjects`
+	  `CheckDiffusionPreprocessingHCP7TBatch.subjects`
 	  for completion status.
 	* Lines in the subject list file take the form 
 	  `<project>:<structural-reference-project>:<subject-id>`
@@ -61,6 +69,7 @@ Checking for Diffusion Preprocessing Completion
 	  are incomplete (`incomplete.status`)
 	* The status files are Tab Separated Values (TSV) files for eashy
 	  copying and pasting into a spreadsheet program
+
 
 Creating Packages
 -----------------
