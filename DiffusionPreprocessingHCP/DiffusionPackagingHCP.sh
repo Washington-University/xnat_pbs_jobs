@@ -8,14 +8,6 @@ inform()
 
 inform "Job started on `hostname` at `date`"
 
-# home directory for scripts to be sourced to setup the environment
-SCRIPTS_HOME=${HOME}/SCRIPTS
-inform "SCRIPTS_HOME: ${SCRIPTS_HOME}"
-
-# root directory of the XNAT database archive
-export XNAT_ARCHIVE_ROOT="/HCP/hcpdb/archive"
-inform "XNAT_ARCHIVE_ROOT: ${XNAT_ARCHIVE_ROOT}"
-
 usage()
 {
 	inform "usage: TBW"
