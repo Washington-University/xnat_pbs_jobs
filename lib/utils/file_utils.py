@@ -28,6 +28,15 @@ def get_config_file_name(source_file_name):
     config_file_name += '.ini'
     return config_file_name
 
+
+def get_subjects_file_name(source_file_name):
+    subjects_file_name = os.path.basename(source_file_name)
+    if subjects_file_name.endswith('.py'):
+        subjects_file_name = subjects_file_name[:-3]
+    subjects_file_name += '.subjects'
+    return subjects_file_name
+
+
 def human_readable_byte_size(size, factor=1024.0):
     num = size
 
