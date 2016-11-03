@@ -5,6 +5,7 @@
 import datetime
 import logging
 import os
+import sys
 
 
 # import of third party modules
@@ -30,12 +31,15 @@ sh = logging.StreamHandler()
 sh.setFormatter(logging.Formatter('%(name)s: %(message)s'))
 log.addHandler(sh)
 
+DNM = "---" # Does Not Matter
+NA  = "N/A" # Not Available
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 if __name__ == '__main__':
 
     # Get environment variables
     packages_root = os.getenv('PACKAGES_ROOT')
-    if packages_root == None:
+    if not packages_root:
         log.info("Environment variable PACKAGES_ROOT must be set!")
         sys.exit(1)
 
@@ -60,29 +64,35 @@ if __name__ == '__main__':
         if archive.does_diffusion_unproc_dir_exist(subject):
             package_exists = os.path.isfile(package_path)
             if package_exists:
-                package_date = datetime.datetime.fromtimestamp(os.path.getmtime(package_path)).strftime('%Y-%m-%d %H:%M:%S')
+                package_date = datetime.datetime.fromtimestamp(os.path.getmtime(package_path)).strftime(DATE_FORMAT)
                 package_size = file_utils.human_readable_byte_size(os.path.getsize(package_path), 1000.0)
             else:
-                package_date = "N/A"
-                package_size = "N/A"
+                package_date = NA
+                package_size = NA
 
             checksum_exists = os.path.isfile(checksum_path)
             if checksum_exists:
-                checksum_date = datetime.datetime.fromtimestamp(os.path.getmtime(checksum_path)).strftime('%Y-%m-%d %H:%M:%S')
+                checksum_date = datetime.datetime.fromtimestamp(os.path.getmtime(checksum_path)).strftime(DATE_FORMAT)
             else:
-                checksum_date = "N/A"
+                checksum_date = NA
 
         else:
             # unprocessed diffusion data for this subject does not exist
-            package_exists = "---"
-            package_date   = "---"
-            package_size   = "---"
-            checksum_exists = "---"
-            checksum_date   = "---"
+            package_exists  = DNM
+            package_date    = DNM
+            package_size    = DNM
+            checksum_exists = DNM
+            checksum_date   = DNM
 
+        # print(project + "\t" + subject_id + "\t" + package_path + "\t" + str(package_exists) + "\t" + \
+        #           str(package_date) + "\t" + str(package_size) + "\t" + str(checksum_exists) + "\t" + \
+        #           str(checksum_date))
 
-        print(project + "\t" + subject_id + "\t" + package_path + "\t" + str(package_exists) + "\t" + \
-                  str(package_date) + "\t" + str(package_size) + "\t" + str(checksum_exists) + "\t" + \
-                  str(checksum_date))
-
-
+        print(project,         end="\t")
+        print(subject_id,      end="\t")
+        print(package_path,    end="\t")
+        print(package_exists,  end="\t")
+        print(package_date,    end="\t")
+        print(package_size,    end="\t")
+        print(checksum_exists, end="\t")
+        print(checksum_date)
