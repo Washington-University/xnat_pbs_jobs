@@ -51,7 +51,18 @@ if __name__ == '__main__':
     log.info("Retrieving subject list from: " + subject_file_name)
     subject_list = hcp7t_subject.read_subject_info_list(subject_file_name)
 
-    print("Project\tReference Project\tSubject ID\tPackage Path\tPackage Exists\tPackage Date\tPackage Size\tChecksum Exists\tChecksum Date")
+    print("Project",                     end="\t")
+    print("Reference Project",           end="\t")
+    print("Subject ID",                  end="\t")
+    print("Preproc Resource Date",       end="\t")
+    print("Package Path",                end="\t")
+    print("Package Exists",              end="\t")
+    print("Package Date",                end="\t")
+    print("Package Size",                end="\t")
+    print("Package Newer Than Resource", end="\t")
+    print("Checksum Exists",             end="\t")
+    print("Checksum Date",               end="\t")
+    print("Checksum Newer Than Package")
 
     for subject in subject_list:
         
@@ -65,37 +76,67 @@ if __name__ == '__main__':
 
         if archive.does_diffusion_unproc_dir_exist(subject):
 
-            package_exists = os.path.isfile(package_path)
+            if archive.does_diffusion_preproc_dir_exist(subject):
 
-            if package_exists:
-                package_date = datetime.datetime.fromtimestamp(os.path.getmtime(package_path)).strftime(DATE_FORMAT)
-                package_size = file_utils.human_readable_byte_size(os.path.getsize(package_path), 1000.0)
+                preproc_date     = datetime.datetime.fromtimestamp(os.path.getmtime(archive.diffusion_preproc_dir_fullpath(subject)))
+                preproc_date_str = preproc_date.strftime(DATE_FORMAT)
+
+                package_exists = os.path.isfile(package_path)
+
+                if package_exists:
+                    package_date     = datetime.datetime.fromtimestamp(os.path.getmtime(package_path))
+                    package_date_str = package_date.strftime(DATE_FORMAT)
+                    package_size     = file_utils.human_readable_byte_size(os.path.getsize(package_path), 1000.0)
+                    package_newer    = package_date > preproc_date
+                else:
+                    # package file does not exist
+                    package_date_str = NA
+                    package_size     = NA
+                    package_newer    = NA
+
+                checksum_exists = os.path.isfile(checksum_path)
+
+                if checksum_exists:
+                    checksum_date     = datetime.datetime.fromtimestamp(os.path.getmtime(checksum_path))
+                    checksum_date_str = checksum_date.strftime(DATE_FORMAT)
+                    checksum_newer    = checksum_date > package_date
+                else:
+                    checksum_date_str = NA
+                    checksum_newer    = NA
+
             else:
-                # package file does not exist
-                package_date = NA
-                package_size = NA
-
-            checksum_exists = os.path.isfile(checksum_path)
-
-            if checksum_exists:
-                checksum_date = datetime.datetime.fromtimestamp(os.path.getmtime(checksum_path)).strftime(DATE_FORMAT)
-            else:
-                checksum_date = NA
+                # preprocessed diffusion data for this subject does not exist
+                preproc_date_str  = NA
+                package_path      = DNM
+                package_exists    = DNM
+                package_date_str  = DNM
+                package_size      = DNM
+                package_newer     = DNM
+                checksum_exists   = DNM
+                checksum_date_str = DNM
+                checksum_newer    = DNM
 
         else:
             # unprocessed diffusion data for this subject does not exist
-            package_exists  = DNM
-            package_date    = DNM
-            package_size    = DNM
-            checksum_exists = DNM
-            checksum_date   = DNM
+            preproc_date_str  = DNM
+            package_path      = DNM
+            package_exists    = DNM
+            package_date_str  = DNM
+            package_size      = DNM
+            package_newer     = DNM
+            checksum_exists   = DNM
+            checksum_date_str = DNM
+            checksum_newer    = DNM
 
-        print(project,         end="\t")
-        print(ref_project,     end="\t")
-        print(subject_id,      end="\t")
-        print(package_path,    end="\t")
-        print(package_exists,  end="\t")
-        print(package_date,    end="\t")
-        print(package_size,    end="\t")
-        print(checksum_exists, end="\t")
-        print(checksum_date)
+        print(project,           end="\t")
+        print(ref_project,       end="\t")
+        print(subject_id,        end="\t")
+        print(preproc_date_str,  end="\t")
+        print(package_path,      end="\t")
+        print(package_exists,    end="\t")
+        print(package_date_str,  end="\t")
+        print(package_size,      end="\t")
+        print(package_newer,     end="\t")
+        print(checksum_exists,   end="\t")
+        print(checksum_date_str, end="\t")
+        print(checksum_newer)
