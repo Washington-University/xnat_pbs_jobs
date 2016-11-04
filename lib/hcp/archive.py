@@ -179,6 +179,7 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
+
     def available_functional_preproc_dir_fullpaths(self, subject_info):
         """Returns a list of full paths to preprocessed functional scan resources."""
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
@@ -204,6 +205,10 @@ class HcpArchive(abc.ABC):
     def diffusion_preproc_dir_fullpath(self, subject_info):
         """full path to preprocessed diffusion resource directory"""
         return self.subject_resources_dir_fullpath(subject_info) + '/Diffusion_' + self.PREPROC_SUFFIX
+
+
+    def does_diffusion_preproc_dir_exist(self, subject_info):
+        return os.path.isdir(self.diffusion_preproc_dir_fullpath(subject_info))
 
 
     def available_diffusion_preproc_dir_fullpaths(self, subject_info):
