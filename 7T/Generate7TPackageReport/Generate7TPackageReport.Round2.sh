@@ -188,9 +188,7 @@ for unproc_scan in ${scans} ; do
 		#get_size ${md5_file} md5_file_size
 		#get_date ${md5_file} md5_file_date
 		
-		short_package_file=${package_file##*/}
-		
-		echo -e "\t${count}\t${subject}\t${short_package_file}\t${package_file_size}\t${package_file_date}"
+		echo -e "\t${count}\t${subject}\t${package_file}\t${package_file_size}\t${package_file_date}"
 
 	done
 
@@ -228,8 +226,7 @@ for preproc_package in ${preproc_packages} ; do
 		get_size ${package_file} package_file_size
 		get_date ${package_file} package_file_date
 
-		short_package_file=${package_file##*/}
-		echo -e "\t${count}\t${subject}\t${short_package_file}\t${package_file_size}\t${package_file_date}"
+		echo -e "\t${count}\t${subject}\t${package_file}\t${package_file_size}\t${package_file_date}"
 
 	done
 
@@ -260,8 +257,7 @@ for fix_package in ${fix_packages} ; do
 		get_size ${package_file} package_file_size
 		get_date ${package_file} package_file_date
 
-		short_package_file=${package_file##*/}
-		echo -e "\t${count}\t${subject}\t${short_package_file}\t${package_file_size}\t${package_file_date}"
+		echo -e "\t${count}\t${subject}\t${package_file}\t${package_file_size}\t${package_file_date}"
 
 	done
 
