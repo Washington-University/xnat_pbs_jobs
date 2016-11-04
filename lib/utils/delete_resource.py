@@ -3,9 +3,10 @@
 """utils/delete_resource.py: Delete a Connectome DB Resource."""
 
 # import of built-in modules
-import sys
+import getpass
 import os
 import subprocess
+import sys
 
 
 # import of third party modules
@@ -13,10 +14,10 @@ pass
 
 
 # import of local modules
-import xnat.xnat_access as xnat_access
-import utils.str_utils as str_utils
 import utils.my_argparse as my_argparse
+import utils.str_utils as str_utils
 import utils.user_utils as user_utils
+import xnat.xnat_access as xnat_access
 
 
 # authorship information
@@ -82,7 +83,6 @@ def main():
 
     # mandatory arguments
     parser.add_argument('-u'  , '--user',     dest='user',     required=True, type=str)
-    parser.add_argument('-pw' , '--password', dest='password', required=True, type=str) 
     parser.add_argument('-pr' , '--project',  dest='project',  required=True, type=str)
     parser.add_argument('-sub', '--subject',  dest='subject',  required=True, type=str)
     parser.add_argument('-ses', '--session',  dest='session',  required=True, type=str)
@@ -91,9 +91,15 @@ def main():
     # optional arguments
     parser.add_argument('-ser', '--server', dest='server', required=False, default='https://db.humanconnectome.org', type=str)
     parser.add_argument('-f'  , '--force', dest='force', action="store_true", required=False, default=False) 
+    parser.add_argument('-pw' , '--password', dest='password', required=False, type=str) 
 
     # parse the command line arguments
     args = parser.parse_args()
+
+    if args.password:
+        password = args.password
+    else:
+        password = getpass.getpass("Password: ")
 
     # show parsed arguments
     _inform("Parsed arguments:")
@@ -113,7 +119,7 @@ def main():
     else:
         delete_it = False
 
-    delete_resource(args.user, args.password, args.server, 
+    delete_resource(args.user, password, args.server,
                     args.project, args.subject, args.session, args.resource,
                     delete_it)
 
