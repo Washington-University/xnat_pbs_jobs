@@ -204,7 +204,7 @@ class HcpArchive(abc.ABC):
 
     def diffusion_preproc_dir_fullpath(self, subject_info):
         """full path to preprocessed diffusion resource directory"""
-        return self.subject_resources_dir_fullpath(subject_info) + '/Diffusion_' + self.PREPROC_SUFFIX
+        return self.subject_resources_dir_fullpath(subject_info) + os.sep + 'Diffusion_' + self.PREPROC_SUFFIX
 
 
     def does_diffusion_preproc_dir_exist(self, subject_info):
@@ -452,6 +452,14 @@ class HcpArchive(abc.ABC):
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + os.sep +
                              'T[12]w_' + '*' + self.UNPROC_SUFFIX)
         return sorted(dir_list)
+
+
+    def does_structural_preproc_dir_exist(self, subject_info):
+        return os.path.isdir(self.structural_preproc_dir_fullpath(subject_info))
+
+
+    def structural_preproc_dir_fullpath(self, subject_info):
+        return self.subject_resources_dir_fullpath(subject_info) + os.sep + 'Structural_' + self.PREPROC_SUFFIX
 
 
     def available_structural_preproc_dir_fullpaths(self, subject_info):

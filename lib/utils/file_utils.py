@@ -22,7 +22,7 @@ def writeln(file, line):
 wl = writeln
 
 def get_config_file_name(source_file_name):
-    config_file_name = os.path.basename(source_file_name)
+    config_file_name = source_file_name
     if config_file_name.endswith('.py'):
         config_file_name = config_file_name[:-3]
     config_file_name += '.ini'
@@ -30,11 +30,44 @@ def get_config_file_name(source_file_name):
 
 
 def get_subjects_file_name(source_file_name):
-    subjects_file_name = os.path.basename(source_file_name)
+    subjects_file_name = source_file_name
     if subjects_file_name.endswith('.py'):
         subjects_file_name = subjects_file_name[:-3]
     subjects_file_name += '.subjects'
     return subjects_file_name
+
+
+def get_logging_config_file_name(source_file_name):
+    logging_config_file_name = source_file_name
+    if logging_config_file_name.endswith('.py'):
+        logging_config_file_name = logging_config_file_name[:-3]
+    logging_config_file_name += '.logging.conf'
+    return logging_config_file_name
+
+
+def get_logger_name(source_file_name):
+    logger_name = source_file_name
+    
+    xnat_pbs_jobs = os.getenv('XNAT_PBS_JOBS')
+    if not xnat_pbs_jobs:
+        print("Environment variable XNAT_PBS_JOBS must be set!")
+        exit(1)
+
+    if logger_name.startswith(xnat_pbs_jobs + os.sep + 'lib'):
+        logger_name = logger_name[len(xnat_pbs_jobs + os.sep + 'lib'):]
+
+    if logger_name.endswith('.py'):
+        logger_name = logger_name[:-3]
+
+    if logger_name.startswith('.' + os.sep):
+        logger_name = logger_name[2:]
+
+    if logger_name.startswith(os.sep):
+        logger_name = logger_name[1:]
+
+    logger_name = logger_name.replace(os.sep, '.')
+
+    return logger_name
 
 
 def human_readable_byte_size(size, factor=1024.0):

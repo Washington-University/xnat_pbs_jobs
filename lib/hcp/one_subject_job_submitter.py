@@ -11,6 +11,7 @@ import abc
 import contextlib
 import os
 import stat
+import time
 
 
 # import of third party modules
@@ -89,6 +90,16 @@ class OneSubjectJobSubmitter(abc.ABC):
     def log_dir(self):
         """Returns the directory in which to place PUT logs."""
         return self._log_dir
+
+
+    def build_working_directory_name(self, project, pipeline_name, subject_id):
+        current_seconds_since_epoch = int(time.time())
+        wdir = self.build_home
+        wdir += os.sep + project
+        wdir += os.sep + pipeline_name
+        wdir += '.' + subject_id
+        wdir += '.' + str(current_seconds_since_epoch)
+        return wdir
 
 
     def create_put_script(
