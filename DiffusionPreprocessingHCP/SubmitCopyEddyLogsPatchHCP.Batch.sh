@@ -44,8 +44,6 @@ for project_subject in ${subjects} ; do
 		inform "    server: ${server}"
 		inform "--------------------------------------------------------------------------------"
 
-		continue
-
 		${XNAT_PBS_JOBS}/DiffusionPreprocessingHCP/SubmitCopyEddyLogsPatchHCP.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
