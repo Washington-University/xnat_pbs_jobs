@@ -250,7 +250,7 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Set up to run DiffPreprocPipeline_Eddy.sh script" ${step_percent}
 	
-	setup_file="${SCRIPTS_HOME}/SetUpHCPPipeline_DiffusionPreprocHCP.sh"
+	setup_file=${XNAT_PBS_JOBS}/DiffusionPreprocessingHCP/SetUpHCPPipeline_DiffusionPreprocHCP.sh
 	if [ ! -e "${setup_file}" ] ; then
 		inform "setup_file: ${setup_file} DOES NOT EXIST - ABORTING"
 		die
