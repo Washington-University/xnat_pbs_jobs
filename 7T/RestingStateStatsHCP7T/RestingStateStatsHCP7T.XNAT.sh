@@ -58,18 +58,23 @@ subject in an XNAT-aware and XNAT-pipeline-like manner.
 Usage: ${SCRIPT_NAME} PARAMETER..."
 
 PARAMETERs are [ ] = optional; < > = user supplied value
-  [--help]               : show usage information and exit with non-zero return code
-   --user=<username>     : XNAT DB username
-   --password=<password> : XNAT DB password
-   --server=<server>     : XNAT server (e.g. db.humanconnectome.org)
-   --project=<project>   : XNAT project (e.g. HCP_Staging_7T)
-   --subject=<subject>   : XNAT subject ID within project (e.g. 102311)
-   --session=<session>   : XNAT session ID within project (e.g. 102311_7T)
-   --scan=<scan>         : Scan ID (e.g. rfMRI_REST1_PA)
-   --working-dir=<dir>   : Working directory in which to place retrieved data
-                           and in which to produce results
-   --workflow-id=<id>    : XNAT Workflow ID to update as steps are completed
- 
+  [--help]                 : show usage information and exit with non-zero return code
+   --user=<username>       : XNAT DB username
+   --password=<password>   : XNAT DB password
+   --server=<server>       : XNAT server (e.g. db.humanconnectome.org)
+   --project=<project>     : XNAT project (e.g. HCP_Staging_7T)
+   --subject=<subject>     : XNAT subject ID within project (e.g. 102311)
+   --session=<session>     : XNAT session ID within project (e.g. 102311_7T)
+   --structural-reference-project=<structural reference project>
+                           : XNAT project containing the structural reference data 
+   --structural-reference-session=<structural reference session>
+                           : XNAT session ID within structural reference project
+   --scan=<scan>           : Scan ID (e.g. rfMRI_REST1_PA)
+   --working-dir=<dir>     : Working directory in which to place retrieved data
+                             and in which to produce results
+   --workflow-id=<id>      : XNAT Workflow ID to update as steps are completed
+   --setup-script=<script> : Script to source to set up environment
+
 EOF
 }
 
@@ -84,9 +89,12 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
+	unset g_structural_reference_project
+	unset g_structural_reference_session
 	unset g_scan
 	unset g_working_dir
 	unset g_workflow_id
+	unset g_setup_script
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -125,6 +133,14 @@ get_options()
 				g_session=${argument#*=}
 				index=$(( index + 1 ))
 				;;
+			--structural-reference-project=*)
+				g_structural_reference_project=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--structural-reference-session=*)
+				g_structural_reference_session=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
 			--scan=*)
 				g_scan=${argument#*=}
 				index=$(( index + 1 ))
@@ -135,6 +151,10 @@ get_options()
 				;;
 			--workflow-id=*)
 				g_workflow_id=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--setup-script=*)
+				g_setup_script=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -185,6 +205,18 @@ get_options()
 		inform "g_session: ${g_session}"
 	fi
 
+	if [ -z "${g_structural_reference_project}" ]; then
+		error_msgs+="\nERROR: structural reference project (--structural-reference-project=) required"
+	else
+		inform "g_structural_reference_project: ${g_structural_reference_project}"
+	fi
+
+	if [ -z "${g_structural_reference_session}" ]; then
+		error_msgs+="\nERROR: structural reference session (--structural-reference-session=) required"
+	else
+		inform "g_structural_reference_session: ${g_structural_reference_session}"
+	fi
+
 	if [ -z "${g_scan}" ]; then
 		error_msgs+="\nERROR: scan (--scan=) required"
 	else
@@ -201,6 +233,12 @@ get_options()
 		error_msgs+="\nERROR: workflow (--workflow-id=) required"
 	else
 		inform "g_workflow_id: ${g_workflow_id}"
+	fi
+
+	if [ -z "${g_setup_script}" ]; then
+		error_msgs+="\nERROR: set up script (--setup-script=) required"
+	else
+		inform "g_setup_script: ${g_setup_script}"
 	fi
 
 	# check required environment variables
@@ -235,43 +273,10 @@ get_options()
 	fi
 }
 
-show_xnat_workflow()
+die()
 {
-	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server=${g_server} \
-		--username=${g_user} \
-		--password=${g_password} \
-		--workflow-id=${g_workflow_id} \
-		show
-}
-
-update_xnat_workflow()
-{
-	local step_id=${1}
-	local step_desc=${2}
-	local percent_complete=${3}
-
-	echo ""
-	echo ""
-	echo "---------- Step: ${step_id} "
-	echo "---------- Desc: ${step_desc} "
-	echo ""
-	echo ""
-
-	echo "update_xnat_workflow - workflow_id: ${g_workflow_id}"
-	echo "update_xnat_workflow - step_id: ${step_id}"
-	echo "update_xnat_workflow - set_desc: ${step_desc}"
-	echo "update_xnat_workflow - percent_complete: ${percent_complete}"
-
-	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_server}" \
-		--username="${g_user}" \
-		--password="${g_password}" \
-		--workflow-id="${g_workflow_id}" \
-		update \
-		--step-id="${step_id}" \
-		--step-description="${step_desc}" \
-		--percent-complete="${percent_complete}"
+	xnat_workflow_fail ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	exit 1
 }
 
 main()
@@ -284,70 +289,136 @@ main()
 
 	get_options $@
 
-	source ${XNAT_PBS_JOBS}/GetHcpDataUtils/GetHcpDataUtils.sh
+	# Create a start_time file
+	inform "Create a start time file"
+	start_time_file=${g_working_dir}/${PIPELINE_NAME}.starttime
+	if [ -e "${start_time_file}" ]; then
+		inform "Removing old ${start_time_file}"
+		rm -f ${start_time_file}
+	fi
 
+	# Sleep for 1 minute to make sure start time file is created at least a
+	# minute after any files retrieved in the "get data" job
+	inform "Sleep for 1 minute before creating start time file."
+	sleep 1m || die
 
-	# Set up step counters
-	total_steps=5
-	current_step=0
+	# Create start time file
+	inform "Creating start time file: ${start_time_file}"
+	touch ${start_time_file} || die
+	ls -l ${start_time_file}
 
-	# Set up to run Python
-	inform "Setting up to run Python"
+	# Sleep for 1 minute to make sure any files created or modified by the scripts
+	# are created at least 1 minute after the start time file
+	inform "Sleep for 1 minute after creating start time file."
+	sleep 1m || die
+
+	# Set up to run EPD Python 2
+	inform "Setting up to run EPD Python 2"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-	show_xnat_workflow
+	# Set up to use XNAT workflow utilities
+	inform "Setting up to use XNAT workflow utilities"
+	source ${XNAT_UTILS_HOME}/xnat_workflow_utilities.sh
 
-	# VERY IMPORTANT NOTE:
-	#
-	# Since ConnectomeDB resources contain overlapping files (e.g. the functionally preprocessed
-	# data resource may contain some of the exact same files as the structurally preprocessed
-	# data resource) extra care must be taken with the order in which data is linked in to the
-	# working directory.
-	#
-	# If, for example, a file named ${g_subject}/subdir1/subdir2/this_file.nii.gz exists in both
-	# the structurally preprocessed data resource and in the functionally preprocessed data 
-	# resource, whichever resource we link in to the working directory _first_ will take 
-	# precedence.  (This is due to the behavior of the lndir command used by the link_hcp...
-	# functions, and is unlike the behavior of the rsync command used by the get_hcp...
-	# functions. The rsync command will copy/update the newer version of the file from its
-	# source.) 
-	#
-	# The lndir command will report to stderr any links that it could not (would not) create 
-	# because they already exist in the destination directories.
-	# 
-	# So if we link in the structurally preprocessed data first and then link in the functionally
-	# preprocessed data second, the file ${g_subject}/subdir1/subdir2/this_file.nii.gz in the 
-	# working directory will be linked back to the structurally preprocessed version of the file.
-	#
-	# Since functional preprocessing comes _after_ structural preprocessing, this is not likely
-	# to be what we want.  Instead, we want the file as it exists after functional preprocessing
-	# to be the one that is linked in to the working directory.
-	#
-	# Therefore, it is important to consider the order in which we call the link_hcp... functions
-	# below.  We should call them in order from the results of the latest prerequisite pipelines 
-	# to the earliest prerequisite pipelines.
-	#
-	# Thus, we first link in the FIX processed data from the DB, followed by the functionally
-	# preprocessed data from the DB, followed by the structurally preprocessed data from the 
-	# DB.
+	# Set up step counters
+	total_steps=4
+	current_step=0
 
-	# Step - Link FIX processed data from DB
+	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+
+	# Set up environment to run scripts
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Link FIX processed data from DB" ${step_percent}
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Set up environment to run scripts" ${step_percent}
 
-	link_hcp_fix_proc_data "${XNAT_ARCHIVE_ROOT}" "${g_project}" "${g_session}" "${g_scan}" "${g_working_dir}"
+	# Source set up script
+	source ${g_setup_script}
 
+	# Run RestingStateStats.sh script
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
 
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Run RestingStateStats.sh script" ${step_percent}
 
+	# Set up variables to pass in to RestingStateStats.sh
+	RegName="NONE"
+	OrigHighPass="2000"
+	LowResMesh="32"
+	FinalfMRIResolution="2"
+	BrainOrdinatesResolution="2"
+	SmoothingFWHM="2"
+	OutputProcSTRING="_hp2000_clean"
+	dlabelFile="NONE"
+	MatlabRunMode="0" # Compiled Matlab
+	BCMode="REVERT" # One of REVERT (revert bias field correction), NONE (don't change bias field correction), CORRECT (revert original bias field correction and apply new one)
+	OutSTRING="stats"
+	WM="${HCPPIPEDIR}/global/config/FreeSurferWMRegLut.txt"
+	CSF="${HCPPIPEDIR}/global/config/FreeSurferCSFRegLut.txt"
 
+	# determine fMRI name
+	inform "Determine fMRI name"
+	phase_encoding_dir="${g_scan##*_}"
+	inform "phase_encoding_dir: ${phase_encoding_dir}"
 
+	base_fmriname="${g_scan%_*}"
+	inform "base_fmriname: ${base_fmriname}"
 
+	fmriname="${base_fmriname}_7T_${phase_encoding_dir}"
+	inform "fmriname: ${fmriname}"
 
+	# Run RestingStateStats.sh script
+	cmd=${HCPPIPEDIR}/RestingStateStats/RestingStateStats.sh
+	cmd+=" --path=${g_working_dir} "
+	cmd+=" --subject=${g_subject} "
+	cmd+=" --fmri-name=${fmriname} "
+	cmd+=" --high-pass=${OrigHighPass} "
+	cmd+=" --reg-name=${RegName} "
+	cmd+=" --low-res-mesh=${LowResMesh} "
+	cmd+=" --final-fmri-res=${FinalfMRIResolution} "
+	cmd+=" --brain-ordinates-res=${BrainOrdinatesResolution} "
+	cmd+=" --smoothing-fwhm=${SmoothingFWHM} "
+	cmd+=" --output-proc-string=${OutputProcSTRING} "
+	cmd+=" --dlabel-file=${dlabelFile} "
+	cmd+=" --matlab-run-mode=${MatlabRunMode} "
+	cmd+=" --bc-mode=${BCMode} "
+	cmd+=" --out-string=${OutSTRING} "
+	cmd+=" --wm=${WM} "
+	cmd+=" --csf=${CSF} "
+
+	inform "About to issue the following cmd"
+	inform "${cmd}"
+
+	${cmd}
+	if [ $? -ne 0 ]; then
+		die
+ 	fi
+
+	# Show newly created or modified files
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Show newly created or modified files" ${step_percent}
+
+	inform "Newly created or modified files:"
+	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
+
+	# Remove any files that are not newly created or modified
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Remove files not newly created or modified" ${step_percent}
+
+	inform "The following files are being removed."
+	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete
+
+	# Complete the workflow
+	xnat_workflow_complete ${g_server} ${g_user} ${g_password} ${g_workflow_id}
 }
 
-# Invoke the main function to get things started
+# Invoke the main to get things started
 main $@
-
-

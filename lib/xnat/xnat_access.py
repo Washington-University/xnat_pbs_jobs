@@ -98,6 +98,7 @@ def get_jsession_id(server, username, password):
 
     if (response.status_code != 200):
         _inform(inspect.stack()[0][3] + ": Cannot get response from request: " + request_url)
+        _inform(inspect.stack()[0][3] + ": Check username and password")
         sys.exit(1)
 
     _debug("response.text: " + str(response.text))

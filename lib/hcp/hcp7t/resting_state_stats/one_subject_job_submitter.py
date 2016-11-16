@@ -6,8 +6,11 @@ Submits jobs to perform HCP 7T Resting State Stats processing for one HCP 7T sub
 """
 
 # import of built-in modules
+import contextlib
 import logging
 import os
+import stat
+import subprocess
 import time
 
 
@@ -16,8 +19,13 @@ pass
 
 
 # import of local modules
+import hcp.hcp7t.subject as hcp7t_subject
 import hcp.one_subject_job_submitter as one_subject_job_submitter
+import utils.delete_resource as delete_resource
 import utils.file_utils as file_utils
+import utils.file_utils as futils
+import utils.str_utils as str_utils
+import xnat.xnat_access as xnat_access
 
 
 # authorship information
@@ -198,6 +206,11 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         logger.debug("put_server set to " + str(value))
 
 
+    @property
+    def _continue(self):
+        return ' \\'
+
+
     def validate_parameters(self):
         valid_configuration = True
 
@@ -256,37 +269,242 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         return valid_configuration
 
 
-    def submit_jobs(self):
+    def _get_scripts_start_name(self, scan):
+        script_file_start_name = self._working_directory_name
+        script_file_start_name += os.sep + self.subject 
+        script_file_start_name += '.' + self.PIPELINE_NAME + '_' + scan 
+        script_file_start_name += '.' + self.project
+        script_file_start_name += '.' + self.session
+
+        return script_file_start_name
+
+
+    def _work_script_name(self, scan):
+        return self._get_scripts_start_name(scan) + '.XNAT_PBS_job.sh'
+
+
+    def _get_data_script_name(self, scan):
+        return self._get_scripts_start_name(scan) + '.XNAT_PBS_GET_job.sh'
+
+
+    def _create_get_data_script(self, scan):
+        logger.debug("_create_get_data_script")
+
+        script_name = self._get_data_script_name(scan)
+
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(script_name)
+
+        script = open(script_name, 'w')
+
+        script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=12gb' + os.linesep)
+        script.write('#PBS -o ' + self._working_directory_name + os.linesep)
+        script.write('#PBS -e ' + self._working_directory_name + os.linesep)
+        script.write(os.linesep)
+        script.write(self.xnat_pbs_jobs_home + os.sep + '7T' + os.sep +
+                     self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_GET.sh \\' + os.linesep)
+        script.write('  --project=' + self.project + ' \\' + os.linesep)
+        script.write('  --subject=' + self.subject + ' \\' + os.linesep)
+        script.write('  --structural-reference-project=' + self.structural_reference_project + ' \\' + os.linesep)
+        script.write('  --working-dir=' + self._working_directory_name + os.linesep)
+
+        script.close()
+        os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
+
+
+    def _create_work_script(self, scan):
+        logger.debug("_create_work_script - scan: " + scan)
+
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(self._work_script_name(scan))
+
+        walltime_limit = str(self.walltime_limit_hours) + ':00:00'
+        vmem_limit     = str(self.vmem_limit_gbs) + 'gb'
+
+        resources_line = '#PBS -l nodes=1:ppn=1,walltime=' + walltime_limit
+        resources_line += ',vmem=' + vmem_limit
+
+        stdout_line = '#PBS -o ' + self._working_directory_name
+        stderr_line = '#PBS -e ' + self._working_directory_name
+
+        script_line = self.xnat_pbs_jobs_home + os.sep + '7T' + os.sep
+        script_line += self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT.sh'
+
+        user_line     = '  --user='         + self.username 
+        password_line = '  --password='     + self.password
+        server_line   = '  --server='       + str_utils.get_server_name(self.server)
+        project_line  = '  --project='      + self.project
+        subject_line  = '  --subject='      + self.subject
+        session_line  = '  --session='      + self.session
+        ref_proj_line = '  --structural-reference-project=' + self.structural_reference_project
+        ref_sess_line = '  --structural-reference-session=' + self.structural_reference_session
+        scan_line     = '  --scan='         + scan
+        wdir_line     = '  --working-dir='  + self._working_directory_name
+        workflow_line = '  --workflow-id='  + self._workflow_id
+        setup_line    = '  --setup-script=' + self.setup_script
+
+        work_script = open(self._work_script_name(scan), 'w')
+
+        futils.wl(work_script, resources_line)
+        futils.wl(work_script, stdout_line)
+        futils.wl(work_script, stderr_line)
+        futils.wl(work_script, '')
+        futils.wl(work_script, script_line   + self._continue)
+        futils.wl(work_script, user_line     + self._continue)
+        futils.wl(work_script, password_line + self._continue)
+        futils.wl(work_script, server_line   + self._continue)
+        futils.wl(work_script, project_line  + self._continue)
+        futils.wl(work_script, subject_line  + self._continue)
+        futils.wl(work_script, session_line  + self._continue)
+        futils.wl(work_script, ref_proj_line + self._continue)
+        futils.wl(work_script, ref_sess_line + self._continue)
+        futils.wl(work_script, scan_line     + self._continue)
+        futils.wl(work_script, wdir_line     + self._continue)
+        futils.wl(work_script, workflow_line + self._continue)
+        futils.wl(work_script, setup_line)
+        
+        work_script.close()
+        os.chmod(self._work_script_name(scan), stat.S_IRWXU | stat.S_IRWXG)
+
+
+    def submit_jobs(self, do_put=True):
         logger.debug("submit_jobs")
 
         if self.validate_parameters():
 
-            logger.info("")
-            logger.info("--------------------------------------------------")
-            logger.info("Submitting " + self.PIPELINE_NAME + " jobs for")
-            logger.info("  Project: " + self.project)
-            logger.info("  Subject: " + self.subject)
-            logger.info("  Session: " + self.session)
-            logger.info("--------------------------------------------------")
+            # determine what scans to run the RestingStateStats pipeline on for this subject
+            # TBD: Does this get run on every scan for which the ICAFIX pipeline has been run,
+            #      or does it only get run on every resting state scan that has been fix processed.
 
-            # make sure working directories do not have the same name based on
-            # the same start time by sleeping a few seconds
-            time.sleep(5)
+            subject_info = hcp7t_subject.Hcp7TSubjectInfo(
+                self.project, self.structural_reference_project, self.subject)
 
-            # build the working directory name
-            self._working_directory_name = self.build_working_directory_name(self.project, self.PIPELINE_NAME, self.subject)
-            logger.info("Making working directory: " + self._working_directory_name)
-            os.makedirs(name=self._working_directory_name)
+            fix_processed_scans = self.archive.available_FIX_processed_names(subject_info)
+            fix_processed_scans_set = set(fix_processed_scans)
+            logger.debug("fix_processed_scans_set = " + str(fix_processed_scans_set))
 
+            resting_state_scans = self.archive.available_resting_state_preproc_names(subject_info)
+            resting_state_scans_set = set(resting_state_scans)
+            logger.debug("resting_state_scans_set = " + str(resting_state_scans_set))
 
+            scans_to_process_set = resting_state_scans_set & fix_processed_scans_set
+            scans_to_process = list(scans_to_process_set)
+            scans_to_process.sort()
+            logger.debug("scans_to_process: " + str(scans_to_process))
 
-            ici -- to do 
+            for scan in scans_to_process:
 
+                logger.info("")
+                logger.info("--------------------------------------------------")
+                logger.info("Submitting " + self.PIPELINE_NAME + " jobs for")
+                logger.info("  Project: " + self.project)
+                logger.info("  Subject: " + self.subject)
+                logger.info("  Session: " + self.session)
+                logger.info("  Structural Reference Project: " + self.structural_reference_project)
+                logger.info("  Structural Reference Session: " + self.structural_reference_session)
+                logger.info("     Scan: " + scan)
+                logger.info("--------------------------------------------------")
 
-            
+                # make sure working directories do not have the same name based on
+                # the same start time by sleeping a few seconds
+                time.sleep(5)
 
+                # build the working directory name
+                self._working_directory_name = self.build_working_directory_name(self.project, self.PIPELINE_NAME, self.subject, scan)
+                logger.info("Making working directory: " + self._working_directory_name)
+                os.makedirs(name=self._working_directory_name)
 
+                # get JSESSION ID
+                jsession_id = xnat_access.get_jsession_id(
+                    server   = 'db.humanconnectome.org',
+                    username = self.username,
+                    password = self.password)
+                logger.info("jsession_id: " + jsession_id)
 
+                # get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
+                xnat_session_id = xnat_access.get_session_id(
+                    server   = 'db.humanconnectome.org',
+                    username = self.username,
+                    password = self.password,
+                    project  = self.project,
+                    subject  = self.subject,
+                    session  = self.session)
+                logger.info("xnat_session_id: " + xnat_session_id)
+
+                # get XNAT Workflow ID
+                workflow_obj = xnat_access.Workflow(self.username, self.password,
+                                                    'https://db.humanconnectome.org', jsession_id)
+                self._workflow_id = workflow_obj.create_workflow(xnat_session_id, 
+                                                                 self.project,
+                                                                 self.PIPELINE_NAME + '_' + scan,
+                                                                 'Queued')
+                logger.info("workflow_id: " + self._workflow_id)
+
+                # determine output resource name
+                self._output_resource_name = scan + "_RSS"
+
+                # clean output resource if requested
+                if self.clean_output_resource_first:
+                    logger.info("Deleting resource: " + self._output_resource_name + " for:")
+                    logger.info("  project: " + self.project)
+                    logger.info("  subject: " + self.subject)
+                    logger.info("  session: " + self.session)
+
+                    delete_resource.delete_resource(
+                        self.username, self.password,
+                        str_utils.get_server_name(self.server),
+                        self.project, self.subject, self.session,
+                        self._output_resource_name)
+
+                # create script to get data
+                self._create_get_data_script(scan)
+
+                # create script to do work
+                self._create_work_script(scan)
+
+                # create script to put the results into the DB
+                put_script_name = self._get_scripts_start_name(scan) + '.XNAT_PBS_PUT_job.sh'
+                self.create_put_script(put_script_name,
+                                       self.username, self.password, self.put_server,
+                                       self.project, self.subject, self.session,
+                                       self._working_directory_name,
+                                       self._output_resource_name,
+                                       self.PIPELINE_NAME + '_' + scan)
+
+                # submit job to get data
+                get_data_submit_cmd = 'qsub ' + self._get_data_script_name(scan)
+                logger.info("get_data_submit_cmd: " + get_data_submit_cmd)
+
+                completed_get_data_submit_process = subprocess.run(
+                    get_data_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                    universal_newlines=True)
+                get_data_job_no = str_utils.remove_ending_new_lines(completed_get_data_submit_process.stdout)
+                logger.info("get_data_job_no: " + get_data_job_no)
+
+                # submit job to do the work
+                work_submit_cmd = 'qsub -W depend=afterok:' + get_data_job_no + ' ' + self._work_script_name(scan) 
+                logger.info("work_submit_cmd: " + work_submit_cmd)
+
+                completed_work_submit_process = subprocess.run(
+                    work_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                    universal_newlines=True)
+                work_job_no = str_utils.remove_ending_new_lines(completed_work_submit_process.stdout)
+                logger.info("work_job_no: " + work_job_no)
+                
+                if do_put:
+                    # submit the job to put the results in the DB
+                    put_submit_cmd = 'qsub -W depend=afterok:' + work_job_no + ' ' + put_script_name
+                    logger.info("put_submit_cmd: " + put_submit_cmd)
+
+                    completed_put_submit_process = subprocess.run(
+                        put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                        universal_newlines=True)
+                    put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
+                    logger.info("put_job_no: " + put_job_no)
+
+                else:
+                    logger.info("do_put: " + str(do_put) + " - put job not submitted")
 
         else:
             logger.info("Unable to submit jobs")
+

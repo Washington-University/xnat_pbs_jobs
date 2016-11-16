@@ -92,12 +92,14 @@ class OneSubjectJobSubmitter(abc.ABC):
         return self._log_dir
 
 
-    def build_working_directory_name(self, project, pipeline_name, subject_id):
+    def build_working_directory_name(self, project, pipeline_name, subject_id, scan = None):
         current_seconds_since_epoch = int(time.time())
         wdir = self.build_home
         wdir += os.sep + project
         wdir += os.sep + pipeline_name
         wdir += '.' + subject_id
+        if scan:
+            wdir += '.' + scan
         wdir += '.' + str(current_seconds_since_epoch)
         return wdir
 

@@ -603,7 +603,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
                 put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
                 universal_newlines=True)
             put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
-            _inform("pub_job_no: " + put_job_no)
+            _inform("put_job_no: " + put_job_no)
 
         else:
             _inform("Unable to submit jobs")

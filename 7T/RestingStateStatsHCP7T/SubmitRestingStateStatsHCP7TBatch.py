@@ -92,7 +92,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter.clean_output_resource_first = clean_output_first
             submitter.put_server = put_server
 
-            submitter.submit_jobs()
+            submitter.submit_jobs(do_put=False)
             
 
 if __name__ == "__main__":
