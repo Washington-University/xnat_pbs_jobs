@@ -133,13 +133,21 @@ main()
 	inform "Activating Python 3"
 	source activate python3 2>&1
 
-	inform "Getting CinaB-Style data"
+	inform "Getting CinaB-Style 3T data"
+	${XNAT_PBS_JOBS}/lib/hcp/hcp3t/get_cinab_style_data.py \
+		--project=${g_structural_reference_project} \
+		--subject=${g_subject} \
+		--phase=STRUCT_PREPROC \
+		--study-dir=${g_working_dir}
+
+	inform "Getting CinaB-Style 7T data"
 	${XNAT_PBS_JOBS}/lib/hcp/hcp7t/get_cinab_style_data.py \
 		--project=${g_project} \
-		--ref-project=${g_structural_reference_project} \
 		--subject=${g_subject} \
 		--phase=ICAFIX \
 		--study-dir=${g_working_dir} 
+
+	inform "Complete"
 }
 
 # Invoke the main to get things started

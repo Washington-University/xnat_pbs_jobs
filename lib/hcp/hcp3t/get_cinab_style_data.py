@@ -34,7 +34,7 @@ __maintainer__ = "Timothy B. Brown"
 log = logging.getLogger(__file__)
 #log.setLevel(logging.WARNING)
 log.setLevel(logging.INFO)
-sh = logging.StreamHandler()
+sh = logging.StreamHandler(sys.stdout)
 sh.setFormatter(logging.Formatter('%(name)s: %(message)s'))
 #sh.setFormatter(logging.Formatter('[%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s'))
 log.addHandler(sh)
@@ -104,6 +104,22 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_diffusion_preproc_data(subject_info, output_study_dir)        
 
 
+    def get_data_through_STRUCT_PREPROC(self, subject_info, output_study_dir):
+
+        if not self.copy:
+            # when creating symbolic links (copy == False), must be done in reverse
+            # chronological order
+            self.get_supplemental_structural_preproc_data(subject_info, output_study_dir)
+            self.get_structural_preproc_data(subject_info, output_study_dir)
+            self.get_unproc_data(subject_info, output_study_dir)
+
+        else:
+            # when copying (via rsync), should be done in chronological ordere
+            self.get_unproc_data(subject_info, output_study_dir)
+            self.get_structural_preproc_data(subject_info, output_study_dir)
+            self.get_supplemental_structural_preproc_data(subject_info, output_study_dir)
+
+
     def get_full_data(self, subject_info, output_study_dir):
 
         if not self.copy:
@@ -139,16 +155,18 @@ def main():
 
     # optional arguments
     parser.add_argument('-c',  '--copy',  dest='copy',  action='store_true', required=False, default=False)
-    parser.add_argument('-ph', '--phase', dest='phase', required=False, default="full")
+    parser.add_argument('-ph', '--phase', dest='phase', required=False, choices=["full", "diffusion_preproc_vetting", "STRUCT_PREPROC"], default="full")
 
     # parse the command line arguments
     args = parser.parse_args()
 
-    # show parsed arguments
-    log.info("Parsed arguments:")
+    # show arguments
+    log.info("Arguments:")
     log.info("          Project: " + args.project)
     log.info("          Subject: " + args.subject)
     log.info(" Output Study Dir: " + args.output_study_dir)
+    log.info("             Copy: " + str(args.copy))
+    log.info("            Phase: " + args.phase)
 
     subject_info = hcp3t_subject.Hcp3TSubjectInfo(args.project, args.subject)
     archive = hcp3t_archive.Hcp3T_Archive()
@@ -162,11 +180,14 @@ def main():
     if (args.phase == "full"):
         data_retriever.get_full_data(subject_info, args.output_study_dir)
         data_retriever.clean_xnat_specific_files(args.output_study_dir)
-        data_retriever.clean_pbs_job_logs(args.output_study_dir)
 
     elif (args.phase == "diffusion_preproc_vetting"):
         data_retriever.get_diffusion_preproc_vetting_data(subject_info, args.output_study_dir)
         data_retriever.clean_xnat_specific_files(args.output_study_dir)
+
+    elif (args.phase == "STRUCT_PREPROC"):
+        data_retriever.get_data_through_STRUCT_PREPROC(subject_info, args.output_study_dir)
+
 
 
 if __name__ == '__main__':
