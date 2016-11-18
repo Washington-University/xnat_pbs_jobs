@@ -353,7 +353,7 @@ main()
 	OutputProcSTRING="_hp2000_clean"
 	dlabelFile="NONE"
 	MatlabRunMode="0" # Compiled Matlab
-	BCMode="REVERT" # One of REVERT (revert bias field correction), NONE (don't change bias field correction), CORRECT (revert original bias field correction and apply new one)
+	BCMode="NONE" # One of REVERT (revert bias field correction), NONE (don't change bias field correction), CORRECT (revert original bias field correction and apply new one)
 	OutSTRING="stats"
 	WM="${HCPPIPEDIR}/global/config/FreeSurferWMRegLut.txt"
 	CSF="${HCPPIPEDIR}/global/config/FreeSurferCSFRegLut.txt"
