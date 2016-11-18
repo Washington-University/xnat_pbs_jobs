@@ -12,7 +12,6 @@ import sys
 
 
 # import of third party modules
-pass
 
 
 # import of local modules
@@ -43,13 +42,11 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
     def __init__(self, archive):
         super().__init__(archive)
 
-    
     def get_unproc_data(self, subject_info, output_study_dir):
 
         self.get_functional_unproc_data(subject_info, output_study_dir)
         self.get_diffusion_unproc_data(subject_info, output_study_dir)
 
-        
     def get_preproc_data(self, subject_info, output_study_dir):
 
         if not self.copy:
@@ -63,7 +60,6 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_functional_preproc_data(subject_info, output_study_dir)
             self.get_diffusion_preproc_data(subject_info, output_study_dir)
 
-    
     def get_full_data(self, subject_info, output_study_dir):
         # TODO: there is more to do here, this is not a complete copy
 
@@ -79,7 +75,6 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_unproc_data(subject_info,  output_study_dir)
             self.get_preproc_data(subject_info, output_study_dir)
             self.get_icafix_data(subject_info,  output_study_dir)
-
 
     def get_data_through_ICAFIX(self, subject_info, output_study_dir):
 
@@ -97,7 +92,6 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_icafix_data(subject_info,  output_study_dir)
 
 
-
 def main():
     # create a parser object for getting the command line arguments
     parser = my_argparse.MyArgumentParser()
@@ -106,10 +100,11 @@ def main():
     parser.add_argument('-p', '--project',     dest='project',            required=True, type=str)
     parser.add_argument('-s', '--subject',     dest='subject',            required=True, type=str)
     parser.add_argument('-d', '--study-dir',   dest='output_study_dir',   required=True, type=str)
- 
+
     # optional arguments
     parser.add_argument('-c',  '--copy',  dest='copy',  action='store_true', required=False, default=False)
-    parser.add_argument('-ph', '--phase', dest='phase', required=False, choices=["full", "diffusion_preprc_vetting", "ICAFIX"], default="full")
+    parser.add_argument('-ph', '--phase', dest='phase', required=False,
+                        choices=["full", "diffusion_preprc_vetting", "ICAFIX"], default="full")
 
     # parse the command line arguments
     args = parser.parse_args()
@@ -128,9 +123,10 @@ def main():
     # create and configure CinabStyleDataRetriever
     data_retriever = CinabStyleDataRetriever(archive)
     data_retriever.copy = args.copy
+    a
     data_retriever.show_log = True
 
-    #retrieve data based on phase requested
+    # retrieve data based on phase requested
     if (args.phase == "full"):
         data_retriever.get_full_data(subject_info, args.output_study_dir)
         data_retriever.clean_xnat_specific_files(args.output_study_dir)
@@ -145,5 +141,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
