@@ -10,7 +10,6 @@ import os
 
 
 # import of third party modules
-pass
 
 
 # import of local modules
@@ -37,7 +36,6 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 
     def __init__(self):
         super().__init__(hcp7t_archive.Hcp7T_Archive())
-
 
     def submit_jobs(self, subject_list):
 
@@ -76,11 +74,11 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 
             submitter.username = userid
             submitter.password = password
-            submitter.server   = 'https://db.humanconnectome.org'
+            submitter.server = 'https://db.humanconnectome.org'
 
-            submitter.project  = subject.project
-            submitter.subject  = subject.subject_id
-            submitter.session  = subject.subject_id + '_7T'
+            submitter.project = subject.project
+            submitter.subject = subject.subject_id
+            submitter.session = subject.subject_id + '_7T'
 
             submitter.structural_reference_project = subject.structural_reference_project
             submitter.structural_reference_session = subject.subject_id + '_3T'
@@ -93,7 +91,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter.put_server = put_server
 
             submitter.submit_jobs(do_put=False)
-            
+
 
 if __name__ == "__main__":
 
@@ -115,5 +113,3 @@ if __name__ == "__main__":
     # Process the subjects in the list
     batch_submitter = BatchSubmitter()
     batch_submitter.submit_jobs(subject_list)
-
-
