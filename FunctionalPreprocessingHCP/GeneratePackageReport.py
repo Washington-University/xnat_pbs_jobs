@@ -61,6 +61,10 @@ if __name__ == '__main__':
     print("Checksum Date", end="\t")
     print("Checksum Newer Than Package")
 
+    # Print space between header row and content rows
+    print()
+
+    # Print content rows
     for subject in subject_list:
 
         project = subject.project
