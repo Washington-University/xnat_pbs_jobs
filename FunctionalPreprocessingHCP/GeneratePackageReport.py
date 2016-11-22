@@ -50,6 +50,7 @@ if __name__ == '__main__':
     # Print header row
     print("Project", end="\t")
     print("Subject ID", end="\t")
+    print("Scan", end="\t")
     print("Preproc Resource Date", end="\t")
     print("Package Path", end="\t")
     print("Package Exists", end="\t")
@@ -162,6 +163,7 @@ if __name__ == '__main__':
             # Print row for this scan
             print(project, end="\t")
             print(subject_id, end="\t")
+            print(scan, end="\t")
             print(preproc_date_str, end="\t")
             print(package_path, end="\t")
             print(package_exists, end="\t")
