@@ -8,7 +8,7 @@ import os
 
 
 # import of third party modules
-pass
+# None
 
 
 # import of local modules
@@ -34,9 +34,9 @@ def _inform(msg):
 class Hcp3T_Archive(hcp_archive.HcpArchive):
     """This class provides access to an HCP 3T project data archive.
 
-    This access goes 'behind the scenes' and uses the actual underlying file 
+    This access goes 'behind the scenes' and uses the actual underlying file
     system and assumes a particular organization of directories, resources, and
-    file naming conventions. Because of this, a change in XNAT implementation 
+    file naming conventions. Because of this, a change in XNAT implementation
     or a change in conventions could cause this code to no longer be correct.
     """
 
@@ -45,11 +45,9 @@ class Hcp3T_Archive(hcp_archive.HcpArchive):
         """String to indicate the tesla rating of the scanner used."""
         return '3T'
 
-
     def __init__(self):
         """Constructs an Hcp3T_Archive object."""
         super().__init__()
-
 
     def available_supplemental_structural_preproc_dir_fullpaths(self, subject_info):
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + os.sep +
@@ -75,7 +73,7 @@ def _simple_interactive_demo():
     _inform("created subject_info: " + str(subject_info))
     _inform("archive.session_name(subject_info): " + archive.session_name(subject_info))
     _inform("archive.session_dir_fullpath(subject_info): " + archive.session_dir_fullpath(subject_info))
-    _inform("archive.subject_resources_dir_fullpath(subject_info): " + 
+    _inform("archive.subject_resources_dir_fullpath(subject_info): " +
             archive.subject_resources_dir_fullpath(subject_info))
 
     _inform("")
@@ -111,8 +109,8 @@ def _simple_interactive_demo():
     _inform("")
     _inform("Are the following functional scans preprocessed")
     for name in archive.available_functional_unproc_names(subject_info):
-        _inform("scan name: " + name + " " + "\tfunctionally preprocessed: " + 
-              str(archive.functionally_preprocessed(subject_info, name)))
+        _inform("scan name: " + name + " " + "\tfunctionally preprocessed: " +
+                str(archive.functionally_preprocessed(subject_info, name)))
 
     _inform("")
     _inform("Available FIX processed dirs: ")
@@ -127,14 +125,14 @@ def _simple_interactive_demo():
 #    _inform("")
 #    _inform("Are the following functional scans FIX processed")
 #    for name in archive.available_functional_unproc_names(subject_info):
-#        _inform('scan name: ' + name + ' ' + '\tFIX processed: ' + 
+#        _inform('scan name: ' + name + ' ' + '\tFIX processed: ' +
 #              str(archive.FIX_processed(subject_info, name)))
 
     _inform("")
     _inform("Available resting state preproc dirs: ")
     for directory in archive.available_resting_state_preproc_dirs(subject_info):
         _inform(directory)
-    
+
     _inform("")
     _inform("Available resting state preproc names: ")
     for name in archive.available_resting_state_preproc_names(subject_info):
@@ -144,7 +142,7 @@ def _simple_interactive_demo():
     _inform("Available task preproc dirs: ")
     for directory in archive.available_task_preproc_dirs(subject_info):
         _inform(directory)
-    
+
     _inform("")
     _inform("Available task preproc names: ")
     for name in archive.available_task_preproc_names(subject_info):
@@ -154,9 +152,9 @@ def _simple_interactive_demo():
     _inform("Available functional unprocessed scan names: ")
     for name in archive.available_functional_unproc_names(subject_info):
         _inform(name + '\t' +
-                '\tprefix: '    + archive.functional_scan_prefix(name) +
+                '\tprefix: ' + archive.functional_scan_prefix(name) +
                 '\tbase_name: ' + archive.functional_scan_base_name(name) +
-                '\tpe_dir: '    + archive.functional_scan_pe_dir(name))
+                '\tpe_dir: ' + archive.functional_scan_pe_dir(name))
 
     _inform("")
     _inform("Available session dirs for project: " + subject_info.project)
@@ -174,7 +172,7 @@ def _simple_interactive_demo():
         _inform(subject_id)
 
     _inform("")
-    _inform("Number of available subject ids for project: " + subject_info.project + " " + 
+    _inform("Number of available subject ids for project: " + subject_info.project + " " +
             str(archive.subject_count(subject_info.project)))
 
     _inform("")

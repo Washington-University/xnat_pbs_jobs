@@ -15,7 +15,7 @@ import time
 
 
 # import of third party modules
-pass
+# None
 
 
 # import of local modules
@@ -41,7 +41,6 @@ class OneSubjectJobSubmitter(abc.ABC):
     to submit jobs for one pipeline for one subject.
     """
 
-
     def __init__(self, archive, build_home):
         """Constructs a OneSubjectJobSubmitter.
 
@@ -55,44 +54,38 @@ class OneSubjectJobSubmitter(abc.ABC):
         self._build_home = build_home
 
         home = os_utils.getenv_required('HOME')
-        self._xnat_pbs_jobs_home = home + os.sep 
-        self._xnat_pbs_jobs_home += 'pipeline_tools' + os.sep 
+        self._xnat_pbs_jobs_home = home + os.sep
+        self._xnat_pbs_jobs_home += 'pipeline_tools' + os.sep
         self._xnat_pbs_jobs_home += 'xnat_pbs_jobs'
 
         self._log_dir = os_utils.getenv_required('LOG_DIR')
-
 
     @property
     @abc.abstractmethod
     def PIPELINE_NAME(self):
         pass
 
-
     @property
     def archive(self):
         """Returns the archive with which this submitter is to work."""
         return self._archive
-
 
     @property
     def build_home(self):
         """Returns the temporary (e.g. build space) root directory."""
         return self._build_home
 
-
     @property
     def xnat_pbs_jobs_home(self):
         """Returns the home directory for the XNAT PBS job scripts."""
         return self._xnat_pbs_jobs_home
-
 
     @property
     def log_dir(self):
         """Returns the directory in which to place PUT logs."""
         return self._log_dir
 
-
-    def build_working_directory_name(self, project, pipeline_name, subject_id, scan = None):
+    def build_working_directory_name(self, project, pipeline_name, subject_id, scan=None):
         current_seconds_since_epoch = int(time.time())
         wdir = self.build_home
         wdir += os.sep + project
@@ -103,19 +96,8 @@ class OneSubjectJobSubmitter(abc.ABC):
         wdir += '.' + str(current_seconds_since_epoch)
         return wdir
 
-
-    def create_put_script(
-        self, 
-        put_script_name, 
-        username,
-        password,
-        put_server,
-        project,
-        subject,
-        session,
-        working_directory_name,
-        output_resource_name,
-        reason):
+    def create_put_script(self, put_script_name, username, password, put_server, project, subject, session,
+                          working_directory_name, output_resource_name, reason):
 
         """Create a script to put the working directory in the DB"""
         with contextlib.suppress(FileNotFoundError):
@@ -135,8 +117,8 @@ class OneSubjectJobSubmitter(abc.ABC):
         put_script.write('  --project="' + project + '" \\' + os.linesep)
         put_script.write('  --subject="' + subject + '" \\' + os.linesep)
         put_script.write('  --session="' + session + '" \\' + os.linesep)
-        put_script.write('  --working-dir="'     + working_directory_name   + '" \\' + os.linesep)
-        put_script.write('  --resource-suffix="' + output_resource_name     + '" \\' + os.linesep)
+        put_script.write('  --working-dir="' + working_directory_name + '" \\' + os.linesep)
+        put_script.write('  --resource-suffix="' + output_resource_name + '" \\' + os.linesep)
         put_script.write('  --reason="' + reason + '"' + os.linesep)
 
         put_script.close()

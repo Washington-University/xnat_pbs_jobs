@@ -6,15 +6,16 @@
 from enum import Enum
 
 # import of third party modules
-pass
- 
+# None
+
 # import of local modules
-pass
+# None
 
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
+
 
 class PEDirs(Enum):
     RLLR = 1

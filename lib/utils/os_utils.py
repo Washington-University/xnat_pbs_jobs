@@ -2,19 +2,15 @@
 
 """os_utils.py: Some simple and hopefully useful os utilities."""
 
-
 # import of built-in modules
 import os
 import logging
 
-
 # import of third party modules
-pass
-
+# None
 
 # import of local modules
-pass
-
+# None
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -32,7 +28,7 @@ log.addHandler(sh)
 
 def getenv_required(var_name):
     value = os.getenv(var_name)
-    if value == None:
+    if value is None:
         raise ValueError("Environment variable " + var_name + " is required, but is not set!")
     return value
 
@@ -47,7 +43,6 @@ def lndir(src, dst, show_log=False, ignore_existing_dst_files=False):
 
     if not os.path.exists(dst):
         os.mkdir(dst)
-
 
     for root, dirs, files in os.walk(src):
         log.debug("root:  " + root)
@@ -74,8 +69,3 @@ def lndir(src, dst, show_log=False, ignore_existing_dst_files=False):
 
 if __name__ == "__main__":
     lndir('/home/HCPpipeline/usr', '/home/HCPpipeline/usr1', show_log=True, ignore_existing_dst_files=True)
-
-
-
-
-        

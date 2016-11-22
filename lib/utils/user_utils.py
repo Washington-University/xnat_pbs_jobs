@@ -3,18 +3,19 @@
 """user_utils.py: Some simple and hopefully useful utilities for interacting with the user."""
 
 # import of built-in modules
-pass
+# None
 
 # import of third party modules
-pass
+# None
 
 # path changes and import of local modules
-pass
+# None
 
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
+
 
 def should_proceed():
     proceed = input("Proceed? [n]: ").lower()

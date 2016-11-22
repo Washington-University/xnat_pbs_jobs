@@ -6,15 +6,16 @@
 import os
 
 # import of third party modules
-pass
+# None
 
 # path changes and import of local modules
-pass
+# None
 
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
+
 
 def _inform(msg):
     """Inform the user of this program by outputing a message that is prefixed by the file name.
@@ -39,7 +40,7 @@ class XNAT_Archive:
 
         If the COMPUTE environment is not set, this value is used.
         """
-        return 'CHPC' 
+        return 'CHPC'
 
     def __init__(self):
         """Constructs an XNAT_Archive object for direct access to an XNAT data archive."""
@@ -61,7 +62,6 @@ class XNAT_Archive:
     def build_space_root(self):
         """Returns the temporary build/processing directory root."""
         return self._hcp_root + '/hcpdb/build_ssd/chpc/BUILD'
-
 
     def project_archive_root(self, project_name):
         """Returns the path to the specified project's root directory in the archive.
@@ -90,4 +90,3 @@ def _simple_interactive_demo():
 
 if __name__ == "__main__":
     _simple_interactive_demo()
-

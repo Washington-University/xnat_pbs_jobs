@@ -7,15 +7,16 @@ import os
 import urllib
 
 # import of third party modules
-pass
+# None
 
 # import of local modules
-pass
+# None
 
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
+
 
 def remove_ending_new_lines(input_str):
     """Remove a new line characters from the end of the supplied string if any are there."""
@@ -24,6 +25,7 @@ def remove_ending_new_lines(input_str):
         line = line[:-1]
 
     return line
+
 
 def get_server_name(url):
     (scheme, location, path, params, query, fragment) = urllib.parse.urlparse(url)

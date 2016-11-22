@@ -10,10 +10,8 @@ import getpass
 import os
 import sys
 
-
 # import of third party modules
-pass
-
+# None
 
 # import of local modules
 import hcp.batch_submitter as batch_submitter
@@ -34,8 +32,8 @@ def _inform(msg):
 
 
 def _debug(msg):
-    #debug_msg = "DEBUG: " + msg
-    #_inform(debug_msg)
+    # debug_msg = "DEBUG: " + msg
+    # _inform(debug_msg)
     pass
 
 
@@ -44,13 +42,12 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
     def __init__(self):
         super().__init__(hcp7t_archive.Hcp7T_Archive())
 
-
     def submit_jobs(self, subject_list):
 
         # Read the configuration file
         config_file_name = file_utils.get_config_file_name(__file__)
         _inform("Reading configuration from file: " + config_file_name)
-        
+
         config = my_configparser.MyConfigParser()
         config.read(config_file_name)
 
@@ -83,7 +80,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 
             submitter.username = userid
             submitter.password = password
-            submitter.server   = 'https://db.humanconnectome.org'
+            submitter.server = 'https://db.humanconnectome.org'
 
             submitter.project = subject.project
             submitter.subject = subject.subject_id
@@ -100,7 +97,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 
             submitter.setup_script = setup_file
             submitter.clean_output_resource_first = clean_output_first
-            submitter.pe_dirs_spec = 'PAAP' 
+            submitter.pe_dirs_spec = 'PAAP'
             submitter.put_server = put_server
 
             submitter.submit_jobs()

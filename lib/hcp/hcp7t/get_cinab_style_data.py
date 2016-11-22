@@ -12,6 +12,7 @@ import sys
 
 
 # import of third party modules
+# None
 
 
 # import of local modules
@@ -123,7 +124,7 @@ def main():
     # create and configure CinabStyleDataRetriever
     data_retriever = CinabStyleDataRetriever(archive)
     data_retriever.copy = args.copy
-    a
+
     data_retriever.show_log = True
 
     # retrieve data based on phase requested

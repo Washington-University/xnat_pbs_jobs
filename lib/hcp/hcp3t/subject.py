@@ -2,7 +2,7 @@
 
 """hcp/hcp3t/subject.py: Maintain information about an HCP 3T subject.
 
-The module also provides services for reading and writing lists of such subjects 
+The module also provides services for reading and writing lists of such subjects
 in simple text files.
 """
 
@@ -10,8 +10,10 @@ in simple text files.
 import os
 import sys
 
+
 # import of third party modules
-pass
+# None
+
 
 # import of local modules
 import hcp.subject as hcp_subject
@@ -56,7 +58,7 @@ def read_subject_info_list(file_name):
         # ignore blank lines and comment lines - starting with #
         if line != '' and line[0] != '#':
             (project, subject_id, extra) = line.split(dummy_subject_info.SEPARATOR)
-            # Make the string 'None' in the file translate to a None type instead of just the 
+            # Make the string 'None' in the file translate to a None type instead of just the
             # string itself
             if extra == 'None':
                 extra = None
@@ -92,7 +94,7 @@ def _simple_interactive_demo():
     _inform("-- Creating 2 Hcp3TSubjectInfo objects --")
     subject_info1 = Hcp3TSubjectInfo('HCP_900', '100206')
     subject_info2 = Hcp3TSubjectInfo('HCP_500', '100307')
-    
+
     _inform(os.linesep)
     _inform("-- Showing the Hcp3TSubjectInfo objects --")
     _inform(str(subject_info1))
@@ -106,14 +108,14 @@ def _simple_interactive_demo():
     write_subject_info_list(test_file_name, subject_info_list_out)
 
     _inform(os.linesep)
-    _inform("-- Retrieving the list of Hcp3TSubjectInfo objects from the text file: " + test_file_name + " --") 
+    _inform("-- Retrieving the list of Hcp3TSubjectInfo objects from the text file: " + test_file_name + " --")
     subject_info_list_in = read_subject_info_list(test_file_name)
 
     _inform(os.linesep)
     _inform("-- Showing the list of Hcp3TSubjectInfo objects --")
     for subject_info in subject_info_list_in:
         _inform(subject_info)
-    
+
     _inform(os.linesep)
     _inform("-- Removing text file " + test_file_name + " --")
     os.remove(test_file_name)
@@ -121,5 +123,3 @@ def _simple_interactive_demo():
 
 if __name__ == '__main__':
     _simple_interactive_demo()
-
-

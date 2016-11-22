@@ -6,7 +6,7 @@
 import os
 
 # import of third party modules
-pass
+# None
 
 # import of local modules
 import utils.my_argparse as my_argparse
@@ -34,7 +34,7 @@ def main():
 
     if not args.input_file_name:
         args.input_file_name = input("Input file name: ")
-        
+
     if not args.output_file_name:
         args.output_file_name = input("Output file name: ")
 

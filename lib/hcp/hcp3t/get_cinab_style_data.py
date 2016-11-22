@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-hcp.hcp3t.get_cinab_style_data.py: Get (copy or link) a CinaB style directory tree of data 
+hcp.hcp3t.get_cinab_style_data.py: Get (copy or link) a CinaB style directory tree of data
 for a specified subject within a specified project.
 """
 
@@ -13,7 +13,7 @@ import subprocess
 
 
 # import of third party modules
-pass
+# None
 
 
 # import of local modules
@@ -32,11 +32,11 @@ __maintainer__ = "Timothy B. Brown"
 
 # create and configure a module logger
 log = logging.getLogger(__file__)
-#log.setLevel(logging.WARNING)
+# log.setLevel(logging.WARNING)
 log.setLevel(logging.INFO)
 sh = logging.StreamHandler(sys.stdout)
 sh.setFormatter(logging.Formatter('%(name)s: %(message)s'))
-#sh.setFormatter(logging.Formatter('[%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s'))
+# sh.setFormatter(logging.Formatter('[%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s'))
 log.addHandler(sh)
 
 
@@ -45,9 +45,8 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
     def __init__(self, archive):
         super().__init__(archive)
 
-
     def get_structural_unproc_data(self, subject_info, output_study_dir):
-        
+
         for directory in self.archive.available_structural_unproc_dir_fullpaths(subject_info):
             print("directory: " + directory)
 
@@ -56,10 +55,10 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             last_sep_loc = get_from.rfind(os.sep)
             unproc_loc = get_from.rfind('_' + self.archive.UNPROC_SUFFIX)
             sub_dir = get_from[last_sep_loc+1:unproc_loc]
-            put_to = output_study_dir + os.sep + subject_info.subject_id + os.sep + 'unprocessed' + os.sep + self.archive.TESLA_SPEC + os.sep + sub_dir
+            put_to = output_study_dir + os.sep + subject_info.subject_id + os.sep + 'unprocessed' + \
+                bos.sep + self.archive.TESLA_SPEC + os.sep + sub_dir
 
             self._from_to(get_from, put_to)
-
 
     def get_unproc_data(self, subject_info, output_study_dir):
 
@@ -67,15 +66,13 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
         self.get_functional_unproc_data(subject_info, output_study_dir)
         self.get_diffusion_unproc_data(subject_info, output_study_dir)
 
-
     def get_structural_preproc_data(self, subject_info, output_study_dir):
 
         for directory in self.archive.available_structural_preproc_dir_fullpaths(subject_info):
-        
+
             get_from = directory
             put_to = output_study_dir + os.sep + subject_info.subject_id
             self._from_to(get_from, put_to)
-        
 
     def get_supplemental_structural_preproc_data(self, subject_info, output_study_dir):
 
@@ -85,11 +82,10 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             put_to = output_study_dir + os.sep + subject_info.subject_id
             self._from_to(get_from, put_to)
 
-
     def get_preproc_data(self, subject_info, output_study_dir):
 
         if not self.copy:
-            # when creating symbolic links (copy == False), must be done in reverse 
+            # when creating symbolic links (copy == False), must be done in reverse
             # chronological order
             self.get_diffusion_preproc_data(subject_info, output_study_dir)
             self.get_functional_preproc_data(subject_info, output_study_dir)
@@ -101,8 +97,7 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_structural_preproc_data(subject_info, output_study_dir)
             self.get_supplemental_structural_preproc_data(subject_info, output_study_dir)
             self.get_functional_preproc_data(subject_info, output_study_dir)
-            self.get_diffusion_preproc_data(subject_info, output_study_dir)        
-
+            self.get_diffusion_preproc_data(subject_info, output_study_dir)
 
     def get_data_through_STRUCT_PREPROC(self, subject_info, output_study_dir):
 
@@ -119,7 +114,6 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_structural_preproc_data(subject_info, output_study_dir)
             self.get_supplemental_structural_preproc_data(subject_info, output_study_dir)
 
-
     def get_full_data(self, subject_info, output_study_dir):
 
         if not self.copy:
@@ -128,7 +122,7 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
 
             # ici get_msmall_dedrift_and_resample_data
             # ici get_msmall_reg_data
-        
+
             # ici get_resting_state_stats_data
             # ici get_postfix_data
 
@@ -155,7 +149,8 @@ def main():
 
     # optional arguments
     parser.add_argument('-c',  '--copy',  dest='copy',  action='store_true', required=False, default=False)
-    parser.add_argument('-ph', '--phase', dest='phase', required=False, choices=["full", "diffusion_preproc_vetting", "STRUCT_PREPROC"], default="full")
+    parser.add_argument('-ph', '--phase', dest='phase', required=False,
+                        choices=["full", "diffusion_preproc_vetting", "STRUCT_PREPROC"], default="full")
 
     # parse the command line arguments
     args = parser.parse_args()
@@ -187,7 +182,6 @@ def main():
 
     elif (args.phase == "STRUCT_PREPROC"):
         data_retriever.get_data_through_STRUCT_PREPROC(subject_info, args.output_study_dir)
-
 
 
 if __name__ == '__main__':

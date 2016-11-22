@@ -30,6 +30,7 @@ __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
+
 def _inform(msg):
     """Inform the user of this program by outputing a message that is prefixed by the file name.
 
@@ -38,13 +39,16 @@ def _inform(msg):
     """
     print(os.path.basename(__file__) + ": " + msg)
 
+
 DEBUG = False
+
 
 def _debug(msg):
     """ """
     # Note inspect.stack()[1][3] gives the name of the function that called this debug function
     if DEBUG:
         _inform(inspect.stack()[1][3] + ": DEBUG: " + msg)
+
 
 def get_session_id(server, username, password, project, subject, session):
 
@@ -60,8 +64,9 @@ def get_session_id(server, username, password, project, subject, session):
         _inform(inspect.stack()[0][3] + ": Cannot get response from request: " + request_url)
         sys.exit(1)
 
-    if not 'application/json' in response.headers['content-type']:
-        _inform(inspect.stack()[0][3] + ": Unexpected response content-type: " + response.headers['content-type'] + " from " + request_url)
+    if 'application/json' not in response.headers['content-type']:
+        _inform(inspect.stack()[0][3] + ": Unexpected response content-type: " + response.headers['content-type'] +
+                " from " + request_url)
         sys.exit(1)
 
     json_response = json.loads(response.text)
@@ -91,6 +96,7 @@ def get_session_id(server, username, password, project, subject, session):
 
     return 'XNAT SESSION ID NOT FOUND'
 
+
 def get_jsession_id(server, username, password):
 
     request_url = 'https://' + server + '/data/JSESSION'
@@ -104,21 +110,23 @@ def get_jsession_id(server, username, password):
     _debug("response.text: " + str(response.text))
     return str(response.text)
 
+
 class Workflow():
     """Workflow Handler Class"""
-    
+
     def __init__(self, user, password, server, jsession_id):
         self._user = user
         self._password = password
         self._server = server
         self._jsession_id = jsession_id
-        self._timeout = 8 
+        self._timeout = 8
         self._timeout_max = 1024
         self._timeout_step = 8
 
     def create_workflow(self, experiment_id, project_id, pipeline, status):
         """Creates a workflow entry and returns the primary key of the inserted workflow"""
-        workflow_str_xml = '<wrk:Workflow data_type="xnat:mrSessionData"  xmlns:xsi="http://www.w3.org/2001/XMSchema-instance" xmlns:wrk="http://nrg.wuslt.edu/workflow" />'
+        workflow_str_xml = '<wrk:Workflow data_type="xnat:mrSessionData" xmlns:xsi="http://www.w3.org/2001/XMSchema-instance" '
+        workflow_str_xml += 'xmlns:wrk="http://nrg.wuslt.edu/workflow" />'
         workflow_data_element = ET.fromstring(workflow_str_xml)
 
         ET.register_namespace('wrk', 'http://nrg.wustl.edu/workflow')
@@ -127,11 +135,11 @@ class Workflow():
         workflow_data_element.set('ExternalID', project_id)
         workflow_data_element.set('status', status)
         workflow_data_element.set('pipeline_name', pipeline)
-        
+
         time_now = time.localtime()
         xml_time = time.strftime('%Y-%m-%dT%H:%M:%S', time_now)
         pretty_time_now = time.strftime('%Y-%m-%dT%H-%M-%S', time_now)
-        
+
         workflow_data_element.set('launch_time', xml_time)
 
         workflow_data_str = ET.tostring(workflow_data_element)
@@ -141,8 +149,8 @@ class Workflow():
             with open(workflow_write_str, 'wb') as output_file_obj:
                 output_file_obj.write(workflow_data_str)
 
-            workflow_submit_str = '$PIPELINE_HOME/xnat-tools/XnatDataClient -s %s -m PUT -r "%s/REST/workflows?req_format=xml&inbody=true" -l %s' % (self._jsession_id, self._server, workflow_write_str)
-            subprocess.call(workflow_submit_str, shell=True, stdout = open("/dev/null", "w"))
+            workflow_submit_str = '$PIPELINE_HOME/xnat-tools/XnatDataClient -s %s -m PUT -r "%s/REST/workflows?req_format=xml&inbody=true" -l %s' % (self._jsession_id, self._server, workflow_write_str)  # nopep8
+            subprocess.call(workflow_submit_str, shell=True, stdout=open("/dev/null", "w"))
             workflow_id = self.get_queued_workflow_id_as_parameter(pipeline, experiment_id)
             return workflow_id
         else:
@@ -163,7 +171,7 @@ class Workflow():
             return return_string
         else:
             return return_string[0:dot_XML_index]
-        
+
     def get_queued_workflow_id_as_parameter(self, pipeline, experiment_id):
         """Get Workflow Data and Parse to extract the Queued Workflow DB primary key"""
         pipeline = self.get_pipeline_name(pipeline)
@@ -172,13 +180,13 @@ class Workflow():
 
         rest_data = self.get_URL_string_using_jsession(rest_url)
 
-        match=re.search('hidden_fields\[wrk_workflowData_id="(\d+)"\]', rest_data)
+        match = re.search('hidden_fields\[wrk_workflowData_id="(\d+)"\]', rest_data)
         if match:
             start_index = match.start()
-            end_index   = match.end()
+            end_index = match.end()
             workflow_primary_key_str = rest_data[start_index:end_index]
 
-        match=re.match(r"hidden_fields\[wrk_workflowData_id=\"(\d+)\"\]", workflow_primary_key_str)
+        match = re.match(r"hidden_fields\[wrk_workflowData_id=\"(\d+)\"\]", workflow_primary_key_str)
         if (match):
             workflow_id_str = match.group(1)
         return workflow_id_str
@@ -186,7 +194,7 @@ class Workflow():
     def get_URL_string_using_jsession(self, URL):
         """Get URL results as a string"""
         restRequest = urllib.request.Request(URL)
-        restRequest.add_header("Cookie", "JSESSIONID=" + self._jsession_id);
+        restRequest.add_header("Cookie", "JSESSIONID=" + self._jsession_id)
 
         while (self._timeout <= self._timeout_max):
             try:
@@ -219,11 +227,11 @@ class Workflow():
                     return str(ReadResults)
 
                 except HTTPError as e:
-                    print('READ HTTPError code: ' + str(e.code) + '. File read timeout for ' + str(self._timeout) + ' seconds for ' + URL)
+                    print('READ HTTPError code: ' + str(e.code) + '. File read timeout for ' + str(self._timeout) + ' seconds for ' + URL)  # nopep8
                 except URLError as e:
-                    print('READ URLError code: ' + str(e.reason) + '. File read timeout for ' + str(self._timeout) + ' seconds for ' + URL)
+                    print('READ URLError code: ' + str(e.reason) + '. File read timeout for ' + str(self._timeout) + ' seconds for ' + URL)  # nopep8
                 except SSLError as e:
-                    print('READ SSLError code: ' + str(e.message) + '. File read timeout for ' + str(self._timeout) + ' seconds for ' + URL)
+                    print('READ SSLError code: ' + str(e.message) + '. File read timeout for ' + str(self._timeout) + ' seconds for ' + URL)  # nopep8
                 except socket.timeout:
                     print('READ Socket timed out. File read timeout for ' + str(self._timeout) + ' seconds for ' + URL)
 

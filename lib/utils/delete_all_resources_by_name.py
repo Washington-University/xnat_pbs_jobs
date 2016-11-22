@@ -1,26 +1,22 @@
 #!/usr/bin/env python3
 
 """
-utils/delete_all_resources_by_name.py: Program to delete all DB resources 
+utils/delete_all_resources_by_name.py: Program to delete all DB resources
 of a given name for all sessions in a given ConnectomeDB project."
 """
 
 # import of built-in modules
 import glob
 import os
-
 import sys
 
-
 # import of third party modules
-pass
-
+# None
 
 # import of local modules
 import utils.my_argparse as my_argparse
 import xnat.xnat_archive as xnat_archive
 import utils.delete_resource as delete_resource
-
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -29,7 +25,7 @@ __maintainer__ = "Timothy B. Brown"
 
 
 def _inform(msg):
-    """Inform the user of this program by outputing a message that is prefixed 
+    """Inform the user of this program by outputing a message that is prefixed
     by the file name.
     """
     print(os.path.basename(__file__) + ": " + msg)
@@ -41,14 +37,14 @@ def main():
         description="Program to delete all DB resources of a given name for all sessions in a given ConnectomeDB project.")
 
     # mandatory arguments
-    parser.add_argument('-u' , '--user'    , dest='user'    , required=True, type=str)
+    parser.add_argument('-u', '--user', dest='user', required=True, type=str)
     parser.add_argument('-pw', '--password', dest='password', required=True, type=str)
-    parser.add_argument('-pr', '--project' , dest='project' , required=True, type=str)
-    parser.add_argument('-r' , '--resource', dest='resource', required=True, type=str)
+    parser.add_argument('-pr', '--project', dest='project', required=True, type=str)
+    parser.add_argument('-r', '--resource', dest='resource', required=True, type=str)
 
     # optional arguments
     parser.add_argument('-ser', '--server', dest='server', required=False, default='https://db.humanconnectome.org', type=str)
-    parser.add_argument('-f'  , '--force' , dest='force', action='store_true', required=False, default=False)
+    parser.add_argument('-f', '--force', dest='force', action='store_true', required=False, default=False)
 
     # parse the command line arguments
     args = parser.parse_args()
@@ -84,7 +80,7 @@ def main():
             _inform("Deleting resource: " + args.resource + " for session: " + session)
 
             delete_resource.delete_resource(args.user, args.password, args.server,
-                                            args.project,  subject,  session, 
+                                            args.project,  subject,  session,
                                             args.resource, args.force)
 
 

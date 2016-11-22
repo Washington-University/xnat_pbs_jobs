@@ -8,10 +8,12 @@ import glob
 import os
 
 # import of third party modules
-pass
+# None
+
 
 # import of local modules
 import xnat.xnat_archive as xnat_archive
+
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -37,121 +39,103 @@ class HcpArchive(abc.ABC):
     or a change in conventsions could cause this code to no longer be correct.
     """
 
-
     @property
     def FUNCTIONAL_SCAN_MARKER(self):
         """Prefix to a resource directory name that indicates that the resource is for a functional MRI."""
         return 'fMRI'
-       
 
     @property
     def RESTING_STATE_SCAN_MARKER(self):
         """Prefix to a resource directory name that indicates that the resource is for a resting state MRI."""
         return 'rfMRI'
- 
 
     @property
     def TASK_SCAN_MARKER(self):
         """Prefix to a resource directory name that indicates that the resource is for a task scan."""
         return 'tfMRI'
 
-
     @property
     def UNPROC_SUFFIX(self):
         """Suffix to a resource directory name that indicates that the resource contains unprocessed data."""
         return 'unproc'
-
 
     @property
     def PREPROC_SUFFIX(self):
         """Suffix to a resource directory name that indicates that the resource contains preprocessed data."""
         return 'preproc'
 
-
     @property
     def FIX_PROCESSED_SUFFIX(self):
         """Suffix to a resource directory name that indicates that the resource contains FIX processed data."""
         return 'FIX'
-
 
     @property
     def POSTFIX_PROCESSED_SUFFIX(self):
         """Suffix to a resource directory name that indicates that the resource contains PostFix processed data."""
         return 'PostFix'
 
-
     @property
     def DEDRIFT_AND_RESAMPLE_RESOURCE_NAME(self):
         """Name of MSM All DeDriftAndResample resource"""
         return 'MSMAllDeDrift'
-
 
     @property
     def NAME_DELIMITER(self):
         """Character (or string) used to delimit the parts of a resource name.
 
         Separates the prefix that indicates the type of the scan (e.g. tfMRI, rfMRI, etc.)
-        from the general name of the scan (e.g. REST2, MOVIE1, RETBAR1) and from the 
+        from the general name of the scan (e.g. REST2, MOVIE1, RETBAR1) and from the
         suffix that indicates the state of the data (e.g. unproc, preproc, FIX)
         """
         return '_'
-
 
     @property
     @abc.abstractmethod
     def TESLA_SPEC(self):
         pass
 
-
     def __init__(self):
         """Constructs an HcpArchive object."""
         self._xnat_archive = xnat_archive.XNAT_Archive()
-    
 
     @property
     def xnat_archive(self):
-        """an XNAT_Archive object that provides direct access 
+        """an XNAT_Archive object that provides direct access
         to an XNAT data archive on the file system."""
         return self._xnat_archive
-
 
     @property
     def build_home(self):
         """the temporary build/processing space directory root."""
         return self.xnat_archive.build_space_root
 
-    
     def session_name(self, subject_info):
         """the conventional session name for a subject in this project archive.
         e.g. <subject-id>_3T"""
         return subject_info.subject_id + self.NAME_DELIMITER + self.TESLA_SPEC
 
-
     def session_dir_fullpath(self, subject_info):
-        """the full path to the conventional session directory for a subject in 
+        """the full path to the conventional session directory for a subject in
         this project archive."""
         return self.xnat_archive.project_archive_root(subject_info.project) + '/' + self.session_name(subject_info)
 
-
     def subject_resources_dir_fullpath(self, subject_info):
-        """the full path to the conventional subject-level resources 
+        """the full path to the conventional subject-level resources
         directory for a subject in this project archive."""
         return self.session_dir_fullpath(subject_info) + '/RESOURCES'
 
-
     def available_functional_unproc_dir_fullpaths(self, subject_info):
         """list of full paths to unprocessed functional scan resource directories"""
-        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' + 
-                             self.FUNCTIONAL_SCAN_MARKER + '*' + self.UNPROC_SUFFIX) 
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
+                             self.FUNCTIONAL_SCAN_MARKER + '*' + self.UNPROC_SUFFIX)
         return sorted(dir_list)
-
 
     def available_functional_unproc_names(self, subject_info):
         """list of scan names (not full paths) of available unprocessed functional scans.
 
         :Example:
-        
-        If the full paths to the available unprocessed functional scans for the 
+
+        If the full paths to the available unprocessed functional scans for the
         specified subject are:
 
         /HCP/hcpddb/archive/HCP_Staging_7T/arc001/102311_7T/RESOURCES/rfMRI_REST1_PA_unproc
@@ -162,7 +146,7 @@ class HcpArchive(abc.ABC):
         /HCP/hcpddb/archive/HCP_Staging_7T/arc001/102311_7T/RESOURCES/tfMRI_RETEXP_AP_unproc
 
         Then the list of scan names returned by this method will be:
- 
+
         rfMRI_REST1_PA
         rfMRI_REST2_AP
         tfMRI_MOVIE1_AP
@@ -170,7 +154,7 @@ class HcpArchive(abc.ABC):
         tfMRI_RETCCW_AP
         tfMRI_RETEXP_AP
 
-        Notice that not only is the path to the scans not included, the suffix indicating 
+        Notice that not only is the path to the scans not included, the suffix indicating
         the state of the data, unproc, is also removed leaving just the scan 'name'.
         """
         dir_list = self.available_functional_unproc_dir_fullpaths(subject_info)
@@ -179,43 +163,35 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
-
     def available_functional_preproc_dir_fullpaths(self, subject_info):
         """Returns a list of full paths to preprocessed functional scan resources."""
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
-                             self.FUNCTIONAL_SCAN_MARKER + '*' + self.PREPROC_SUFFIX) 
+                             self.FUNCTIONAL_SCAN_MARKER + '*' + self.PREPROC_SUFFIX)
         return sorted(dir_list)
-
 
     def diffusion_unproc_dir_fullpath(self, subject_info):
         """the full path to the unprocessed diffusion resource directory"""
         return self.subject_resources_dir_fullpath(subject_info) + '/Diffusion_' + self.UNPROC_SUFFIX
-
 
     def available_diffusion_unproc_dir_fullpaths(self, subject_info):
         """list of full paths to unprocessed diffusion scan resource directories"""
         dir_list = glob.glob(self.diffusion_unproc_dir_fullpath(subject_info))
         return sorted(dir_list)
 
-
     def does_diffusion_unproc_dir_exist(self, subject_info):
         return os.path.isdir(self.diffusion_unproc_dir_fullpath(subject_info))
-
 
     def diffusion_preproc_dir_fullpath(self, subject_info):
         """full path to preprocessed diffusion resource directory"""
         return self.subject_resources_dir_fullpath(subject_info) + os.sep + 'Diffusion_' + self.PREPROC_SUFFIX
 
-
     def does_diffusion_preproc_dir_exist(self, subject_info):
         return os.path.isdir(self.diffusion_preproc_dir_fullpath(subject_info))
-
 
     def available_diffusion_preproc_dir_fullpaths(self, subject_info):
         """list of full paths to preprocessed diffusion resources."""
         dir_list = glob.glob(self.diffusion_preproc_dir_fullpath(subject_info))
         return sorted(dir_list)
-
 
     def available_diffusion_unproc_names(self, subject_info):
         """list of scan names (not full paths) for unprocessed diffusion resources."""
@@ -224,7 +200,6 @@ class HcpArchive(abc.ABC):
         for directory in dir_list:
             name_list.append(self._get_scan_name_from_path(directory))
         return sorted(name_list)
-
 
     def available_diffusion_scan_fullpaths(self, subject_info):
         """full paths to available diffusion scans"""
@@ -239,7 +214,6 @@ class HcpArchive(abc.ABC):
 
         return sorted(scan_list)
 
-
     def available_diffusion_scan_names(self, subject_info):
         """list of available diffusion scan names"""
         scan_path_list = self.available_diffusion_scan_fullpaths(subject_info)
@@ -248,13 +222,11 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_file_name_from_path(scan_path))
         return sorted(name_list)
 
-
     def available_FIX_processed_dir_fullpaths(self, subject_info):
         """Returns a list of full paths to FIX processed scan resources."""
-        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' + 
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
                              self.FUNCTIONAL_SCAN_MARKER + '*' + self.FIX_PROCESSED_SUFFIX)
         return sorted(dir_list)
-
 
     def available_FIX_processed_names(self, subject_info):
         """Returns a list of scan names (not full paths) of available FIX processed scans."""
@@ -264,51 +236,26 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
-
-
-
-
-
-
     def _get_scan_name_from_path(self, path):
         short_path = os.path.basename(path)
         last_char = short_path.rfind(self.NAME_DELIMITER)
         name = short_path[:last_char]
         return name
 
-
     def _get_session_name_from_path(self, directory):
         short_path = os.path.basename(directory)
         return short_path
-
 
     def _get_subject_id_from_session_name(self, session_name):
         last_char = session_name.rfind(self.NAME_DELIMITER)
         subject_id = session_name[:last_char]
         return subject_id
 
-
     def _get_scan_file_name_from_path(self, scan_path):
         file_name = os.path.basename(scan_path)
         return file_name
 
-
-
-
-
-
-
-
-
-
 # ICI name changes to methods from here down are needed for consistency
-
-
-
-
-
-
-
 
     def available_functional_preproc_names(self, subject_info):
         """Returns a list of scan names (not full paths) of available preprocessed
@@ -319,13 +266,11 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
-
     def does_functional_unproc_exist(self, subject_info, scan_name):
         return scan_name in self.available_functional_unproc_names(subject_info)
 
-
     def does_functional_preproc_exist(self, subject_info, scan_name):
-        """Returns True if there is a functional preproc resource available for 
+        """Returns True if there is a functional preproc resource available for
         the specified scan name.
         """
         # _inform("subject_info: " + str(subject_info))
@@ -335,37 +280,32 @@ class HcpArchive(abc.ABC):
 
         return scan_name in self.available_functional_preproc_names(subject_info)
 
-
     def functionally_preprocessed(self, subject_info, scan_name):
         """Returns True if the specified scan has been functionally preprocessed
         for the specified subject.
         """
 
         # NOTE: This should be overridden in a subclass to do more than simply check
-        #       to see if the resource exists. It needs to also do the check to see 
+        #       to see if the resource exists. It needs to also do the check to see
         #       if all the appropriate files exist.
         _inform("functionally_preprocessed method of HcpArchive class being called.")
         _inform("This method should be overriddent in a subclass to do a more ")
         _inform("appropriate check.")
         return self.does_functional_preproc_exist(subject_info, scan_name)
 
-
     def DeDriftAndResample_processed_dir_name(self, subject_info):
         return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.DEDRIFT_AND_RESAMPLE_RESOURCE_NAME
-
 
     def available_DeDriftAndResample_processed_dirs(self, subject_info):
         """Returns a list of full paths to DeDriftAndResample processed scan resources"""
         dir_list = glob.glob(self.DeDriftAndResample_processed_dir_name(subject_info))
         return sorted(dir_list)
 
-
     def available_PostFix_processed_dirs(self, subject_info):
         """Returns a list of full paths to PostFix processed scan resources"""
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
                              self.FUNCTIONAL_SCAN_MARKER + '*' + self.POSTFIX_PROCESSED_SUFFIX)
         return sorted(dir_list)
-
 
     def available_PostFix_processed_names(self, subject_info):
         """Returns a list of scan names (not full paths) of available PostFix processed scans."""
@@ -375,58 +315,44 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
-
     def scan_PostFix_resource_name(self, scan):
         return scan + '_PostFix'
-
 
     def scan_PostFix_resource_dir(self, subject_info, scan):
         return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.scan_PostFix_resource_name(scan)
 
-
-
-
-
-
 #    def DeDrift_processed_resource_name(self):
 #        return 'MSMAllDeDrift'
-
 
     def FIX_processed_resource_name(self, scan_name):
         return scan_name + self.NAME_DELIMITER + self.FIX_PROCESSED_SUFFIX
 
-
     def does_FIX_processed_exist(self, subject_info, scan_name):
-        """Returns True if there is a FIX processed resource available for the specified 
+        """Returns True if there is a FIX processed resource available for the specified
         scan name."""
         return scan_name in self.available_FIX_processed_names(subject_info)
-
 
     def PostFix_processed_resource_name(self, scan_name):
         return scan_name + self.NAME_DELIMITER + self.POSTFIX_PROCESSED_SUFFIX
 
-
     def does_PostFix_processed_resource_exist(self, subject_info, scan_name):
-        """Returns True if there is a PostFix resource available for the specified 
+        """Returns True if there is a PostFix resource available for the specified
         scan name."""
         return scan_name in self.available_PostFix_processed_names(subject_info)
 
-
 #    def FIX_processed(self, subject_info, scan_name):
 #        return self.FIX_processing_complete(subject_info, scan_name)
-
 
     def FIX_processing_complete(self, subject_info, scan_name):
         """Returns True if the specified scan has been FIX processed for the specified subject."""
 
         # NOTE: This needs to be overridden in a subclass to do more than simply check
-        #       to see if the resource exists. It needs to also do the check to see 
+        #       to see if the resource exists. It needs to also do the check to see
         #       if all the appropriate files exist.
         _inform("FIX_processing_complete method of HcpArchive class being called.")
         _inform("This method should be overridden in a subclass to do")
         _inform("a more appropriate check.")
         return self.does_FIX_processed_exist(subject_info, scan_name)
-
 
     # def PostFix_processing_complete(self, subject_info, scan_name):
     #     """Returns True if the specified scan has completed PostFix processing for the specified subject."""
@@ -439,44 +365,36 @@ class HcpArchive(abc.ABC):
     #     _inform("a more appropriate check.")
     #     return self.does_PostFix_processed_resource_exist(subject_info, scan_name)
 
-
     def is_resting_state_scan_name(self, scan_name):
-        return scan_name.startswith(self.RESTING_STATE_SCAN_MARKER) 
-
+        return scan_name.startswith(self.RESTING_STATE_SCAN_MARKER)
 
     def is_task_scan_name(self, scan_name):
         return scan_name.startswith(self.TASK_SCAN_MARKER)
-
 
     def available_structural_unproc_dir_fullpaths(self, subject_info):
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + os.sep +
                              'T[12]w_' + '*' + self.UNPROC_SUFFIX)
         return sorted(dir_list)
 
-
     def does_structural_preproc_dir_exist(self, subject_info):
         return os.path.isdir(self.structural_preproc_dir_fullpath(subject_info))
 
-
     def structural_preproc_dir_fullpath(self, subject_info):
         return self.subject_resources_dir_fullpath(subject_info) + os.sep + 'Structural_' + self.PREPROC_SUFFIX
-
 
     def available_structural_preproc_dir_fullpaths(self, subject_info):
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + os.sep +
                              'Structural' + '_' + self.PREPROC_SUFFIX)
         return sorted(dir_list)
-        
 
     def available_resting_state_preproc_dirs(self, subject_info):
         """Returns a list of full paths to functionally preprocessed resting state scan resources."""
-        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' + 
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
                              self.RESTING_STATE_SCAN_MARKER + '*' + self.PREPROC_SUFFIX)
         return sorted(dir_list)
 
-
     def available_resting_state_preproc_names(self, subject_info):
-        """Returns a list of scan names (not full paths) of available preprocessed resting 
+        """Returns a list of scan names (not full paths) of available preprocessed resting
         state scan resources."""
         dir_list = self.available_resting_state_preproc_dirs(subject_info)
         name_list = []
@@ -484,16 +402,14 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
-
     def available_task_preproc_dirs(self, subject_info):
         """Returns a list of full paths to functionally preprocessed task scan resources."""
-        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' + 
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
                              self.TASK_SCAN_MARKER + '*' + self.PREPROC_SUFFIX)
         return sorted(dir_list)
 
-
     def available_task_preproc_names(self, subject_info):
-        """Returns a list of scan names (not full paths) of available preprocessed task 
+        """Returns a list of scan names (not full paths) of available preprocessed task
         scan resources."""
         dir_list = self.available_task_preproc_dirs(subject_info)
         name_list = []
@@ -501,17 +417,15 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
-
     def functional_scan_prefix(self, functional_scan_name):
         """Extracts and returns the 'prefix' part of a functional scan name.
-        
+
         :Example:
 
         functional_scan_prefix('rfMRI_REST3_PA') returns 'rfMRI'
         """
         (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
         return prefix
-
 
     def functional_scan_base_name(self, functional_scan_name):
         """Extracts and returns the 'base_name' part of a functional scan name.
@@ -523,7 +437,6 @@ class HcpArchive(abc.ABC):
         (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
         return base_name
 
-
     def functional_scan_pe_dir(self, functional_scan_name):
         """Extracts and returns the phase encoding direction, 'pe_dir', part of a functional scan name.
 
@@ -534,12 +447,10 @@ class HcpArchive(abc.ABC):
         (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
         return pe_dir
 
-
     def available_session_dirs(self, project_name):
         """Returns list of full paths to available sessions for a project."""
         dir_list = glob.glob(self.xnat_archive.project_archive_root(project_name) + '/*_' + self.TESLA_SPEC)
         return sorted(dir_list)
-
 
     def available_session_names(self, project_name):
         """Returns a list of session names (not full paths) for a project."""
@@ -549,7 +460,6 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_session_name_from_path(directory))
         return name_list
 
-    
     def available_subject_ids(self, project_name):
         """Returns a list of subject ids for a project."""
         session_name_list = self.available_session_names(project_name)
@@ -557,7 +467,6 @@ class HcpArchive(abc.ABC):
         for session_name in session_name_list:
             id_list.append(self._get_subject_id_from_session_name(session_name))
         return id_list
-
 
     def subject_count(self, project_name):
         """Returns the number of available subjects for a project."""

@@ -10,7 +10,7 @@ import sys
 
 
 # import of third party modules
-pass
+# None
 
 
 # import of local modules
@@ -35,28 +35,23 @@ def _inform(msg):
     print(os.path.basename(__file__) + ": " + msg)
 
 
-def delete_resource(user, password, server, project, subject, session, resource, perform_delete = True):
+def delete_resource(user, password, server, project, subject, session, resource, perform_delete=True):
     # get XNAT session id
-    xnat_session_id = xnat_access.get_session_id(
-        server = str_utils.get_server_name(server),
-        username = user,
-        password = password,
-        project  = project,
-        subject  = subject,
-        session  = session)
+    xnat_session_id = xnat_access.get_session_id(server=str_utils.get_server_name(server), username=user, password=password,
+                                                 project=project, subject=subject, session=session)
 
-    resource_url  = ''
-    resource_url += 'https://' + str_utils.get_server_name(server) 
+    resource_url = ''
+    resource_url += 'https://' + str_utils.get_server_name(server)
     resource_url += '/REST/projects/' + project
     resource_url += '/subjects/' + subject
     resource_url += '/experiments/' + xnat_session_id
     resource_url += '/resources/' + resource
-    
+
     variable_values = '?removeFiles=true'
-    
+
     resource_uri = resource_url + variable_values
 
-    delete_cmd  = 'java -Xmx1024m -jar /home/HCPpipeline/pipeline/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar'
+    delete_cmd = 'java -Xmx1024m -jar /home/HCPpipeline/pipeline/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar'
     delete_cmd += ' -u ' + user
     delete_cmd += ' -p ' + password
     delete_cmd += ' -m DELETE'
@@ -82,16 +77,16 @@ def main():
     parser = my_argparse.MyArgumentParser(description="Program to delete a DB resource.")
 
     # mandatory arguments
-    parser.add_argument('-u'  , '--user',     dest='user',     required=True, type=str)
-    parser.add_argument('-pr' , '--project',  dest='project',  required=True, type=str)
-    parser.add_argument('-sub', '--subject',  dest='subject',  required=True, type=str)
-    parser.add_argument('-ses', '--session',  dest='session',  required=True, type=str)
-    parser.add_argument('-r'  , '--resource', dest='resource', required=True, type=str)
+    parser.add_argument('-u', '--user', dest='user', required=True, type=str)
+    parser.add_argument('-pr', '--project', dest='project', required=True, type=str)
+    parser.add_argument('-sub', '--subject', dest='subject', required=True, type=str)
+    parser.add_argument('-ses', '--session', dest='session', required=True, type=str)
+    parser.add_argument('-r', '--resource', dest='resource', required=True, type=str)
 
     # optional arguments
     parser.add_argument('-ser', '--server', dest='server', required=False, default='https://db.humanconnectome.org', type=str)
-    parser.add_argument('-f'  , '--force', dest='force', action="store_true", required=False, default=False) 
-    parser.add_argument('-pw' , '--password', dest='password', required=False, type=str) 
+    parser.add_argument('-f', '--force', dest='force', action="store_true", required=False, default=False)
+    parser.add_argument('-pw', '--password', dest='password', required=False, type=str)
 
     # parse the command line arguments
     args = parser.parse_args()

@@ -6,10 +6,10 @@
 import os
 
 # import of third party modules
-pass
+# None
 
 # import of local modules
-pass
+# None
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -27,13 +27,11 @@ def _inform(msg):
 class HcpSubjectInfo:
     """This class maintains information about an HCP subject."""
 
-
     @property
     def SEPARATOR(self):
         return ':'
 
-
-    def __init__(self, project = None, subject_id = None, extra = None):
+    def __init__(self, project=None, subject_id=None, extra=None):
         """Constructs an HcpSubjectInfo object.
 
         :param project: project to which this subject belongs (e.g. HCP_500)
@@ -49,24 +47,20 @@ class HcpSubjectInfo:
         self._project = project
         self._extra = extra
 
-
     @property
     def subject_id(self):
         """Subject ID"""
         return self._subject_id
-
 
     @property
     def project(self):
         """Primary project"""
         return self._project
 
-
     @property
     def extra(self):
         """Extra processing information"""
         return self._extra
-
 
     def __str__(self):
         """Returns the informal string representation."""
@@ -86,7 +80,3 @@ def _simple_interactive_demo():
 
 if __name__ == '__main__':
     _simple_interactive_demo()
-
-
-      
-        

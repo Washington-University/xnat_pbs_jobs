@@ -5,15 +5,16 @@ import sys
 import argparse
 
 # import of third-party modules
-pass
+# None
 
 # import of local modules
-pass
+# None
 
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
+
 
 class MyArgumentParser(argparse.ArgumentParser):
     """This subclass of ArgumentParser prints out the help message when an error is found in parsing."""

@@ -3,23 +3,27 @@
 """utils/file_utils.py: Some simple and hopefully useful file related utilities."""
 
 # import of built-in modules
+import datetime
 import os
 
 # import of third party modules
-pass
+# None
 
 # import of local modules
-pass
+# None
 
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
+
 def writeln(file, line):
     file.write(line + os.linesep)
 
+
 wl = writeln
+
 
 def get_config_file_name(source_file_name):
     config_file_name = source_file_name
@@ -47,7 +51,7 @@ def get_logging_config_file_name(source_file_name):
 
 def get_logger_name(source_file_name):
     logger_name = source_file_name
-    
+
     xnat_pbs_jobs = os.getenv('XNAT_PBS_JOBS')
     if not xnat_pbs_jobs:
         print("Environment variable XNAT_PBS_JOBS must be set!")
@@ -84,6 +88,14 @@ def human_readable_byte_size(size, factor=1024.0):
             num /= factor
 
         return "%.1f%s" % (num, 'Y')
+
+
+DEFAULT_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+
+def getmtime_str(path, date_format=DEFAULT_DATE_FORMAT):
+    date = datetime.datetime.fromtimestamp(os.path.getmtime(path))
+    return date.strftime(date_format)
 
 
 if __name__ == '__main__':

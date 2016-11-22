@@ -5,10 +5,8 @@ import datetime
 import os
 import sys
 
-
 # import of third party modules
-pass
-
+# None
 
 # import of local modules
 import hcp.hcp3t.diffusion_preprocessing.output_size_checker as output_size_checker_3T
@@ -16,7 +14,6 @@ import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.diffusion_preprocessing.one_subject_completion_checker as one_subject_completion_checker
 import hcp.hcp7t.diffusion_preprocessing.output_size_checker as output_size_checker
 import hcp.hcp7t.subject as hcp7t_subject
-
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -33,7 +30,7 @@ if __name__ == "__main__":
 
     # Get environment variables
     subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
-    if subject_files_dir == None:
+    if subject_files_dir is None:
         _inform("Environment variable SUBJECT_FILES_DIR must be set!")
         sys.exit(1)
 
@@ -50,11 +47,20 @@ if __name__ == "__main__":
     # Create archive
     archive = hcp7t_archive.Hcp7T_Archive()
 
-    # Create a one subject completion checker 
+    # Create a one subject completion checker
     completion_checker = one_subject_completion_checker.OneSubjectCompletionChecker()
 
     # Check completion status for listed subjects
-    print("Project\tStructural Reference Project\tSubject ID\tOutput Resource Exists\tOutput Resource Date\tFiles Exist\tExpected Output Volumes\tExpected Output Matches")
+
+    header_line = "Project"
+    header_line += "\tStructural Reference Project"
+    header_line += "\tSubject ID"
+    header_line += "\tOutput Resource Exists"
+    header_line += "\tOutput Resource Date"
+    header_line += "\tFiles Exist"
+    header_line += "\tExpected Output Volumes"
+    header_line += "\tExpected Output Matches"
+    print(header_line)
 
     for subject in subject_list:
 
@@ -66,19 +72,18 @@ if __name__ == "__main__":
                 processed_resource_exists = "TRUE"
                 timestamp = os.path.getmtime(archive.diffusion_preproc_dir_fullpath(subject))
                 processed_resource_date = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
-                
+
                 if completion_checker.is_processing_complete(archive, subject):
                     files_exist = "TRUE"
                 else:
                     files_exist = "FALSE"
-
 
                 try:
                     size_checker = output_size_checker.DiffusionOutputSizeChecker()
                     (success, expected_size, msg) = size_checker.check_diffusion_preproc_size(archive, subject)
                 except output_size_checker_3T.NoDiffusionPreprocResource as e:
                     success = False
-                    expected_size = 0 
+                    expected_size = 0
                     msg = ""
                 except FileNotFoundError as e:
                     success = False
@@ -87,18 +92,18 @@ if __name__ == "__main__":
 
                 expected_size_str = str(expected_size)
                 matches_expected = "TRUE" if success else "FALSE"
-                    
+
             else:
                 processed_resource_exists = "FALSE"
                 processed_resource_date = "N/A"
                 files_exist = "FALSE"
                 expected_size_str = "N/A"
                 matches_expected = "N/A"
-                
+
         else:
             # Diffusion unprocessed resource does not exist
             processed_resource_exists = "---"
-            processed_resource_date   = "---"
+            processed_resource_date = "---"
             files_exist = "---"
             expected_size_str = "---"
             matches_expected = "---"
@@ -107,7 +112,7 @@ if __name__ == "__main__":
         output_str += subject.structural_reference_project + "\t"
         output_str += subject.subject_id + "\t"
         output_str += processed_resource_exists + "\t"
-        output_str += processed_resource_date + "\t" 
+        output_str += processed_resource_date + "\t"
         output_str += files_exist + "\t"
         output_str += expected_size_str + "\t"
         output_str += matches_expected

@@ -10,7 +10,7 @@ import sys
 
 
 # import of third party modules
-pass
+# None
 
 
 # import of local modules
@@ -35,7 +35,6 @@ log.addHandler(sh)
 
 class DiffusionOutputSizeChecker(hcp3t_output_size_checker.DiffusionOutputSizeChecker):
 
-    
     @property
     def DIFFUSION_OUTPUT_DIRECTORY_NAME(self):
         return 'Diffusion_7T'
@@ -78,7 +77,7 @@ def main():
 
     # Create a DiffusionOutputSizeChecker
     size_checker = DiffusionOutputSizeChecker()
-    
+
     print("Subject\tExpected Volumes\tCheck Success")
     for subject in subject_list:
         subject_info = hcp7t_subject.Hcp7TSubjectInfo(args.project, None, subject)
@@ -96,7 +95,7 @@ def main():
             all_succeeded = False
 
     return all_succeeded
-        
+
 
 if __name__ == '__main__':
     if main():

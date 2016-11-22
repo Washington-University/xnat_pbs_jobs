@@ -17,8 +17,10 @@ __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
+
 def _inform(msg):
     print(os.path.basename(__file__) + ": " + msg)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Simple program to show lines that are present in two files")
@@ -53,4 +55,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    

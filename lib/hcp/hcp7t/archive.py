@@ -9,7 +9,7 @@ import glob
 
 
 # import of third party modules
-pass
+# None
 
 
 # path changes and import of local modules
@@ -34,10 +34,10 @@ def _inform(msg):
 
 class Hcp7T_Archive(hcp_archive.HcpArchive):
     """This class provides access to an HCP 7T project data archive.
-    
+
     This access goes 'behind the scenes' and uses the actual underlying file
-    system and assumes a particular organization of directories, resources, and 
-    file naming conventions. Because of this, a change in XNAT implementation 
+    system and assumes a particular organization of directories, resources, and
+    file naming conventions. Because of this, a change in XNAT implementation
     or a change in conventions could cause this code to no longer be correct.
     """
 
@@ -46,17 +46,14 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         """String to indicate the tesla rating of the scanner used."""
         return '7T'
 
-
     @property
     def DEDRIFT_AND_RESAMPLE_HIGHRES_RESOURCE_NAME(self):
         """Name of MSM All DeDriftAndResample HighRes resource"""
         return 'MSMAllDeDrift_HighRes'
 
-
     def __init__(self):
         """Constructs an Hcp7T_Archive object for direct access to an HCP 7T project data archive."""
         super().__init__()
-
 
     def FIX_processing_complete(self, hcp7t_subject_info, scan_name):
         """Returns True if the specified scan has completed FIX processing for the specified subject."""
@@ -65,15 +62,15 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         if not self.does_FIX_processed_exist(hcp7t_subject_info, scan_name):
             return False
 
-        # If we reach here, then the FIX processed resource at least exists.  
+        # If we reach here, then the FIX processed resource at least exists.
         # Next we need to check to see if the expected files exist.
 
         results_dir = self.subject_resources_dir_fullpath(hcp7t_subject_info) + os.sep + self.FIX_processed_resource_name(scan_name)
         results_scan_dir = results_dir + os.sep + self.functional_scan_long_name(scan_name)
         ica_dir = results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000.ica'
 
-        file_name_list = []        
-        file_name_list.append(ica_dir + os.sep + 'Atlas_hp_preclean.dtseries.nii') 
+        file_name_list = []
+        file_name_list.append(ica_dir + os.sep + 'Atlas_hp_preclean.dtseries.nii')
         file_name_list.append(ica_dir + os.sep + 'Atlas.nii.gz')
         file_name_list.append(ica_dir + os.sep + 'mask.nii.gz')
 
@@ -140,7 +137,7 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         file_name_list.append(mc_dir + os.sep + 'prefiltered_func_data_mcf.par')
 
         for file_name in file_name_list:
-            #_inform("Checking for existence of file: " + file_name)
+            # inform("Checking for existence of file: " + file_name)
             if os.path.isfile(file_name):
                 continue
             # If we get here, the most recently checked file does not exist
@@ -150,73 +147,17 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         # If we get here, all files that were checked exist
         return True
 
-
-    # def PostFix_processing_complete(self, hcp7t_subject_info, scan_name):
-    #     """Returns True if the specified scan has completed PostFix processing for the specified subject."""
-
-    #     # If the output resource does not exist, then the PostFix processing has not been done
-    #     if not self.does_PostFix_processed_resource_exist(hcp7t_subject_info, scan_name):
-    #         return False
-
-    #     # If we reach here, then the PostFix processed resource at least exists.
-    #     # Next we need to check to see if the expected files exist.
-    #     results_dir = self.subject_resources_dir_fullpath(hcp7t_subject_info) + os.sep + self.PostFix_processed_resource_name(scan_name)
-    #     results_scan_dir = results_dir + os.sep + 'MNINonLinear' + os.sep + 'Results' + os.sep + self.functional_scan_long_name(scan_name)
-
-    #     file_name_list = []
-
-    #     # files in results_scan_dir
-    #     file_name_list.append(results_scan_dir + os.sep + hcp7t_subject_info.subject_id + '_' + 
-    #                           self.functional_scan_long_name(scan_name) + '_ICA_Classification_dualscreen.scene')
-    #     file_name_list.append(results_scan_dir + os.sep + hcp7t_subject_info.subject_id + '_' + 
-    #                           self.functional_scan_long_name(scan_name) + '_ICA_Classification_singlescreen.scene')
-    #     file_name_list.append(results_scan_dir + os.sep + 'ReclassifyAsNoise.txt')
-    #     file_name_list.append(results_scan_dir + os.sep + 'ReclassifyAsSignal.txt')
-    #     file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_hp2000.dtseries.nii')
-
-    #     # files in ica_dir
-    #     ica_dir = results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000.ica'
-
-    #     file_name_list.append(ica_dir + os.sep + 'Noise.txt')
-    #     file_name_list.append(ica_dir + os.sep + 'Signal.txt')
-
-    #     # files in filtered_func_data_dir
-    #     filtered_func_data_dir = ica_dir + os.sep + 'filtered_func_data.ica'
-
-    #     file_name_list.append(filtered_func_data_dir + os.sep + 'ICAVolumeSpace.txt')
-    #     file_name_list.append(filtered_func_data_dir + os.sep + 'mask.nii.gz')
-    #     file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_FTmix.sdseries.nii')
-    #     file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_mix.sdseries.nii')
-    #     file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_oIC.dscalar.nii')
-    #     file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_oIC.dtseries.nii')
-    #     file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_oIC_vol.dscalar.nii')
-    #     file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_oIC_vol.dtseries.nii')
-
-    #     for file_name in file_name_list:
-    #         #_inform("Checking for existence of file: " + file_name)
-    #         if os.path.isfile(file_name):
-    #             continue
-    #         # If we get here, the most recently checked file does not exist
-    #         _inform("FILE DOES NOT EXIST: " + file_name)
-    #         return False
-
-    #     # If we get here, all files that were checked exist
-    #     return True
-        
-
     def is_movie_scan_name(self, scan_name):
         return (self.is_task_scan_name(scan_name) and 'MOVIE' in scan_name)
 
-
     def available_movie_preproc_dirs(self, subject_info):
         """Returns a list of full paths to functionally preprocessed MOVIE task scan resources."""
-        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' + 
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
                              self.TASK_SCAN_MARKER + '*MOVIE*' + self.PREPROC_SUFFIX)
         return sorted(dir_list)
 
-
     def available_movie_preproc_names(self, subject_info):
-        """Returns a list of scan names (not full paths) of available preprocessed 
+        """Returns a list of scan names (not full paths) of available preprocessed
         MOVIE task scan resources."""
         dir_list = self.available_movie_preproc_dirs(subject_info)
         name_list = []
@@ -224,14 +165,12 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
-    
     def available_retinotopy_preproc_dirs(self, subject_info):
-        """Returns a list of full paths to functionally preprocessed retinotopy task scan 
+        """Returns a list of full paths to functionally preprocessed retinotopy task scan
         resources."""
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
                              self.TASK_SCAN_MARKER + '*RET*' + self.PREPROC_SUFFIX)
         return sorted(dir_list)
-
 
     def available_retinotopy_preproc_names(self, subject_info):
         """Returns a list of scan names (not full paths) of available functionally
@@ -241,7 +180,6 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         for directory in dir_list:
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
-
 
     def functional_scan_long_name(self, functional_scan_name):
         """Returns the 'long form' of the specified functional scan name.
@@ -255,12 +193,10 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
         return prefix + self.NAME_DELIMITER + base_name + self.NAME_DELIMITER + self.TESLA_SPEC + self.NAME_DELIMITER + pe_dir
 
-
     def available_DeDriftAndResample_HighRes_processed_dirs(self, subject_info):
         dir_list = glob.glob(self.DeDriftAndResample_HighRes_processed_dir_name(subject_info))
         return sorted(dir_list)
 
-    
     def DeDriftAndResample_HighRes_processed_dir_name(self, subject_info):
         return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.DEDRIFT_AND_RESAMPLE_HIGHRES_RESOURCE_NAME
 
@@ -268,7 +204,7 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
 def _simple_interactive_demo():
 
     archive = Hcp7T_Archive()
-    
+
     _inform("archive.FUNCTIONAL_SCAN_MARKER: " + archive.FUNCTIONAL_SCAN_MARKER)
     _inform("archive.RESTING_STATE_SCAN_MARKER: " + archive.RESTING_STATE_SCAN_MARKER)
     _inform("archive.TASK_SCAN_MARKER: " + archive.TASK_SCAN_MARKER)
@@ -283,7 +219,7 @@ def _simple_interactive_demo():
     _inform("created subject_info: " + str(subject_info))
     _inform("archive.session_name(subject_info): " + archive.session_name(subject_info))
     _inform("archive.session_dir_fullpath(subject_info): " + archive.session_dir_fullpath(subject_info))
-    _inform("archive.subject_resources_dir_fullpath(subject_info): " + 
+    _inform("archive.subject_resources_dir_fullpath(subject_info): " +
             archive.subject_resources_dir_fullpath(subject_info))
 
     _inform("")
@@ -319,8 +255,8 @@ def _simple_interactive_demo():
     _inform("")
     _inform("Are the following functional scans preprocessed")
     for name in archive.available_functional_unproc_names(subject_info):
-        _inform("scan name: " + name + " " + "\tfunctionally preprocessed: " + 
-              str(archive.functionally_preprocessed(subject_info, name)))
+        _inform("scan name: " + name + " " + "\tfunctionally preprocessed: " +
+                str(archive.functionally_preprocessed(subject_info, name)))
 
     _inform("")
     _inform("Available FIX processed dirs: ")
@@ -335,14 +271,14 @@ def _simple_interactive_demo():
     _inform("")
     _inform("Are the following functional scans FIX processed")
     for name in archive.available_functional_unproc_names(subject_info):
-        _inform('scan name: ' + name + ' ' + '\tFIX processed: ' + 
-              str(archive.FIX_processed(subject_info, name)))
+        _inform('scan name: ' + name + ' ' + '\tFIX processed: ' +
+                str(archive.FIX_processed(subject_info, name)))
 
     _inform("")
     _inform("Available resting state preproc dirs: ")
     for directory in archive.available_resting_state_preproc_dirs(subject_info):
         _inform(directory)
-    
+
     _inform("")
     _inform("Available resting state preproc names: ")
     for name in archive.available_resting_state_preproc_names(subject_info):
@@ -352,7 +288,7 @@ def _simple_interactive_demo():
     _inform("Available task preproc dirs: ")
     for directory in archive.available_task_preproc_dirs(subject_info):
         _inform(directory)
-    
+
     _inform("")
     _inform("Available task preproc names: ")
     for name in archive.available_task_preproc_names(subject_info):
@@ -382,9 +318,9 @@ def _simple_interactive_demo():
     _inform("Available functional unprocessed scan names: ")
     for name in archive.available_functional_unproc_names(subject_info):
         _inform(name + '\t' +
-                '\tprefix: '    + archive.functional_scan_prefix(name) +
+                '\tprefix: ' + archive.functional_scan_prefix(name) +
                 '\tbase_name: ' + archive.functional_scan_base_name(name) +
-                '\tpe_dir: '    + archive.functional_scan_pe_dir(name) +
+                '\tpe_dir: ' + archive.functional_scan_pe_dir(name) +
                 '\tlong_name: ' + archive.functional_scan_long_name(name))
 
     _inform("")
@@ -403,7 +339,7 @@ def _simple_interactive_demo():
         _inform(subject_id)
 
     _inform("")
-    _inform("Number of available subject ids for project: " + subject_info.project + " " + 
+    _inform("Number of available subject ids for project: " + subject_info.project + " " +
             str(archive.subject_count(subject_info.project)))
 
     _inform("")
@@ -415,6 +351,6 @@ def _simple_interactive_demo():
     _inform("Available diffusion scan names: ")
     for scan_name in archive.available_diffusion_scan_names(subject_info):
         _inform(scan_name)
-    
+
 if __name__ == '__main__':
     _simple_interactive_demo()

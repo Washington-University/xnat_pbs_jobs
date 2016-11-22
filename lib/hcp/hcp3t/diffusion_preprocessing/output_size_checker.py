@@ -13,7 +13,7 @@ import sys
 
 
 # import of third party modules
-pass
+# None
 
 
 # import of local modules
@@ -43,11 +43,9 @@ class NoDiffusionPreprocResource(Exception):
 
 class DiffusionOutputSizeChecker:
 
-    
     @property
     def DIFFUSION_OUTPUT_DIRECTORY_NAME(self):
         return 'Diffusion'
-
 
     def _get_expected_volume_count(self, file_name):
         sum_col1 = 0
@@ -71,7 +69,6 @@ class DiffusionOutputSizeChecker:
 
         return min(sum_col1, sum_col2)
 
-    
     def _determine_expected_output_volume_count(self, archive, subject_info):
         diff_preproc_resource_path = archive.diffusion_preproc_dir_fullpath(subject_info)
         log.debug("diff_preproc_resource_path: " + diff_preproc_resource_path)
@@ -86,29 +83,28 @@ class DiffusionOutputSizeChecker:
         pos_series_vol_num_file_name = eddy_dir + os.sep + 'Pos_SeriesVolNum.txt'
         log.debug("reading from: " + pos_series_vol_num_file_name)
         pos_series_expected_vol_count = self._get_expected_volume_count(pos_series_vol_num_file_name)
-    
+
         # Calculate the expected volume count based on the negative series
         neg_series_vol_num_file_name = eddy_dir + os.sep + 'Neg_SeriesVolNum.txt'
         log.debug("reading from: " + neg_series_vol_num_file_name)
         neg_series_expected_vol_count = self._get_expected_volume_count(neg_series_vol_num_file_name)
-        
+
         if pos_series_expected_vol_count != neg_series_expected_vol_count:
-            raise ValueError("Expected volume count based on positive series: " + 
+            raise ValueError("Expected volume count based on positive series: " +
                              pos_series_expected_vol_count +
-                             " not equal to expected volume count based on negative series: " + 
+                             " not equal to expected volume count based on negative series: " +
                              neg_series_expected_vol_count)
 
         return pos_series_expected_vol_count
 
-
     def _get_volume_count(self, file_name):
-    
+
         if not os.path.isfile(file_name):
             return 0
 
         cmd = 'fslinfo ' + file_name + ' | grep dim4 | grep -v pix'
-        completed_process = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, 
-                                       universal_newlines=True)
+        completed_process = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                                           universal_newlines=True)
         # remove new line characters and leading and trailing spaces
         output = str_utils.remove_ending_new_lines(completed_process.stdout).strip()
         # collapse whitespace to single spaces
@@ -118,53 +114,50 @@ class DiffusionOutputSizeChecker:
         (name, value) = output.split(' ')
         log.debug("name: " + name)
         log.debug("value: " + value)
-        
-        return int(value)
 
+        return int(value)
 
     def _get_diffusion_preproc_data_volume_count(self, archive, subject_info):
         diff_preproc_resource_path = archive.diffusion_preproc_dir_fullpath(subject_info)
         log.debug("diff_preproc_resource_path: " + diff_preproc_resource_path)
-        
+
         if not os.path.exists(diff_preproc_resource_path):
             raise NoDiffusionPreprocResource(diff_preproc_resource_path + " Does not Exist ")
-        
-        file_name = diff_preproc_resource_path + os.sep + self.DIFFUSION_OUTPUT_DIRECTORY_NAME 
+
+        file_name = diff_preproc_resource_path + os.sep + self.DIFFUSION_OUTPUT_DIRECTORY_NAME
         file_name += os.sep + 'data' + os.sep + 'data.nii.gz'
         log.debug("file_name: " + file_name)
-        
-        return self._get_volume_count(file_name)
 
+        return self._get_volume_count(file_name)
 
     def _get_T1w_diffusion_preproc_data_volume_count(self, archive, subject_info):
         diff_preproc_resource_path = archive.diffusion_preproc_dir_fullpath(subject_info)
         log.debug("diff_preproc_resource_path: " + diff_preproc_resource_path)
-        
+
         if not os.path.exists(diff_preproc_resource_path):
             raise RuntimeError(diff_preproc_resource_path + " Does not Exist ")
-        
+
         file_name = diff_preproc_resource_path + os.sep + 'T1w' + os.sep + self.DIFFUSION_OUTPUT_DIRECTORY_NAME
         file_name += os.sep + 'data.nii.gz'
         log.debug("file_name: " + file_name)
-        
-        return self._get_volume_count(file_name)
 
+        return self._get_volume_count(file_name)
 
     def check_diffusion_preproc_size(self, archive, subject_info):
         log.debug("archive: " + str(archive))
         log.debug("subject_info: " + str(subject_info))
-        
+
         success = True
         message = ''
-        
+
         expected_output_volume_count = self._determine_expected_output_volume_count(archive, subject_info)
         log.debug("expected_output_volume_count: " + str(expected_output_volume_count))
-        
+
         diff_preproc_count = self._get_diffusion_preproc_data_volume_count(archive, subject_info)
-        log.debug("diff_preproc_count: " +  str(diff_preproc_count))
+        log.debug("diff_preproc_count: " + str(diff_preproc_count))
         T1w_diff_preproc_count = self._get_T1w_diffusion_preproc_data_volume_count(archive, subject_info)
         log.debug("T1w_diff_preproc_count: " + str(T1w_diff_preproc_count))
-        
+
         if diff_preproc_count != expected_output_volume_count:
             log.debug("Diffusion Preproc Volume Count: " + str(diff_preproc_count) +
                       " != Expected Value: " + str(expected_output_volume_count))
@@ -186,7 +179,7 @@ def _build_subject_list(archive, project, subject):
         subject_list = archive.available_subject_ids(project)
     else:
         subject_list.append(subject)
-            
+
     return subject_list
 
 
@@ -235,11 +228,10 @@ def main():
             all_succeeded = False
 
     return all_succeeded
-        
+
 
 if __name__ == '__main__':
-    if main(): 
+    if main():
         sys.exit(0)
     else:
         sys.exit(1)
-    

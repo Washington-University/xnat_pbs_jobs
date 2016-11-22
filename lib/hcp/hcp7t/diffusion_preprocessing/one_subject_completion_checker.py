@@ -10,7 +10,7 @@ import os
 
 
 # import of third party modules
-pass
+# None
 
 
 # import of local modules
@@ -32,15 +32,12 @@ def _inform(msg):
 
 class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectCompletionChecker):
 
-
     def __init__(self):
         super().__init__()
-
 
     def does_processed_resource_exist(self, archive, hcp7t_subject_info):
         dir_list = archive.available_diffusion_preproc_dir_fullpaths(hcp7t_subject_info)
         return len(dir_list) > 0
-
 
     def is_processing_complete(self, archive, hcp7t_subject_info, verbose=False):
 
@@ -55,8 +52,8 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
         # Build a list of expected files
         file_name_list = []
 
-        diffusion_7T_dir = archive.diffusion_preproc_dir_fullpath(hcp7t_subject_info) 
-        diffusion_7T_dir += os.sep 
+        diffusion_7T_dir = archive.diffusion_preproc_dir_fullpath(hcp7t_subject_info)
+        diffusion_7T_dir += os.sep
         diffusion_7T_dir += 'Diffusion_7T'
 
         diffusion_7T_data_dir = diffusion_7T_dir + os.sep + 'data'
@@ -137,7 +134,7 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
         file_name_list.append(diffusion_7T_reg_dir + os.sep + 'str2diff.mat')
         file_name_list.append(diffusion_7T_reg_dir + os.sep + 'T1w_acpc_dc_restore_brain.nii.gz')
         file_name_list.append(diffusion_7T_reg_dir + os.sep + 'T1wMulEPI_nodif.nii.gz')
-         
+
         diffusion_7T_topup_dir = diffusion_7T_dir + os.sep + 'topup'
 
         file_name_list.append(diffusion_7T_topup_dir + os.sep + 'acqparams.txt')
@@ -180,7 +177,7 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
         file_name_list.append(T1w_dir + os.sep + 'T2w_acpc_dc_restore.nii.gz')
         file_name_list.append(T1w_dir + os.sep + 'wmparc_1mm.nii.gz')
         file_name_list.append(T1w_dir + os.sep + 'wmparc.nii.gz')
-                                                                                                                       
+
         T1w_Diffusion_7T_dir = T1w_dir + os.sep + 'Diffusion_7T'
 
         file_name_list.append(T1w_Diffusion_7T_dir + os.sep + 'bvals')

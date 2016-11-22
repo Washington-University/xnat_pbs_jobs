@@ -11,11 +11,11 @@ import os
 
 
 # import of third party modules
-pass
+# None
 
 
 # import of local modules
-pass
+# None
 
 
 # authorship information
@@ -37,16 +37,13 @@ class OneSubjectCompletionChecker(abc.ABC):
        of pipeline processing for one subject
     """
 
-
     @abc.abstractmethod
     def does_processed_resource_exist(self, archive, subject_info):
         pass
 
-
     @abc.abstractmethod
     def is_processing_complete(self, archive, subject_info, verbose):
         pass
-
 
     def do_all_files_exist(self, file_name_list, verbose=False):
         for file_name in file_name_list:
@@ -58,6 +55,6 @@ class OneSubjectCompletionChecker(abc.ABC):
             module_logger.info("FILE DOES NOT EXIST: " + file_name)
             return False
 
-        # If we get here, we've cycled through all the files and 
+        # If we get here, we've cycled through all the files and
         # all of them exist.
         return True

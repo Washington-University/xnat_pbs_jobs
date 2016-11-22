@@ -12,7 +12,7 @@ import sys
 
 
 # import of third party modules
-pass
+# None
 
 
 # import of local modules
@@ -38,19 +38,15 @@ log.addHandler(sh)
 
 class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectCompletionChecker):
 
-
     def __init__(self):
         super().__init__()
-
 
     def does_processed_resource_exist(self, archive, hcp3t_subject_info):
         dir_list = archive.available_diffusion_preproc_dir_fullpaths(hcp3t_subject_info)
         return len(dir_list) > 0
 
-
     def is_processing_complete(self, archive, hcp3t_subject_info, verbose=False):
         return self._is_processing_complete(archive, hcp3t_subject_info, '1.25', verbose)
-
 
     def _is_processing_complete(self, archive, hcp3t_subject_info, voxel_size_str, verbose=False):
 
@@ -70,7 +66,7 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
         diffusion_dir += 'Diffusion'
 
         diffusion_data_dir = diffusion_dir + os.sep + 'data'
-        
+
         file_name_list.append(diffusion_data_dir + os.sep + 'avg_data.idxs')
         file_name_list.append(diffusion_data_dir + os.sep + 'bvals')
         file_name_list.append(diffusion_data_dir + os.sep + 'bvals_noRot')
@@ -122,12 +118,12 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
         file_name_list.append(diffusion_eddy_dir + os.sep + 'series_index.txt')
 
         diffusion_rawdata_dir = diffusion_dir + os.sep + 'rawdata'
-    
+
         file_name_list.append(diffusion_rawdata_dir + os.sep + 'LR_SeriesCorrespVolNum.txt')
         file_name_list.append(diffusion_rawdata_dir + os.sep + 'RL_SeriesCorrespVolNum.txt')
 
         diffusion_reg_dir = diffusion_dir + os.sep + 'reg'
-        
+
         file_name_list.append(diffusion_reg_dir + os.sep + 'diff2str_fs.mat')
         file_name_list.append(diffusion_reg_dir + os.sep + 'diff2str.mat')
         file_name_list.append(diffusion_reg_dir + os.sep + 'EPItoT1w.dat')
@@ -319,6 +315,3 @@ def _simple_interactive_demo():
 
 if __name__ == '__main__':
     _simple_interactive_demo()
-
-
-
