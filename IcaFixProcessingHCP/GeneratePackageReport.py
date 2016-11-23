@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     # Create archive access object
     archive = hcp3t_archive.Hcp3T_Archive()
-
+    
     # Get list of subjects
     subject_file_name = file_utils.get_subjects_file_name(__file__)
     log.info("Retrieving subject list from: " + subject_file_name)
@@ -74,77 +74,10 @@ if __name__ == '__main__':
         package_path += subject_id + os.sep + 'fix' + os.sep + subject_id + '_3T_rfMRI_REST_fix.zip'
         checksum_path = package_path + '.md5'
 
+        # if there are resting state preprocessed resources
+        resting_state_scan_dir_list = archive.available_resting_state_preproc_dirs(subject)
+        if len(resting_state_scan_dir_list) > 0:
+            for scan_dir in resting_state_scan_dir_list:
+                print(scan_dir)
 
-
-ici
-
-
-
-        if len(archive.available_      structural_unproc_dir_fullpaths(subject)) > 0:
-
-            if archive.does_structural_preproc_dir_exist(subject):
-                preproc_date = datetime.datetime.fromtimestamp(os.path.getmtime(archive.structural_preproc_dir_fullpath(subject)))
-                preproc_date_str = file_utils.getmtime_str(archive.structural_preproc_dir_fullpath(subject))
-
-                package_exists = os.path.isfile(package_path)
-
-                if package_exists:
-                    package_date = datetime.datetime.fromtimestamp(os.path.getmtime(package_path))
-                    package_date_str = file_utils.getmtime_str(package_path)
-                    package_size = file_utils.human_readable_byte_size(os.path.getsize(package_path), 1000.0)
-                    package_newer = package_date > preproc_date
-
-                else:
-                    # package file does not exist
-                    package_date_str = NA
-                    package_size = NA
-                    package_newer = NA
-
-                checksum_exists = os.path.isfile(checksum_path)
-
-                if checksum_exists:
-                    checksum_date = datetime.datetime.fromtimestamp(os.path.getmtime(checksum_path))
-                    checksum_date_str = file_utils.getmtime_str(checksum_path)
-                    checksum_newer = checksum_date > package_date
-                else:
-                    checksum_date_str = NA
-                    checksum_newer = NA
-
-            else:
-                # preprocessed structural data for this subject does not exist
-                preproc_date_str = NA
-                package_path = DNM
-                package_exist = DNM
-                package_date_str = DNM
-                package_size = DNM
-                package_newer = DNM
-                checksum_exists = DNM
-                checksum_date_str = DNM
-                checksum_newer = DNM
-
-        else:
-            # no unprocessed structural data exists for this subject
-            preproc_date_str = DNM
-            package_path = DNM
-            package_exists = DNM
-            package_date_str = DNM
-            package_size = DNM
-            package_newer = DNM
-            checksum_exists = DNM
-            checksum_date_str = DNM
-            checksum_newer = DNM
-
-        # Print row for this subject
-        print(project, end="\t")
-        print(subject_id, end="\t")
-        print(preproc_date_str, end="\t")
-        print(package_path, end="\t")
-        print(package_exists, end="\t")
-        print(package_date_str, end="\t")
-        print(package_size, end="\t")
-        print(package_newer, end="\t")
-        print(checksum_exists, end="\t")
-        print(checksum_date_str, end="\t")
-        print(checksum_newer)
-
-
+        sys.exit()
