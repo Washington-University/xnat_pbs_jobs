@@ -50,6 +50,9 @@ class XNAT_Archive:
             self._hcp_root = '/HCP'
         elif self._compute_platform == 'NRG':
             self._hcp_root = '/data'
+        elif self._compute_platform == 'TIMS_DESKTOP':
+            # self._hcp_root = '/home/tbb/chpc2/HCP'
+            self._hcp_root = '/home/tbb/fs01/data'
         else:
             raise ValueError('Unrecognized value for COMPUTE environment variable: ' + self._compute_platform)
 
