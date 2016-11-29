@@ -236,6 +236,17 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
+    def available_FIX_processed_resting_state_dir_fullpaths(self, subject_info):
+        """Returns a list of full paths to FIX processed resting state scan resources."""
+        return_list = []
+        dir_list = self.available_FIX_processed_dir_fullpaths(subject_info)
+        for directory_path in dir_list:
+            scan_name = self._get_scan_name_from_path(directory_path)
+            if scan_name.startswith(self.RESTING_STATE_SCAN_MARKER):
+                return_list.append(directory_path)
+
+        return return_list
+    
     def _get_scan_name_from_path(self, path):
         short_path = os.path.basename(path)
         last_char = short_path.rfind(self.NAME_DELIMITER)
@@ -255,8 +266,6 @@ class HcpArchive(abc.ABC):
         file_name = os.path.basename(scan_path)
         return file_name
 
-# ICI name changes to methods from here down are needed for consistency
-
     def available_functional_preproc_names(self, subject_info):
         """Returns a list of scan names (not full paths) of available preprocessed
         functional resources."""
@@ -265,6 +274,8 @@ class HcpArchive(abc.ABC):
         for directory in dir_list:
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
+    
+# ICI name changes to methods from here down are needed for consistency
 
     def does_functional_unproc_exist(self, subject_info, scan_name):
         return scan_name in self.available_functional_unproc_names(subject_info)
