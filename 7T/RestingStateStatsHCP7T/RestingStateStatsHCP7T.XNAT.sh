@@ -348,7 +348,7 @@ main()
 	OrigHighPass="2000"
 	LowResMesh="32"
 	FinalfMRIResolution="1.60"
-	BrainOrdinatesResolution="1.60"
+	BrainOrdinatesResolution="2"
 	SmoothingFWHM="2"
 	OutputProcSTRING="_hp2000_clean"
 	dlabelFile="NONE"
