@@ -321,7 +321,7 @@ main()
 	source ${XNAT_UTILS_HOME}/xnat_workflow_utilities.sh
 
 	# Set up step counters
-	total_steps=4
+	total_steps=2
 	current_step=0
 
 	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
@@ -330,18 +330,15 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Set up environment to run scripts" ${step_percent}
-
 	# Source set up script
 	source ${g_setup_script}
+
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Set up environment to run scripts" ${step_percent}
 
 	# Run RestingStateStats.sh script
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
-
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Run RestingStateStats.sh script" ${step_percent}
 
 	# Set up variables to pass in to RestingStateStats.sh
 	RegName="NONE"
@@ -396,25 +393,8 @@ main()
 		die
  	fi
 
-	# Show newly created or modified files
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Show newly created or modified files" ${step_percent}
-
-	inform "Newly created or modified files:"
-	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
-
-	# Remove any files that are not newly created or modified
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Remove files not newly created or modified" ${step_percent}
-
-	inform "The following files are being removed."
-	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete
+		${current_step} "Run RestingStateStats.sh script" ${step_percent}
 
 	# Complete the workflow
 	xnat_workflow_complete ${g_server} ${g_user} ${g_password} ${g_workflow_id}

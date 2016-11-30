@@ -14,10 +14,8 @@ import stat
 import subprocess
 import time
 
-
 # import of third party modules
 # None
-
 
 # import of local modules
 import hcp.hcp7t.subject as hcp7t_subject
@@ -29,12 +27,10 @@ import utils.str_utils as str_utils
 import xnat.xnat_access as xnat_access
 import utils.ordered_enum as ordered_enum
 
-
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
-
 
 # create a module logger
 logger = logging.getLogger(file_utils.get_logger_name(__file__))
@@ -42,9 +38,11 @@ logger = logging.getLogger(file_utils.get_logger_name(__file__))
 
 @enum.unique
 class ProcessingStage(ordered_enum.OrderedEnum):
+    PREPARE_SCRIPTS = 0
     GET_DATA = 1
     PROCESS_DATA = 2
-    PUT_DATA = 3
+    CLEAN_DATA = 3
+    PUT_DATA = 4
 
 
 class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
@@ -266,6 +264,17 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     def _put_data_script_name(self, scan):
         return self._get_scripts_start_name(scan) + '.XNAT_PBS_PUT_DATA_job.sh'
 
+    def _clean_data_script_name(self, scan):
+        return self._get_scripts_start_name(scan) + '.XNAT_PBS_CLEAN_DATA_job.sh'
+
+    def _starttime_file_name(self):
+        starttime_file_name = self._working_directory_name 
+        starttime_file_name += os.path.sep
+        starttime_file_name += self.PIPELINE_NAME 
+        starttime_file_name += '.starttime'
+        
+        return starttime_file_name
+
     def _create_get_data_script(self, scan):
         logger.debug("_create_get_data_script")
 
@@ -286,6 +295,31 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         script.write('  --subject=' + self.subject + ' \\' + os.linesep)
         script.write('  --structural-reference-project=' + self.structural_reference_project + ' \\' + os.linesep)
         script.write('  --working-dir=' + self._working_directory_name + os.linesep)
+
+        script.close()
+        os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
+
+    def _create_clean_script(self, scan):
+        logger.debug("_create_clean_script")
+        
+        script_name = self._clean_data_script_name(scan)
+        
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(script_name)
+
+        script = open(script_name, 'w')
+
+        script.write('#PBS -l nodes=1:ppn=1:walltime=4:00:00,vmem=4gb' + os.linesep)
+        script.write('#PBS -o ' + self._working_directory_name + os.linesep)
+        script.write('#PBS -e ' + self._working_directory_name + os.linesep)
+        script.write(os.linesep)
+        script.write('echo "Newly created or modified files:"' + os.linesep)
+        script.write('find ' + self._working_directory_name + os.path.sep + self.subject + 
+                     ' -type f -newer ' + self._starttime_file_name() + os.linesep)
+        script.write(os.linesep)
+        script.write('echo "The following files are being removed."' + os.linesep)
+        script.write('find ' + self._working_directory_name + os.path.sep + self.subject +
+                     ' -not -newer ' + self._starttime_file_name() + ' -print -delete')
 
         script.close()
         os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
@@ -443,33 +477,44 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
                         self.project, self.subject, self.session,
                         self._output_resource_name)
 
-                # create script to get data
-                self._create_get_data_script(scan)
+                # create scripts for various stages of processing
+                if processing_stage >= ProcessingStage.PREPARE_SCRIPTS:
+                    # create script to get data
+                    self._create_get_data_script(scan)
 
-                # create script to do work
-                self._create_work_script(scan)
+                    # create script to do work
+                    self._create_work_script(scan)
 
-                # create script to put the results into the DB
-                put_script_name = self._put_data_script_name(scan)
-                self.create_put_script(put_script_name,
-                                       self.username, self.password, self.put_server,
-                                       self.project, self.subject, self.session,
-                                       self._working_directory_name,
-                                       self._output_resource_name,
-                                       self.PIPELINE_NAME + '_' + scan)
+                    # create script to clean data
+                    self._create_clean_script(scan)
 
-                # submit job to get data
-                get_data_submit_cmd = 'qsub ' + self._get_data_script_name(scan)
-                logger.info("get_data_submit_cmd: " + get_data_submit_cmd)
+                    # create script to put the results into the DB
+                    put_script_name = self._put_data_script_name(scan)
+                    self.create_put_script(put_script_name,
+                                           self.username, self.password, self.put_server,
+                                           self.project, self.subject, self.session,
+                                           self._working_directory_name,
+                                           self._output_resource_name,
+                                           self.PIPELINE_NAME + '_' + scan)
 
-                completed_get_data_submit_process = subprocess.run(
-                    get_data_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
-                    universal_newlines=True)
-                get_data_job_no = str_utils.remove_ending_new_lines(completed_get_data_submit_process.stdout)
-                logger.info("get_data_job_no: " + get_data_job_no)
+                # submit job to get the data
+                if processing_stage >= ProcessingStage.GET_DATA:
 
-                if processing_stage > ProcessingStage.GET_DATA:
-                    # submit job to do the work
+                    get_data_submit_cmd = 'qsub ' + self._get_data_script_name(scan)
+                    logger.info("get_data_submit_cmd: " + get_data_submit_cmd)
+
+                    completed_get_data_submit_process = subprocess.run(
+                        get_data_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                        universal_newlines=True)
+                    get_data_job_no = str_utils.remove_ending_new_lines(completed_get_data_submit_process.stdout)
+                    logger.info("get_data_job_no: " + get_data_job_no)
+
+                else:
+                    logger.info("Get data job not submitted")
+
+                # submit job to process the data
+                if processing_stage >= ProcessingStage.PROCESS_DATA:
+
                     work_submit_cmd = 'qsub -W depend=afterok:' + get_data_job_no + ' ' + self._work_script_name(scan)
                     logger.info("work_submit_cmd: " + work_submit_cmd)
 
@@ -479,22 +524,42 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
                     work_job_no = str_utils.remove_ending_new_lines(completed_work_submit_process.stdout)
                     logger.info("work_job_no: " + work_job_no)
 
-                    if processing_stage > ProcessingStage.PROCESS_DATA:
-                        # submit the job to put the results in the DB
-                        put_submit_cmd = 'qsub -W depend=afterok:' + work_job_no + ' ' + put_script_name
-                        logger.info("put_submit_cmd: " + put_submit_cmd)
+                else:
+                    logger.info("Process data job not submitted")
 
-                        completed_put_submit_process = subprocess.run(
-                            put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
-                            universal_newlines=True)
-                        put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
-                        logger.info("put_job_no: " + put_job_no)
+                # submit job to clean the data
+                if processing_stage >= ProcessingStage.CLEAN_DATA:
 
-                    else:
-                        logger.info("processing_stage: " + str(processing_stage) + " - put job not submitted")
+                    clean_submit_cmd = 'qsub -W depend=afterok:' + work_job_no + ' ' + self._clean_script_name(scan)
+                    logger.info("clean_submit_cmd: " + clean_submit_cmd)
+
+                    completed_clean_submit_process = subprocess.run(
+                        clean_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                        universal_newlines=True)
+                    clean_job_no = str_utils.remove_ending_new_lines(completed_clean_submit_process.stdout)
+                    logger.info("clean_job_no: " + clean_job_no)
 
                 else:
-                    logger.info("processing_stage: " + str(processing_stage) + " - processing and put jobs not submitted")
+                    logger.info("Clean data job not submitted")
+
+                # submit job to put the resulting data in the DB
+                if processing_stage >= ProcessingStage.PUT_DATA:
+
+                    put_submit_cmd = 'qsub -W depend=afterok:' + work_job_no + ' ' + put_script_name
+                    logger.info("put_submit_cmd: " + put_submit_cmd)
+
+                    completed_put_submit_process = subprocess.run(
+                        put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                        universal_newlines=True)
+                    put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
+                    logger.info("put_job_no: " + put_job_no)
+
+                else:
+                    logger.info("Put data job not submitted")
 
         else:
             logger.info("Unable to submit jobs")
+
+
+
+
