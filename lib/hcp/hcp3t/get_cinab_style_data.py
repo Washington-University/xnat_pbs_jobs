@@ -56,7 +56,7 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             unproc_loc = get_from.rfind('_' + self.archive.UNPROC_SUFFIX)
             sub_dir = get_from[last_sep_loc+1:unproc_loc]
             put_to = output_study_dir + os.sep + subject_info.subject_id + os.sep + 'unprocessed' + \
-                bos.sep + self.archive.TESLA_SPEC + os.sep + sub_dir
+                os.sep + self.archive.TESLA_SPEC + os.sep + sub_dir
 
             self._from_to(get_from, put_to)
 
