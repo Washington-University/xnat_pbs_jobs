@@ -3,8 +3,11 @@
 """os_utils.py: Some simple and hopefully useful os utilities."""
 
 # import of built-in modules
-import os
+import glob
 import logging
+import os
+import shutil
+import tempfile
 
 # import of third party modules
 # None
@@ -20,7 +23,8 @@ __maintainer__ = "Timothy B. Brown"
 
 # create and configure a module logger
 log = logging.getLogger(__file__)
-log.setLevel(logging.WARNING)
+#log.setLevel(logging.WARNING)
+log.setLevel(logging.INFO)
 sh = logging.StreamHandler()
 sh.setFormatter(logging.Formatter('%(name)s: %(message)s'))
 log.addHandler(sh)
@@ -65,6 +69,31 @@ def lndir(src, dst, show_log=False, ignore_existing_dst_files=False):
                 os.mkdir('%s%s/%s' % (dst, root.replace(src, ''), dirname))
             except OSError:
                 pass
+
+
+def replace_lndir_symlinks(srcpath):
+    """
+    Replaces all symlinks in an lndir (see above) created directory structure with
+    copies of the files that are linked to.
+    """
+    for filename in glob.glob(srcpath + os.sep + '*'):
+        log.debug("filename: " + filename)
+        print("filename: " + filename)
+
+        if os.path.isdir(filename) and not os.path.islink(filename):
+            log.debug("\tis a directory that is not a symlink - recursing")
+            replace_lndir_symlinks(filename)
+
+        elif os.path.isfile(filename) and os.path.islink(filename):
+            log.debug("\tis a regular file that is a symlink and should be replaced")
+            
+            log.info("Replacing: " + filename + " with copy of: " + os.path.realpath(filename))
+
+            with tempfile.TemporaryDirectory() as temp_dirpath:
+                temp_filename = temp_dirpath + os.sep + os.path.basename(filename)
+                shutil.copy2(filename, temp_filename)
+                os.remove(filename)
+                shutil.move(temp_filename, filename)
 
 
 if __name__ == "__main__":
