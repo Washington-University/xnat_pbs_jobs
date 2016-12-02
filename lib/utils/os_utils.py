@@ -78,7 +78,6 @@ def replace_lndir_symlinks(srcpath):
     """
     for filename in glob.glob(srcpath + os.sep + '*'):
         log.debug("filename: " + filename)
-        print("filename: " + filename)
 
         if os.path.isdir(filename) and not os.path.islink(filename):
             log.debug("\tis a directory that is not a symlink - recursing")
