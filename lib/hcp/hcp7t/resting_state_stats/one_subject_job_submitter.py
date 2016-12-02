@@ -402,11 +402,12 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             fix_processed_scans_set = set(fix_processed_scans)
             logger.debug("fix_processed_scans_set = " + str(fix_processed_scans_set))
 
-            resting_state_scans = self.archive.available_resting_state_preproc_names(subject_info)
-            resting_state_scans_set = set(resting_state_scans)
-            logger.debug("resting_state_scans_set = " + str(resting_state_scans_set))
+            # resting_state_scans = self.archive.available_resting_state_preproc_names(subject_info)
+            # resting_state_scans_set = set(resting_state_scans)
+            # logger.debug("resting_state_scans_set = " + str(resting_state_scans_set))
 
-            scans_to_process_set = resting_state_scans_set & fix_processed_scans_set
+            # scans_to_process_set = resting_state_scans_set & fix_processed_scans_set
+            scans_to_process_set = fix_processed_scans_set
             scans_to_process = list(scans_to_process_set)
             scans_to_process.sort()
             logger.debug("scans_to_process: " + str(scans_to_process))
