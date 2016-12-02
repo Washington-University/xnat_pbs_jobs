@@ -38,3 +38,13 @@ class OrderedEnum(enum.Enum):
         if self.__class__ is other.__class__:
             return self.value < other.value
         return NotImplemented
+
+    @classmethod
+    def from_string(cls, string_value):
+        for val in cls:
+            if val.name == string_value:
+                return val
+
+        error_msg = "'" + string_value + "'" \
+            " does not correspond to one of the define values for " + str(cls)
+        raise ValueError(error_msg)

@@ -56,6 +56,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             clean_output_first = config.get_bool_value(subject.subject_id, 'CleanOutputFirst')
             walltime_limit_hrs = config.get_int_value(subject.subject_id, 'WalltimeLimit')
             vmem_limit_gbs = config.get_int_value(subject.subject_id, 'VmemLimit')
+            processing_stage_str = config.get_value(subject.subject_id, 'ProcessingStage')
+            processing_stage = one_subject_job_submitter.ProcessingStage.from_string(processing_stage_str)
 
             logger.info("")
             logger.info("--------------------------------------------------------------------------------")
@@ -90,7 +92,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter.clean_output_resource_first = clean_output_first
             submitter.put_server = put_server
 
-            submitter.submit_jobs(one_subject_job_submitter.ProcessingStage.PROCESS_DATA)
+            submitter.submit_jobs(processing_stage)
 
 
 if __name__ == "__main__":
