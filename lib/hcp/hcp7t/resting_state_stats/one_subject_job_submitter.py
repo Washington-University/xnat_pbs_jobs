@@ -43,7 +43,7 @@ class ProcessingStage(ordered_enum.OrderedEnum):
     PROCESS_DATA = 2
     CLEAN_DATA = 3
     PUT_DATA = 4
-
+        
 
 class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
@@ -299,8 +299,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         script.close()
         os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
 
-    def _create_clean_script(self, scan):
-        logger.debug("_create_clean_script")
+    def _create_clean_data_script(self, scan):
+        logger.debug("_create_clean_data_script")
         
         script_name = self._clean_data_script_name(scan)
         
@@ -309,7 +309,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         script = open(script_name, 'w')
 
-        script.write('#PBS -l nodes=1:ppn=1:walltime=4:00:00,vmem=4gb' + os.linesep)
+        script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4gb' + os.linesep)
         script.write('#PBS -o ' + self._working_directory_name + os.linesep)
         script.write('#PBS -e ' + self._working_directory_name + os.linesep)
         script.write(os.linesep)
@@ -486,7 +486,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
                     self._create_work_script(scan)
 
                     # create script to clean data
-                    self._create_clean_script(scan)
+                    self._create_clean_data_script(scan)
 
                     # create script to put the results into the DB
                     put_script_name = self._put_data_script_name(scan)
@@ -530,7 +530,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
                 # submit job to clean the data
                 if processing_stage >= ProcessingStage.CLEAN_DATA:
 
-                    clean_submit_cmd = 'qsub -W depend=afterok:' + work_job_no + ' ' + self._clean_script_name(scan)
+                    clean_submit_cmd = 'qsub -W depend=afterok:' + work_job_no + ' ' + self._clean_data_script_name(scan)
                     logger.info("clean_submit_cmd: " + clean_submit_cmd)
 
                     completed_clean_submit_process = subprocess.run(
