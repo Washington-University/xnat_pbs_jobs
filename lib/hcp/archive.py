@@ -75,6 +75,11 @@ class HcpArchive(abc.ABC):
         return 'PostFix'
 
     @property
+    def RSS_PROCESSED_SUFFIX(self):
+        """Suffix to a resource directory name that indicates that the resource contains Resting State Stats processed data."""
+        return 'RSS'
+
+    @property
     def DEDRIFT_AND_RESAMPLE_RESOURCE_NAME(self):
         """Name of MSM All DeDriftAndResample resource"""
         return 'MSMAllDeDrift'
@@ -246,6 +251,20 @@ class HcpArchive(abc.ABC):
                 return_list.append(directory_path)
 
         return return_list
+
+    def available_RSS_processed_dir_fullpaths(self, subject_info):
+        """Returns a list of the full paths to RSS processed scan resources."""
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' + 
+                             self.RSS_PROCESSED_SUFFIX)
+        return sorted(dir_list)
+
+    def available_RSS_processed_names(self, subject_info):
+        """Returns a list of scan names (not full paths) of available RSS processed scans."""
+        dir_list = self.available_RSS_processed_dir_fullpaths(subject_info)
+        name_list = []
+        for directory in dir_list:
+            name_list.append(self._get_scan_name_from_path(directory))
+        return name_list
     
     def _get_scan_name_from_path(self, path):
         short_path = os.path.basename(path)
@@ -327,7 +346,10 @@ class HcpArchive(abc.ABC):
         return name_list
 
     def scan_PostFix_resource_name(self, scan):
-        return scan + '_PostFix'
+        return scan + '_' + self.POSTFIX_PROCESSED_SUFFIX
+
+    def RSS_processed_dir_fullpath(self, subject_info, scan):
+        return self.subject_resources_dir_fullpath(subject_info) + os.sep + scan + '_' + self.RSS_PROCESSED_SUFFIX
 
     def scan_PostFix_resource_dir(self, subject_info, scan):
         return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.scan_PostFix_resource_name(scan)
