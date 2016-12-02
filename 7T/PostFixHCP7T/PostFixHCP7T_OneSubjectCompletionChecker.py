@@ -35,7 +35,7 @@ class PostFixHCP7T_OneSubjectCompletionChecker:
 
     def is_processing_complete(self, archive, hcp7t_subject_info, scan_name):
         """
-        Returns True if the specified scan has completed 
+        Returns True if the specified scan has completed
         PostFixHCP7T processing for the specified subject.
         """
 
@@ -46,19 +46,23 @@ class PostFixHCP7T_OneSubjectCompletionChecker:
 
         # If we reach here, then the PostFixHCP7T processed resource at least exists.
         # Next we need to check to see if the expected files exist.
-        results_dir = archive.subject_resources_dir_fullpath(hcp7t_subject_info) + os.sep + archive.PostFix_processed_resource_name(scan_name)
-        results_scan_dir = results_dir + os.sep + 'MNINonLinear' + os.sep + 'Results' + os.sep + archive.functional_scan_long_name(scan_name)
+        results_dir = archive.subject_resources_dir_fullpath(hcp7t_subject_info) + os.sep +
+        archive.PostFix_processed_resource_name(scan_name)
+
+        results_scan_dir = results_dir + os.sep + 'MNINonLinear' + os.sep + 'Results' + os.sep +
+        archive.functional_scan_long_name(scan_name)
 
         file_name_list = []
 
         # files in results_scan_dir
-        file_name_list.append(results_scan_dir + os.sep + hcp7t_subject_info.subject_id + '_' + 
+        file_name_list.append(results_scan_dir + os.sep + hcp7t_subject_info.subject_id + '_' +
                               archive.functional_scan_long_name(scan_name) + '_ICA_Classification_dualscreen.scene')
-        file_name_list.append(results_scan_dir + os.sep + hcp7t_subject_info.subject_id + '_' + 
+        file_name_list.append(results_scan_dir + os.sep + hcp7t_subject_info.subject_id + '_' +
                               archive.functional_scan_long_name(scan_name) + '_ICA_Classification_singlescreen.scene')
         file_name_list.append(results_scan_dir + os.sep + 'ReclassifyAsNoise.txt')
         file_name_list.append(results_scan_dir + os.sep + 'ReclassifyAsSignal.txt')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_Atlas_hp2000.dtseries.nii')
+        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                              '_Atlas_hp2000.dtseries.nii')
 
         # files in ica_dir
         ica_dir = results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_hp2000.ica'
@@ -79,7 +83,7 @@ class PostFixHCP7T_OneSubjectCompletionChecker:
         file_name_list.append(filtered_func_data_dir + os.sep + 'melodic_oIC_vol.dtseries.nii')
 
         for file_name in file_name_list:
-            #_inform("Checking for existence of file: " + file_name)
+            # _inform("Checking for existence of file: " + file_name)
             if os.path.isfile(file_name):
                 continue
             # If we get here, the most recently checked file does not exist
@@ -88,4 +92,3 @@ class PostFixHCP7T_OneSubjectCompletionChecker:
 
         # If we get here, all files that were checked exist
         return True
-

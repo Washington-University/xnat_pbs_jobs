@@ -23,7 +23,7 @@ __maintainer__ = "Timothy B. Brown"
 
 # create and configure a module logger
 log = logging.getLogger(__file__)
-#log.setLevel(logging.WARNING)
+# log.setLevel(logging.WARNING)
 log.setLevel(logging.INFO)
 sh = logging.StreamHandler()
 sh.setFormatter(logging.Formatter('%(name)s: %(message)s'))
@@ -85,7 +85,7 @@ def replace_lndir_symlinks(srcpath):
 
         elif os.path.isfile(filename) and os.path.islink(filename):
             log.debug("\tis a regular file that is a symlink and should be replaced")
-            
+
             log.info("Replacing: " + filename + " with copy of: " + os.path.realpath(filename))
 
             with tempfile.TemporaryDirectory() as temp_dirpath:

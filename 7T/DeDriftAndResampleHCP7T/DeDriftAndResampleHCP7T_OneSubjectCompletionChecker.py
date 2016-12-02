@@ -8,10 +8,8 @@ status for one HCP 7T Subject.
 # import of built-in modules
 import os
 
-
 # import of third party modules
-pass
-
+# None
 
 # import of local modules
 import hcp.hcp7t.archive as hcp7t_archive
@@ -34,11 +32,9 @@ class DeDriftAndResampleHCP7T_OneSubjectCompletionChecker:
     def __init__(self):
         super().__init__()
 
-
     def does_processed_resource_exist(self, archive, hcp7t_subject_info):
         dir_list = archive.available_DeDriftAndResample_processed_dirs(hcp7t_subject_info)
         return len(dir_list) > 0
-
 
     def is_processing_complete(self, archive, hcp7t_subject_info, scan_name, verbose=False):
 
@@ -52,18 +48,25 @@ class DeDriftAndResampleHCP7T_OneSubjectCompletionChecker:
 
         # Build list of expected files
         results_dir = archive.DeDriftAndResample_processed_dir_name(hcp7t_subject_info)
-        results_scan_dir = results_dir + os.sep + 'MNINonLinear' + os.sep + 'Results' + os.sep + archive.functional_scan_long_name(scan_name)
+        results_scan_dir = results_dir + os.sep
+        results_scan_dir += 'MNINonLinear' + os.sep + 'Results' + os.sep + archive.functional_scan_long_name(scan_name)
 
         file_name_list = []
-        
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_Atlas_MSMAll.dtseries.nii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_s2_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_s2_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
+
+        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                              '_Atlas_MSMAll.dtseries.nii')
+        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                              '_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
+        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                              '_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
+        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                              '_s2_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
+        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                              '_s2_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
 
         if archive.is_resting_state_scan_name(scan_name) or archive.is_movie_scan_name(scan_name):
-            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_Atlas_MSMAll_hp2000_clean.dtseries.nii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_MSMAll_hp2000_clean.dtseries.nii')
 
             ica_dir = results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_hp2000.ica'
 
@@ -140,7 +143,6 @@ def _simple_interactive_demo():
         _inform("scan_name: " + scan_name)
         processing_complete = completion_checker.is_processing_complete(archive, hcp7t_subject_info, scan_name)
         _inform("processing_complete: " + str(processing_complete))
-
 
 
 if __name__ == '__main__':

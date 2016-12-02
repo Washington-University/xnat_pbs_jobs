@@ -5,16 +5,13 @@ import datetime
 import os
 import sys
 
-
 # import of third party modules
-pass
-
+# None
 
 # import of local modules
 import PostFixHCP7T_OneSubjectCompletionChecker
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
-
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -38,8 +35,8 @@ def _is_subject_complete(subject_results_dict):
 def _write_subject_info(subject, subject_results_dict, afile):
 
     for scan, scan_results in sorted(subject_results_dict.items()):
-        output_str = "HCP_Staging_7T" + '\t' + subject.subject_id + '\t' 
-        output_str += scan_results['resource_name'] + '\t' 
+        output_str = "HCP_Staging_7T" + '\t' + subject.subject_id + '\t'
+        output_str += scan_results['resource_name'] + '\t'
         output_str += scan_results['resource_exists'] + '\t'
         output_str += scan_results['resource_date'] + '\t'
         output_str += scan_results['scan_complete']
@@ -48,13 +45,13 @@ def _write_subject_info(subject, subject_results_dict, afile):
         print(output_str)
 
     print("")
-                    
+
 
 if __name__ == "__main__":
 
     # Get environment variables
     subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
-    if subject_files_dir == None:
+    if subject_files_dir is None:
         _inform("Environment variable SUBJECT_FILES_DIR must be set!")
         sys.exit(1)
 
@@ -104,19 +101,19 @@ if __name__ == "__main__":
                     postfix_resource_date = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
                     if completion_checker.is_processing_complete(archive, subject, scan):
-                        scan_complete="TRUE"
+                        scan_complete = "TRUE"
                     else:
-                        scan_complete="FALSE"
+                        scan_complete = "FALSE"
 
                 else:
-                    postfix_resource_exists="FALSE"
-                    postfix_resource_date="N/A"
-                    scan_complete="FALSE"
-                
+                    postfix_resource_exists = "FALSE"
+                    postfix_resource_date = "N/A"
+                    scan_complete = "FALSE"
+
             else:
-                postfix_resource_exists="---"
-                postfix_resource_date="---"
-                scan_complete="---"
+                postfix_resource_exists = "---"
+                postfix_resource_date = "---"
+                scan_complete = "---"
 
             scan_results_dict['resource_name'] = archive.scan_PostFix_resource_name(scan)
             scan_results_dict['resource_exists'] = postfix_resource_exists
@@ -125,13 +122,7 @@ if __name__ == "__main__":
 
             subject_results_dict[scan] = scan_results_dict
 
-
-
         if _is_subject_complete(subject_results_dict):
             _write_subject_info(subject, subject_results_dict, complete_file)
         else:
             _write_subject_info(subject, subject_results_dict, incomplete_file)
-
-
-
-

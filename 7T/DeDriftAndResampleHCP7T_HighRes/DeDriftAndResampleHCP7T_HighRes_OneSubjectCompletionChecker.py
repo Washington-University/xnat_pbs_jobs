@@ -8,15 +8,12 @@ status for one HCP 7T Subject.
 # import of built-in modules
 import os
 
-
 # import of third party modules
-pass
-
+# None
 
 # import of local modules
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
-
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -34,11 +31,9 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectCompletionChecker:
     def __init__(self):
         super().__init__()
 
-
     def does_processed_resource_exist(self, archive, hcp7t_subject_info):
         dir_list = archive.available_DeDriftAndResample_HighRes_processed_dirs(hcp7t_subject_info)
         return len(dir_list) > 0
-
 
     def is_processing_complete(self, archive, hcp7t_subject_info, scan_name, verbose=False):
 
@@ -57,63 +52,70 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectCompletionChecker:
 
         mni_non_linear_dir = archive.DeDriftAndResample_HighRes_processed_dir_name(hcp7t_subject_info) + os.sep + 'MNINonLinear'
 
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.1.6mm_MSMAll.164k_fs_LR.wb.spec')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.ArealDistortion_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.corrThickness_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.curvature_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.EdgeDistortion_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.L.inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.L.midthickness_1.6mm_MSMAll.164k_fs_LR.surf.gii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.L.pial_1.6mm_MSMAll.164k_fs_LR.surf.gii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.L.very_inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.L.white_1.6mm_MSMAll.164k_fs_LR.surf.gii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.MyelinMap_BC_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.R.inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.R.midthickness_1.6mm_MSMAll.164k_fs_LR.surf.gii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.R.pial_1.6mm_MSMAll.164k_fs_LR.surf.gii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.R.very_inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.R.white_1.6mm_MSMAll.164k_fs_LR.surf.gii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.SmoothedMyelinMap_BC_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.SphericalDistortion_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.sulc_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
-        file_name_list.append(mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id + '.thickness_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
+        prefix = mni_non_linear_dir + os.sep + hcp7t_subject_info.subject_id
+        file_name_list.append(prefix + '.1.6mm_MSMAll.164k_fs_LR.wb.spec')
+        file_name_list.append(prefix + '.ArealDistortion_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.corrThickness_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.curvature_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.EdgeDistortion_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.L.inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.midthickness_1.6mm_MSMAll.164k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.pial_1.6mm_MSMAll.164k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.very_inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.white_1.6mm_MSMAll.164k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.MyelinMap_BC_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.R.inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.midthickness_1.6mm_MSMAll.164k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.pial_1.6mm_MSMAll.164k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.very_inflated_1.6mm_MSMAll.164k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.white_1.6mm_MSMAll.164k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.SmoothedMyelinMap_BC_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.SphericalDistortion_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.sulc_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.thickness_1.6mm_MSMAll.164k_fs_LR.dscalar.nii')
 
         fsave_dir = mni_non_linear_dir + os.sep + 'fsaverage_LR59k'
 
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.1.6mm_MSMAll.59k_fs_LR.wb.spec')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.ArealDistortion_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.atlas_MyelinMap_BC.59k_fs_LR.dscalar.nii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.BiasField_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.corrThickness_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.curvature_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.EdgeDistortion_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.L.inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.L.midthickness_1.6mm_MSMAll.59k_fs_LR.surf.gii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.L.pial_1.6mm_MSMAll.59k_fs_LR.surf.gii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.L.very_inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.L.white_1.6mm_MSMAll.59k_fs_LR.surf.gii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.MyelinMap_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.MyelinMap_BC_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.R.inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.R.midthickness_1.6mm_MSMAll.59k_fs_LR.surf.gii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.R.pial_1.6mm_MSMAll.59k_fs_LR.surf.gii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.R.very_inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.R.white_1.6mm_MSMAll.59k_fs_LR.surf.gii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.SmoothedMyelinMap_BC_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.SphericalDistortion_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.sulc_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
-        file_name_list.append(fsave_dir + os.sep + hcp7t_subject_info.subject_id + '.thickness_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
-        
-        results_scan_dir = results_dir + os.sep + 'MNINonLinear' + os.sep + 'Results' + os.sep + archive.functional_scan_long_name(scan_name)
+        prefix = fsave_dir + os.sep + hcp7t_subject_info.subject_id
+        file_name_list.append(prefix + '.1.6mm_MSMAll.59k_fs_LR.wb.spec')
+        file_name_list.append(prefix + '.ArealDistortion_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.atlas_MyelinMap_BC.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.BiasField_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.corrThickness_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.curvature_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.EdgeDistortion_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.L.inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.midthickness_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.pial_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.very_inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.white_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.MyelinMap_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.MyelinMap_BC_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.R.inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.midthickness_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.pial_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.very_inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.white_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.SmoothedMyelinMap_BC_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.SphericalDistortion_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.sulc_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.thickness_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
 
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_Atlas_1.6mm_MSMAll.dtseries.nii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_1.6mm_MSMAll.L.atlasroi.59k_fs_LR.func.gii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_1.6mm_MSMAll.R.atlasroi.59k_fs_LR.func.gii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_s1.60_1.6mm_MSMAll.L.atlasroi.59k_fs_LR.func.gii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_s1.60_1.6mm_MSMAll.R.atlasroi.59k_fs_LR.func.gii')
+        results_scan_dir = os.sep.join([results_dir,
+                                        'MNINonLinear',
+                                        'Results',
+                                        archive.functional_scan_long_name(scan_name)])
+
+        prefix = results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name)
+        file_name_list.append(prefix + '_Atlas_1.6mm_MSMAll.dtseries.nii')
+        file_name_list.append(prefix + '_1.6mm_MSMAll.L.atlasroi.59k_fs_LR.func.gii')
+        file_name_list.append(prefix + '_1.6mm_MSMAll.R.atlasroi.59k_fs_LR.func.gii')
+        file_name_list.append(prefix + '_s1.60_1.6mm_MSMAll.L.atlasroi.59k_fs_LR.func.gii')
+        file_name_list.append(prefix + '_s1.60_1.6mm_MSMAll.R.atlasroi.59k_fs_LR.func.gii')
 
         if archive.is_resting_state_scan_name(scan_name) or archive.is_movie_scan_name(scan_name):
-            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii')
 
             ica_dir = results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_hp2000.ica'
 

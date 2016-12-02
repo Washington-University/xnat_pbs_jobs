@@ -8,7 +8,7 @@ import os
 import sys
 
 # import of third party modules
-pass
+# None
 
 # import of local modules
 import DeDriftAndResampleHCP7T_OneSubjectJobSubmitter
@@ -23,6 +23,7 @@ __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
+
 def _inform(msg):
     """Inform the user of this program by outputing a message that is prefixed by the file name.
 
@@ -33,8 +34,8 @@ def _inform(msg):
 
 
 def _debug(msg):
-    #debug_msg = "DEBUG: " + msg
-    #_inform(debug_msg)
+    # debug_msg = "DEBUG: " + msg
+    # _inform(debug_msg)
     pass
 
 
@@ -72,16 +73,16 @@ class DeDriftAndResampleHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
             _inform("")
             _inform("--------------------------------------------------------------------------------")
             _inform(" Submitting DeDriftAndResampleHCP7T jobs for: ")
-            _inform("            project: " + subject.project )
-            _inform("         refproject: " + subject.structural_reference_project )
-            _inform("            subject: " + subject.subject_id )
-            _inform("         put_server: " + put_server )
-            _inform("         setup_file: " + setup_file )
-            _inform(" clean_output_first: " + str(clean_output_first) )
-            _inform("    wall_time_limit: " + str(wall_time_limit) )
-            _inform("         vmem_limit: " + str(vmem_limit) )
+            _inform("            project: " + subject.project)
+            _inform("         refproject: " + subject.structural_reference_project)
+            _inform("            subject: " + subject.subject_id)
+            _inform("         put_server: " + put_server)
+            _inform("         setup_file: " + setup_file)
+            _inform(" clean_output_first: " + str(clean_output_first))
+            _inform("    wall_time_limit: " + str(wall_time_limit))
+            _inform("         vmem_limit: " + str(vmem_limit))
             _inform("--------------------------------------------------------------------------------")
-               
+
             _debug("Create and configure an appropriate 'one subject submitter'")
             one_subject_submitter = DeDriftAndResampleHCP7T_OneSubjectJobSubmitter.DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(
                 self._archive, self._archive.build_home)
@@ -89,13 +90,13 @@ class DeDriftAndResampleHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
 
             one_subject_submitter.username = userid
             one_subject_submitter.password = password
-            one_subject_submitter.server   = 'https://db.humanconnectome.org'
-            one_subject_submitter.project  = subject.project
-            one_subject_submitter.subject  = subject.subject_id
-            one_subject_submitter.session  = subject.subject_id + '_7T'
+            one_subject_submitter.server = 'https://db.humanconnectome.org'
+            one_subject_submitter.project = subject.project
+            one_subject_submitter.subject = subject.subject_id
+            one_subject_submitter.session = subject.subject_id + '_7T'
             one_subject_submitter.structural_reference_project = subject.structural_reference_project
             one_subject_submitter.structural_reference_session = subject.subject_id + '_3T'
-            one_subject_submitter.put_server   = put_server
+            one_subject_submitter.put_server = put_server
             one_subject_submitter.clean_output_resource_first = clean_output_first
             one_subject_submitter.setup_script = setup_file
             one_subject_submitter.walltime_limit_hours = wall_time_limit
@@ -108,20 +109,20 @@ class DeDriftAndResampleHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
 
 
 if __name__ == "__main__":
-    
+
     # Get environment variables
     subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
-    if subject_files_dir == None:
+    if subject_files_dir is None:
         _inform("Environment variable SUBJECT_FILES_DIR must be set!")
         sys.exit(1)
 
     scripts_home = os.getenv('SCRIPTS_HOME')
-    if scripts_home == None:
+    if scripts_home is None:
         _inform("Environment variable SCRIPTS_HOME must be set!")
         sys.exit(1)
 
     home = os.getenv('HOME')
-    if home == None:
+    if home is None:
         _inform("Environment variable HOME must be set!")
         sys.exit(1)
 
@@ -137,4 +138,3 @@ if __name__ == "__main__":
     # Process subjects in list
     batch_submitter = DeDriftAndResampleHcp7TBatchSubmitter()
     batch_submitter.submit_jobs(subject_list)
-

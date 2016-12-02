@@ -8,7 +8,7 @@ import os
 import sys
 
 # import of third party modules
-pass
+# None
 
 # import of local modules
 import PostFixHCP7T_OneSubjectJobSubmitter
@@ -23,6 +23,7 @@ __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
+
 def _inform(msg):
     """Inform the user of this program by outputing a message that is prefixed by the file name.
 
@@ -30,6 +31,7 @@ def _inform(msg):
     :type msg: str
     """
     print(os.path.basename(__file__) + ": " + msg)
+
 
 class PostFixHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
     """This class submits batches of PostFix processing jobs for the HCP 7T project."""
@@ -75,15 +77,15 @@ class PostFixHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
             _inform("")
             _inform("--------------------------------------------------------------------------------")
             _inform(" Submitting PostFixHCP7T jobs for: ")
-            _inform("            project: " + subject.project )
-            _inform("            subject: " + subject.subject_id )
-            _inform("               scan: " + scan )
-            _inform("         put_server: " + put_server )
-            _inform("         setup_file: " + setup_file )
-            _inform(" clean_output_first: " + str(clean_output_first) )
-            _inform("    wall_time_limit: " + str(wall_time_limit) )
-            _inform("          mem_limit: " + str(mem_limit) )
-            _inform("         vmem_limit: " + str(vmem_limit) )
+            _inform("            project: " + subject.project)
+            _inform("            subject: " + subject.subject_id)
+            _inform("               scan: " + scan)
+            _inform("         put_server: " + put_server)
+            _inform("         setup_file: " + setup_file)
+            _inform(" clean_output_first: " + str(clean_output_first))
+            _inform("    wall_time_limit: " + str(wall_time_limit))
+            _inform("          mem_limit: " + str(mem_limit))
+            _inform("         vmem_limit: " + str(vmem_limit))
             _inform("--------------------------------------------------------------------------------")
 
             # figure out the specification of the scan(s) to process and whether to only
@@ -113,20 +115,20 @@ class PostFixHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
 
 
 if __name__ == "__main__":
-    
+
     # Get environment variables
     subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
-    if subject_files_dir == None:
+    if subject_files_dir is None:
         _inform("Environment variable SUBJECT_FILES_DIR must be set!")
         sys.exit(1)
 
     scripts_home = os.getenv('SCRIPTS_HOME')
-    if scripts_home == None:
+    if scripts_home is None:
         _inform("Environment variable SCRIPTS_HOME must be set!")
         sys.exit(1)
 
     home = os.getenv('HOME')
-    if home == None:
+    if home is None:
         _inform("Environment variable HOME must be set!")
         sys.exit(1)
 

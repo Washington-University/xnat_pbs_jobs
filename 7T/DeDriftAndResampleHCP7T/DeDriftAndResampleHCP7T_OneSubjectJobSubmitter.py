@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-DeDriftAndResampleHCP7T_OneSubjectJobSubmitter.py: Submit DeDriftAndResampleHCP7T processing 
+DeDriftAndResampleHCP7T_OneSubjectJobSubmitter.py: Submit DeDriftAndResampleHCP7T processing
 jobs for one HCP 7T subject.
 """
 
@@ -12,10 +12,8 @@ import stat
 import subprocess
 import time
 
-
 # import of third party modules
-pass
-
+# None
 
 # import of local modules
 import hcp.hcp7t.subject as hcp7t_subject
@@ -23,7 +21,6 @@ import hcp.one_subject_job_submitter as one_subject_job_submitter
 import utils.delete_resource as delete_resource
 import utils.str_utils as str_utils
 import xnat.xnat_access as xnat_access
-
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -41,8 +38,8 @@ def _inform(msg):
 
 
 def _debug(msg):
-    #debug_msg = "DEBUG: " + msg
-    #_inform(debug_msg)
+    # debug_msg = "DEBUG: " + msg
+    # _inform(debug_msg)
     pass
 
 
@@ -53,10 +50,10 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
         _debug("__init__")
         self._username = None
         self._password = None
-        self._server   = None
-        self._project  = None
-        self._subject  = None
-        self._session  = None
+        self._server = None
+        self._project = None
+        self._subject = None
+        self._session = None
         self._structural_reference_project = None
         self._structural_reference_session = None
         self._put_server = None
@@ -65,207 +62,178 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
         self._walltime_limit_hours = None
         self._vmem_limit_gbs = None
 
-
     @property
     def PIPELINE_NAME(self):
         return 'DeDriftAndResampleHCP7T'
-
 
     @property
     def username(self):
         return self._username
 
-
     @username.setter
     def username(self, username):
         self._username = username
 
-
-    @property 
+    @property
     def password(self):
         return self._password
-
 
     @password.setter
     def password(self, password):
         self._password = password
 
-
     @property
     def server(self):
         return self._server
-
 
     @server.setter
     def server(self, server):
         self._server = server
 
-
-    @property 
+    @property
     def project(self):
         return self._project
-
 
     @project.setter
     def project(self, project):
         self._project = project
-    
 
-    @property 
+    @property
     def subject(self):
         return self._subject
-
 
     @subject.setter
     def subject(self, subject):
         self._subject = subject
 
-
-    @property 
+    @property
     def session(self):
         return self._session
-
 
     @session.setter
     def session(self, session):
         self._session = session
 
-
-    @property 
+    @property
     def structural_reference_project(self):
         return self._structural_reference_project
-
 
     @structural_reference_project.setter
     def structural_reference_project(self, structural_reference_project):
         self._structural_reference_project = structural_reference_project
 
-
-    @property 
+    @property
     def structural_reference_session(self):
         return self._structural_reference_session
-
 
     @structural_reference_session.setter
     def structural_reference_session(self, structural_reference_session):
         self._structural_reference_session = structural_reference_session
 
-
-    @property 
+    @property
     def put_server(self):
         return self._put_server
-
 
     @put_server.setter
     def put_server(self, put_server):
         self._put_server = put_server
 
-
-    @property 
+    @property
     def clean_output_resource_first(self):
         return self._clean_output_resource_first
-
 
     @clean_output_resource_first.setter
     def clean_output_resource_first(self, clean_output_resource_first):
         self._clean_output_resource_first = clean_output_resource_first
 
-
-    @property 
+    @property
     def setup_script(self):
         return self._setup_script
-
 
     @setup_script.setter
     def setup_script(self, setup_script):
         self._setup_script = setup_script
 
-
-    @property 
+    @property
     def walltime_limit_hours(self):
         return self._walltime_limit_hours
-
 
     @walltime_limit_hours.setter
     def walltime_limit_hours(self, walltime_limit_hours):
         self._walltime_limit_hours = walltime_limit_hours
 
-
-    @property 
+    @property
     def vmem_limit_gbs(self):
         return self._vmem_limit_gbs
-
 
     @vmem_limit_gbs.setter
     def vmem_limit_gbs(self, vmem_limit_gbs):
         self._vmem_limit_gbs = vmem_limit_gbs
 
-
     def validate_parameters(self):
         valid_configuration = True
 
-        if self.username == None:
+        if self.username is None:
             valid_configuration = False
             _inform("Before submitting jobs: username must be set")
-            
-        if self.password == None:
+
+        if self.password is None:
             valid_configuration = False
             _inform("Before submitting jobs: password must be set")
-            
-        if self.server == None:
+
+        if self.server is None:
             valid_configuration = False
             _inform("Before submitting jobs: server must be set")
 
-        if self.project == None:
+        if self.project is None:
             valid_configuration = False
             _inform("Before submitting jobs: project must be set")
 
-        if self.subject == None:
+        if self.subject is None:
             valid_configuration = False
             _inform("Before submitting jobs: subject must be set")
 
-        if self.session == None:
+        if self.session is None:
             valid_configuration = False
             _inform("Before submitting jobs: session must be set")
 
-        if self.structural_reference_project == None:
+        if self.structural_reference_project is None:
             valid_configuration = False
             _inform("Before submitting jobs: structural_reference_project must be set")
 
-        if self.structural_reference_session == None:
+        if self.structural_reference_session is None:
             valid_configuration = False
             _inform("Before submitting jobs: structural_reference_session must be set")
 
-        if self.put_server == None:
+        if self.put_server is None:
             valid_configuration = False
             _inform("Before submitting jobs: put_server must be set")
 
-        if self.clean_output_resource_first == None:
+        if self.clean_output_resource_first is None:
             valid_configuration = False
             _inform("Before submitting jobs: clean_output_resource_first must be set")
 
-        if self.setup_script == None:
+        if self.setup_script is None:
             valid_configuration = False
             _inform("Before submitting jobs: setup_script must be set")
 
-        if self.walltime_limit_hours == None:
+        if self.walltime_limit_hours is None:
             valid_configuration = False
             _inform("Before submitting jobs: walltime_limit_hours must be set")
 
-        if self.vmem_limit_gbs == None:
+        if self.vmem_limit_gbs is None:
             valid_configuration = False
             _inform("Before submitting jobs: vmem_limit_gbs must be set")
 
         return valid_configuration
 
-
     def submit_jobs(self):
         _debug("submit_jobs")
 
         if self.validate_parameters():
-            #subject_info = hcp7t_subject.Hcp7TSubjectInfo(self.project,
-            #                                              self.structural_reference_project,
-            #                                              self.subject)
+            # subject_info = hcp7t_subject.Hcp7TSubjectInfo(self.project,
+            #                                               self.structural_reference_project,
+            #                                               self.subject)
 
             # make sure working directories don't have the same name based on the same
             # start time by sleeping a few seconds
@@ -285,19 +253,19 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
 
             # get JSESSION ID
             jsession_id = xnat_access.get_jsession_id(
-                server = 'db.humanconnectome.org',
-                username = self.username,
-                password = self.password)
+                server='db.humanconnectome.org',
+                username=self.username,
+                password=self.password)
             _inform("jsession_id: " + jsession_id)
 
             # get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
             xnat_session_id = xnat_access.get_session_id(
-                server = 'db.humanconnectome.org',
-                username = self.username,
-                password = self.password,
-                project  = self.project,
-                subject  = self.subject,
-                session  = self.session)
+                server='db.humanconnectome.org',
+                username=self.username,
+                password=self.password,
+                project=self.project,
+                subject=self.subject,
+                session=self.session)
             _inform("xnat_session_id: " + xnat_session_id)
 
             # get XNAT Workflow ID
@@ -340,27 +308,25 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
             vmem_spec = 'vmem=' + str(self.vmem_limit_gbs) + 'gb'
 
             work_script.write('#PBS -l ' + nodes_spec + ',' + walltime_spec + ',' + vmem_spec + os.linesep)
-            #work_script.write('#PBS -q HCPput' + os.linesep)
+            # work_script.write('#PBS -q HCPput' + os.linesep)
             work_script.write('#PBS -o ' + working_directory_name + os.linesep)
             work_script.write('#PBS -e ' + working_directory_name + os.linesep)
             work_script.write(os.linesep)
-            work_script.write(self.xnat_pbs_jobs_home + os.sep + '7T' + os.sep + 'DeDriftAndResampleHCP7T' + os.sep + 'DeDriftAndResampleHCP7T.XNAT.sh \\' + os.linesep)
-            work_script.write('  --user="'     + self.username  + '" \\' + os.linesep)
-            work_script.write('  --password="' + self.password  + '" \\' + os.linesep)
-            work_script.write('  --server="'   + str_utils.get_server_name(self.server) + '" \\' + os.linesep)
-            work_script.write('  --project="'  + self.project   + '" \\' + os.linesep)
-            work_script.write('  --subject="'  + self.subject   + '" \\' + os.linesep)
-            work_script.write('  --session="'  + self.session   + '" \\' + os.linesep)
-            work_script.write('  --structural-reference-project="' + 
+            work_script.write(self.xnat_pbs_jobs_home + os.sep + '7T' + os.sep + 'DeDriftAndResampleHCP7T' + os.sep +
+                              'DeDriftAndResampleHCP7T.XNAT.sh \\' + os.linesep)
+            work_script.write('  --user="' + self.username + '" \\' + os.linesep)
+            work_script.write('  --password="' + self.password + '" \\' + os.linesep)
+            work_script.write('  --server="' + str_utils.get_server_name(self.server) + '" \\' + os.linesep)
+            work_script.write('  --project="' + self.project + '" \\' + os.linesep)
+            work_script.write('  --subject="' + self.subject + '" \\' + os.linesep)
+            work_script.write('  --session="' + self.session + '" \\' + os.linesep)
+            work_script.write('  --structural-reference-project="' +
                               self.structural_reference_project + '" \\' + os.linesep)
             work_script.write('  --structural-reference-session="' +
                               self.structural_reference_session + '" \\' + os.linesep)
-            work_script.write('  --working-dir="' + 
-                              working_directory_name            + '" \\' + os.linesep)
-            work_script.write('  --workflow-id="' +
-                              workflow_id                       + '" \\' + os.linesep)
-            work_script.write('  --setup-script=' + 
-                              self.setup_script                          + os.linesep)
+            work_script.write('  --working-dir="' + working_directory_name + '" \\' + os.linesep)
+            work_script.write('  --workflow-id="' + workflow_id + '" \\' + os.linesep)
+            work_script.write('  --setup-script=' + self.setup_script + os.linesep)
 
             work_script.close()
             os.chmod(work_script_name, stat.S_IRWXU | stat.S_IRWXG)
@@ -378,7 +344,7 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
             _inform("work_submit_cmd: " + work_submit_cmd)
 
             completed_work_submit_process = subprocess.run(
-                work_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, 
+                work_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
                 universal_newlines=True)
             work_job_no = str_utils.remove_ending_new_lines(completed_work_submit_process.stdout)
             _inform("work_job_no: " + work_job_no)
@@ -395,4 +361,3 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
 
         else:
             _inform("Unable to submit jobs")
-        

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-PostFixHCP7T_OneSubjectJobSubmitter.py: Submit PostFixHCP7T processing jobs for one 
+PostFixHCP7T_OneSubjectJobSubmitter.py: Submit PostFixHCP7T processing jobs for one
 HCP 7T subject.
 """
 
@@ -12,10 +12,8 @@ import stat
 import subprocess
 import time
 
-
 # import of third party modules
-pass
-
+# None
 
 # import of local modules
 import PostFixHCP7T_OneSubjectCompletionChecker
@@ -27,11 +25,11 @@ import utils.my_argparse as my_argparse
 import utils.str_utils as str_utils
 import xnat.xnat_access as xnat_access
 
-
 # authorship information
 __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
+
 
 def inform(msg):
     """Outputs a message that is prefixed by the module file name.
@@ -40,6 +38,7 @@ def inform(msg):
     :type msg: str
     """
     print(os.path.basename(__file__) + ": " + msg)
+
 
 class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     """This class submits a set of dependent jobs for PostFixHCP7T processing for
@@ -70,16 +69,14 @@ class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJo
                     mem_limit_gbs,         # UNUSED
                     vmem_limit_gbs):
 
-
-
-        subject_info = hcp7t_subject.Hcp7TSubjectInfo(project, 
-                                                      structural_reference_project, 
+        subject_info = hcp7t_subject.Hcp7TSubjectInfo(project,
+                                                      structural_reference_project,
                                                       subject)
 
         # determine names of preprocessed resting state scans that are
         # available for the subject
         preproc_resting_state_scan_names = self.archive.available_resting_state_preproc_names(subject_info)
-        inform("Preprocessed resting state scans available for subject: " + 
+        inform("Preprocessed resting state scans available for subject: " +
                str(preproc_resting_state_scan_names))
 
         # determine names of the preprocessed MOVIE task scans that are available for the subject
@@ -92,7 +89,7 @@ class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJo
 
         # build list of scans to process
         scan_list = []
-        if scan == None:
+        if scan is None:
             scan_list = fix_processed_scan_names
         else:
             scan_list.append(scan)
@@ -116,7 +113,7 @@ class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJo
             inform("-------------------------------------------------")
             inform("")
 
-            # make sure working directories don't have the same name based on the 
+            # make sure working directories don't have the same name based on the
             # same start time by sleeping a few seconds
             time.sleep(5)
 
@@ -135,19 +132,19 @@ class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJo
 
             # get JSESSION ID
             jsession_id = xnat_access.get_jsession_id(
-                server = 'db.humanconnectome.org',
-                username = username,
-                password = password)
+                server='db.humanconnectome.org',
+                username=username,
+                password=password)
             inform("jsession_id: " + jsession_id)
 
             # get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
             xnat_session_id = xnat_access.get_session_id(
-                server = 'db.humanconnectome.org',
-                username = username,
-                password = password,
-                project  = project,
-                subject  = subject,
-                session  = session)
+                server='db.humanconnectome.org',
+                username=username,
+                password=password,
+                project=project,
+                subject=subject,
+                session=session)
 
             inform("xnat_session_id: " + xnat_session_id)
 
@@ -184,26 +181,27 @@ class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJo
             nodes_spec = 'nodes=1:ppn=1'
             walltime_spec = 'walltime=' + str(walltime_limit_hours) + ':00:00'
             vmem_spec = 'vmem=' + str(vmem_limit_gbs) + 'gb'
-            
+
             work_script.write('#PBS -l ' + nodes_spec + ',' + walltime_spec + ',' + vmem_spec + os.linesep)
             work_script.write('#PBS -o ' + working_directory_name + os.linesep)
             work_script.write('#PBS -e ' + working_directory_name + os.linesep)
             work_script.write(os.linesep)
-            work_script.write(self.xnat_pbs_jobs_home + os.sep + '7T' + os.sep + 'PostFixHCP7T' + os.sep + 'PostFixHCP7T.XNAT.sh \\' + os.linesep)
-            work_script.write('  --user="'     + username       + '" \\' + os.linesep)
-            work_script.write('  --password="' + password       + '" \\' + os.linesep)
-            work_script.write('  --server="'   + str_utils.get_server_name(server) + '" \\' + os.linesep)
-            work_script.write('  --project="'  + project        + '" \\' + os.linesep)
-            work_script.write('  --subject="'  + subject        + '" \\' + os.linesep)
-            work_script.write('  --session="'  + session        + '" \\' + os.linesep)
-            work_script.write('  --scan="'     + long_scan_name + '" \\' + os.linesep)
-            work_script.write('  --working-dir="'  + working_directory_name + '" \\' + os.linesep)
-            work_script.write('  --workflow-id="'  + workflow_id            + '" \\' + os.linesep)
-            work_script.write('  --setup-script='  + setup_script +                    os.linesep)
+            work_script.write(self.xnat_pbs_jobs_home + os.sep + '7T' + os.sep + 'PostFixHCP7T' + os.sep +
+                              'PostFixHCP7T.XNAT.sh \\' + os.linesep)
+            work_script.write('  --user="' + username + '" \\' + os.linesep)
+            work_script.write('  --password="' + password + '" \\' + os.linesep)
+            work_script.write('  --server="' + str_utils.get_server_name(server) + '" \\' + os.linesep)
+            work_script.write('  --project="' + project + '" \\' + os.linesep)
+            work_script.write('  --subject="' + subject + '" \\' + os.linesep)
+            work_script.write('  --session="' + session + '" \\' + os.linesep)
+            work_script.write('  --scan="' + long_scan_name + '" \\' + os.linesep)
+            work_script.write('  --working-dir="' + working_directory_name + '" \\' + os.linesep)
+            work_script.write('  --workflow-id="' + workflow_id + '" \\' + os.linesep)
+            work_script.write('  --setup-script=' + setup_script + os.linesep)
 
             work_script.close()
             os.chmod(work_script_name, stat.S_IRWXU | stat.S_IRWXG)
-            
+
             # Create script to put the results into the DB
             put_script_name = script_file_start_name + '.XNAT_PBS_PUT_job.sh'
             self.create_put_script(put_script_name,
@@ -216,7 +214,8 @@ class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJo
             work_submit_cmd = 'qsub ' + work_script_name
             inform("work_submit_cmd: " + work_submit_cmd)
 
-            completed_work_submit_process = subprocess.run(work_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            completed_work_submit_process = subprocess.run(work_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                                                           universal_newlines=True)
             work_job_no = str_utils.remove_ending_new_lines(completed_work_submit_process.stdout)
             inform("work_job_no: " + work_job_no)
 
@@ -224,9 +223,7 @@ class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJo
             put_submit_cmd = 'qsub -W depend=afterok:' + work_job_no + ' ' + put_script_name
             inform("put_submit_cmd: " + put_submit_cmd)
 
-            completed_put_submit_process = subprocess.run(put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            completed_put_submit_process = subprocess.run(put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                                                          universal_newlines=True)
             put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
             inform("put_job_no: " + put_job_no)
-
-
-

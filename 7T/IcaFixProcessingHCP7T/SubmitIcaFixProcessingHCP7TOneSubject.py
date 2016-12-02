@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-SubmitIcaFixProcessingHCP7TOneSubject.py: Submit ICA+FIX processing jobs 
+SubmitIcaFixProcessingHCP7TOneSubject.py: Submit ICA+FIX processing jobs
 for one HCP 7T subject.
 """
 
@@ -13,7 +13,7 @@ import subprocess
 import time
 
 # import of third party modules
-pass
+# None
 
 # import of local modules
 import hcp.hcp7t.archive as hcp7t_archive
@@ -29,6 +29,7 @@ __author__ = "Timothy B. Brown"
 __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
+
 def inform(msg):
     """Outputs a message that is prefixed by the module file name.
 
@@ -37,8 +38,9 @@ def inform(msg):
     """
     print(os.path.basename(__file__) + ": " + msg)
 
+
 class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
-    """This class submits a set of dependent jobs for ICA+FIX processing 
+    """This class submits a set of dependent jobs for ICA+FIX processing
     for a single HCP 7T subject."""
 
     def __init__(self, hcp7t_archive, build_home):
@@ -56,19 +58,19 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
     def PIPELINE_NAME(self):
         return "IcaFixProcessingHCP7T"
 
-    def submit_jobs(self, 
+    def submit_jobs(self,
                     username, password, server,
                     project, subject, session,
                     structural_reference_project, structural_reference_session,
-                    put_server, clean_output_resource_first, setup_script, 
-                    incomplete_only, scan, 
+                    put_server, clean_output_resource_first, setup_script,
+                    incomplete_only, scan,
                     walltime_limit_hours,
                     mem_limit_gbs,
                     vmem_limit_gbs):
         """Submit job(s) to perform IcaFixProcessing for HCP 7T data for the
         specified subject.
 
-        Parameters related to connecting to ConnectomeDB 
+        Parameters related to connecting to ConnectomeDB
 
         :param username: ConnectomeDB username
         :type username: str
@@ -90,14 +92,14 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
         :param session: ConnectomeDB session
         :type session: str
 
-        Parameters that specify where additional information about the subject 
+        Parameters that specify where additional information about the subject
         can be found in other projects and sessions
 
-        :param structural_reference_project: ConnectomeDB structural reference 
+        :param structural_reference_project: ConnectomeDB structural reference
                                              project
         :type structural_reference_project: str
 
-        :param structural_reference_session: ConnectomeDB structural reference 
+        :param structural_reference_session: ConnectomeDB structural reference
                                              session
         :type structural_reference_session: str
 
@@ -106,44 +108,44 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
         :param put_server: PUT server
         :type put_server: str
 
-        :param clean_output_resource_first: indication of whether output resource 
-                                            should be deleted prior to starting 
+        :param clean_output_resource_first: indication of whether output resource
+                                            should be deleted prior to starting
                                             processing
         :type clean_output_resource_first: bool
 
         :param setup_script: path to set up script
-        :type setup_script: str 
+        :type setup_script: str
 
-        :param incomplete_only: indication of whether to submit jobs for 
+        :param incomplete_only: indication of whether to submit jobs for
                                 incomplete scans only
         :type incomplete_only: bool
 
-        :param scan: indication of scan to process. If None, then process all 
-                     scans that should have ICA FIX processing done for this 
+        :param scan: indication of scan to process. If None, then process all
+                     scans that should have ICA FIX processing done for this
                      subject.
         :type scan: str
 
-        :param walltime_limit_hrs: the walltime limit (specified in hours) for 
+        :param walltime_limit_hrs: the walltime limit (specified in hours) for
                                    the processing job
         :type walltime_limit_hrs: int
 
-        :param mem_limit_gbs: the memory limit (specified in GBs) for the processing 
+        :param mem_limit_gbs: the memory limit (specified in GBs) for the processing
                               job
         :type mem_limit_gbs: int
 
-        :param vmem_limit_gbs: the virtual memory limit (specified in GBs) for 
+        :param vmem_limit_gbs: the virtual memory limit (specified in GBs) for
                                the processing job
-        :type vmem_limit_gbs: int                     
+        :type vmem_limit_gbs: int
         """
-        
-        subject_info = hcp7t_subject.Hcp7TSubjectInfo(project, 
+
+        subject_info = hcp7t_subject.Hcp7TSubjectInfo(project,
                                                       structural_reference_project,
                                                       subject)
 
-        # determine names of the preprocessed resting state scans that are 
+        # determine names of the preprocessed resting state scans that are
         # available for the subject
         resting_state_scan_names = self.archive.available_resting_state_preproc_names(subject_info)
-        inform("Preprocessed resting state scans available for subject: " + 
+        inform("Preprocessed resting state scans available for subject: " +
                str(resting_state_scan_names))
 
         # determine names of the preprocessed MOVIE task scans that are available for the subject
@@ -152,7 +154,7 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
 
         # build list of scans to process
         scan_list = []
-        if scan == None:
+        if scan is None:
             scan_list = resting_state_scan_names + movie_scan_names
         else:
             scan_list.append(scan)
@@ -181,10 +183,10 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
             current_seconds_since_epoch = int(time.time())
 
             working_directory_name = self.build_home
-            working_directory_name += os.sep + project 
+            working_directory_name += os.sep + project
             working_directory_name += os.sep + self.PIPELINE_NAME
-            working_directory_name += '.' + subject 
-            working_directory_name += '.' + long_scan_name 
+            working_directory_name += '.' + subject
+            working_directory_name += '.' + long_scan_name
             working_directory_name += '.' + str(current_seconds_since_epoch)
 
             # make the working directory
@@ -193,19 +195,19 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
 
             # get JSESSION ID
             jsession_id = xnat_access.get_jsession_id(
-                server   = 'db.humanconnectome.org',
-                username = username,
-                password = password)
+                server='db.humanconnectome.org',
+                username=username,
+                password=password)
             inform("jsession_id: " + jsession_id)
 
             # get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
             xnat_session_id = xnat_access.get_session_id(
-                server   = 'db.humanconnectome.org',
-                username = username,
-                password = password,
-                project  = project,
-                subject  = subject,
-                session  = session)
+                server='db.humanconnectome.org',
+                username=username,
+                password=password,
+                project=project,
+                subject=subject,
+                session=session)
 
             inform("xnat_session_id: " + xnat_session_id)
 
@@ -216,30 +218,30 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
             inform("workflow_id: " + workflow_id)
 
             # Clean the output resource if requested
-            if clean_output_resource_first: 
+            if clean_output_resource_first:
                 inform("Deleting resource: " + output_resource_name + " for:")
                 inform("  project: " + project)
                 inform("  subject: " + subject)
                 inform("  session: " + session)
-                
+
                 delete_resource.delete_resource(
-                    username, password, str_utils.get_server_name(server), 
+                    username, password, str_utils.get_server_name(server),
                     project, subject, session, output_resource_name)
 
             script_file_start_name = working_directory_name
-            script_file_start_name += os.sep + subject 
-            script_file_start_name += '.' + long_scan_name 
-            script_file_start_name += '.' + self.PIPELINE_NAME 
-            script_file_start_name += '.' + project 
-            script_file_start_name += '.' + session 
+            script_file_start_name += os.sep + subject
+            script_file_start_name += '.' + long_scan_name
+            script_file_start_name += '.' + self.PIPELINE_NAME
+            script_file_start_name += '.' + project
+            script_file_start_name += '.' + session
 
             # Create script to submit to set up data
             # setup_script_name = script_file_start_name + '.DATA_SETUP_job.sh'
             # with contextlib.suppress(FileNotFoundError):
             #     os.remove(setup_script_name)
-                
+
             # setup_script = open(setup_script_name, 'w')
-            
+
             # setup_script.write('#PBS -l nodes-1:ppn=1,walltime=4:00:00,vmem=12gb' + os.linesep)
             # setup_script.write('#PBS -o ' + working_directory_name + os.linesep)
             # setup_script.write('#PBS -e ' + working_directory_name + os.linesep)
@@ -247,7 +249,7 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
 
             # setup_script.close()
             # os.chmod(setup_script_name, stat.S_IRWXU | stat.S_IRWXG)
-                        
+
             # Create script to submit to do the actual work
             work_script_name = script_file_start_name + '.XNAT_PBS_job.sh'
             with contextlib.suppress(FileNotFoundError):
@@ -255,12 +257,14 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
 
             work_script = open(work_script_name, 'w')
 
-            work_script.write('#PBS -l nodes=1:ppn=1,walltime=' + str(walltime_limit_hours) + ':00:00,mem=' + str(mem_limit_gbs) + 'gb,vmem=' + str(vmem_limit_gbs) + 'gb' + os.linesep)
+            work_script.write('#PBS -l nodes=1:ppn=1,walltime=' + str(walltime_limit_hours) + ':00:00,mem=' + str(mem_limit_gbs) +
+                              'gb,vmem=' + str(vmem_limit_gbs) + 'gb' + os.linesep)
             work_script.write('#PBS -o ' + working_directory_name + os.linesep)
             work_script.write('#PBS -e ' + working_directory_name + os.linesep)
             work_script.write(os.linesep)
-            work_script.write(self.xnat_pbs_jobs_home + os.sep + '7T' + os.sep + 'IcaFixProcessingHCP7T' + os.sep + 'IcaFixProcessingHCP7T.XNAT.sh \\' + os.linesep)
-            work_script.write('  --user="' + username +'" \\' + os.linesep)
+            work_script.write(self.xnat_pbs_jobs_home + os.sep + '7T' + os.sep + 'IcaFixProcessingHCP7T' + os.sep +
+                              'IcaFixProcessingHCP7T.XNAT.sh \\' + os.linesep)
+            work_script.write('  --user="' + username + '" \\' + os.linesep)
             work_script.write('  --password="' + password + '" \\' + os.linesep)
             work_script.write('  --server="' + str_utils.get_server_name(server) + '" \\' + os.linesep)
             work_script.write('  --project="' + project + '" \\' + os.linesep)
@@ -279,9 +283,9 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
 
             # Create script to put the results into the DB
             put_script_name = script_file_start_name + '.XNAT_PBS_PUT_job.sh'
-            self.create_put_script(put_script_name, 
-                                   username, password, put_server, 
-                                   project, subject, session, 
+            self.create_put_script(put_script_name,
+                                   username, password, put_server,
+                                   project, subject, session,
                                    working_directory_name, output_resource_name,
                                    scan_name + '_' + self.PIPELINE_NAME)
 
@@ -289,7 +293,8 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
             work_submit_cmd = 'qsub ' + work_script_name
             inform("work_submit_cmd: " + work_submit_cmd)
 
-            completed_work_submit_process = subprocess.run(work_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            completed_work_submit_process = subprocess.run(work_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                                                           universal_newlines=True)
             work_job_no = str_utils.remove_ending_new_lines(completed_work_submit_process.stdout)
             inform("work_job_no: " + work_job_no)
 
@@ -297,7 +302,7 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
             put_submit_cmd = 'qsub -W depend=afterok:' + work_job_no + ' ' + put_script_name
             inform("put_submit_cmd: " + put_submit_cmd)
 
-            completed_put_submit_process = subprocess.run(put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            completed_put_submit_process = subprocess.run(put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE,
+                                                          universal_newlines=True)
             put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
             inform("put_job_no: " + put_job_no)
-

@@ -254,7 +254,7 @@ class HcpArchive(abc.ABC):
 
     def available_RSS_processed_dir_fullpaths(self, subject_info):
         """Returns a list of the full paths to RSS processed scan resources."""
-        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' + 
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
                              self.RSS_PROCESSED_SUFFIX)
         return sorted(dir_list)
 
@@ -265,7 +265,7 @@ class HcpArchive(abc.ABC):
         for directory in dir_list:
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
-    
+
     def _get_scan_name_from_path(self, path):
         short_path = os.path.basename(path)
         last_char = short_path.rfind(self.NAME_DELIMITER)
@@ -293,7 +293,7 @@ class HcpArchive(abc.ABC):
         for directory in dir_list:
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
-    
+
 # ICI name changes to methods from here down are needed for consistency
 
     def does_functional_unproc_exist(self, subject_info, scan_name):
