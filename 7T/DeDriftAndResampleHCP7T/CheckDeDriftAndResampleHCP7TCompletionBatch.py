@@ -5,10 +5,8 @@ import datetime
 import os
 import sys
 
-
 # import of third party modules
-pass
-
+# None
 
 # import of local modules
 import DeDriftAndResampleHCP7T_OneSubjectCompletionChecker
@@ -23,6 +21,7 @@ __maintainer__ = "Timothy B. Brown"
 
 
 _PROJECT = 'HCP_Staging_7T'
+
 
 def _inform(msg):
     """Outputs a message that is prefixed by the module file name."""
@@ -57,7 +56,7 @@ if __name__ == "__main__":
 
     # Get environment variables
     subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
-    if subject_files_dir == None:
+    if subject_files_dir is None:
         _inform("Environment variable SUBJECT_FILES_DIR must be set!")
         sys.exit(1)
 
@@ -135,9 +134,7 @@ if __name__ == "__main__":
 
             subject_results_dict[scan_name] = scan_results_dict
 
-
         if _is_subject_complete(subject_results_dict):
             _write_subject_info(subject, subject_results_dict, complete_file)
         else:
             _write_subject_info(subject, subject_results_dict, incomplete_file)
-            
