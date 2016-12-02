@@ -8,16 +8,13 @@ Check HCP 7T diffusion preprocessing status for one HCP 7T subject.
 # import of built-in modules
 import os
 
-
 # import of third party modules
 # None
-
 
 # import of local modules
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
 import hcp.one_subject_completion_checker
-
 
 # authorship information
 __author__ = "Timothy B. Brown"
