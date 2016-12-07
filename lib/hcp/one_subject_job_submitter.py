@@ -53,11 +53,12 @@ class OneSubjectJobSubmitter(abc.ABC):
         self._archive = archive
         self._build_home = build_home
 
-        home = os_utils.getenv_required('HOME')
-        self._xnat_pbs_jobs_home = home + os.sep
-        self._xnat_pbs_jobs_home += 'pipeline_tools' + os.sep
-        self._xnat_pbs_jobs_home += 'xnat_pbs_jobs'
+        # home = os_utils.getenv_required('HOME')
+        # self._xnat_pbs_jobs_home = home + os.sep
+        # self._xnat_pbs_jobs_home += 'pipeline_tools' + os.sep
+        # self._xnat_pbs_jobs_home += 'xnat_pbs_jobs'
 
+        self._xnat_pbs_jobs_home = os_utils.getenv_required('XNAT_PBS_JOBS')
         self._log_dir = os_utils.getenv_required('LOG_DIR')
 
     @property
