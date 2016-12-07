@@ -114,6 +114,16 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_structural_preproc_data(subject_info, output_study_dir)
             self.get_supplemental_structural_preproc_data(subject_info, output_study_dir)
 
+    def get_data_through_DIFFUSION_PREPROC(self, subject_info, output_study_dir):
+
+        if not self.copy:
+            self.get_diffusion_preproc_data(subject_info, output_study_dir)
+            self.get_data_through_STRUCT_PREPROC(subject_info, output_study_dir)
+
+        else:
+            self.get_data_through_STRUCT_PREPROC(subject_info, output_study_dir)
+            self.get_diffusion_preproc_data(subject_info, output_study_dir)
+
     def get_full_data(self, subject_info, output_study_dir):
 
         if not self.copy:
@@ -149,8 +159,15 @@ def main():
 
     # optional arguments
     parser.add_argument('-c',  '--copy',  dest='copy',  action='store_true', required=False, default=False)
+
+    phase_choices = ["full", 
+                     "diffusion_preproc_vetting", 
+                     "STRUCT_PREPROC", 
+                     "DIFFUSION_PREPROC"]
+    default_phase_choice = phase_choices[0]
+
     parser.add_argument('-ph', '--phase', dest='phase', required=False,
-                        choices=["full", "diffusion_preproc_vetting", "STRUCT_PREPROC"], default="full")
+                        choices=phase_choices, default=default_phase_choice)
 
     # parse the command line arguments
     args = parser.parse_args()
@@ -182,6 +199,9 @@ def main():
 
     elif (args.phase == "STRUCT_PREPROC"):
         data_retriever.get_data_through_STRUCT_PREPROC(subject_info, args.output_study_dir)
+
+    elif (args.phase == "DIFFUSION_PREPROC"):
+        data_retriever.get_data_through_DIFFUSION_PREPROC(subject_info, args.output_study_dir)
 
 
 if __name__ == '__main__':
