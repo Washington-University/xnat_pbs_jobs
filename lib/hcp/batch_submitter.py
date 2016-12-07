@@ -48,6 +48,18 @@ class BatchSubmitter(abc.ABC):
         """Maximum ConnectomeDB shadow server number."""
         return 8
 
+    @property
+    def BAD_SHADOW_LIST(self):
+        """
+        List of shadow numbers in the START_SHADOW_NUMBER to MAX_SHADOW_NUMBER range that are currently
+        unusable.
+
+        NB: If this list contains all numbers from start to max, then the get_and_inc_shadow_number
+        method will go into infinite recursion. So...DON'T DO THAT!
+        """
+        bad_shadow_list = list()
+        return bad_shadow_list
+
     def __init__(self, archive):
         """Construct a BatchSubmitter"""
         self._archive = archive
@@ -69,7 +81,10 @@ class BatchSubmitter(abc.ABC):
     def get_and_inc_shadow_number(self):
         current = self.shadow_number
         self.increment_shadow_number()
-        return current
+        if current in self.BAD_SHADOW_LIST:
+            return self.get_and_inc_shadow_number()
+        else:
+            return current
 
     @abc.abstractmethod
     def submit_jobs(self, subject_list):
