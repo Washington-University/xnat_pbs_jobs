@@ -27,9 +27,9 @@ def _inform(msg):
 class HcpSubjectInfo:
     """This class maintains information about an HCP subject."""
 
-    @property
-    def SEPARATOR(self):
-        return ':'
+    @classmethod
+    def DEFAULT_SEPARATOR(cls):
+        return ":"
 
     def __init__(self, project=None, subject_id=None, extra=None):
         """Constructs an HcpSubjectInfo object.
@@ -64,7 +64,10 @@ class HcpSubjectInfo:
 
     def __str__(self):
         """Returns the informal string representation."""
-        return str(self.project + self.SEPARATOR + self.subject_id + self.SEPARATOR + str(self.extra))
+        separator = HcpSubjectInfo.DEFAULT_SEPARATOR()
+        return str(self.project + separator + 
+                   self.subject_id + separator + 
+                   str(self.extra))
 
 
 def _simple_interactive_demo():
