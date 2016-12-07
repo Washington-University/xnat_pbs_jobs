@@ -63,18 +63,20 @@ class Hcp7TSubjectInfo(hcp_subject.HcpSubjectInfo):
 
     def __str__(self):
         """Returns the informal string representation."""
-        return str(self.project + self.SEPARATOR + self.structural_reference_project + self.SEPARATOR +
-                   self.subject_id + self.SEPARATOR + str(self.extra))
+        separator = super().DEFAULT_SEPARATOR()
+        return str(self.project + separator + 
+                   self.structural_reference_project + separator +
+                   self.subject_id + separator + 
+                   str(self.extra))
 
 
-def read_subject_info_list(file_name):
+def read_subject_info_list(file_name, separator=Hcp7TSubjectInfo.DEFAULT_SEPARATOR()):
     """Reads a subject information list from the specified file.
 
     :param file_name: name of file from which to read
     :type file_name: str
     """
     subject_info_list = []
-    dummy_subject_info = Hcp7TSubjectInfo()
 
     input_file = open(file_name, 'r')
     for line in input_file:
@@ -87,10 +89,10 @@ def read_subject_info_list(file_name):
         # ignore blank lines and comment lines - starting with #
         if line != '' and line[0] != '#':
             try:
-                (project, structural_ref_project, subject_id, extra) = line.split(dummy_subject_info.SEPARATOR)
+                (project, structural_ref_project, subject_id, extra) = line.split(separator)
             except ValueError as e:
                 if str(e) == 'not enough values to unpack (expected 4, got 3)':
-                    (project, structural_ref_project, subject_id) = line.split(dummy_subject_info.SEPARATOR)
+                    (project, structural_ref_project, subject_id) = line.split(separator)
                     extra = None
                 else:
                     raise

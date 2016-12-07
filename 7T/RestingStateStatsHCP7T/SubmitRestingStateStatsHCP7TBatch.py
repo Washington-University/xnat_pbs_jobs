@@ -110,7 +110,7 @@ if __name__ == "__main__":
     # Get list of subjects to process
     subject_file_name = file_utils.get_subjects_file_name(__file__)
     logger.info("Retrieving subject list from: " + subject_file_name)
-    subject_list = hcp7t_subject.read_subject_info_list(subject_file_name)
+    subject_list = hcp7t_subject.read_subject_info_list(subject_file_name, separator="\t")
 
     # Process the subjects in the list
     batch_submitter = BatchSubmitter()

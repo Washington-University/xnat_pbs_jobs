@@ -38,14 +38,13 @@ class Hcp3TSubjectInfo(hcp_subject.HcpSubjectInfo):
     """This class maintains information about an HCP 3T subject."""
 
 
-def read_subject_info_list(file_name):
+def read_subject_info_list(file_name, separator=Hcp3TSubjectInfo.DEFAULT_SEPARATOR()):
     """Reads a subject information list from the specified file.
 
     :param file_name: name of file from which to read
     :type file_name: str
     """
     subject_info_list = []
-    dummy_subject_info = Hcp3TSubjectInfo()
 
     input_file = open(file_name, 'r')
     for line in input_file:
@@ -57,7 +56,7 @@ def read_subject_info_list(file_name):
 
         # ignore blank lines and comment lines - starting with #
         if line != '' and line[0] != '#':
-            (project, subject_id, extra) = line.split(dummy_subject_info.SEPARATOR)
+            (project, subject_id, extra) = line.split(separator)
             # Make the string 'None' in the file translate to a None type instead of just the
             # string itself
             if extra == 'None':
