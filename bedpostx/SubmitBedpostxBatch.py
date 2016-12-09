@@ -41,8 +41,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             # get information for the subject from the configuration
             setup_file = config.get_value(subject.subject_id, 'SetUpFile')
             clean_output_first = config.get_bool_value(subject.subject_id, 'CleanOutputFirst')
-            walltime_limit_hours = config.get_int_value(subject.subject_id, 'WalltimeLimit')
-            vmem_limit_gbs = config.get_int_value(subject.subject_id, 'VmemLimit')
+            # walltime_limit_hours = config.get_int_value(subject.subject_id, 'WalltimeLimit')
+            # vmem_limit_gbs = config.get_int_value(subject.subject_id, 'VmemLimit')
             processing_stage_str = config.get_value(subject.subject_id, 'ProcessingStage')
             processing_stage = one_subject_job_submitter.ProcessingStage.from_string(processing_stage_str)
 
@@ -53,8 +53,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             logger.info("           put_server: " + put_server)
             logger.info("           setup_file: " + setup_file)
             logger.info("   clean_output_first: " + str(clean_output_first))
-            logger.info(" walltime_limit_hours: " + str(walltime_limit_hours))
-            logger.info("       vmem_limit_gbs: " + str(vmem_limit_gbs))
+            # logger.info(" walltime_limit_hours: " + str(walltime_limit_hours))
+            # logger.info("       vmem_limit_gbs: " + str(vmem_limit_gbs))
             logger.info("     processing_stage: " + str(processing_stage))
             logger.info("-----")
 
@@ -69,8 +69,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter.subject = subject.subject_id
             submitter.session = subject.subject_id + '_3T'
 
-            submitter.walltime_limit_hours = walltime_limit_hours
-            submitter.vmem_limit_gbs = vmem_limit_gbs
+            # submitter.walltime_limit_hours = walltime_limit_hours
+            # submitter.vmem_limit_gbs = vmem_limit_gbs
 
             submitter.clean_output_resource_first = clean_output_first
             submitter.put_server = put_server

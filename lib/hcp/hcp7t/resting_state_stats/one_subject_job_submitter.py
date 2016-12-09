@@ -320,6 +320,9 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         script.write('echo "The following files are being removed."' + os.linesep)
         script.write('find ' + self._working_directory_name + os.path.sep + self.subject +
                      ' -not -newer ' + self._starttime_file_name() + ' -print -delete')
+        script.write(os.linesep)
+        script.write('echo "Remaining files:"' + os.linesep)
+        script.write('find ' + self._working_directory_name + os.path.sep + self.subject + os.linesep)
 
         script.close()
         os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
@@ -546,7 +549,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
                 # submit job to put the resulting data in the DB
                 if processing_stage >= ProcessingStage.PUT_DATA:
 
-                    put_submit_cmd = 'qsub -W depend=afterok:' + work_job_no + ' ' + put_script_name
+                    put_submit_cmd = 'qsub -W depend=afterok:' + clean_job_no + ' ' + put_script_name
                     logger.info("put_submit_cmd: " + put_submit_cmd)
 
                     completed_put_submit_process = subprocess.run(

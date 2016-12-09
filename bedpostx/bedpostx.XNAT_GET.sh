@@ -126,7 +126,7 @@ main()
 		--phase=DIFFUSION_PREPROC \
 		--study-dir=${g_working_dir}
 
-	inform "Complete"
+	inform "Job complete on `hostname` at `date`"
 }
 
 # Invoke the main to get things started
