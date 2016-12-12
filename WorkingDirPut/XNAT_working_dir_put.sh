@@ -255,7 +255,7 @@ main()
 		--force
 	
 	# Make processing job log files readable so they can be pushed into the database
-	chmod a+r ${g_working_dir}/*
+	chmod --recursive a+r ${g_working_dir}/*
 
 	# Move resulting files out of the subject-id directory
 	echo "-------------------------------------------------"

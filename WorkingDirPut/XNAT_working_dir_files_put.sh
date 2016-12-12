@@ -218,7 +218,7 @@ main()
 	inform "resource name: ${resource}"
 
 	# Make log files readable so they can be pushed into the database
-	chmod a+r ${g_working_dir}/*
+	chmod --recursive a+r ${g_working_dir}/*
 
 	# Move resulting files out of the subject-id subdirectory
 	inform "Moving files out of the ${g_subject} subdirectory in ${g_working_dir}"
