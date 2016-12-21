@@ -1,5 +1,0 @@
-
-This directory is a "placeholder".
-
-need to make sure that the .XNAT.sh for 7T calls RestingStateStats.sh once with --low-res-mesh=32 and once with --low-res-mesh=59
-
