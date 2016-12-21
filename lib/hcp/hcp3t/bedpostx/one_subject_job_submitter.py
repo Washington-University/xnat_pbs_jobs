@@ -327,7 +327,10 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         script.write(os.linesep)
         script.write('echo "The following files are being removed."' + os.linesep)
         script.write('find ' + self._working_directory_name + os.path.sep + self.subject +
-                     ' -not -newer ' + self._starttime_file_name() + ' -print -delete')
+                     ' -not -newer ' + self._starttime_file_name() + ' -print -delete' + os.linesep)
+
+        script.write(os.linesep)
+        script.write('exit 0')
 
         script.close()
         os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)

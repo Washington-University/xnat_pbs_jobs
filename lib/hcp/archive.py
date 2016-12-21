@@ -85,6 +85,11 @@ class HcpArchive(abc.ABC):
         return 'MSMAllDeDrift'
 
     @property
+    def BEDPOSTX_PROCESSED_RESOURCE_NAME(self):
+        """Name of resource containing bedpostx processed data."""
+        return 'Diffusion_bedpostx'
+
+    @property
     def NAME_DELIMITER(self):
         """Character (or string) used to delimit the parts of a resource name.
 
@@ -176,7 +181,7 @@ class HcpArchive(abc.ABC):
 
     def diffusion_unproc_dir_fullpath(self, subject_info):
         """the full path to the unprocessed diffusion resource directory"""
-        return self.subject_resources_dir_fullpath(subject_info) + '/Diffusion_' + self.UNPROC_SUFFIX
+        return self.subject_resources_dir_fullpath(subject_info) + os.sep + 'Diffusion_' + self.UNPROC_SUFFIX
 
     def available_diffusion_unproc_dir_fullpaths(self, subject_info):
         """list of full paths to unprocessed diffusion scan resource directories"""
@@ -197,6 +202,16 @@ class HcpArchive(abc.ABC):
         """list of full paths to preprocessed diffusion resources."""
         dir_list = glob.glob(self.diffusion_preproc_dir_fullpath(subject_info))
         return sorted(dir_list)
+
+    def diffusion_bedpostx_dir_fullpath(self, subject_info):
+        return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.BEDPOSTX_PROCESSED_RESOURCE_NAME
+
+    def available_diffusion_bedpostx_dir_fullpaths(self, subject_info):
+        dir_list = glob.glob(self.diffusion_bedpostx_dir_fullpath(subject_info))
+        return sorted(dir_list)
+
+    def does_diffusion_bedpostx_dir_exist(self, subject_info):
+        return os.path.isdir(self.diffusion_bedpostx_dir_fullpath(subject_info))
 
     def available_diffusion_unproc_names(self, subject_info):
         """list of scan names (not full paths) for unprocessed diffusion resources."""

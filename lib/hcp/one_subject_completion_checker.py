@@ -49,10 +49,12 @@ class OneSubjectCompletionChecker(abc.ABC):
         for file_name in file_name_list:
             if verbose:
                 module_logger.info("Checking for existence of file: " + file_name)
+                print("Checking for existence of file: " + file_name)
             if os.path.isfile(file_name):
                 continue
             # If we get here, the most recently checked file does not exist
             module_logger.info("FILE DOES NOT EXIST: " + file_name)
+            print("FILE DOES NOT EXIST: " + file_name)
             return False
 
         # If we get here, we've cycled through all the files and
