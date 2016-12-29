@@ -8,12 +8,7 @@ inform()
 	echo "${SCRIPT_NAME}: ${msg}"
 }
 
-if [ -z "${SUBJECT_FILES_DIR}" ]; then
-	echo "Environment variable SUBJECT_FILES_DIR must be set!"
-	exit 1
-fi
-
-subject_file_name="${SUBJECT_FILES_DIR}/CheckForFunctionalPreprocessingHCP7T.subjects"
+subject_file_name="CheckForFunctionalPreprocessingHCP7TCompletion.Batch.subjects"
 inform "Retrieving subject list from ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
@@ -26,7 +21,7 @@ for subject in ${subjects} ; do
 
 		project=HCP_Staging_7T
 
-		./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject} #--details
+		./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject} --post-patch # --details
 
 	fi
 

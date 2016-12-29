@@ -65,6 +65,8 @@ get_options()
 	g_details="FALSE"
 	unset g_scans
 	g_report_level="NORMAL"
+	unset g_post_patch
+	g_post_patch="FALSE"
 
     # parse arguments
     local index=0
@@ -99,6 +101,10 @@ get_options()
                 ;;
 			--verbose)
 				g_report_level="VERBOSE"
+				index=$(( index + 1 ))
+                ;;
+			--post-patch)
+				g_post_patch="TRUE"
 				index=$(( index + 1 ))
                 ;;
             *)
@@ -268,7 +274,14 @@ main()
 				check_file_exists "${check_dir}/Movement_Regressors.txt"
 				check_file_exists "${check_dir}/Movement_RelativeRMS_mean.txt"
 				check_file_exists "${check_dir}/Movement_RelativeRMS.txt"
-				check_file_exists "${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas.59k.dtseries.nii"
+
+
+				if [ "${g_post_patch}" = "TRUE" ]; then
+					check_file_exists "${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas_1.6mm.dtseries.nii"
+				else
+					check_file_exists "${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas.59k.dtseries.nii"
+				fi
+
 				check_file_exists "${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas.dtseries.nii"
 				check_file_exists "${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_AtlasSubcortical_s1.60.nii.gz"
 				check_file_exists "${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_AtlasSubcortical_s2.nii.gz"
