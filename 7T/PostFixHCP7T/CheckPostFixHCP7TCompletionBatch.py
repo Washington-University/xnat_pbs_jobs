@@ -12,6 +12,7 @@ import sys
 import PostFixHCP7T_OneSubjectCompletionChecker
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
+import utils.file_utils as file_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -49,14 +50,10 @@ def _write_subject_info(subject, subject_results_dict, afile):
 
 if __name__ == "__main__":
 
-    # Get environment variables
-    subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
-    if subject_files_dir is None:
-        _inform("Environment variable SUBJECT_FILES_DIR must be set!")
-        sys.exit(1)
-
     # Get list of subjects to check
-    subject_file_name = subject_files_dir + os.sep + 'CheckPostFixProcessingHCP7T.python.subjects'
+    # subject_file_name = subject_files_dir + os.sep + 'CheckPostFixProcessingHCP7T.python.subjects'
+    subject_file_name = file_utils.get_subjects_file_name(__file__)
+
     _inform("Retrieving subject list from: " + subject_file_name)
     subject_list = hcp7t_subject.read_subject_info_list(subject_file_name)
 

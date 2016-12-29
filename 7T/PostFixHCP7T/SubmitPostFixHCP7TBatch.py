@@ -117,11 +117,6 @@ class PostFixHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
 if __name__ == "__main__":
 
     # Get environment variables
-    subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
-    if subject_files_dir is None:
-        _inform("Environment variable SUBJECT_FILES_DIR must be set!")
-        sys.exit(1)
-
     scripts_home = os.getenv('SCRIPTS_HOME')
     if scripts_home is None:
         _inform("Environment variable SCRIPTS_HOME must be set!")
@@ -137,7 +132,7 @@ if __name__ == "__main__":
     password = getpass.getpass("Connectome DB Password: ")
 
     # Get list of subjects to process
-    subject_file_name = subject_files_dir + os.sep + 'PostFixHCP7T.subjects'
+    subject_file_name = file_utils.get_subjects_file_name(__file__)
     _inform('Retrieving subject list from: ' + subject_file_name)
     subject_list = hcp7t_subject.read_subject_info_list(subject_file_name)
 
