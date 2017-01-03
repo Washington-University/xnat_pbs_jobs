@@ -147,6 +147,14 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_preproc_data(subject_info, output_study_dir)
             self.get_icafix_data(subject_info, output_study_dir)
 
+    def get_diffusion_bedpostx_data(self, subject_info, output_study_dir):
+
+        for directory in self.archive.available_bedpostx_fullpaths(subject_info):
+
+            get_from = directory
+            put_to = output_study_dir + os.sep + subject_info.subject_id
+            self._from_to(get_from, put_to)
+
 
 def main():
     # create a parser object for getting the command line arguments
@@ -160,10 +168,11 @@ def main():
     # optional arguments
     parser.add_argument('-c',  '--copy',  dest='copy',  action='store_true', required=False, default=False)
 
-    phase_choices = ["full", 
-                     "diffusion_preproc_vetting", 
-                     "STRUCT_PREPROC", 
-                     "DIFFUSION_PREPROC"]
+    phase_choices = ["FULL", "full",
+                     "DIFFUSION_PREPROC_VETTING", "diffusion_preproc_vetting", 
+                     "STRUCT_PREPROC", "struct_preproc",
+                     "DIFFUSION_PREPROC", "diffusion_preproc",
+                     "DIFFUSION_BEDPOSTX", "diffusion_bedpostx"]
     default_phase_choice = phase_choices[0]
 
     parser.add_argument('-ph', '--phase', dest='phase', required=False,
@@ -189,20 +198,22 @@ def main():
     data_retriever.show_log = True
 
     # retrieve data based on phase requested
-    if (args.phase == "full"):
+    if (args.phase.upper() == "FULL"):
         data_retriever.get_full_data(subject_info, args.output_study_dir)
         data_retriever.clean_xnat_specific_files(args.output_study_dir)
 
-    elif (args.phase == "diffusion_preproc_vetting"):
+    elif (args.phase.upper() == "DIFFUSION_PREPROC_VETTING"):
         data_retriever.get_diffusion_preproc_vetting_data(subject_info, args.output_study_dir)
         data_retriever.clean_xnat_specific_files(args.output_study_dir)
 
-    elif (args.phase == "STRUCT_PREPROC"):
+    elif (args.phase.upper() == "STRUCT_PREPROC"):
         data_retriever.get_data_through_STRUCT_PREPROC(subject_info, args.output_study_dir)
 
-    elif (args.phase == "DIFFUSION_PREPROC"):
+    elif (args.phase.upper() == "DIFFUSION_PREPROC"):
         data_retriever.get_data_through_DIFFUSION_PREPROC(subject_info, args.output_study_dir)
 
+    elif (args.phase.upper() == "DIFFUSION_BEDPOSTX"):
+        data_retriever.get_diffusion_bedpostx_data(subject_info, args.output_study_dir)
 
 if __name__ == '__main__':
     main()
