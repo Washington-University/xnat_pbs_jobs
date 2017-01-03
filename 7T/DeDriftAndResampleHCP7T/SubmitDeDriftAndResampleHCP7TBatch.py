@@ -126,7 +126,6 @@ if __name__ == "__main__":
     password = getpass.getpass("Connectome DB Password: ")
 
     # Get list of subjects to process
-    #subject_file_name = subject_files_dir + os.sep + 'DeDriftAndResampleHCP7T.subjects'
     subject_file_name = file_utils.get_subjects_file_name(__file__)
     _inform('Retrieving subject list from: ' + subject_file_name)
     subject_list = hcp7t_subject.read_subject_info_list(subject_file_name)
