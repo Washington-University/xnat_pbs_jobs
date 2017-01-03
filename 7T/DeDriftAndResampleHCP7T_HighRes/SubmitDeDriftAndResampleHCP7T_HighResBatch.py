@@ -85,8 +85,8 @@ class DeDriftAndResampleHcp7T_HighResBatchSubmitter(batch_submitter.BatchSubmitt
             _inform("--------------------------------------------------------------------------------")
 
             _debug("Create and configure an appropriate 'one subject submitter'")
-            one_subject_submitter =
-            DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter.DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(
+            one_subject_submitter = \
+                DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter.DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(
                 self._archive, self._archive.build_home)
             _debug("one_subject_submitter: " + str(one_subject_submitter))
 
@@ -113,11 +113,6 @@ class DeDriftAndResampleHcp7T_HighResBatchSubmitter(batch_submitter.BatchSubmitt
 if __name__ == "__main__":
 
     # Get environment variables
-    subject_files_dir = os.getenv('SUBJECT_FILES_DIR')
-    if subject_files_dir is None:
-        _inform("Environment variable SUBJECT_FILES_DIR must be set!")
-        sys.exit(1)
-
     scripts_home = os.getenv('SCRIPTS_HOME')
     if scripts_home is None:
         _inform("Environment variable SCRIPTS_HOME must be set!")
@@ -133,7 +128,7 @@ if __name__ == "__main__":
     password = getpass.getpass("Connectome DB Password: ")
 
     # Get list of subjects to process
-    subject_file_name = subject_files_dir + os.sep + 'DeDriftAndResampleHCP7T_HighRes.subjects'
+    subject_file_name = file_utils.get_subjects_file_name(__file__)
     _inform('Retrieving subject list from: ' + subject_file_name)
     subject_list = hcp7t_subject.read_subject_info_list(subject_file_name)
 

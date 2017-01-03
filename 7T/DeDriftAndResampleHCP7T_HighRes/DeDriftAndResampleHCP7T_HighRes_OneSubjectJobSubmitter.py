@@ -221,7 +221,7 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(one_subject_job_sub
             valid_configuration = False
             _inform("Before submitting jobs: walltime_limit_hours must be set")
 
-        if self.vmem_limit_gbs bis None:
+        if self.vmem_limit_gbs is None:
             valid_configuration = False
             _inform("Before submitting jobs: vmem_limit_gbs must be set")
 
