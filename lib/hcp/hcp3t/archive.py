@@ -54,11 +54,12 @@ class Hcp3T_Archive(hcp_archive.HcpArchive):
                              'Structural' + '_' + self.PREPROC_SUFFIX + '_supplemental')
         return sorted(dir_list)
 
-    def available_bedpostx_fullpaths(self, subject_info):
-        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + os.sep +
-                             'Diffusion_bedpostx')
-        return sorted(dir_list)
+    def bedpostx_dir_fullpath(self, subject_info):
+        return self.subject_resources_dir_fullpath(subject_info) + os.sep + 'Diffusion_bedpostx'
 
+    def available_bedpostx_fullpaths(self, subject_info):
+        dir_list = glob.glob(self.bedpostx_dir_fullpath(subject_info))
+        return sorted(dir_list)
 
 def _simple_interactive_demo():
 
