@@ -32,6 +32,7 @@ class PackagingStage(ordered_enum.OrderedEnum):
     PREPARE_SCRIPTS = 0
     GET_DATA = 1
     CREATE_PACKAGE = 2
+    CLEAN_BUILD_SPACE = 3
 
 
 class OneSubjectPackageJobSubmitter():
@@ -112,6 +113,14 @@ class OneSubjectPackageJobSubmitter():
         return odir
 
     @property
+    def log_directory(self):
+        log_dir = os.getenv('LOG_DIR')
+        if not log_dir:
+            raise RuntimeError("Environment variable LOG_DIR must be set")
+
+        return log_dir
+
+    @property
     def scripts_start_name(self):
         if not self._scripts_start_name:
             start_name = self.working_directory_name
@@ -130,6 +139,16 @@ class OneSubjectPackageJobSubmitter():
     @property
     def create_package_script_name(self):
         return self.scripts_start_name + '.CREATE_PACKAGE.sh'
+
+    @property
+    def clean_build_space_script_name(self):
+        name = self.log_directory + os.sep + self.subject 
+        name += '.' + self.WORK_DESC 
+        name += '.' + self.project
+        name += '.' + self.session
+        name += '.CLEAN_BUILD_SPACE.sh'
+
+        return name
 
     @property
     def xnat_pbs_jobs_home(self):
@@ -213,6 +232,22 @@ class OneSubjectPackageJobSubmitter():
         script.close()
         os.chmod(self.create_package_script_name, stat.S_IRWXU | stat.S_IRWXG)
 
+    def _write_clean_build_space_script(self):
+        logger.debug("_write_clean_build_space_script")
+        
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(self.clean_build_space_script_name)
+
+        script = open(self.clean_build_space_script_name, 'w')
+
+        self._write_bash_header(script)
+        script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4gb' + os.linesep)
+        script.write('#PBS -q HCPput' + os.linesep)
+        script.write('#PBS -o ' + self.log_directory + os.linesep)
+        script.write('#PBS -e ' + self.log_directory + os.linesep)
+        script.write(os.linesep)
+        script.write('rm --recursive --force --verbose ' + self.working_directory_name + os.linesep)
+
     def submit_jobs(self, packaging_stage=PackagingStage.CREATE_PACKAGE):
         logger.debug("submit_jobs: packaging_stage: " + str(packaging_stage))
         
@@ -235,6 +270,7 @@ class OneSubjectPackageJobSubmitter():
         if packaging_stage >= PackagingStage.PREPARE_SCRIPTS:
             self._write_get_data_script()
             self._write_create_package_script()
+            self._write_clean_build_space_script()
             
         # submit the script to get the data
         if packaging_stage >= PackagingStage.GET_DATA:
@@ -264,3 +300,18 @@ class OneSubjectPackageJobSubmitter():
 
         else:
             logger.info("Create package job not submitted")
+
+        # submit the script to clean the build space
+        if packaging_stage >= PackagingStage.CLEAN_BUILD_SPACE:
+
+            clean_build_space_submit_cmd = 'qsub -W depend=afterok:' + create_package_job_no + ' '
+            clean_build_space_submit_cmd += self.clean_build_space_script_name
+            logger.info("clean_build_space_submit_cmd: " + clean_build_space_submit_cmd)
+
+            completed_process = subprocess.run(clean_build_space_submit_cmd, shell=True, check=True,
+                                               stdout=subprocess.PIPE, universal_newlines=True)
+            clean_build_space_job_no = str_utils.remove_ending_new_lines(completed_process.stdout)
+            logger.info("clean_build_space_job_no: " + clean_build_space_job_no)
+
+        else:
+            logger.info("Clean build space job not submitted")
