@@ -3,3 +3,6 @@
 
 # ignore generated scripts for creating packages
 *scripts_to_submit*
+
+# ignore subjects files
+*.subjects

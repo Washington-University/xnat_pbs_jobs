@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if [ -z "${SUBJECT_FILES_DIR}" ]; then
-    echo "Environment variable SUBJECT_FILES_DIR must be set!"
-    exit 1
-fi
-
 name="Create2mmFixPackage"
 
 packages_root="/HCP/hcpdb/packages/prerelease/zip/HCP_Staging_7T"
@@ -17,7 +12,7 @@ scripts_to_submit_dir="${HOME}/pipeline_tools/xnat_pbs_jobs/7T/${name}/scripts_t
 log_dir="${HOME}/pipeline_tools/xnat_pbs_jobs/7T/${name}/logs"
 
 # ----------
-subject_file_name="${SUBJECT_FILES_DIR}/${name}.subjects"
+subject_file_name="${name}.subjects"
 # ----------
 
 echo "Retrieving subject list from: ${subject_file_name}"

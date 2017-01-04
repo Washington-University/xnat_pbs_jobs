@@ -1,17 +1,12 @@
 #!/bin/bash
 
-if [ -z "${SUBJECT_FILES_DIR}" ]; then
-    echo "Environment variable SUBJECT_FILES_DIR must be set!"
-    exit 1
-fi
-
 packages_root="/HCP/hcpdb/packages/prerelease/zip/HCP_Staging_7T"
 archive_root="/HCP/hcpdb/archive"
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 
 output_dir="/HCP/hcpdb/packages/prerelease/zip/HCP_Staging_7T"
 
-subject_file_name="${SUBJECT_FILES_DIR}/CreateAllPackages.subjects"
+subject_file_name="CreateAllPackages.subjects"
 
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )

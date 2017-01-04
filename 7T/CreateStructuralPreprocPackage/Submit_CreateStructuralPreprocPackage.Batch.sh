@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if [ -z "${SUBJECT_FILES_DIR}" ]; then
-    echo "Environment variable SUBJECT_FILES_DIR must be set!"
-    exit 1
-fi
-
 packages_root="/HCP/hcpdb/packages/prerelease/zip/HCP_Staging_7T"
 archive_root="/HCP/hcpdb/archive"
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
@@ -15,7 +10,7 @@ scripts_to_submit_dir="${HOME}/pipeline_tools/xnat_pbs_jobs/7T/CreateStructuralP
 log_dir="${HOME}/pipeline_tools/xnat_pbs_jobs/7T/CreateStructuralPreprocPackage/logs"
 
 # ----------
-subject_file_name="${SUBJECT_FILES_DIR}/CreateStructuralPreprocPackage.subjects"
+subject_file_name="CreateStructuralPreprocPackage.subjects"
 # ----------
 
 echo "Retrieving subject list from: ${subject_file_name}"
