@@ -9,8 +9,8 @@ read password
 echo ""
 stty echo
 
-project="HCP_Staging"
-subject_file_name="${project}.StructuralPackagingHCP.subjects"
+project="HCP_Staging_RT"
+subject_file_name="${project}.DiffusionPreprocessingHCP.Batch.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
@@ -18,31 +18,34 @@ subjects="`echo "${subject_list_from_file[@]}"`"
 start_shadow_number=1
 max_shadow_number=8
 
-shadow_number=${start_shadow_number}
+shadow_number=`shuf -i ${start_shadow_number}-${max_shadow_number} -n 1`
 
 for subject in ${subjects} ; do
 
 	if [[ ${subject} != \#* ]]; then
 
-		server="db-shadow${shadow_number}.nrg.mir"
+		server="db-shadow${shadow_number}.nrg.mir:8080"
 
  		echo ""
 		echo "--------------------------------------------------------------------------------"
-		echo " Submitting Structural Packaging job for subject: ${subject}"
+		echo " Submitting Diffusion Preprocessing job for subject: ${subject}"
+		echo " Using server: ${server}"
 		echo "--------------------------------------------------------------------------------"
 
-		${HOME}/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/SubmitStructuralPackagingHCP.OneSubject.sh \
+		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/SubmitDiffusionPreprocessingHCP.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
-			--server=${server} \
+			--put-server=${server} \
 			--project=${project} \
-			--subject=${subject} 
+			--subject=${subject} \
+			--phase-encoding-dir=RLLR
 
 		shadow_number=$((shadow_number+1))
+		
 		if [ "${shadow_number}" -gt "${max_shadow_number}" ]; then
 			shadow_number=${start_shadow_number}
 		fi
 
 	fi
-	
+
 done

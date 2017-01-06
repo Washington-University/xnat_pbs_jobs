@@ -9,20 +9,6 @@ read password
 echo ""
 stty echo
 
-#printf "Delay until first submission (minutes) [0]: "
-#read delay
-#
-#if [ -z "${delay}" ]; then
-#	delay=0
-#fi
-#
-#printf "Interval between submissions (minutes) [60]: "
-#read interval
-#
-#if [ -z "${interval}" ]; then
-#	interval=60
-#fi
-
 project="HCP_Staging"
 subject_file_name="${project}.DiffusionPreprocessingHCP.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
@@ -32,7 +18,7 @@ subjects="`echo "${subject_list_from_file[@]}"`"
 start_shadow_number=1
 max_shadow_number=8
 
-shadow_number=${start_shadow_number}
+shadow_number=`shuf -i ${start_shadow_number}-${max_shadow_number} -n 1`
 
 for subject in ${subjects} ; do
 
@@ -44,11 +30,8 @@ for subject in ${subjects} ; do
 		echo "--------------------------------------------------------------------------------"
 		echo " Submitting Diffusion Preprocessing job for subject: ${subject}"
 		echo " Using server: ${server}"
-		#echo " Submission delayed until ${delay} minutes from now"
 		echo "--------------------------------------------------------------------------------"
 
-# 		at now + ${delay} minutes <<EOF 
-			
 		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/DiffusionPreprocessingHCP/SubmitDiffusionPreprocessingHCP.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
@@ -56,10 +39,6 @@ for subject in ${subjects} ; do
 			--project=${project} \
 			--subject=${subject} \
 			--phase-encoding-dir=RLLR
-
-#EOF
-
-		#delay=$((delay + interval))
 
 		shadow_number=$((shadow_number+1))
 		

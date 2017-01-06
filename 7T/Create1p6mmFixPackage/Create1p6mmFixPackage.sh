@@ -153,7 +153,15 @@ build_standard_structure()
 	# DeDriftAndResample
 	link_hcp_resampled_and_dedrifted_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${script_tmp_dir}" 
 
-	# PostFix data
+	# Resting State Stats data
+	scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*_RSS`
+	for scan_dir in ${scan_dirs} ; do
+		short_scan_dir=${scan_dir##*/}
+		scan=${short_scan_dir%_RSS}
+		link_hcp_resting_state_stats_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${scan}" "${script_tmp_dir}"
+	done
+
+	# PostFix data?
 
 	# FIX processed data
 	scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*_FIX`
@@ -242,19 +250,47 @@ main()
 
 			scan=${parsing_str%%_*}
 			parsing_str=${parsing_str#*_}
-			echo "scan: ${scan}"
+			inform "scan: ${scan}"
 			
 			pe_dir=${parsing_str%%_*}
 			parsing_str=${parsing_str#*_}
-			echo "pe_dir: ${pe_dir}"
+			inform "pe_dir: ${pe_dir}"
 			
 			short_name=${prefix}_${scan}_${pe_dir}
-			echo "short_name: ${short_name}"
+			inform "short_name: ${short_name}"
 			
 			long_name=${prefix}_${scan}_7T_${pe_dir}
-			echo "long_name: ${long_name}"
+			inform "long_name: ${long_name}"
 			
 			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii "
+		done
+
+		rss_dirs=`ls -1d ${g_subject_7T_resources_dir}/*${modality}*_RSS`
+		for rss_dir in ${rss_dirs} ; do
+			short_rss_dir=${rss_dir##*/}
+			scan=${short_rss_dir%_RSS}
+
+			parsing_str=${rss_dir##*/}
+
+			prefix=${parsing_str%%_*}
+			parsing_str=${parsing_str#*_}
+			inform "prefix: ${prefix}"
+
+			scan=${parsing_str%%_*}
+			parsing_str=${parsing_str#*_}
+			inform "scan: ${scan}"
+
+			pe_dir=${parsing_str%%_*}
+			parsing_str=${parsing_str#*_}
+			inform "pe_dir: ${pe_dir}"
+
+			short_name=${prefix}_${scan}_${pe_dir}
+			inform "short_name: ${short_name}"
+
+			long_name=${prefix}_${scan}_7T_${pe_dir}
+			inform "long_name: ${long_name}"
+
+			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_hp2000_clean_vn.dscalar.nii "
 		done
 	
 		for file in ${file_list} ; do
