@@ -56,7 +56,8 @@ def lndir(src, dst, show_log=False, ignore_existing_dst_files=False):
             try:
                 src_filename = '%s/%s' % (root, filename)
                 dst_filename = '%s%s/%s' % (dst, root.replace(src, ''), filename)
-                print("linking: %s --> %s" % (dst_filename, src_filename))
+                if show_log:
+                    print("linking: %s --> %s" % (dst_filename, src_filename))
                 os.symlink(src_filename, dst_filename)
 
             except FileExistsError as e:
