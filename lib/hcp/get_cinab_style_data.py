@@ -152,6 +152,54 @@ class CinabStyleDataRetriever(abc.ABC):
             put_to = output_study_dir + os.sep + subject_info.subject_id + os.sep + 'MNINonLinear' + os.sep + 'Results'
             self._from_to(get_from, put_to)
 
+    def get_taskfmri_data(self, subject_info, output_study_dir):
+
+        for directory in self.archive.available_task_processed_dir_fullpaths(subject_info):
+
+            get_from = directory
+            put_to = output_study_dir + os.sep + subject_info.subject_id
+            self._from_to(get_from, put_to)
+
+    def get_postfix_data(self, subject_info, output_study_dir):
+
+        for directory in self.archive.available_PostFix_processed_dirs(subject_info):
+
+            get_from = directory
+            put_to = output_study_dir + os.sep + subject_info.subject_id
+            self._from_to(get_from, put_to)
+
+    def get_resting_state_stats_data(self, subject_info, output_study_dir):
+
+        for directory in self.archive.available_RSS_processed_dir_fullpaths(subject_info):
+
+            get_from = directory
+            put_to = output_study_dir + os.sep + subject_info.subject_id
+            self._from_to(get_from, put_to)
+
+    def get_msmall_reg_data(self, subject_info, output_study_dir):
+
+        for directory in self.archive.available_msmall_reg_dir_fullpaths(subject_info):
+
+            get_from = directory
+            put_to = output_study_dir + os.sep + subject_info.subject_id
+            self._from_to(get_from, put_to)
+
+    def get_msmall_dedrift_and_resample_data(self, subject_info, output_study_dir):
+
+        for directory in self.archive.available_DeDriftAndResample_processed_dirs(subject_info):
+            
+            get_from = directory
+            put_to = output_study_dir + os.sep + subject_info.subject_id
+            self._from_to(get_from, put_to)
+
+    def get_bedpostx_data(self, subject_info, output_study_dir):
+
+        for directory in self.archive.available_diffusion_bedpostx_dir_fullpaths(subject_info):
+
+            get_from = directory
+            put_to = output_study_dir + os.sep + subject_info.subject_id
+            self._from_to(get_from, put_to)
+
     @abc.abstractmethod
     def get_preproc_data(self, subject_info, output_study_dir):
         raise NotImplementedError

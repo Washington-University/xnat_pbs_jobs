@@ -130,13 +130,12 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             # when creating symbolic links (copy == False), must be done in reverse
             # chronological order
 
-            # ici get_msmall_dedrift_and_resample_data
-            # ici get_msmall_reg_data
-
-            # ici get_resting_state_stats_data
-            # ici get_postfix_data
-
-            # ici get_taskfmri_data
+            self.get_bedpostx_data(subject_info, output_study_dir)
+            self.get_msmall_dedrift_and_resample_data(subject_info, output_study_dir)
+            self.get_msmall_reg_data(subject_info, output_study_dir)
+            self.get_resting_state_stats_data(subject_info, output_study_dir)
+            self.get_postfix_data(subject_info, output_study_dir)
+            self.get_taskfmri_data(subject_info, output_study_dir)
             self.get_icafix_data(subject_info, output_study_dir)
             self.get_preproc_data(subject_info, output_study_dir)
             self.get_unproc_data(subject_info, output_study_dir)
@@ -146,6 +145,12 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_unproc_data(subject_info, output_study_dir)
             self.get_preproc_data(subject_info, output_study_dir)
             self.get_icafix_data(subject_info, output_study_dir)
+            self.get_taskfmri_data(subject_info, output_study_dir)
+            self.get_postfix_data(subject_info, output_study_dir)
+            self.get_resting_state_stats_data(subject_info, output_study_dir)
+            self.get_msmall_reg_data(subject_info, output_study_dir)
+            self.get_msmall_dedrift_and_resample_data(subject_info, output_study_dir)
+            self.get_bedpostx_data(subject_info, output_study_dir)
 
     def get_diffusion_bedpostx_data(self, subject_info, output_study_dir):
 

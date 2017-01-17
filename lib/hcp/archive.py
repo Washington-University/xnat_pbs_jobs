@@ -248,6 +248,21 @@ class HcpArchive(abc.ABC):
                              self.FUNCTIONAL_SCAN_MARKER + '*' + self.FIX_PROCESSED_SUFFIX)
         return sorted(dir_list)
 
+    def available_task_processed_dir_fullpaths(self, subject_info):
+        dir_list = []
+        first_dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
+                                   self.TASK_SCAN_MARKER + '*')
+
+        for directory in first_dir_list:
+            lastsepindex = directory.rfind(os.sep)
+            basename = directory[lastsepindex+1:]
+            index = basename.find(self.NAME_DELIMITER)
+            rindex = basename.rfind(self.NAME_DELIMITER)
+            if index == rindex:
+                dir_list.append(directory)
+
+        return sorted(dir_list)
+
     def available_FIX_processed_names(self, subject_info):
         """Returns a list of scan names (not full paths) of available FIX processed scans."""
         dir_list = self.available_FIX_processed_dir_fullpaths(subject_info)
@@ -271,6 +286,10 @@ class HcpArchive(abc.ABC):
         """Returns a list of the full paths to RSS processed scan resources."""
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
                              self.RSS_PROCESSED_SUFFIX)
+        return sorted(dir_list)
+
+    def available_msmall_reg_dir_fullpaths(self, subject_info):
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/MSMAllReg')
         return sorted(dir_list)
 
     def available_RSS_processed_names(self, subject_info):

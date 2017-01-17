@@ -137,7 +137,7 @@ main() {
 				patch_package_checksum_info="---"
 			fi
 			
-			echo -e "${g_subject}\tTask Analysis ${task} Smoothing Level ${smoothing_level} Package\t${full_package_info}\t${full_package_checksum_info}\t${patch_package_info}\t${patch_package_checksum_info}"
+			echo -e "${g_subject}\tTask Analysis ${task} Smoothing Level ${smoothing_level} Package\t${full_package_name}\t${full_package_info}\t${full_package_checksum_info}\t${patch_package_info}\t${patch_package_checksum_info}"
 			
 		done
 
