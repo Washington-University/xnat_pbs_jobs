@@ -95,6 +95,21 @@ def replace_lndir_symlinks(srcpath):
                 os.remove(filename)
                 shutil.move(temp_filename, filename)
 
+def replace_symlinks_with_relative(srcpath):
+    
+    for filename in glob.glob(srcpath + os.sep + '*'):
+        print("filename: " + filename)
+        #log.debug("filename: " + filename)
+
+        if os.path.islink(filename):
+            print("is a link")
+            
+            linked_to = os.path.realpath(filename)
+            print("linked_to: " + linked_to)
+
+            relative_path = os.path.relpath(linked_to, filename)
+            print(relative_path)
+
 
 if __name__ == "__main__":
     lndir('/home/HCPpipeline/usr', '/home/HCPpipeline/usr1', show_log=True, ignore_existing_dst_files=True)
