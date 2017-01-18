@@ -113,7 +113,7 @@ def replace_symlinks_with_relative(srcpath):
             linked_to = os.path.realpath(filename)
             print("linked_to: " + linked_to)
 
-            relative_path = os.path.relpath(linked_to, filename)
+            relative_path = os.path.relpath(linked_to, srcpath + os.sep + filename)
             print("relative_path: " + relative_path)
 
 
