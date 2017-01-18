@@ -96,8 +96,10 @@ def replace_lndir_symlinks(srcpath):
                 shutil.move(temp_filename, filename)
 
 def replace_symlinks_with_relative(srcpath):
+
+    os.chdir(srcpath)
     
-    for filename in glob.glob(srcpath + os.sep + '*'):
+    for filename in glob.glob('*'):
         print("filename: " + filename)
         #log.debug("filename: " + filename)
 
