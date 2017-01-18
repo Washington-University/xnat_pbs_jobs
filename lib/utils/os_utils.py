@@ -100,32 +100,32 @@ def replace_symlinks_with_relative(srcpath):
     os.chdir(srcpath)
     
     for filename in glob.glob('*'):
-        print("filename: " + filename)
+        #print("filename: " + filename)
         #log.debug("filename: " + filename)
 
-        if os.path.islink(filename):
-            print("is a link")
-            
-            fullpath = os.path.abspath(filename)
-            print("fullpath: " + fullpath)
+        fullpath = os.path.abspath(filename)
 
+        if os.path.islink(fullpath):
+            #print("is a link")
+            
             linked_to = os.path.realpath(fullpath)
-            print("linked_to: " + linked_to)
+            #print("linked_to: " + linked_to)
 
             relative_path = os.path.relpath(linked_to, os.path.dirname(fullpath))
-            print("relative_path: " + relative_path)
+            #print("relative_path: " + relative_path)
 
             os.remove(fullpath)
 
+            print("ln -s " + relative_path + " " + fullpath)
             os.symlink(relative_path, fullpath)
 
 
 
 
 
-        if os.path.isdir(filename):
-            print("is a directory -- recursing")
-            replace_symlinks_with_relative(filename)
+        if os.path.isdir(fullpath):
+            #print("is a directory -- recursing")
+            replace_symlinks_with_relative(fullpath)
 
 
 
