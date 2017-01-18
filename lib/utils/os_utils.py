@@ -101,6 +101,10 @@ def replace_symlinks_with_relative(srcpath):
         print("filename: " + filename)
         #log.debug("filename: " + filename)
 
+        if os.path.isdir(filename):
+            print("is a directory -- recursing")
+            replace_symlinks_with_relative(filename)
+
         if os.path.islink(filename):
             print("is a link")
             
