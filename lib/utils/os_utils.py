@@ -98,29 +98,18 @@ def replace_lndir_symlinks(srcpath):
 def replace_symlinks_with_relative(srcpath):
 
     for filename in glob.glob(srcpath + os.sep + '*'):
-        #print("filename: " + filename)
-        #log.debug("filename: " + filename)
 
         fullpath = os.path.abspath(filename)
 
         if os.path.islink(fullpath):
-            #print("is a link")
-            
             linked_to = os.path.realpath(fullpath)
-            #print("linked_to: " + linked_to)
-
             relative_path = os.path.relpath(linked_to, os.path.dirname(fullpath))
-            #print("relative_path: " + relative_path)
-
             os.remove(fullpath)
-
-            print("ln -s " + relative_path + " " + fullpath)
+            print(fullpath + " -> " + relative_path)
             os.symlink(relative_path, fullpath)
 
         if os.path.isdir(fullpath):
-            #print("is a directory -- recursing")
             replace_symlinks_with_relative(fullpath)
-
 
 
 if __name__ == "__main__":
