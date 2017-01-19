@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#project=HCP_Staging_7T
 subject_file_name=DiffusionPackagingHCP7T.subjects
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
