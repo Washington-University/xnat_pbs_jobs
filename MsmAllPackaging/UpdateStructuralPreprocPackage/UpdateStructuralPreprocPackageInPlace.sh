@@ -26,11 +26,11 @@ get_options()
 
         case ${argument} in
             --packages-root=*)
-				g_packages_root=${argument/*=/""}
+                g_packages_root=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --archive-root=*)
-				g_archive_root=${argument/*=/""}
+                g_archive_root=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --tmp-dir=*)
@@ -38,7 +38,7 @@ get_options()
                 index=$(( index + 1 ))
                 ;;
             --subject=*)
-            	g_subject=${argument/*=/""}
+                g_subject=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --release-notes-template-file=*)
@@ -210,7 +210,7 @@ main()
 
     # update the zip file
     pushd ${script_tmp_dir}
-	zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
+    zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
     echo "zip_cmd: ${zip_cmd}"
     ${zip_cmd}
 
@@ -225,8 +225,8 @@ main()
 
         pushd ${package_dir}
         md5sum ${package_name} > ${package_name}.md5
-		chmod 777 ${package_name}.md5
-		popd
+        chmod 777 ${package_name}.md5
+        popd
     fi
 
     popd
@@ -261,7 +261,7 @@ main()
 
         pushd ${package_dir}
         md5sum ${package_name} > ${package_name}.md5
-		chmod 777 ${package_name}.md5
+        chmod 777 ${package_name}.md5
         popd
     fi
 

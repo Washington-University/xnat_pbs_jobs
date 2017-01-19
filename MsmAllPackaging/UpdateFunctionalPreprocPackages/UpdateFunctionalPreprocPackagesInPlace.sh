@@ -13,7 +13,7 @@ get_options()
     unset g_subject
     unset g_release_notes_template_file
     unset g_create_checksum
-	unset g_patch_only
+    unset g_patch_only
 
     g_script_name=`basename ${0}`
 
@@ -27,11 +27,11 @@ get_options()
 
         case ${argument} in
             --packages-root=*)
-				g_packages_root=${argument/*=/""}
+                g_packages_root=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --archive-root=*)
-				g_archive_root=${argument/*=/""}
+                g_archive_root=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --tmp-dir=*)
@@ -39,7 +39,7 @@ get_options()
                 index=$(( index + 1 ))
                 ;;
             --subject=*)
-            	g_subject=${argument/*=/""}
+                g_subject=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --release-notes-template-file=*)
@@ -50,10 +50,10 @@ get_options()
                 g_create_checksum="YES"
                 index=$(( index + 1 ))
                 ;;
-			--patch-only)
-				g_patch_only="TRUE"
-				index=$(( index + 1 ))
-				;;
+            --patch-only)
+                g_patch_only="TRUE"
+                index=$(( index + 1 ))
+                ;;
             *)
                 echo "Unrecognized Option: ${argument}"
                 exit 1
@@ -107,10 +107,10 @@ get_options()
     fi
     echo "create checksum: ${g_create_checksum}"
 
-	if [ -z "${g_patch_only}" ]; then
-		g_patch_only="FALSE"
-	fi
-	echo "patch_only: ${g_patch_only}"
+    if [ -z "${g_patch_only}" ]; then
+        g_patch_only="FALSE"
+    fi
+    echo "patch_only: ${g_patch_only}"
 
     if [ ${error_count} -gt 0 ]; then
         echo "ERRORS DETECTED: EXITING"
@@ -220,13 +220,13 @@ main()
         echo "--------------------------------------------------"
         echo ""
 
-		for phase in LR RL ; do
-			preproc_resource="${subject_resources_dir}/${scan}_${phase}_preproc"
-			physio_file="${preproc_resource}/MNINonLinear/Results/${scan}_${phase}/${scan}_${phase}_Physio_log.txt"
+        for phase in LR RL ; do
+            preproc_resource="${subject_resources_dir}/${scan}_${phase}_preproc"
+            physio_file="${preproc_resource}/MNINonLinear/Results/${scan}_${phase}/${scan}_${phase}_Physio_log.txt"
 
-			mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear/Results/${scan}_${phase}
-			cp --verbose --archive ${physio_file} ${script_tmp_dir}/${g_subject}/MNINonLinear/Results/${scan}_${phase}
-		done
+            mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear/Results/${scan}_${phase}
+            cp --verbose --archive ${physio_file} ${script_tmp_dir}/${g_subject}/MNINonLinear/Results/${scan}_${phase}
+        done
 
         echo ""
         echo "--------------------------------------------------"
@@ -261,7 +261,7 @@ main()
 
         # update the zip file
         pushd ${script_tmp_dir}
-		zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
+        zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
         echo "zip_cmd: ${zip_cmd}"
         ${zip_cmd}
 
@@ -276,50 +276,50 @@ main()
             
             pushd ${package_dir}
             md5sum ${package_name} > ${package_name}.md5
-			chmod 777 ${package_name}.md5
+            chmod 777 ${package_name}.md5
             popd
         fi
         
         popd
 
-		if [ "${g_patch_only}" == "FALSE" ] ; then
+        if [ "${g_patch_only}" == "FALSE" ] ; then
 
-			echo ""
-			echo "--------------------------------------------------"
-			echo " Update package"
-			echo "--------------------------------------------------"
-			echo ""
-			package_dir="${g_packages_root}/${g_subject}/preproc"
-			package_name="${g_subject}_3T_${scan}_preproc.zip"
-			package_path="${package_dir}/${package_name}"
-		
-			# remove old checksum file
-			rm -rf ${package_path}.md5
-			
-			# update the zip file
-			pushd ${script_tmp_dir}
-			zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
-			echo "zip_cmd: ${zip_cmd}"
-			${zip_cmd}
+            echo ""
+            echo "--------------------------------------------------"
+            echo " Update package"
+            echo "--------------------------------------------------"
+            echo ""
+            package_dir="${g_packages_root}/${g_subject}/preproc"
+            package_name="${g_subject}_3T_${scan}_preproc.zip"
+            package_path="${package_dir}/${package_name}"
+        
+            # remove old checksum file
+            rm -rf ${package_path}.md5
+            
+            # update the zip file
+            pushd ${script_tmp_dir}
+            zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
+            echo "zip_cmd: ${zip_cmd}"
+            ${zip_cmd}
 
-			# create the checksum file if requested
-			if [ "${g_create_checksum}" = "YES" ]; then
+            # create the checksum file if requested
+            if [ "${g_create_checksum}" = "YES" ]; then
 
-				echo ""
-				echo "--------------------------------------------------"
-				echo " Create MD5 Checksum"
-				echo "--------------------------------------------------"
-				echo ""
-				
-				pushd ${package_dir}
-				md5sum ${package_name} > ${package_name}.md5
-				chmod 777 ${package_name}.md5
-				popd
-			fi
-			
-			popd
+                echo ""
+                echo "--------------------------------------------------"
+                echo " Create MD5 Checksum"
+                echo "--------------------------------------------------"
+                echo ""
+                
+                pushd ${package_dir}
+                md5sum ${package_name} > ${package_name}.md5
+                chmod 777 ${package_name}.md5
+                popd
+            fi
+            
+            popd
 
-		fi
+        fi
 
     done
 

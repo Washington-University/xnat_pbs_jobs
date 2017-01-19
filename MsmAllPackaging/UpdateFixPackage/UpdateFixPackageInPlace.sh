@@ -26,11 +26,11 @@ get_options()
 
         case ${argument} in
             --packages-root=*)
-				g_packages_root=${argument/*=/""}
+                g_packages_root=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --archive-root=*)
-				g_archive_root=${argument/*=/""}
+                g_archive_root=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --tmp-dir=*)
@@ -38,7 +38,7 @@ get_options()
                 index=$(( index + 1 ))
                 ;;
             --subject=*)
-            	g_subject=${argument/*=/""}
+                g_subject=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --release-notes-template-file=*)
@@ -183,24 +183,24 @@ main()
     cat ${g_release_notes_template_file} >> ${release_notes_file}
     echo "" >> ${release_notes_file}
 
-	echo ""
-	echo "--------------------------------------------------"
-	echo " Update patch package"
-	echo "--------------------------------------------------"
-	echo ""
-	
-	package_dir="${g_packages_root}/${g_subject}/fix"
-	package_name="${g_subject}_3T_rfMRI_REST_fix${PATCH_NAME_SUFFIX}.zip"
-	package_path="${package_dir}/${package_name}"
+    echo ""
+    echo "--------------------------------------------------"
+    echo " Update patch package"
+    echo "--------------------------------------------------"
+    echo ""
+    
+    package_dir="${g_packages_root}/${g_subject}/fix"
+    package_name="${g_subject}_3T_rfMRI_REST_fix${PATCH_NAME_SUFFIX}.zip"
+    package_path="${package_dir}/${package_name}"
 
-	# remove old checksum file
-	rm -f ${package_path}.md5
+    # remove old checksum file
+    rm -f ${package_path}.md5
 
-	# update the zip file
-	pushd ${script_tmp_dir}
-	zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
-	echo "zip_cmd: ${zip_cmd}"
-	${zip_cmd}
+    # update the zip file
+    pushd ${script_tmp_dir}
+    zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
+    echo "zip_cmd: ${zip_cmd}"
+    ${zip_cmd}
 
     # create the checksum file if requested
     if [ "${g_create_checksum}" = "YES" ]; then
@@ -213,7 +213,7 @@ main()
 
         pushd ${package_dir}
         md5sum ${package_name} > ${package_name}.md5
-		chmod 777 ${package_name}.md5
+        chmod 777 ${package_name}.md5
         popd
     fi
 
@@ -234,7 +234,7 @@ main()
 
     # update the zip file
     pushd ${script_tmp_dir}
-	zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
+    zip_cmd="zip --verbose --update --recurse-paths ${package_path} ${g_subject}"
     echo "zip_cmd: ${zip_cmd}"
     ${zip_cmd}
 
@@ -249,7 +249,7 @@ main()
 
         pushd ${package_dir}
         md5sum ${package_name} > ${package_name}.md5
-		chmod 777 ${package_name}.md5
+        chmod 777 ${package_name}.md5
         popd
     fi
 

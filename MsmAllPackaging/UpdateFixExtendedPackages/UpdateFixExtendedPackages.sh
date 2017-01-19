@@ -27,11 +27,11 @@ get_options()
 
         case ${argument} in
             --packages-root=*)
-				g_packages_root=${argument/*=/""}
+                g_packages_root=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --archive-root=*)
-				g_archive_root=${argument/*=/""}
+                g_archive_root=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --tmp-dir=*)
@@ -39,7 +39,7 @@ get_options()
                 index=$(( index + 1 ))
                 ;;
             --subject=*)
-            	g_subject=${argument/*=/""}
+                g_subject=${argument/*=/""}
                 index=$(( index + 1 ))
                 ;;
             --release-notes-template-file=*)
@@ -159,15 +159,15 @@ main()
             
             mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear/Results/${scan}
 
-			rsync --verbose --archive --recursive --exclude='*clean*.nii' \
-				${resting_state_stats_resource}/MNINonLinear/Results/${scan} \
-				${script_tmp_dir}/${g_subject}/MNINonLinear/Results
+            rsync --verbose --archive --recursive --exclude='*clean*.nii' \
+                ${resting_state_stats_resource}/MNINonLinear/Results/${scan} \
+                ${script_tmp_dir}/${g_subject}/MNINonLinear/Results
 
-			mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear/ROIs
+            mkdir -p ${script_tmp_dir}/${g_subject}/MNINonLinear/ROIs
 
-			rsync --verbose --archive --recursive \
-				${resting_state_stats_resource}/MNINonLinear/ROIs \
-				${script_tmp_dir}/${g_subject}/MNINonLinear
+            rsync --verbose --archive --recursive \
+                ${resting_state_stats_resource}/MNINonLinear/ROIs \
+                ${script_tmp_dir}/${g_subject}/MNINonLinear
         done
 
         echo ""
@@ -271,7 +271,7 @@ main()
             
             pushd ${new_package_dir}
             md5sum ${new_package_name} > ${new_package_name}.md5
-			chmod u=rw,g=rw,o=r ${new_package_name}.md5
+            chmod u=rw,g=rw,o=r ${new_package_name}.md5
             popd
         fi
 
@@ -330,7 +330,7 @@ main()
 
             pushd ${new_package_dir}
             md5sum ${new_package_name} > ${new_package_name}.md5
-			chmod u=rw,g=rw,o=r ${new_package_name}.md5
+            chmod u=rw,g=rw,o=r ${new_package_name}.md5
             popd
         fi
 
