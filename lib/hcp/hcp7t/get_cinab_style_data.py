@@ -67,6 +67,7 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
         if not self.copy:
             # when creating symbolic links (copy == False), must be done in reverse
             # chronological order
+            self.get_resting_state_stats_data(subject_info, output_study_dir)
             self.get_icafix_data(subject_info,  output_study_dir)
             self.get_preproc_data(subject_info, output_study_dir)
             self.get_unproc_data(subject_info,  output_study_dir)
@@ -76,6 +77,7 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_unproc_data(subject_info,  output_study_dir)
             self.get_preproc_data(subject_info, output_study_dir)
             self.get_icafix_data(subject_info,  output_study_dir)
+            self.get_resting_state_stats_data(subject_info, output_study_dir)
 
     def get_data_through_ICAFIX(self, subject_info, output_study_dir):
 
