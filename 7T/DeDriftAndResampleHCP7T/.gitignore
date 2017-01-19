@@ -2,5 +2,3 @@
 *.txt
 *.tmp
 
-# Ignore subject list input files
-*.subjects

@@ -1,5 +1,3 @@
 # Ignore README.html file generated from README.md
 README.html
 
-# Ignore subject list input files
-*.subjects
