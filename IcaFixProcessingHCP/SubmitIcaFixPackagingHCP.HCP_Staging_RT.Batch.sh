@@ -9,7 +9,7 @@ read password
 echo ""
 stty echo
 
-project="HCP_Staging"
+project="HCP_Staging_RT"
 subject_file_name="${project}.IcaFixPackaging.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )

@@ -414,7 +414,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             scans_to_process = list(scans_to_process_set)
             scans_to_process.sort()
             logger.debug("scans_to_process: " + str(scans_to_process))
-
+            
             for scan in scans_to_process:
 
                 logger.info("")

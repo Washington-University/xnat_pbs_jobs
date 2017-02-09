@@ -831,10 +831,10 @@ link_hcp_postfix_data()
     link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     link_from+="/${session}"
     link_from+="/${DATABASE_RESOURCES_ROOT}"
-    link_from+="/${scan}${POSTFIX_PROC_RESOURCE_SUFFIX}/${subject}/MNINonLinear/Results/${scan}"
+    link_from+="/${scan}${POSTFIX_PROC_RESOURCE_SUFFIX}/MNINonLinear"
 
     local link_to=""
-    link_to="${to_study_dir}/${subject}/MNINonLinear/Results"
+    link_to="${to_study_dir}/${subject}/MNINonLinear"
 
     local lndir_cmd=""
     lndir_cmd="${PATH_TO_LNDIR} ${link_from} ${link_to}"
@@ -877,10 +877,10 @@ get_hcp_postfix_data()
     copy_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
     copy_from+="/${session}"
     copy_from+="/${DATABASE_RESOURCES_ROOT}"
-    copy_from+="/${scan}${POSTFIX_PROC_RESOURCE_SUFFIX}/${subject}/MNINonLinear/Results/${scan}"
+    copy_from+="/${scan}${POSTFIX_PROC_RESOURCE_SUFFIX}/MNINonLinear"
 
     local copy_to=""
-    copy_to="${to_study_dir}/${subject}/MNINonLinear/Results"
+    copy_to="${to_study_dir}/${subject}"
 
     local rsync_cmd=""
     rsync_cmd="rsync -auv ${copy_from} ${copy_to}"
@@ -888,6 +888,52 @@ get_hcp_postfix_data()
 	echo "----------" `date` "----------"
 	echo ""
     ${rsync_cmd}
+
+    popd
+}
+
+link_hcp_7T_resting_state_stats_data()
+{
+	local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hcpdb/archive
+	local project=${2} # e.g. HCP_Staging_7T
+	local subject=${3} # e.g. 102816
+	local session=${4} # e.g. 102816_7T
+	local scan=${5}    # e.g. rfMRI_REST1_PA
+	local to_study_dir=${6}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+	echo "Linking HCP 7T Resting State Stats data from archive"
+	echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+    echo " Scan: ${scan}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local link_from=""
+	link_from+="${archive}"
+	link_from+="/${project}"
+	link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	link_from+="/${session}"
+	link_from+="/${DATABASE_RESOURCES_ROOT}"
+	link_from+="/${scan}${RESTING_STATE_STATS_PROC_RESOURCE_SUFFIX}"
+
+	local link_to=""
+	link_to="${to_study_dir}/${subject}"
+
+	local lndir_cmd=""
+	lndir_cmd="${PATH_TO_LNDIR} ${link_from} ${link_to}"
+	echo "lndir_cmd: ${lndir_cmd}"
+	echo "----------" `date` "----------"
+	echo ""
+    ${lndir_cmd}
 
     popd
 }

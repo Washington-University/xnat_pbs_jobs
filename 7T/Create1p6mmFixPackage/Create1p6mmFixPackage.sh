@@ -73,7 +73,7 @@ get_options()
                 index=$(( index + 1 ))
                 ;;
             *)
-                echo "Unrecognized Option: ${argument}"
+            	inform "Unrecognized Option: ${argument}"
                 exit 1
                 ;;
         esac
@@ -161,7 +161,15 @@ build_standard_structure()
 		link_hcp_resting_state_stats_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${scan}" "${script_tmp_dir}"
 	done
 
-	# PostFix data?
+	# PostFix data
+	scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*_PostFix`
+	for scan_dir in ${scan_dirs} ; do
+		short_scan_dir=${scan_dir##*/}
+		inform "Getting ICA+FIX data from: ${short_scan_dir}"
+		scan=${short_scan_dir%_PostFix}
+
+		link_hcp_postfix_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${scan}" "${script_tmp_dir}"
+	done
 
 	# FIX processed data
 	scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*_FIX`
@@ -262,44 +270,29 @@ main()
 			long_name=${prefix}_${scan}_7T_${pe_dir}
 			inform "long_name: ${long_name}"
 			
+			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_1.6mm_hp2000_clean.dtseries.nii "
 			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii "
 		done
-
-		rss_dirs=`ls -1d ${g_subject_7T_resources_dir}/*${modality}*_RSS`
-		for rss_dir in ${rss_dirs} ; do
-			short_rss_dir=${rss_dir##*/}
-			scan=${short_rss_dir%_RSS}
-
-			parsing_str=${rss_dir##*/}
-
-			prefix=${parsing_str%%_*}
-			parsing_str=${parsing_str#*_}
-			inform "prefix: ${prefix}"
-
-			scan=${parsing_str%%_*}
-			parsing_str=${parsing_str#*_}
-			inform "scan: ${scan}"
-
-			pe_dir=${parsing_str%%_*}
-			parsing_str=${parsing_str#*_}
-			inform "pe_dir: ${pe_dir}"
-
-			short_name=${prefix}_${scan}_${pe_dir}
-			inform "short_name: ${short_name}"
-
-			long_name=${prefix}_${scan}_7T_${pe_dir}
-			inform "long_name: ${long_name}"
-
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_hp2000_clean_vn.dscalar.nii "
-		done
 	
+		inform ""
+		inform "Copying listed files to directory for zipping"
+		inform ""
 		for file in ${file_list} ; do
 			to_dir=${script_tmp_dir}/${g_subject}/${file}
 			to_dir=${to_dir%/*}
 			echo "to_dir: ${to_dir}"
 			mkdir -p ${to_dir}
-			cp -aLv ${script_tmp_dir}/${g_subject}_full/${file} ${script_tmp_dir}/${g_subject}/${file}
-		done
+			from_file=${script_tmp_dir}/${g_subject}_full/${file}
+			to_file=${script_tmp_dir}/${g_subject}/${file}
+			echo "from_file = ${from_file}"
+			echo "  to_file = ${to_file}"
+			if [ -e "${from_file}" ]; then
+				cp -aLv ${from_file} ${to_file}
+			else
+				inform "ERROR FILE ${from_file} DOES NOT EXIST!"
+				exit 1
+			fi
+		done # All listed files copied loop
 
 		echo ""
 		echo " Create Release Notes"

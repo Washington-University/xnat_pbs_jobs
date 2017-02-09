@@ -48,7 +48,6 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
     def get_structural_unproc_data(self, subject_info, output_study_dir):
 
         for directory in self.archive.available_structural_unproc_dir_fullpaths(subject_info):
-            print("directory: " + directory)
 
             get_from = directory
 
@@ -124,12 +123,18 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_data_through_STRUCT_PREPROC(subject_info, output_study_dir)
             self.get_diffusion_preproc_data(subject_info, output_study_dir)
 
+
+
+
+
+
     def get_full_data(self, subject_info, output_study_dir):
 
         if not self.copy:
             # when creating symbolic links (copy == False), must be done in reverse
             # chronological order
 
+            self.get_handreclassification_data(subject_info, output_study_dir)
             self.get_bedpostx_data(subject_info, output_study_dir)
             self.get_msmall_dedrift_and_resample_data(subject_info, output_study_dir)
             self.get_msmall_reg_data(subject_info, output_study_dir)
@@ -151,6 +156,7 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_msmall_reg_data(subject_info, output_study_dir)
             self.get_msmall_dedrift_and_resample_data(subject_info, output_study_dir)
             self.get_bedpostx_data(subject_info, output_study_dir)
+            self.get_handreclassification_data(subject_info, output_study_dir)
 
     def get_diffusion_bedpostx_data(self, subject_info, output_study_dir):
 

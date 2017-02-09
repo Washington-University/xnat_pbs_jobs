@@ -98,7 +98,6 @@ class CinabStyleDataRetriever(abc.ABC):
     def get_functional_unproc_data(self, subject_info, output_study_dir):
 
         for directory in self.archive.available_functional_unproc_dir_fullpaths(subject_info):
-            print("directory: " + directory)
 
             get_from = directory
 
@@ -174,6 +173,14 @@ class CinabStyleDataRetriever(abc.ABC):
 
             get_from = directory
             put_to = output_study_dir + os.sep + subject_info.subject_id
+            self._from_to(get_from, put_to)
+
+    def get_handreclassification_data(self, subject_info, output_study_dir):
+
+        for directory in self.archive.available_handreclassification_dir_fullpaths(subject_info):
+
+            get_from = directory
+            put_to = output_study_dir
             self._from_to(get_from, put_to)
 
     def get_msmall_reg_data(self, subject_info, output_study_dir):

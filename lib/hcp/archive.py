@@ -80,6 +80,11 @@ class HcpArchive(abc.ABC):
         return 'RSS'
 
     @property
+    def HAND_RECLASSIFICATION_SUFFIX(self):
+        """Suffix to a resource directory name that indicates that the resource contains hand reclassification data."""
+        return 'HandReclassification'
+
+    @property
     def DEDRIFT_AND_RESAMPLE_RESOURCE_NAME(self):
         """Name of MSM All DeDriftAndResample resource"""
         return 'MSMAllDeDrift'
@@ -286,6 +291,12 @@ class HcpArchive(abc.ABC):
         """Returns a list of the full paths to RSS processed scan resources."""
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
                              self.RSS_PROCESSED_SUFFIX)
+        return sorted(dir_list)
+
+    def available_handreclassification_dir_fullpaths(self, subject_info):
+        """Returns a list of the full paths to the hand reclassification resources."""
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
+                             self.HAND_RECLASSIFICATION_SUFFIX)
         return sorted(dir_list)
 
     def available_msmall_reg_dir_fullpaths(self, subject_info):

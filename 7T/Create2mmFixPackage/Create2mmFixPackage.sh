@@ -39,65 +39,65 @@ get_options()
 	while [ ${index} -lt ${numArgs} ]; do
 		argument=${arguments[index]}
 
-        case ${argument} in
-            --archive-root=*)
+		case ${argument} in
+			--archive-root=*)
 				g_archive_root=${argument/*=/""}
-                index=$(( index + 1 ))
-                ;;
-            --tmp-dir=*)
-                g_tmp_dir=${argument/*=/""}
-                index=$(( index + 1 ))
-                ;;
-            --subject=*)
-            	g_subject=${argument/*=/""}
-                index=$(( index + 1 ))
-                ;;
-            --three-t-project=*)
+				index=$(( index + 1 ))
+				;;
+			--tmp-dir=*)
+				g_tmp_dir=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--subject=*)
+				g_subject=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--three-t-project=*)
 				g_three_t_project=${argument/*=/""}
-                index=$(( index + 1 ))
-                ;;
-            --seven-t-project=*)
+				index=$(( index + 1 ))
+				;;
+			--seven-t-project=*)
 				g_seven_t_project=${argument/*=/""}
-                index=$(( index + 1 ))
-                ;;
-            --release-notes-template-file=*)
-                g_release_notes_template_file=${argument/*=/""}
-                index=$(( index + 1 ))
-                ;;
-            --output-dir=*)
-                g_output_dir=${argument/*=/""}
-                index=$(( index + 1 ))
-                ;;
-            --create-checksum)
-                g_create_checksum="YES"
-                index=$(( index + 1 ))
-                ;;
-            *)
-                echo "Unrecognized Option: ${argument}"
-                exit 1
-                ;;
-        esac
+				index=$(( index + 1 ))
+				;;
+			--release-notes-template-file=*)
+				g_release_notes_template_file=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--output-dir=*)
+				g_output_dir=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--create-checksum)
+				g_create_checksum="YES"
+				index=$(( index + 1 ))
+				;;
+			*)
+				inform "Unrecognized Option: ${argument}"
+				exit 1
+				;;
+		esac
 	done
 
-    local error_count=0
-    
-    # check required parameters
+	local error_count=0
+	
+	# check required parameters
 
-    echo "script name: ${g_script_name}"
+	echo "script name: ${g_script_name}"
 
-    if [ -z "${g_archive_root}" ]; then
-        echo "ERROR: --archive-root= required"
-        error_count=$(( error_count + 1 ))
-    else
-        echo "archive root: ${g_archive_root}"
-    fi
+	if [ -z "${g_archive_root}" ]; then
+		echo "ERROR: --archive-root= required"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "archive root: ${g_archive_root}"
+	fi
 
-    if [ -z "${g_subject}" ]; then
-        echo "ERROR: --subject= required"
-        error_count=$(( error_count + 1 ))
-    else
-        echo "subject: ${g_subject}"
-    fi
+	if [ -z "${g_subject}" ]; then
+		echo "ERROR: --subject= required"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "subject: ${g_subject}"
+	fi
 
 	if [ -z "${g_three_t_project}" ]; then
 		echo "ERROR: --three-t-project= required"
@@ -113,36 +113,36 @@ get_options()
 		echo "7T project: ${g_seven_t_project}"
 	fi
 
-    if [ -z "${g_tmp_dir}" ]; then
-        echo "ERROR: --tmp-dir= required"
-        error_count=$(( error_count + 1 ))
-    else
-        echo "tmp dir: ${g_tmp_dir}"
-    fi
+	if [ -z "${g_tmp_dir}" ]; then
+		echo "ERROR: --tmp-dir= required"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "tmp dir: ${g_tmp_dir}"
+	fi
 
-    if [ -z "${g_release_notes_template_file}" ]; then
-        echo "ERROR: --release-notes-template-file= required"
-        error_count=$(( error_count + 1 ))
-    else
-        echo "release notes template file: ${g_release_notes_template_file}"
-    fi
+	if [ -z "${g_release_notes_template_file}" ]; then
+		echo "ERROR: --release-notes-template-file= required"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "release notes template file: ${g_release_notes_template_file}"
+	fi
 
-    if [ -z "${g_output_dir}" ]; then
-        echo "ERROR: --output-dir= required"
-        error_count=$(( error_count + 1 ))
-    else
-        echo "output dir: ${g_output_dir}"
-    fi
+	if [ -z "${g_output_dir}" ]; then
+		echo "ERROR: --output-dir= required"
+		error_count=$(( error_count + 1 ))
+	else
+		echo "output dir: ${g_output_dir}"
+	fi
 
-    if [ -z "${g_create_checksum}" ]; then
-        g_create_checksum="NO"
-    fi
-    echo "create checksum: ${g_create_checksum}"
+	if [ -z "${g_create_checksum}" ]; then
+		g_create_checksum="NO"
+	fi
+	echo "create checksum: ${g_create_checksum}"
 
-    if [ ${error_count} -gt 0 ]; then
-        echo "ERRORS DETECTED: EXITING"
-        exit 1
-    fi
+	if [ ${error_count} -gt 0 ]; then
+		echo "ERRORS DETECTED: EXITING"
+		exit 1
+	fi
 }
 
 build_standard_structure()
@@ -153,7 +153,23 @@ build_standard_structure()
 	# DeDriftAndResample
 	link_hcp_resampled_and_dedrifted_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${script_tmp_dir}" 
 
+	# Resting State Stats data
+	scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*_RSS`
+	for scan_dir in ${scan_dirs} ; do
+		short_scan_dir=${scan_dir##*/}
+		scan=${short_scan_dir%_RSS}
+		link_hcp_7T_resting_state_stats_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${scan}" "${script_tmp_dir}"
+	done
+
 	# PostFix data
+	scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*_PostFix`
+	for scan_dir in ${scan_dirs} ; do
+		short_scan_dir=${scan_dir##*/}
+		inform "Getting ICA+FIX data from: ${short_scan_dir}"
+		scan=${short_scan_dir%_PostFix}
+
+		link_hcp_postfix_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${scan}" "${script_tmp_dir}"
+	done
 
 	# FIX processed data
 	scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*_FIX`
@@ -254,16 +270,60 @@ main()
 			long_name=${prefix}_${scan}_7T_${pe_dir}
 			echo "long_name: ${long_name}"
 			
+			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/Atlas_hp_preclean.dtseries.nii "
+			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_hp2000_clean.dtseries.nii "
 			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_MSMAll_hp2000_clean.dtseries.nii "
 		done
+
+		rss_dirs=`ls -1d ${g_subject_7T_resources_dir}/*${modality}*_RSS`
+		for rss_dir in ${rss_dirs} ; do
+			short_rss_dir=${rss_dir##*/}
+			scan=${short_rss_dir%_RSS}
+
+			parsing_str=${rss_dir##*/}
+
+			prefix=${parsing_str%%_*}
+			parsing_str=${parsing_str#*_}
+			inform "prefix: ${prefix}"
+
+			scan=${parsing_str%%_*}
+			parsing_str=${parsing_str#*_}
+			inform "scan: ${scan}"
+
+			pe_dir=${parsing_str%%_*}
+			parsing_str=${parsing_str#*_}
+			inform "pe_dir: ${pe_dir}"
+
+			short_name=${prefix}_${scan}_${pe_dir}
+			inform "short_name: ${short_name}"
+
+			long_name=${prefix}_${scan}_7T_${pe_dir}
+			inform "long_name: ${long_name}"
+
+			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_hp2000_clean_vn.dscalar.nii "
+			#file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_hp2000_clean_bias.dscalar.nii "
+		done
 	
+		inform ""
+		inform "Copying listed files to directory for zipping"
+		inform ""
 		for file in ${file_list} ; do
+			echo "file: ${file}"
 			to_dir=${script_tmp_dir}/${g_subject}/${file}
 			to_dir=${to_dir%/*}
 			echo "to_dir: ${to_dir}"
 			mkdir -p ${to_dir}
-			cp -aLv ${script_tmp_dir}/${g_subject}_full/${file} ${script_tmp_dir}/${g_subject}/${file}
-		done
+			from_file=${script_tmp_dir}/${g_subject}_full/${file}
+			to_file=${script_tmp_dir}/${g_subject}/${file}
+			echo "from_file = ${from_file}"
+			echo "  to_file = ${to_file}"
+			if [ -e "${from_file}" ]; then
+				cp -aLv ${from_file} ${to_file}
+			else
+				inform "ERROR: FILE ${from_file} DOES NOT EXIST!"
+				exit 1
+			fi
+		done # All listed files copied loop
 		
 		echo ""
 		echo " Create Release Notes"
