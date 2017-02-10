@@ -15,23 +15,23 @@ if [ "${COMPUTE}" = "CHPC" ]; then
 
 	if [ "${CLUSTER}" = "2.0" ] ; then
 
-		# echo ""
-		# echo "${script_name}: Setting up FSL"
-		# export FSLDIR=${HOME}/export/fsl-5.0.9-custom-eddy-20161006
-		# source ${FSLDIR}/etc/fslconf/fsl.sh
-		# echo "${script_name}: Set up to use FSL at ${FSLDIR}"
+		echo ""
+		echo "${script_name}: Setting up FSL"
+		export FSLDIR=${HOME}/export/fsl-5.0.9-custom-eddy-20161006
+		source ${FSLDIR}/etc/fslconf/fsl.sh
+		echo "${script_name}: Set up to use FSL at ${FSLDIR}"
 		
-		# # LD_LIBRARY_PATH
-		# # bet2 binary in FSL-5.0.9 needs newer version of libstdc++.so.6
-		# # found in /act/gcc-4.7.2/lib64
-		# if [ -z "${LD_LIBRARY_PATH}" ] ; then
-		# 	export LD_LIBRARY_PATH=/act/gcc-4.7.2/lib64
-		# else
-		# 	export LD_LIBRARY_PATH=/act/gcc-4.7.2/lib64:${LD_LIBRARY_PATH}
-		# fi
+		# LD_LIBRARY_PATH
+		# bet2 binary in FSL-5.0.9 needs newer version of libstdc++.so.6
+		# found in /act/gcc-4.7.2/lib64
+		if [ -z "${LD_LIBRARY_PATH}" ] ; then
+			export LD_LIBRARY_PATH=/act/gcc-4.7.2/lib64
+		else
+			export LD_LIBRARY_PATH=/act/gcc-4.7.2/lib64:${LD_LIBRARY_PATH}
+		fi
 
-		# echo "${script_name}: Added /act/gcc-4.7.2/lib64 to LD_LIBRARY_PATH"
-		# echo "${script_name}: LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}"
+		echo "${script_name}: Added /act/gcc-4.7.2/lib64 to LD_LIBRARY_PATH"
+		echo "${script_name}: LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}"
 
 		# echo ""
 		# echo "${script_name}: Setting up FreeSurfer"

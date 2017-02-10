@@ -9,6 +9,15 @@ inform()
 	echo "${g_script_name}: ${msg}"
 }
 
+# check required environment variables
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	inform "ERROR: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+else
+	g_xnat_pbs_jobs=${XNAT_PBS_JOBS}
+	inform "g_xnat_pbs_jobs: ${g_xnat_pbs_jobs}"
+fi
+
 usage()
 {
 	cat << EOF
@@ -163,14 +172,6 @@ get_options()
 		inform "g_setup_script: ${g_setup_script}"
 	fi
 
-	# check required environment variables
-	if [ -z "${XNAT_PBS_JOBS}" ]; then
-		error_msgs+="\nERROR: XNAT_PBS_JOBS environment variable must be set"
-	else
-		g_xnat_pbs_jobs=${XNAT_PBS_JOBS}
-		inform "g_xnat_pbs_jobs: ${g_xnat_pbs_jobs}"
-	fi
-
 	if [ ! -z "${error_msgs}" ]; then
 		usage
 		echo -e ${error_msgs}
@@ -180,6 +181,7 @@ get_options()
 
 die()
 {
+	inform "Dying"
 	exit 1
 }
 
@@ -228,72 +230,18 @@ main()
 
 	inform "HCPPIPEDIR: ${HCPPIPEDIR}"
 
-
-
-
-
-
-
-
-
-	# # Set up variables to pass in to RestingStateStats.sh
-	# RegName="NONE"
-	# OrigHighPass="2000"
-	# LowResMesh="32"
-	# FinalfMRIResolution="1.60"
-	# BrainOrdinatesResolution="2"
-	# SmoothingFWHM="2"
-	# OutputProcSTRING="_hp2000_clean"
-	# dlabelFile="NONE"
-	# MatlabRunMode="0" # Compiled Matlab
-	# BCMode="NONE" # One of REVERT (revert bias field correction), NONE (don't change bias field correction), CORRECT (revert original bias field correction and apply new one)
-	# OutSTRING="stats"
-	# WM="${HCPPIPEDIR}/global/config/FreeSurferWMRegLut.txt"
-	# CSF="${HCPPIPEDIR}/global/config/FreeSurferCSFRegLut.txt"
-
-	# # determine fMRI name
-	# inform "Determine fMRI name"
-	# phase_encoding_dir="${g_scan##*_}"
-	# inform "phase_encoding_dir: ${phase_encoding_dir}"
-
-	# base_fmriname="${g_scan%_*}"
-	# inform "base_fmriname: ${base_fmriname}"
-
-	# fmriname="${base_fmriname}_7T_${phase_encoding_dir}"
-	# inform "fmriname: ${fmriname}"
-
-	# # Run RestingStateStats.sh script
-	# cmd=${HCPPIPEDIR}/RestingStateStats/RestingStateStats.sh
-	# cmd+=" --path=${g_working_dir} "
-	# cmd+=" --subject=${g_subject} "
-	# cmd+=" --fmri-name=${fmriname} "
-	# cmd+=" --high-pass=${OrigHighPass} "
-	# cmd+=" --reg-name=${RegName} "
-	# cmd+=" --low-res-mesh=${LowResMesh} "
-	# cmd+=" --final-fmri-res=${FinalfMRIResolution} "
-	# cmd+=" --brain-ordinates-res=${BrainOrdinatesResolution} "
-	# cmd+=" --smoothing-fwhm=${SmoothingFWHM} "
-	# cmd+=" --output-proc-string=${OutputProcSTRING} "
-	# cmd+=" --dlabel-file=${dlabelFile} "
-	# cmd+=" --matlab-run-mode=${MatlabRunMode} "
-	# cmd+=" --bc-mode=${BCMode} "
-	# cmd+=" --out-string=${OutSTRING} "
-	# cmd+=" --wm=${WM} "
-	# cmd+=" --csf=${CSF} "
-
-
-
-
-
-
-
-
+	cmd=${HCPPIPEDIR}/ApplyHandReClassifications/ApplyHandReClassifications.sh 
+	cmd+=" --path=${g_working_dir}"
+	cmd+=" --subject=${g_subject}"
+	cmd+=" --fmri-name=${g_scan}"
+	cmd+=" --high-pass=2000"
 
 	inform "About to issue the following cmd"
 	inform "${cmd}"
 
 	${cmd}
-	if [ $? -ne 0 ]; then
+	return_code=$?
+	if [ ${return_code} -ne 0 ]; then
 		die
  	fi
 
