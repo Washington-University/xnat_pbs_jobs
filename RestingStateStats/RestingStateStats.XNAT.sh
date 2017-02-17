@@ -371,6 +371,12 @@ main()
 	# preprocessed data from the DB, followed by the structurally preprocessed data from the 
 	# DB.
 
+
+	# Step - Link ReApplyFix processed data from DB
+	# This step not reported as a workflow step.
+
+	link_hcp_reapplyfix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
+
 	# ----------------------------------------------------------------------------------------------
  	# Step - Link FIX processed data from DB
 	# ----------------------------------------------------------------------------------------------
