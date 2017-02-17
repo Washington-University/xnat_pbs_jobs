@@ -42,7 +42,7 @@ class OneSubjectCompletionChecker(hcp.one_subject_completion_checker.OneSubjectC
                                    'Results'])
         scan_results_dir = os.sep.join([results_dir, scan_name])
 
-        file_name_list.append(scan_results_dir + os.sep + scan_name + '_Atlas_MSMSulc_hp2000_clean.dtseries.nii')
+        file_name_list.append(scan_results_dir + os.sep + scan_name + '_Atlas_hp2000_clean.dtseries.nii')
         file_name_list.append(scan_results_dir + os.sep + scan_name + '_hp2000_clean.nii.gz')
 
         ica_dir = os.sep.join([scan_results_dir, scan_name + '_hp2000.ica'])
