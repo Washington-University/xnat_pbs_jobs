@@ -12,14 +12,11 @@ import logging
 import os
 import subprocess
 
-
 # import of third party modules
 # None
 
-
 # import of local modules
 import utils.os_utils as os_utils
-
 
 #
 # authorship information
@@ -178,6 +175,14 @@ class CinabStyleDataRetriever(abc.ABC):
     def get_handreclassification_data(self, subject_info, output_study_dir):
 
         for directory in self.archive.available_handreclassification_dir_fullpaths(subject_info):
+
+            get_from = directory
+            put_to = output_study_dir
+            self._from_to(get_from, put_to)
+
+    def get_apply_hand_reclassification_data(self, subject_info, output_study_dir):
+        log.info("get_apply_hand_reclassification_data")
+        for directory in self.archive.available_apply_handreclassification_dir_fullpaths(subject_info):
 
             get_from = directory
             put_to = output_study_dir

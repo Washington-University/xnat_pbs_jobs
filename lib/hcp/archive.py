@@ -85,6 +85,11 @@ class HcpArchive(abc.ABC):
         return 'HandReclassification'
 
     @property
+    def APPLY_HAND_RECLASSIFICATION_SUFFIX(self):
+        """Suffix to a resource directory name that indicates that the resource contains applied hand reclassification data."""
+        return 'ApplyHandReClassification'
+
+    @property
     def DEDRIFT_AND_RESAMPLE_RESOURCE_NAME(self):
         """Name of MSM All DeDriftAndResample resource"""
         return 'MSMAllDeDrift'
@@ -93,6 +98,15 @@ class HcpArchive(abc.ABC):
     def BEDPOSTX_PROCESSED_RESOURCE_NAME(self):
         """Name of resource containing bedpostx processed data."""
         return 'Diffusion_bedpostx'
+
+    @property
+    def HAND_RECLASSIFICATION_SUFFIX(self):
+        """Suffix to a resource directory name that indicates that the resource contains hand reclassification files."""
+        return "HandReclassification"
+
+    @property
+    def REAPPLY_FIX_SUFFIX(self):
+        return "ReApplyFix"
 
     @property
     def NAME_DELIMITER(self):
@@ -276,6 +290,20 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
+    def available_hand_reclassification_names(self, subject_info):
+        """Returns a list of scan names (not full paths) of available hand reclassifications for scans."""
+        dir_list = self.available_hand_reclassification_dir_fullpaths(subject_info)
+        name_list = []
+        for directory in dir_list:
+            name_list.append(self._get_scan_name_from_path(directory))
+        return name_list
+
+    def available_hand_reclassification_dir_fullpaths(self, subject_info):
+        """Returns a list of full paths to hand reclassification resources for the scans."""
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
+                             self.HAND_RECLASSIFICATION_SUFFIX)
+        return sorted(dir_list)
+
     def available_FIX_processed_resting_state_dir_fullpaths(self, subject_info):
         """Returns a list of full paths to FIX processed resting state scan resources."""
         return_list = []
@@ -293,11 +321,45 @@ class HcpArchive(abc.ABC):
                              self.RSS_PROCESSED_SUFFIX)
         return sorted(dir_list)
 
+    def available_reapplyfix_dir_fullpaths(self, subject_info):
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
+                             self.REAPPLY_FIX_SUFFIX)
+        return sorted(dir_list)
+
+    def available_reapplyfix_names(self, subject_info):
+        dir_list = self.available_reapplyfix_dir_fullpaths(subject_info)
+        name_list = []
+        for directory in dir_list:
+            name_list.append(self._get_scan_name_from_path(directory))
+        return name_list
+
+    def reapplyfix_dir_fullpath(self, subject_info, scan_name):
+        return self.subject_resources_dir_fullpath(subject_info) + os.sep + scan_name + \
+            '_' + self.REAPPLY_FIX_SUFFIX
+
     def available_handreclassification_dir_fullpaths(self, subject_info):
         """Returns a list of the full paths to the hand reclassification resources."""
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
                              self.HAND_RECLASSIFICATION_SUFFIX)
         return sorted(dir_list)
+
+    def available_apply_handreclassification_dir_fullpaths(self, subject_info):
+        """Returns a list of the full paths to the applied hand reclassification resources."""
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
+                             self.APPLY_HAND_RECLASSIFICATION_SUFFIX)
+        return sorted(dir_list)
+
+    def apply_handreclassification_dir_fullpath(self, subject_info, scan_name):
+        return self.subject_resources_dir_fullpath(subject_info) + os.sep + scan_name + \
+            '_' + self.APPLY_HAND_RECLASSIFICATION_SUFFIX
+
+    def available_apply_handreclassification_names(self, subject_info):
+        """Returns a list of scan names (not full paths) of available apply handreclassification scans."""
+        dir_list = self.available_apply_handreclassification_dir_fullpaths(subject_info)
+        name_list = []
+        for directory in dir_list:
+            name_list.append(self._get_scan_name_from_path(directory))
+        return name_list
 
     def available_msmall_reg_dir_fullpaths(self, subject_info):
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/MSMAllReg')
@@ -409,6 +471,11 @@ class HcpArchive(abc.ABC):
         """Returns True if there is a FIX processed resource available for the specified
         scan name."""
         return scan_name in self.available_FIX_processed_names(subject_info)
+
+    def does_hand_reclassification_exist(self, subject_info, scan_name):
+        """Returns True if there is a hand reclassification resource available for the specified
+        scan name."""
+        return scan_name in self.available_hand_reclassification_names(subject_info)
 
     def PostFix_processed_resource_name(self, scan_name):
         return scan_name + self.NAME_DELIMITER + self.POSTFIX_PROCESSED_SUFFIX

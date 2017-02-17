@@ -708,6 +708,52 @@ get_hcp_diffusion_preproc_data()
     popd
 }
 
+link_hcp_reapplyfix_proc_data() 
+{
+    local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hdpdb/archive
+    local project=${2} # e.g. HCP_500
+    local subject=${3} # e.g. 100307
+    local session=${4} # e.g. 100307_3T
+    local scan=${5}    # e.g. rfMRI_REST1_RL
+    local to_study_dir=${6}
+
+	local DATABASE_ARCHIVE_PROJECT_ROOT="arc001"
+	local DATABASE_RESOURCES_ROOT="RESOURCES"
+
+	echo ""
+	echo "----------" `date` "----------"
+    echo "Linking HCP ReApplyFix Processed data from archive"
+    echo " Archive: ${archive}"
+    echo " Project: ${project}"
+    echo " Subject: ${subject}"
+    echo " Session: ${session}"
+    echo " Scan: ${scan}"
+    echo " To Study Directory: ${to_study_dir}"
+
+	pushd ${to_study_dir}
+	mkdir --parents ${subject}
+
+	local link_from=""
+	link_from+="${archive}"
+	link_from+="/${project}"
+	link_from+="/${DATABASE_ARCHIVE_PROJECT_ROOT}"
+	link_from+="/${session}"
+	link_from+="/${DATABASE_RESOURCES_ROOT}"
+	link_from+="/${scan}_ReApplyFix/${subject}/"
+
+	local link_to=""
+	link_to="${to_study_dir}/${subject}"
+
+	local lndir_cmd="${PATH_TO_LNDIR} ${link_from} ${link_to}"
+	echo "lndir_cmd: ${lndir_cmd}"
+
+	echo "----------" `date` "----------"
+	echo ""
+    ${lndir_cmd}
+
+    popd
+}
+
 link_hcp_fix_proc_data()
 {
     local archive=${1} # e.g. /data/hcpdb/archive or /HCP/hdpdb/archive

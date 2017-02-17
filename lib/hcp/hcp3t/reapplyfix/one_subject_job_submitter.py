@@ -48,7 +48,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     @property
     def PIPELINE_NAME(self):
-        return "ApplyHandReClassification"
+        return "ReApplyFix"
 
     @property 
     def username(self):
@@ -208,6 +208,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         self._write_bash_header(script)
         script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4gb' + os.linesep)
+        script.write('#PBS -q HCPput' + os.linesep)
         script.write('#PBS -o ' + self._working_directory_name + os.linesep)
         script.write('#PBS -e ' + self._working_directory_name + os.linesep)
         script.write(os.linesep)
@@ -228,6 +229,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             os.remove(script_name)
 
         script = open(script_name, 'w')
+        self._write_bash_header(script)
         script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4gb' + os.linesep)
         script.write('#PBS -o ' + self._working_directory_name + os.linesep)
         script.write('#PBS -e ' + self._working_directory_name + os.linesep)
@@ -246,7 +248,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         script.write(os.linesep)
         script.write('echo "Remaining files:"' + os.linesep)
         script.write('find ' + self._working_directory_name + os.path.sep + self.subject + os.linesep)
-        
+
         script.close()
         os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
 

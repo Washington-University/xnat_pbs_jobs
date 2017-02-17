@@ -1,6 +1,7 @@
 #!/bin/bash
 
-g_script_name="ApplyHandReClassification.XNAT_GET.sh"
+g_script_name="ReApplyFix.XNAT_GET.sh"
+g_database_archive_root="/HCP/hcpdb/archive"
 
 inform()
 {
@@ -12,7 +13,7 @@ usage()
 {
 	cat <<EOF
 
-Get data from the XNAT archive necessary to run the HCP ApplyHandReClassification.sh pipeline script
+Get data from the XNAT archive necessary to run the HCP ReApplyFix.sh pipeline script
 
 Usage: ${SCRIPT_NAME} PARAMETER..."
 
@@ -104,6 +105,17 @@ get_options()
 	fi
 }
 
+replace_symlink_with_copy()
+{
+	local file=${1}
+	if [ -L ${file} ] ; then
+		inform "Creating local/non-symbolic link version of ${file}"
+		cp -L --preserve=timestamps ${file} ${file}.TMP.NOT_A_LINK
+		rm ${file}
+		mv ${file}.TMP.NOT_A_LINK ${file}
+	fi
+}
+
 main()
 {
 	inform "Job started on `hostname` at `date`"
@@ -123,8 +135,64 @@ main()
 		--project=${g_project} \
 		--subject=${g_subject} \
 		--study-dir=${g_working_dir} \
-		--phase=apply_hand_reclassification_prereqs
+		--phase=reapplyfix_prereqs
+
+	# FIX processed Resting State Scans
+	inform "Determine FIX processed Resting State Scans"
+
+	g_session=${g_subject}_3T
+	pushd ${g_database_archive_root}/${g_project}/arc001/${g_session}/RESOURCES > /dev/null
+
+	fix_processed_resting_state_scan_names=""
+	resting_state_scan_dirs=`ls -d rfMRI_REST*_FIX`
+	for resting_state_scan_dir in ${resting_state_scan_dirs} ; do
+		scan_name=${resting_state_scan_dir%%_FIX} # take the _FIX off the end
+		fix_processed_resting_state_scan_names+="${scan_name} "
+	done
+	fix_processed_resting_state_scan_names=${fix_processed_resting_state_scan_names% } # remove trailing space
 	
+	inform "Found the following FIX Processed resting state scans: ${fix_processed_resting_state_scan_names}"
+
+	popd > /dev/null
+
+	# FIX processed Task scans
+	inform "Determine FIX processed Task Scans"
+	pushd ${g_database_archive_root}/${g_project}/arc001/${g_session}/RESOURCES > /dev/null
+
+	fix_processed_task_scan_names=""
+	task_scan_dirs=`ls -d tfMRI_*_FIX`
+	for task_scan_dir in ${task_scan_dirs} ; do
+		scan_name=${task_scan_dir%%_FIX} # take the _FIX off the end
+		fix_processed_task_scan_names+="${scan_name} "
+	done
+	fix_processed_task_scan_names=${fix_processed_task_scan_names% } # remove trailing space
+
+	inform "Found the following FIX Processed task scans: ${fix_processed_task_scan_names}"
+
+	popd > /dev/null
+
+	inform "Make local copies instead of symbolic links for .ica directory files."
+
+	local HighPass="2000"
+	for scan_name in ${fix_processed_resting_state_scan_names} ${fix_processed_task_scan_names} ; do
+		
+		inform "scan_name: ${scan_name}"
+		
+		working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica
+		inform "working_ica_dir: ${working_ica_dir}"
+
+		files_to_unlink=`find ${working_ica_dir} -print`
+		for file in ${files_to_unlink} ; do
+			replace_symlink_with_copy ${file}
+		done
+		
+	done
+
+	# if [ -d "${working_ica_dir}/mc" ] ; then
+	# 	inform "Directory: ${working_ica_dir}/mc EXISTS"
+	# 	rm --recursive --verbose ${working_ica_dir}/mc
+	# fi
+
 	inform "Complete"
 }
 

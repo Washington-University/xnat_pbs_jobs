@@ -124,16 +124,11 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_diffusion_preproc_data(subject_info, output_study_dir)
 
 
-
-
-
-
-    def get_full_data(self, subject_info, output_study_dir):
+    def get_apply_hand_reclassification_prereqs(self, subject_info, output_study_dir):
 
         if not self.copy:
             # when creating symbolic links (copy == False), must be done in reverse
             # chronological order
-
             self.get_handreclassification_data(subject_info, output_study_dir)
             self.get_bedpostx_data(subject_info, output_study_dir)
             self.get_msmall_dedrift_and_resample_data(subject_info, output_study_dir)
@@ -158,6 +153,72 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_bedpostx_data(subject_info, output_study_dir)
             self.get_handreclassification_data(subject_info, output_study_dir)
 
+
+    def get_reapplyfix_prereqs(self, subject_info, output_study_dir):
+
+        if not self.copy:
+            # when creating symbolic links (copy == False), must be done in reverse
+            # chronological order
+
+            self.get_apply_hand_reclassification_data(subject_info, output_study_dir)
+            self.get_handreclassification_data(subject_info, output_study_dir)
+            self.get_bedpostx_data(subject_info, output_study_dir)
+            self.get_msmall_dedrift_and_resample_data(subject_info, output_study_dir)
+            self.get_msmall_reg_data(subject_info, output_study_dir)
+            self.get_resting_state_stats_data(subject_info, output_study_dir)
+            self.get_postfix_data(subject_info, output_study_dir)
+            self.get_taskfmri_data(subject_info, output_study_dir)
+            self.get_icafix_data(subject_info, output_study_dir)
+            self.get_preproc_data(subject_info, output_study_dir)
+            self.get_unproc_data(subject_info, output_study_dir)
+
+        else:
+            # when copying (via rsync), should be done in chronological order
+            self.get_unproc_data(subject_info, output_study_dir)
+            self.get_preproc_data(subject_info, output_study_dir)
+            self.get_icafix_data(subject_info, output_study_dir)
+            self.get_taskfmri_data(subject_info, output_study_dir)
+            self.get_postfix_data(subject_info, output_study_dir)
+            self.get_resting_state_stats_data(subject_info, output_study_dir)
+            self.get_msmall_reg_data(subject_info, output_study_dir)
+            self.get_msmall_dedrift_and_resample_data(subject_info, output_study_dir)
+            self.get_bedpostx_data(subject_info, output_study_dir)
+            self.get_handreclassification_data(subject_info, output_study_dir)
+            self.get_apply_hand_reclassification_data(subject_info, output_study_dir)
+
+
+    def get_full_data(self, subject_info, output_study_dir):
+
+        if not self.copy:
+            # when creating symbolic links (copy == False), must be done in reverse
+            # chronological order
+
+            self.get_apply_hand_reclassification_data(subject_info, output_study_dir)
+            self.get_handreclassification_data(subject_info, output_study_dir)
+            self.get_bedpostx_data(subject_info, output_study_dir)
+            self.get_msmall_dedrift_and_resample_data(subject_info, output_study_dir)
+            self.get_msmall_reg_data(subject_info, output_study_dir)
+            self.get_resting_state_stats_data(subject_info, output_study_dir)
+            self.get_postfix_data(subject_info, output_study_dir)
+            self.get_taskfmri_data(subject_info, output_study_dir)
+            self.get_icafix_data(subject_info, output_study_dir)
+            self.get_preproc_data(subject_info, output_study_dir)
+            self.get_unproc_data(subject_info, output_study_dir)
+
+        else:
+            # when copying (via rsync), should be done in chronological order
+            self.get_unproc_data(subject_info, output_study_dir)
+            self.get_preproc_data(subject_info, output_study_dir)
+            self.get_icafix_data(subject_info, output_study_dir)
+            self.get_taskfmri_data(subject_info, output_study_dir)
+            self.get_postfix_data(subject_info, output_study_dir)
+            self.get_resting_state_stats_data(subject_info, output_study_dir)
+            self.get_msmall_reg_data(subject_info, output_study_dir)
+            self.get_msmall_dedrift_and_resample_data(subject_info, output_study_dir)
+            self.get_bedpostx_data(subject_info, output_study_dir)
+            self.get_handreclassification_data(subject_info, output_study_dir)
+            self.get_apply_hand_reclassification_data(subject_info, output_study_dir)
+
     def get_diffusion_bedpostx_data(self, subject_info, output_study_dir):
 
         for directory in self.archive.available_bedpostx_fullpaths(subject_info):
@@ -166,6 +227,13 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             put_to = output_study_dir + os.sep + subject_info.subject_id
             self._from_to(get_from, put_to)
 
+    def remove_symlinks(self, output_study_dir):
+
+        files = os.listdir(output_study_dir)
+        for file in files:
+            full_path = output_study_dir + os.sep + file
+            if os.path.islink(full_path):
+                os.remove(full_path)
 
 def main():
     # create a parser object for getting the command line arguments
@@ -183,7 +251,10 @@ def main():
                      "DIFFUSION_PREPROC_VETTING", "diffusion_preproc_vetting", 
                      "STRUCT_PREPROC", "struct_preproc",
                      "DIFFUSION_PREPROC", "diffusion_preproc",
-                     "DIFFUSION_BEDPOSTX", "diffusion_bedpostx"]
+                     "DIFFUSION_BEDPOSTX", "diffusion_bedpostx",
+                     "APPLY_HAND_RECLASSIFICATION_PREREQS", "apply_hand_reclassification_prereqs",
+                     "REAPPLYFIX_PREREQS", "reapplyfix_prereqs"]
+
     default_phase_choice = phase_choices[0]
 
     parser.add_argument('-ph', '--phase', dest='phase', required=False,
@@ -225,6 +296,13 @@ def main():
 
     elif (args.phase.upper() == "DIFFUSION_BEDPOSTX"):
         data_retriever.get_diffusion_bedpostx_data(subject_info, args.output_study_dir)
+
+    elif (args.phase.upper() == "APPLY_HAND_RECLASSIFICATION_PREREQS"):
+        data_retriever.get_apply_hand_reclassification_prereqs(subject_info, args.output_study_dir)
+
+    elif (args.phase.upper() == "REAPPLYFIX_PREREQS"):
+        data_retriever.get_reapplyfix_prereqs(subject_info, args.output_study_dir)
+        data_retriever.remove_symlinks(args.output_study_dir)
 
 if __name__ == '__main__':
     main()

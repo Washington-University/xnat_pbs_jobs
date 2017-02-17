@@ -67,6 +67,10 @@ usage()
 	echo "                                 Resource will be named <scan>_<suffix> or"
 	echo "                                 simply <suffix> if scan is not specified"
 	echo "   [--reason=<reason>]         : Reason for data update (e.g. name of pipeline run)"
+	echo "   [--leave-subject-id-level]  : Do NOT move the data in the subject ID directory"
+	echo "                                 up one level and remove the subject ID directory."
+	echo "                                 The default is to move the data up one level and"
+	echo "                                 remove the subject ID directory."
 	echo ""
 }
 
@@ -87,6 +91,7 @@ get_options()
 	unset g_working_dir
 	unset g_resource_suffix
 	unset g_reason
+	g_leave_subject_id_level="FALSE"
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -139,6 +144,10 @@ get_options()
 				;;
 			--reason=*)
 				g_reason=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--leave-subject-id-level)
+				g_leave_subject_id_level="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -218,6 +227,8 @@ get_options()
 	fi
 	echo "g_reason: ${g_reason}"
 
+	echo "g_leave_subject_id_level: ${g_leave_subject_id_level}"
+
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
 		exit 1
@@ -257,12 +268,14 @@ main()
 	# Make processing job log files readable so they can be pushed into the database
 	chmod --recursive a+r ${g_working_dir}/*
 
-	# Move resulting files out of the subject-id directory
-	echo "-------------------------------------------------"
-	echo "Moving resulting files up one level out of the ${g_subject} directory in ${g_working_dir}"
-	echo "-------------------------------------------------"
-	mv ${g_working_dir}/${g_subject}/* ${g_working_dir}
-	rm -rf ${g_working_dir}/${g_subject}
+	# Move resulting files out of the subject-id directory (if not instructed to leave it.)
+	if [ "${g_leave_subject_id_level}" = "FALSE" ]; then
+		echo "-------------------------------------------------"
+		echo "Moving resulting files up one level out of the ${g_subject} directory in ${g_working_dir}"
+		echo "-------------------------------------------------"
+		mv ${g_working_dir}/${g_subject}/* ${g_working_dir}
+		rm -rf ${g_working_dir}/${g_subject}
+	fi
 
 	# Mask password (${g_password})
 	files=`find ${g_working_dir} -maxdepth 1 -print`

@@ -98,7 +98,7 @@ class OneSubjectJobSubmitter(abc.ABC):
         return wdir
 
     def create_put_script(self, put_script_name, username, password, put_server, project, subject, session,
-                          working_directory_name, output_resource_name, reason):
+                          working_directory_name, output_resource_name, reason, leave_subject_id_level=False):
 
         """Create a script to put the working directory in the DB"""
         with contextlib.suppress(FileNotFoundError):
@@ -111,7 +111,12 @@ class OneSubjectJobSubmitter(abc.ABC):
         put_script.write('#PBS -o ' + self.log_dir + os.linesep)
         put_script.write('#PBS -e ' + self.log_dir + os.linesep)
         put_script.write(os.linesep)
+
         put_script.write(self.xnat_pbs_jobs_home + os.sep + 'WorkingDirPut' + os.sep + 'XNAT_working_dir_put.sh \\' + os.linesep)
+        
+        if leave_subject_id_level:
+            put_script.write('  --leave-subject-id-level \\' + os.linesep)
+            
         put_script.write('  --user="' + username + '" \\' + os.linesep)
         put_script.write('  --password="' + password + '" \\' + os.linesep)
         put_script.write('  --server="' + str_utils.get_server_name(put_server) + '" \\' + os.linesep)
@@ -124,3 +129,4 @@ class OneSubjectJobSubmitter(abc.ABC):
 
         put_script.close()
         os.chmod(put_script_name, stat.S_IRWXU | stat.S_IRWXG)
+
