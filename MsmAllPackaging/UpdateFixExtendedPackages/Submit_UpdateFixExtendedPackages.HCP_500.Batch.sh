@@ -1,22 +1,17 @@
 #!/bin/bash
 
-if [ -z "${SUBJECT_FILES_DIR}" ]; then
-    echo "Environment variable SUBJECT_FILES_DIR must be set!"
-    exit 1
-fi
-
 project="HCP_500"
-packages_root="/HCP/hcpdb/packages/live/HCP_500"
-archive_root="/HCP/hcpdb/archive/HCP_500/arc001"
+packages_root="/HCP/hcpdb/packages/prerelease/zip/${project}"
+archive_root="/HCP/hcpdb/archive/${project}/arc001"
 
 #packages_tmp="/HCP/hcpdb/packages/temp"
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 
-output_dir="/HCP/hcpdb/packages/PostMsmAll"
+output_dir="/HCP/hcpdb/packages/PostMsmAll/${project}"
 scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"
 log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/logs"
 
-subject_file_name="${SUBJECT_FILES_DIR}/${project}.UpdateFixExtendedPackages.subjects"
+subject_file_name="${project}.UpdateFixExtendedPackages.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
@@ -46,7 +41,7 @@ for subject in ${subjects} ; do
 		echo "  --archive-root=${archive_root} \\" >> ${script_file_to_submit}
 		echo "  --tmp-dir=${packages_tmp} \\" >> ${script_file_to_submit}
 		echo "  --release-notes-template-file=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/UpdateFixExtendedPackages/FixExtendedPackageReleaseNotes.txt \\" >> ${script_file_to_submit}
-		echo "  --output-dir=${output_dir}/${project} \\" >> ${script_file_to_submit}
+		echo "  --output-dir=${output_dir} \\" >> ${script_file_to_submit}
 		echo "  --subject=${subject} \\" >> ${script_file_to_submit}
 		echo "  --create-checksum \\" >> ${script_file_to_submit}
 
