@@ -1,27 +1,8 @@
 #!/bin/bash
 
-if [ -z "${SUBJECT_FILES_DIR}" ]; then
-    echo "Environment variable SUBJECT_FILES_DIR must be set!"
-    exit 1
-fi
-
-printf "Delay until first submission (minutes) [0]: "
-read delay
-
-if [ -z "${delay}" ]; then
-	delay=0
-fi
-
-printf "Interval between submissions (minutes) [60]: "
-read interval
-
-if [ -z "${interval}" ]; then
-	interval=60
-fi
-
 project="HCP_500"
 
-packages_root="/HCP/hcpdb/packages/live/${project}"
+packages_root="/HCP/hcpdb/packages/prerelease/zip/${project}"
 archive_root="/HCP/hcpdb/archive/${project}/arc001"
 
 #packages_tmp="/HCP/hcpdb/packages/temp"
@@ -32,7 +13,7 @@ output_dir="/HCP/hcpdb/packages/PostMsmAll"
 scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"
 log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/logs"
 
-subject_file_name="${SUBJECT_FILES_DIR}/${project}.UpdateFunctionalPreprocPackages.subjects"
+subject_file_name="${project}.UpdateFunctionalPreprocPackages.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
@@ -75,11 +56,8 @@ for subject in ${subjects} ; do
 		submit_cmd="qsub ${script_file_to_submit}"
 		#echo "submit_cmd: ${submit_cmd}"
 
-		at now + ${delay} minutes <<EOF
-${submit_cmd}
-EOF
-		
-		delay=$((delay + interval))
+		${submit_cmd}
+
 	fi
 
 done

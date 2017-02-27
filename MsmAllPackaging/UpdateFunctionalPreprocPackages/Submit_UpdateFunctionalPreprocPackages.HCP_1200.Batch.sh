@@ -1,10 +1,13 @@
 #!/bin/bash
 
-project="HCP_900"
+project="HCP_1200"
 
 packages_root="/HCP/hcpdb/packages/prerelease/zip/${project}"
 archive_root="/HCP/hcpdb/archive/${project}/arc001"
+
+#packages_tmp="/HCP/hcpdb/packages/temp"
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
+
 output_dir="/HCP/hcpdb/packages/PostMsmAll"
 
 scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"

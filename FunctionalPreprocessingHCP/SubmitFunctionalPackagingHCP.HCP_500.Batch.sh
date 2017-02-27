@@ -9,14 +9,14 @@ read password
 echo ""
 stty echo
 
-project="HCP_900"
-subject_file_name="${project}.StructuralPackagingHCP.subjects"
+project="HCP_500"
+subject_file_name="${project}.FunctionalPackagingHCP.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
 
 start_shadow_number=1
-max_shadow_number=1
+max_shadow_number=8
 
 shadow_number=${start_shadow_number}
 
@@ -28,10 +28,10 @@ for subject in ${subjects} ; do
 
  		echo ""
 		echo "--------------------------------------------------------------------------------"
-		echo " Submitting Structural Packaging job for subject: ${subject}"
+		echo " Submitting Functional Packaging job for subject: ${subject}"
 		echo "--------------------------------------------------------------------------------"
 
-		${HOME}/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/SubmitStructuralPackagingHCP.OneSubject.sh \
+		${HOME}/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP/SubmitFunctionalPackagingHCP.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
 			--server=${server} \

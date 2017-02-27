@@ -1,12 +1,13 @@
 #!/bin/bash
 
-if [ -z "${SUBJECT_FILES_DIR}" ]; then
-    echo "Environment variable SUBJECT_FILES_DIR must be set!"
-    exit 1
-fi
+#if [ -z "${SUBJECT_FILES_DIR}" ]; then
+#    echo "Environment variable SUBJECT_FILES_DIR must be set!"
+#    exit 1
+#fi
 
 project="HCP_500"
-packages_root="/HCP/hcpdb/packages/live/HCP_500"
+#packages_root="/HCP/hcpdb/packages/live/HCP_500"
+packages_root="/HCP/hcpdb/packages/prerelease/zip/${project}"
 archive_root="/HCP/hcpdb/archive/HCP_500/arc001"
 
 #packages_tmp="/HCP/hcpdb/packages/temp"
@@ -16,7 +17,8 @@ output_dir="/HCP/hcpdb/packages/PostMsmAll"
 scripts_to_submit_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/scripts_to_submit"
 log_dir="/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MsmAllPackaging/logs"
 
-subject_file_name="${SUBJECT_FILES_DIR}/${project}.UpdateStructuralPreprocPackage.subjects"
+#subject_file_name="${SUBJECT_FILES_DIR}/${project}.UpdateStructuralPreprocPackage.subjects"
+subject_file_name="${project}.UpdateStructuralPreprocPackage.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
