@@ -242,74 +242,82 @@ get_options()
 	fi
 }
 
-# Show information about a specified XNAT Workflow
-show_xnat_workflow()
+inform() 
 {
-	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_server}" \
-		--username="${g_user}" \
-		--password="${g_password}" \
-		--workflow-id="${g_workflow_id}" \
-		show
+	msg="${1}"
+	echo "RestingStateStats.XNAT.sh: ${msg}"
 }
+
+
+# Show information about a specified XNAT Workflow
+# show_xnat_workflow()
+# {
+# 	${XNAT_UTILS_HOME}/xnat_workflow_info \
+# 		--server="${g_server}" \
+# 		--username="${g_user}" \
+# 		--password="${g_password}" \
+# 		--workflow-id="${g_workflow_id}" \
+# 		show
+# }
 
 # Update information (step id, step description, and percent complete)
 # for a specified XNAT Workflow
-update_xnat_workflow()
-{
-	local step_id=${1}
-	local step_desc=${2}
-	local percent_complete=${3}
+# update_xnat_workflow()
+# {
+# 	local step_id=${1}
+# 	local step_desc=${2}
+# 	local percent_complete=${3}
 
-	echo ""
-	echo ""
-	echo "---------- Step: ${step_id} "
-	echo "---------- Desc: ${step_desc} "
-	echo ""
-	echo ""
+# 	echo ""
+# 	echo ""
+# 	echo "---------- Step: ${step_id} "
+# 	echo "---------- Desc: ${step_desc} "
+# 	echo ""
+# 	echo ""
 
-	echo "update_xnat_workflow - workflow_id: ${g_workflow_id}"
-	echo "update_xnat_workflow - step_id: ${step_id}"
-	echo "update_xnat_workflow - set_desc: ${step_desc}"
-	echo "update_xnat_workflow - percent_complete: ${percent_complete}"
+# 	echo "update_xnat_workflow - workflow_id: ${g_workflow_id}"
+# 	echo "update_xnat_workflow - step_id: ${step_id}"
+# 	echo "update_xnat_workflow - set_desc: ${step_desc}"
+# 	echo "update_xnat_workflow - percent_complete: ${percent_complete}"
 
-	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_server}" \
-		--username="${g_user}" \
-		--password="${g_password}" \
-		--workflow-id="${g_workflow_id}" \
-		update \
-		--step-id="${step_id}" \
-		--step-description="${step_desc}" \
-		--percent-complete="${percent_complete}"
-}
+# 	${XNAT_UTILS_HOME}/xnat_workflow_info \
+# 		--server="${g_server}" \
+# 		--username="${g_user}" \
+# 		--password="${g_password}" \
+# 		--workflow-id="${g_workflow_id}" \
+# 		update \
+# 		--step-id="${step_id}" \
+# 		--step-description="${step_desc}" \
+# 		--percent-complete="${percent_complete}"
+# }
 
 # Mark the specified XNAT Workflow as complete
-complete_xnat_workflow()
-{
-	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_server}" \
-		--username="${g_user}" \
-		--password="${g_password}" \
-		--workflow-id="${g_workflow_id}" \
-		complete
-}
+# complete_xnat_workflow()
+# {
+# 	${XNAT_UTILS_HOME}/xnat_workflow_info \
+# 		--server="${g_server}" \
+# 		--username="${g_user}" \
+# 		--password="${g_password}" \
+# 		--workflow-id="${g_workflow_id}" \
+# 		complete
+# }
 
 # Mark the specified XNAT Workflow as failed
-fail_xnat_workflow()
-{
-	${XNAT_UTILS_HOME}/xnat_workflow_info \
-		--server="${g_server}" \
-		--username="${g_user}" \
-		--password="${g_password}" \
-		--workflow-id="${g_workflow_id}" \
-		fail
-}
+# fail_xnat_workflow()
+# {
+# 	${XNAT_UTILS_HOME}/xnat_workflow_info \
+# 		--server="${g_server}" \
+# 		--username="${g_user}" \
+# 		--password="${g_password}" \
+# 		--workflow-id="${g_workflow_id}" \
+# 		fail
+# }
 
 # Update specified XNAT Workflow to Failed status and exit this script
 die()
 {
-	fail_xnat_workflow ${g_workflow_id}
+	#fail_xnat_workflow ${g_workflow_id}
+	inform "Dying"
 	exit 1
 }
 
@@ -321,21 +329,21 @@ main()
 {
 	get_options $@
 
-	echo "----- Platform Information: Begin -----"
+	inform "----- Platform Information: Begin -----"
 	uname -a
-	echo "----- Platform Information: End -----"
+    inform "----- Platform Information: End -----"
 
 	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
 
 	# Set up step counters
-	total_steps=8
-	current_step=0
+	#total_steps=8
+	#current_step=0
 
 	# Set up to run Python
-	echo "Setting up to run Python"
+	inform "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-	show_xnat_workflow 
+	#show_xnat_workflow 
 
 	# VERY IMPORTANT NOTE:
 	# 
@@ -371,77 +379,79 @@ main()
 	# preprocessed data from the DB, followed by the structurally preprocessed data from the 
 	# DB.
 
-
-	# Step - Link ReApplyFix processed data from DB
-	# This step not reported as a workflow step.
+	# Step - Link hand reclassification data from DB
 
 	link_hcp_reapplyfix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
+
+	link_hcp_applyhandreclassification_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
+
+	link_hcp_handreclassification_data  "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
  	# Step - Link FIX processed data from DB
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
+	#current_step=$(( current_step + 1 ))
+	#step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Link FIX processed data from DB" ${step_percent}
+	#update_xnat_workflow ${current_step} "Link FIX processed data from DB" ${step_percent}
 
 	link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
  	# Step - Link functionally preprocessed data from DB
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
+	#current_step=$(( current_step + 1 ))
+	#step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Link functionally preprocessed data from DB" ${step_percent}
+	#update_xnat_workflow ${current_step} "Link functionally preprocessed data from DB" ${step_percent}
 	
 	link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_scan}" "${g_working_dir}"
 	
 	# ----------------------------------------------------------------------------------------------
  	# Step - Link structurally preprocessed data from DB
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
+	#current_step=$(( current_step + 1 ))
+	#step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Link structurally preprocessed data from DB" ${step_percent}
+	#update_xnat_workflow ${current_step} "Link structurally preprocessed data from DB" ${step_percent}
 
 	link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Create a start_time file
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
+	#current_step=$(( current_step + 1 ))
+	#step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Create a start_time file" ${step_percent}
+	#update_xnat_workflow ${current_step} "Create a start_time file" ${step_percent}
 	
 	start_time_file="${g_working_dir}/RestingStateStats.starttime"
 	if [ -e "${start_time_file}" ]; then
-		echo "Removing old ${start_time_file}"
+		inform "Removing old ${start_time_file}"
 		rm -f ${start_time_file}
 	fi
 
 	# Sleep for 1 minute to make sure start_time file is created at least a
 	# minute after any files copied or linked above.
-	echo "Sleep for 1 minute before creating start_time file."
+	inform "Sleep for 1 minute before creating start_time file."
 	sleep 1m || die
 	
-	echo "Creating start time file: ${start_time_file}"
+	inform "Creating start time file: ${start_time_file}"
 	touch ${start_time_file} || die 
 	ls -l ${start_time_file}
 
 	# Sleep for 1 minute to make sure any files created or modified by the RestingStateStats.sh
 	# script are created at least 1 minute after the start_time file
-	echo "Sleep for 1 minute after creating start_time file."
+	inform "Sleep for 1 minute after creating start_time file."
 	sleep 1m || die 
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Run RestingStateStats.sh script
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
+	#current_step=$(( current_step + 1 ))
+	#step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Run RestingStateStats.sh script" ${step_percent}
+	#update_xnat_workflow ${current_step} "Run RestingStateStats.sh script" ${step_percent}
 	
 	# Source setup script to setup environment for running the script
 	source ${SCRIPTS_HOME}/SetUpHCPPipeline_Resting_State_Stats.sh
@@ -488,32 +498,33 @@ main()
 	# ----------------------------------------------------------------------------------------------
 	# Step - Show any newly created or modified files
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
+	#current_step=$(( current_step + 1 ))
+	#step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Show newly created or modified files" ${step_percent}
+	#update_xnat_workflow ${current_step} "Show newly created or modified files" ${step_percent}
 	
-	echo "Newly created/modified files:"
+	inform "Newly created/modified files:"
 	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
 	
 	# ----------------------------------------------------------------------------------------------
 	# Step - Remove any files that are not newly created or modified
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
+	#current_step=$(( current_step + 1 ))
+	#step_percent=$(( (current_step * 100) / total_steps ))
 
-	update_xnat_workflow ${current_step} "Remove files not newly created or modified" ${step_percent}
+	#update_xnat_workflow ${current_step} "Remove files not newly created or modified" ${step_percent}
 
-	echo "The following files are being removed"
+	inform "The following files are being removed"
 	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete 
 	
 	# ----------------------------------------------------------------------------------------------
 	# Step - Complete Workflow
 	# ----------------------------------------------------------------------------------------------
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
+	#current_step=$(( current_step + 1 ))
+	#step_percent=$(( (current_step * 100) / total_steps ))
 
-	complete_xnat_workflow 
+	#complete_xnat_workflow
+	inform "Complete"
 }
 
 # Invoke the main function to get things started
