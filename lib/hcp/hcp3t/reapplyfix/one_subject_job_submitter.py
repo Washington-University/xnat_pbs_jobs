@@ -157,6 +157,24 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         self._vmem_limit_gbs = value
         logger.debug(debug_utils.get_name() + ": set to " + str(value))
 
+    @property
+    def reg_name(self):
+        return self._reg_name
+
+    @reg_name.setter
+    def reg_name(self, value):
+        self._reg_name = value
+        logger.debug(debug_utils.get_name() + ": set to " + str(value))
+
+    @property
+    def output_resource_suffix(self):
+        return self._output_resource_suffix
+
+    @output_resource_suffix.setter
+    def output_resource_suffix(self, value):
+        self._output_resource_suffix = value
+        logger.debug(debug_utils.get_name() + ": set to " + str(value))
+
     def _get_scripts_start_name(self):
         start_name = self._working_directory_name
         start_name += os.sep + self.subject
@@ -277,6 +295,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         scan_line = '  --scan=' + self.scan
         wdir_line = '  --working-dir=' + self._working_directory_name
         setup_line = '  --setup-script=' + self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.setup_script
+        reg_name_line = '  --reg-name=' + self.reg_name
 
         work_script = open(self._work_script_name(), 'w')
 
@@ -293,6 +312,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         futils.wl(work_script, session_line + self._continue)
         futils.wl(work_script, scan_line + self._continue)
         futils.wl(work_script, wdir_line + self._continue)
+        if self.reg_name != 'MSMSulc':
+            futils.wl(work_script, reg_name_line + self._continue)
         futils.wl(work_script, setup_line)
 
         work_script.close()
@@ -320,7 +341,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         os.makedirs(name=self._working_directory_name)
 
         # determine output resource name
-        self._output_resource_name = self.scan + "_" + self.PIPELINE_NAME
+        self._output_resource_name = self.scan + "_" + self.output_resource_suffix
 
         # clean output resource if requested
         if self.clean_output_resource_first:
