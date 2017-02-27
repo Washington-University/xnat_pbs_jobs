@@ -404,7 +404,10 @@ main()
 	increment_step
  	update_xnat_workflow ${g_current_step} "Link Group Average Drift Data from DB" ${g_step_percent}
 
-	link_hcp_msm_group_average_drift_data "${DATABASE_ARCHIVE_ROOT}" "HCP_Staging" "${g_working_dir}"
+	# As of February 2017, the group average drift data has been moved from HCP_Staging to HCP_1200
+	#link_hcp_msm_group_average_drift_data "${DATABASE_ARCHIVE_ROOT}" "HCP_Staging" "${g_working_dir}"
+	#
+	link_hcp_msm_group_average_drift_data "${DATABASE_ARCHIVE_ROOT}" "HCP_1200" "${g_working_dir}"
 
 	# ----------------------------------------------------------------------------------------------
 	# Step - Link MSM All registration data from DB
