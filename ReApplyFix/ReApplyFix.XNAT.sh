@@ -38,7 +38,8 @@ PARAMETERs are [ ] = optional; < > = user supplied value
    --working-dir=<dir>     : Working directory in which to place retrieved data
                              and in which to produce results
    --setup-script=<script> : Script to source to set up environment
-
+  [--reg-name=reg_name]    : Name of registration upon which to work
+   
 EOF
 }
 
@@ -56,6 +57,7 @@ get_options()
 	unset g_scan
 	unset g_working_dir
 	unset g_setup_script
+    unset g_reg_name
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -104,6 +106,10 @@ get_options()
 				;;
 			--setup-script=*)
 				g_setup_script=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--reg-name=*)
+				g_reg_name=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -172,6 +178,8 @@ get_options()
 		inform "g_setup_script: ${g_setup_script}"
 	fi
 
+	inform "g_reg_name: ${g_reg_name}"
+
 	if [ ! -z "${error_msgs}" ]; then
 		usage
 		echo -e ${error_msgs}
@@ -235,8 +243,12 @@ main()
 	cmd+=" --subject=${g_subject}"
 	cmd+=" --fmri-name=${g_scan}"
 	cmd+=" --high-pass=2000"
-#	cmd+=" --reg-name=MSMSulc"
-	cmd+=" --reg-name=NONE"
+
+	if [ ! -z "${g_reg_name}" ] ; then 
+		cmd+=" --reg-name=${g_reg_name}"
+	else
+		cmd+=" --reg-name=NONE"
+	fi
 	cmd+=" --low-res-mesh=32"
 
 	inform "About to issue the following cmd"

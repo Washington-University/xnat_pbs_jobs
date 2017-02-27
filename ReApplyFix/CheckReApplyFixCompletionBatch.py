@@ -9,10 +9,11 @@ import os
 # import of third party modules
 
 # import of local modules
-import hcp.hcp3t.reapplyfix.one_subject_completion_checker as one_subject_completion_checker
 import hcp.hcp3t.archive as hcp3t_archive
+import hcp.hcp3t.reapplyfix.one_subject_completion_checker as one_subject_completion_checker
 import hcp.hcp3t.subject as hcp3t_subject
 import utils.file_utils as file_utils
+import utils.my_argparse as my_argparse
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -54,6 +55,14 @@ def _write_subject_info(output_file, project, subject_id, scan,
 
 if __name__ == "__main__":
 
+    parser = my_argparse.MyArgumentParser()
+
+    parser.add_argument('-r', '--reg-name', dest='reg_name', required=False, default="", type=str)
+    args = parser.parse_args()
+
+    if args.reg_name != "":
+        print("reg_name: " + args.reg_name)
+
     # get list of subjects to check
     subject_file_name = file_utils.get_subjects_file_name(__file__)
     logger.info("Retrieving subject list from: " + subject_file_name)
@@ -68,6 +77,10 @@ if __name__ == "__main__":
     # create one subject completion checker
     completion_checker = one_subject_completion_checker.OneSubjectCompletionChecker()
 
+    if args.reg_name != "":
+        print("setting completion checker reg_name to " + args.reg_name)
+        completion_checker.reg_name = args.reg_name
+
     for subject in subject_list:
         subject_id = subject.subject_id
         project = subject.project
@@ -80,9 +93,13 @@ if __name__ == "__main__":
             logger.debug("processed resource exists")
 
             resource_exists = True
-            timestamp = os.path.getmtime(archive.reapplyfix_dir_fullpath(subject, scan))
-            resource_date = datetime.datetime.fromtimestamp(timestamp).strftime(DATE_FORMAT)
+            if args.reg_name != "":
+                fullpath = archive.reapplyfix_dir_fullpath(subject, scan, args.reg_name)
+            else:
+                fullpath = archive.reapplyfix_dir_fullpath(subject, scan)
 
+            timestamp = os.path.getmtime(fullpath)
+            resource_date = datetime.datetime.fromtimestamp(timestamp).strftime(DATE_FORMAT)
             if completion_checker.is_processing_complete(archive, subject, scan):
                 files_exist = True
             else:

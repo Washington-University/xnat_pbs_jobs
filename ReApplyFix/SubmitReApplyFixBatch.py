@@ -44,19 +44,26 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             processing_stage = one_subject_job_submitter.ProcessingStage.from_string(processing_stage_str)
             walltime_limit_hrs = config.get_value(subject.subject_id, 'WalltimeLimitHours')
             vmem_limit_gbs = config.get_value(subject.subject_id, 'VmemLimitGbs')
+            reg_name = config.get_value(subject.subject_id, 'RegName')
+            output_resource_suffix = config.get_value(subject.subject_id, 'OutputResourceSuffix')
+
             scan = subject.extra
             
             submitter = one_subject_job_submitter.OneSubjectJobSubmitter(self._archive, self._archive.build_home)
 
             logger.info("-----")
             logger.info(" Submitting " + submitter.PIPELINE_NAME + " jobs for:")
-            logger.info("             project: " + subject.project)
-            logger.info("             subject: " + subject.subject_id)
-            logger.info("                scan: " + scan)
-            logger.info("          put_server: " + put_server)
-            logger.info("          setup_file: " + setup_file)
-            logger.info("  clean_output_first: " + str(clean_output_first))
-            logger.info("    processing_stage: " + str(processing_stage))
+            logger.info("                project: " + subject.project)
+            logger.info("                subject: " + subject.subject_id)
+            logger.info("                   scan: " + scan)
+            logger.info("             put_server: " + put_server)
+            logger.info("             setup_file: " + setup_file)
+            logger.info("     clean_output_first: " + str(clean_output_first))
+            logger.info("       processing_stage: " + str(processing_stage))
+            logger.info("     walltime_limit_hrs: " + str(walltime_limit_hrs))
+            logger.info("         vmem_limit_gbs: " + str(vmem_limit_gbs))
+            logger.info("               reg_name: " + str(reg_name))
+            logger.info(" output_resource_suffix: " + str(output_resource_suffix))
             logger.info("-----")
 
             submitter.username = username
@@ -67,6 +74,9 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter.subject = subject.subject_id
             submitter.session = subject.subject_id + '_3T'
             submitter.scan = scan
+
+            submitter.reg_name = reg_name
+            submitter.output_resource_suffix = output_resource_suffix
 
             submitter.setup_script = setup_file
             submitter.clean_output_resource_first = clean_output_first
