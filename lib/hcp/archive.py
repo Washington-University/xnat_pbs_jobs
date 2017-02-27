@@ -321,21 +321,45 @@ class HcpArchive(abc.ABC):
                              self.RSS_PROCESSED_SUFFIX)
         return sorted(dir_list)
 
-    def available_reapplyfix_dir_fullpaths(self, subject_info):
-        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
-                             self.REAPPLY_FIX_SUFFIX)
+    # def available_reapplyfix_dir_fullpaths(self, subject_info):
+    #     dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
+    #                          self.REAPPLY_FIX_SUFFIX)
+    #     return sorted(dir_list)
+
+    def available_reapplyfix_dir_fullpaths(self, subject_info, reg_name=None):
+        if reg_name is not None:
+            dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
+                                 self.REAPPLY_FIX_SUFFIX + reg_name)
+        else:
+            dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
+                                 self.REAPPLY_FIX_SUFFIX)
         return sorted(dir_list)
 
-    def available_reapplyfix_names(self, subject_info):
-        dir_list = self.available_reapplyfix_dir_fullpaths(subject_info)
+    # def available_reapplyfix_names(self, subject_info):
+    #     dir_list = self.available_reapplyfix_dir_fullpaths(subject_info)
+    #     name_list = []
+    #     for directory in dir_list:
+    #         name_list.append(self._get_scan_name_from_path(directory))
+    #     return name_list
+
+    def available_reapplyfix_names(self, subject_info, reg_name=None):
+        dir_list = self.available_reapplyfix_dir_fullpaths(subject_info, reg_name)
         name_list = []
         for directory in dir_list:
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
-    def reapplyfix_dir_fullpath(self, subject_info, scan_name):
-        return self.subject_resources_dir_fullpath(subject_info) + os.sep + scan_name + \
-            '_' + self.REAPPLY_FIX_SUFFIX
+    # def reapplyfix_dir_fullpath(self, subject_info, scan_name):
+    #     return self.subject_resources_dir_fullpath(subject_info) + os.sep + scan_name + \
+    #         '_' + self.REAPPLY_FIX_SUFFIX
+
+    def reapplyfix_dir_fullpath(self, subject_info, scan_name, reg_name=None):
+        if reg_name is not None:
+            return self.subject_resources_dir_fullpath(subject_info) + os.sep + scan_name + \
+                '_' + self.REAPPLY_FIX_SUFFIX + reg_name
+        else:
+            return self.subject_resources_dir_fullpath(subject_info) + os.sep + scan_name + \
+                '_' + self.REAPPLY_FIX_SUFFIX
 
     def available_handreclassification_dir_fullpaths(self, subject_info):
         """Returns a list of the full paths to the hand reclassification resources."""
