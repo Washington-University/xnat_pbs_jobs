@@ -15,7 +15,7 @@ usage()
 Get data from the XNAT archive necessary to run the HCP RestingStateStats.sh pipeline script
 for an HCP 7T subject.
 
-Usage: ${SCRIPT_NAME} PARAMETER..."
+Usage: ${SCRIPT_NAME} PARAMETER...
 
 PARAMETERs are [ ] = optional; < > = user supplied value
   [--help]                 : show usage information and exit with non-zero return code
