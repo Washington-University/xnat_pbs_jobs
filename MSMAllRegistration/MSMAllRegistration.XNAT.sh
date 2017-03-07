@@ -466,7 +466,7 @@ main()
 	update_xnat_workflow ${g_current_step} "Run MSMAllPipeline.sh script" ${g_step_percent}
 	
 	# Source setup script to setup environment for running the script
-	source ${SCRIPTS_HOME}/SetUpHCPPipeline_MSMAll.sh
+	source ${XNAT_PBS_JOBS_HOME}/MSMAllRegistration/SetUpHCPPipeline.sh
 
 	scan_names=`echo "${scan_names}" | sed s/" "/"@"/g`
 	echo "scan_names: ${scan_names}"

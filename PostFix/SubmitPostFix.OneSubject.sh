@@ -252,7 +252,8 @@ main()
  		echo "  --session=\"${g_session}\" \\" >> ${put_script_file_to_submit}
  		echo "  --scan=\"${scan}\" \\" >> ${put_script_file_to_submit}
 		echo "  --working-dir=\"${working_directory_name}\" \\" >> ${put_script_file_to_submit}
-		echo "  --resource-suffix=\"PostFix\" " >> ${put_script_file_to_submit} 
+		#echo "  --resource-suffix=\"PostFix\" " >> ${put_script_file_to_submit} 
+		echo "  --resource-suffix=\"TEST_PostFix\" " >> ${put_script_file_to_submit} 
 
 		submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
 		echo "submit_cmd: ${submit_cmd}"

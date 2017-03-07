@@ -302,7 +302,7 @@ fail_xnat_workflow()
 		--server="${g_server}" \
 		--username="${g_user}" \
 		--password="${g_password}" \
-		--workflow-id="${workflow_id}" \
+		--workflow-id="${g_workflow_id}" \
 		fail
 }
 
@@ -431,7 +431,7 @@ main()
 	update_xnat_workflow ${current_step} "Run PostFix.sh script" ${step_percent}
 	
 	# Source setup script to setup environment for running the script
-	source ${SCRIPTS_HOME}/SetUpHCPPipeline_PostFix.sh
+	source ${XNAT_PBS_JOBS_HOME}/PostFix/SetUpHCPPipeline.sh
 	
 	# Run PostFix.sh script
 	${HCPPIPEDIR}/PostFix/PostFix.sh \
@@ -440,7 +440,8 @@ main()
 		--fmri-name=${g_scan} \
 		--high-pass=2000 \
 		--template-scene-dual-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_DualScreenTemplate.scene \
-		--template-scene-single-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_SingleScreenTemplate.scene
+		--template-scene-single-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_SingleScreenTemplate.scene \
+		--reuse-high-pass=YES
 	
 	if [ $? -ne 0 ]; then
 		die 
