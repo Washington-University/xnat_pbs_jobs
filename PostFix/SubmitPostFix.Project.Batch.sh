@@ -1,5 +1,14 @@
 #!/bin/bash
 
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	script_name=$(basename "${0}")
+	echo "${script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
+source ${XNAT_PBS_JOBS}/shlib/log.shlib # Logging related functions
+log_Msg "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
+
 printf "Connectome DB Username: "
 read userid
 
@@ -13,12 +22,12 @@ printf "Project: "
 read project
 
 subject_file_name="subjectfiles/${project}.PostFix.subjects"
-echo "Retrieving subject list from: ${subject_file_name}"
+log_Msg "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
 
 start_shadow_number=1
-max_shadow_number=8
+max_shadow_number=1
 
 shadow_number=$(shuf -i ${start_shadow_number}-${max_shadow_number} -n 1)
 
@@ -28,11 +37,11 @@ for subject in ${subjects} ; do
 
 		server="db-shadow${shadow_number}.nrg.mir:8080"
 
-		echo ""
-		echo "--------------------------------------------------------------------------------"
-		echo " Submitting PostFix job for subject: ${subject}"
-		echo " Using server: ${server}"
-		echo "--------------------------------------------------------------------------------"
+		log_Msg ""
+		log_Msg "--------------------------------------------------------------------------------"
+		log_Msg " Submitting PostFix job for subject: ${subject}"
+		log_Msg " Using server: ${server}"
+		log_Msg "--------------------------------------------------------------------------------"
 
 		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/SubmitPostFix.OneSubject.sh \
 			--user=${userid} \

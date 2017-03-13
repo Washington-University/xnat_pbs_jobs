@@ -1,16 +1,25 @@
 #!/bin/bash
 
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	script_name=$(basename "${0}")
+	echo "${script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
+source ${XNAT_PBS_JOBS}/shlib/log.shlib # Logging related functions
+log_Msg "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
+
 # home directory for XNAT pipeline engine installation
 XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
-echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
+log_Msg "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 
 # home directory for XNAT utilities
 XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
-echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
+log_Msg "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
 # main build directory
 BUILD_HOME="/HCP/hcpdb/build_ssd/chpc/BUILD"
-echo "BUILD_HOME: ${BUILD_HOME}"
+log_Msg "BUILD_HOME: ${BUILD_HOME}"
 
 get_options() 
 {
@@ -73,9 +82,7 @@ get_options()
 				index=$(( index + 1 ))
 				;;
 			*)
-				echo "ERROR: unrecognized option: ${argument}"
-				echo ""
-				exit 1
+				log_Err_Abort "unrecognized option: ${argument}"
 				;;
 		esac
 	done
@@ -97,32 +104,32 @@ get_options()
 	if [ -z "${g_server}" ]; then
 		g_server="db.humanconnectome.org"
 	fi
-	echo "Connectome DB Server: ${g_server}"
+	log_Msg "Connectome DB Server: ${g_server}"
 
 	if [ -z "${g_project}" ]; then
 		g_project="HCP_500"
 	fi
-    echo "Connectome DB Project: ${g_project}"
+    log_Msg "Connectome DB Project: ${g_project}"
 
 	if [ -z "${g_subject}" ]; then
 		printf "Enter Connectome DB Subject: "
 		read g_subject
 	fi
-	echo "Connectome DB Subject: ${g_subject}"
+	log_Msg "Connectome DB Subject: ${g_subject}"
 
 	if [ -z "${g_session}" ]; then
 		g_session=${g_subject}_3T
 	fi
-	echo "Connectome DB Session: ${g_session}"
+	log_Msg "Connectome DB Session: ${g_session}"
 
 	if [ -z "${g_scan}" ]; then
 		g_scan="rfMRI_REST1_LR rfMRI_REST1_RL rfMRI_REST2_LR rfMRI_REST2_RL"
 	fi
-	echo "Connectome DB Scans: ${g_scan}"
+	log_Msg "Connectome DB Scans: ${g_scan}"
 
-	echo "Notification Email: ${g_notify}"
+	log_Msg "Notification Email: ${g_notify}"
 
-	echo "Serial Submission: ${g_serial}"
+	log_Msg "Serial Submission: ${g_serial}"
 }
 
 main()
@@ -130,18 +137,18 @@ main()
 	get_options $@
 
 	# Get token user id and password
-	echo "Setting up to run Python"
+	log_Msg "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 	echo "Getting token user id and password"
 	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user}"
-	#echo "get_token_cmd: ${get_token_cmd}"
+	log_Msg "get_token_cmd: ${get_token_cmd}"
 	get_token_cmd+=" --password=${g_password}"
 	new_tokens=`${get_token_cmd}`
 	token_username=${new_tokens% *}
 	token_password=${new_tokens#* }
-	echo "token_username: ${token_username}"
-	echo "token_password: ${token_password}"
+	log_Msg "token_username: ${token_username}"
+	log_Msg "token_password: ${token_password}"
 
 	unset depend_on_job
 
@@ -155,39 +162,38 @@ main()
 		working_directory_name="${BUILD_HOME}/${g_project}/PostFix.${g_subject}.${current_seconds_since_epoch}"
 
 		# Make the working directory
-		echo "Making working directory: ${working_directory_name}"
+		log_Msg "Making working directory: ${working_directory_name}"
 		mkdir -p ${working_directory_name}
 
 		# Get JSESSION ID
-		echo "Getting JSESSION ID"
+		log_Msg "Getting JSESSION ID"
 		jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
-		echo "jsession: ${jsession}"
+		log_Msg "jsession: ${jsession}"
 
 		# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
-		echo "Getting XNAT Session ID"
-		get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
-		#echo "get_session_id_cmd: ${get_session_id_cmd}"
+		log_Msg "Getting XNAT Session ID"
+		get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --project=${g_project} --subject=${g_subject} --session=${g_session}"
+		log_Msg "get_session_id_cmd: ${get_session_id_cmd}"
+		get_session_id_cmd+=" --password=${g_password}"
 		sessionID=`${get_session_id_cmd}`
-		echo "XNAT session ID: ${sessionID}"
+		log_Msg "XNAT session ID: ${sessionID}"
 
 		# Get XNAT Workflow ID
 		server="https://db.humanconnectome.org/"
-		echo "Getting XNAT workflow ID for this job from server: ${server}"
+		log_Msg "Getting XNAT workflow ID for this job from server: ${server}"
 		get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline PostFix -Status Queued -JSESSION ${jsession}"
-		#echo "get_workflow_id_cmd: ${get_workflow_id_cmd}"
+		log_Msg "get_workflow_id_cmd: ${get_workflow_id_cmd}"
 		get_workflow_id_cmd+=" -Password ${g_password}"
 
 		workflowID=`${get_workflow_id_cmd}`
 		if [ $? -ne 0 ]; then
-			echo "Fetching workflow failed. Aborting"
-			echo "workflowID: ${workflowID}"
-			exit 1
+			log_Err "Fetching workflow failed."
+			log_Err_Abort "workflowID: ${workflowID}"
 		elif [[ ${workflowID} == HTTP* ]]; then
-			echo "Fetching workflow failed. Aborting"
-			echo "worflowID: ${workflowID}"
-			exit 1
+			log_Err "Fetching workflow failed."
+			log_Err_Abort "worflowID: ${workflowID}"
 		fi
-		echo "XNAT workflow ID: ${workflowID}"
+		log_Msg "XNAT workflow ID: ${workflowID}"
 
 		# Submit job to actually do the work
 		script_file_to_submit=${working_directory_name}/${g_subject}.PostFix.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_job.sh
@@ -221,10 +227,10 @@ main()
 		else
 			submit_cmd="qsub -W depend=afterok:${depend_on_job} ${script_file_to_submit}"
 		fi
-		echo "submit_cmd: ${submit_cmd}"
+		log_Msg "submit_cmd: ${submit_cmd}"
 
 		processing_job_no=`${submit_cmd}`
-		echo "processing_job_no: ${processing_job_no}"
+		log_Msg "processing_job_no: ${processing_job_no}"
 
 		# Submit job to put the results in the DB
 		put_script_file_to_submit=${LOG_DIR}/${g_subject}.PostFix.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
@@ -242,7 +248,7 @@ main()
 			echo "#PBS -M ${g_notify}" >> ${put_script_file_to_submit}
 			echo "#PBS -m abe" >> ${put_script_file_to_submit}
 		fi
- 		echo ""
+ 		echo "" >> ${put_script_file_to_submit}
  		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
  		echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
  		echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
@@ -256,7 +262,7 @@ main()
 		echo "  --resource-suffix=\"TEST_PostFix\" " >> ${put_script_file_to_submit} 
 
 		submit_cmd="qsub -W depend=afterok:${processing_job_no} ${put_script_file_to_submit}"
-		echo "submit_cmd: ${submit_cmd}"
+		log_Msg "submit_cmd: ${submit_cmd}"
 		if [ "${g_serial}" = "TRUE" ]; then
 			depend_on_job=`${submit_cmd}`
 		else

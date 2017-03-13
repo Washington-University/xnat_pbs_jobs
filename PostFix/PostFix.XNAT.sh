@@ -441,7 +441,7 @@ main()
 		--high-pass=2000 \
 		--template-scene-dual-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_DualScreenTemplate.scene \
 		--template-scene-single-screen=${HCPPIPEDIR}/PostFix/PostFixScenes/ICA_Classification_SingleScreenTemplate.scene \
-		--reuse-high-pass=YES
+		--reuse-high-pass=NO
 	
 	if [ $? -ne 0 ]; then
 		die 

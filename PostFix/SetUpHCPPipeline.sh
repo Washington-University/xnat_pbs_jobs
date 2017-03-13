@@ -71,7 +71,11 @@ if [ "$COMPUTE" = "CHPC" ]; then
 		export MSMCONFIGDIR=${HCPPIPEDIR}/MSMConfig
 		echo "${script_name}: Set MSM configuration files directory to ${MSMCONFIGDIR}"
 
-		export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/R2013a/v81
+		# R2013a
+		#export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/R2013a/v81
+		# R2016b
+		export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/R2016b/v91
+
 		echo "${script_name}: Set MATLAB_COMPILER_RUNTIME to: ${MATLAB_COMPILER_RUNTIME}"
 
 	else # unhandled value for ${CLUSTER}

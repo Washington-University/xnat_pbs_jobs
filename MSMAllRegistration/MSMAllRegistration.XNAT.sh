@@ -477,6 +477,7 @@ main()
 		--path=${g_working_dir} \
 		--subject=${g_subject} \
 		--fmri-names-list=${scan_names} \
+		--high-pass=2000 \
 		--output-fmri-name="rfMRI_REST" \
 		--fmri-proc-string="_Atlas_hp2000_clean" \
 		--msm-all-templates="${HCPPIPEDIR}/global/templates/MSMAll" \
