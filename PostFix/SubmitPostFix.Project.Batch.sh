@@ -37,7 +37,6 @@ for subject in ${subjects} ; do
 
 		server="db-shadow${shadow_number}.nrg.mir:8080"
 
-		log_Msg ""
 		log_Msg "--------------------------------------------------------------------------------"
 		log_Msg " Submitting PostFix job for subject: ${subject}"
 		log_Msg " Using server: ${server}"

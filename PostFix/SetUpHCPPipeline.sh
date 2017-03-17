@@ -39,7 +39,7 @@ if [ "$COMPUTE" = "CHPC" ]; then
 
 		echo ""
 		echo "${script_name}: Setting up Workbench (a.k.a. CARET7)"
-		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.1.1/bin_rh_linux64
+		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.2.2/bin_rh_linux64
 		echo "${script_name}: Set up to use Workbench at ${CARET7DIR}"
 		
 		echo ""
@@ -71,11 +71,7 @@ if [ "$COMPUTE" = "CHPC" ]; then
 		export MSMCONFIGDIR=${HCPPIPEDIR}/MSMConfig
 		echo "${script_name}: Set MSM configuration files directory to ${MSMCONFIGDIR}"
 
-		# R2013a
-		#export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/R2013a/v81
-		# R2016b
 		export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/R2016b/v91
-
 		echo "${script_name}: Set MATLAB_COMPILER_RUNTIME to: ${MATLAB_COMPILER_RUNTIME}"
 
 	else # unhandled value for ${CLUSTER}
