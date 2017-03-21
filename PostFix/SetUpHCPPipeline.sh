@@ -20,9 +20,21 @@ if [ "$COMPUTE" = "CHPC" ]; then
 
 		echo ""
 		echo "${script_name}: Setting up FSL"
-		export FSLDIR=${HOME}/export/fsl-5.0.6-20150401
+		export FSLDIR=${HOME}/export/fsl-5.0.9-custom-bedpostx-20161206
 		source ${FSLDIR}/etc/fslconf/fsl.sh
 		echo "${script_name}: Set up to use FSL at ${FSLDIR}"
+
+		# LD_LIBRARY_PATH
+		# bet2 binary in FSL-5.0.9 needs newer version of libstdc++.so.6
+		# found in /act/gcc-4.7.2/lib64
+		if [ -z "${LD_LIBRARY_PATH}" ] ; then
+			export LD_LIBRARY_PATH=/act/gcc-4.7.2/lib64
+		else
+		 	export LD_LIBRARY_PATH=/act/gcc-4.7.2/lib64:${LD_LIBRARY_PATH}
+		fi
+
+		echo "${script_name}: Added /act/gcc-4.7.2/lib64 to LD_LIBRARY_PATH"
+		echo "${script_name}: LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}"
 		
 		echo ""
 		echo "${script_name}: Setting up FreeSurfer"
@@ -39,7 +51,7 @@ if [ "$COMPUTE" = "CHPC" ]; then
 
 		echo ""
 		echo "${script_name}: Setting up Workbench (a.k.a. CARET7)"
-		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.2.2/bin_rh_linux64
+		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.2.3/bin_rh_linux64
 		echo "${script_name}: Set up to use Workbench at ${CARET7DIR}"
 		
 		echo ""

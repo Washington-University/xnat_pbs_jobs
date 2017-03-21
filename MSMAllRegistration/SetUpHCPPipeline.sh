@@ -39,7 +39,7 @@ if [ "$COMPUTE" = "CHPC" ] ; then
 
 		echo ""
 		echo "${script_name}: Setting up Workbench (a.k.a. CARET7)"
-		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.1.1/bin_rh_linux64
+		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.2.3/bin_rh_linux64
 		echo "${script_name}: Set up to use Workbench at ${CARET7DIR}"
 		
 		echo ""

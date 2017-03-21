@@ -1,6 +1,7 @@
 #!/bin/bash 
 
 script_name="SetUpHCPPipeline.sh"
+echo "${script_name}: Setting up for running ReApplyFix pipeline"
 echo "${script_name}: This script must be SOURCED to correctly setup the environment prior to running"
 echo "${script_name}: any of the other HCP scripts contained here."
 
@@ -16,27 +17,22 @@ if [ "${COMPUTE}" = "CHPC" ]; then
 	if [ "${CLUSTER}" = "2.0" ] ; then
 
 		echo ""
-		echo "${script_name}: Setting up MATLAB_COMPILER_RUNTIME"
-		export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/R2013a/v81
-		echo "${script_name}: MATLAB_COMPILER_RUNTIME: ${MATLAB_COMPILER_RUNTIME}"
-
-		echo ""
 		echo "${script_name}: Setting up FSL"
-		export FSLDIR=${HOME}/export/fsl-5.0.6-20150401
+		export FSLDIR=${HOME}/export/fsl-5.0.9-custom-bedpostx-20161206
 		source ${FSLDIR}/etc/fslconf/fsl.sh
 		echo "${script_name}: Set up to use FSL at ${FSLDIR}"
 		
 		# LD_LIBRARY_PATH
 		# bet2 binary in FSL-5.0.9 needs newer version of libstdc++.so.6
 		# found in /act/gcc-4.7.2/lib64
-		# if [ -z "${LD_LIBRARY_PATH}" ] ; then
-		# 	export LD_LIBRARY_PATH=/act/gcc-4.7.2/lib64
-		# else
-		# 	export LD_LIBRARY_PATH=/act/gcc-4.7.2/lib64:${LD_LIBRARY_PATH}
-		# fi
+		if [ -z "${LD_LIBRARY_PATH}" ] ; then
+		 	export LD_LIBRARY_PATH=/act/gcc-4.7.2/lib64
+		else
+		 	export LD_LIBRARY_PATH=/act/gcc-4.7.2/lib64:${LD_LIBRARY_PATH}
+		fi
 
-		# echo "${script_name}: Added /act/gcc-4.7.2/lib64 to LD_LIBRARY_PATH"
-		# echo "${script_name}: LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}"
+		echo "${script_name}: Added /act/gcc-4.7.2/lib64 to LD_LIBRARY_PATH"
+		echo "${script_name}: LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}"
 
 		# echo ""
 		# echo "${script_name}: Setting up FreeSurfer"
@@ -51,14 +47,12 @@ if [ "${COMPUTE}" = "CHPC" ]; then
 		# export PATH=${EPD_PYTHON_HOME}/bin:${PATH}
 		# echo "${script_name}: Set up to use EPD Python at ${EPD_PYTHON_HOME}"
 		
-		echo ""
 		echo "${script_name}: Setting up Workbench (a.k.a. CARET7)"
-		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.2.2/bin_rh_linux64
+		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.2.3/bin_rh_linux64
 		echo "${script_name}: Set up to use Workbench at ${CARET7DIR}"
 		
-		echo ""
 		echo "${script_name}: Setting up HCP Pipelines"
-		export HCPPIPEDIR=${HOME}/pipeline_tools/Pipelines-3.22.0-beta.5
+		export HCPPIPEDIR=${HOME}/pipeline_tools/Pipelines_dev
 
 		# global
 		export HCPPIPEDIR_Config=${HCPPIPEDIR}/global/config
@@ -84,10 +78,10 @@ if [ "${COMPUTE}" = "CHPC" ]; then
 		export HCPPIPEDIR_FIX=${HCPPIPEDIR}/catalog/FIX_HCP/resources/scripts
 
 		echo "${script_name}: Set up to use HCP Pipelines at ${HCPPIPEDIR}"
-		
-		# export MSMBin=${HOME}/pipeline_tools/MSM-2015.01.14
-		# echo "${script_name}: Set up to use MSM binary at ${MSMBin}"
 
+		export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/R2016b/v91
+		echo "${script_name}: MATLAB_COMPILER_RUNTIME: ${MATLAB_COMPILER_RUNTIME}"
+		
 	else # unhandled value for ${CLUSTER}
 		echo "${script_name}: Processing set up for cluster ${CLUSTER} is currently not supported."
 		echo "${script_name}: EXITING WITH NON-ZERO EXIT STATUS (UNSUCCESSFUL EXECUTION)"
