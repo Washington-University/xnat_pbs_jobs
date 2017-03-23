@@ -7,7 +7,7 @@
 #
 # ## Copyright Notice
 #
-# Copyright (C) 2015 The Human Connectome Project
+# Copyright (C) 2015-2017 The Human Connectome Project
 #
 # * Washington University in St. Louis
 # * University of Minnesota
@@ -42,19 +42,19 @@
 echo "Job started on `hostname` at `date`"
 
 # home directory for scripts to be sourced to setup the environment
-SCRIPTS_HOME=/home/HCPpipeline/SCRIPTS
+SCRIPTS_HOME=${HOME}/SCRIPTS
 echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
 
 # home directory for XNAT related utilities
-XNAT_UTILS_HOME=/home/HCPpipeline/pipeline_tools/xnat_utilities
+XNAT_UTILS_HOME=${HOME}/pipeline_tools/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
 # home directory for these XNAT PBS job scripts
-XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
-echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
+XNAT_PBS_JOBS=${HOME}/pipeline_tools/xnat_pbs_jobs
+echo "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
 
 # home directory for XNAT pipeline engine installation
-XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
+XNAT_PIPELINE_HOME=${HOME}/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 
 # root directory of the XNAT database archive
@@ -325,7 +325,7 @@ main()
 	uname -a
 	echo "----- Platform Information: End -----"
 
-	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
+	source ${XNAT_PBS_JOBS}/GetHcpDataUtils/GetHcpDataUtils.sh
 
 	# Set up step counters
 	total_steps=6
@@ -431,7 +431,7 @@ main()
 	update_xnat_workflow ${current_step} "Run PostFix.sh script" ${step_percent}
 	
 	# Source setup script to setup environment for running the script
-	source ${XNAT_PBS_JOBS_HOME}/PostFix/SetUpHCPPipeline.sh
+	source ${XNAT_PBS_JOBS}/PostFix/SetUpHCPPipeline.sh
 	
 	# Run PostFix.sh script
 	${HCPPIPEDIR}/PostFix/PostFix.sh \

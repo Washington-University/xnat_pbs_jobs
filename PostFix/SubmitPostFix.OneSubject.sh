@@ -140,15 +140,15 @@ main()
 	log_Msg "Setting up to run Python"
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
-#	echo "Getting token user id and password"
-#	get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user}"
-#	log_Msg "get_token_cmd: ${get_token_cmd}"
-#	get_token_cmd+=" --password=${g_password}"
-#	new_tokens=`${get_token_cmd}`
-#	token_username=${new_tokens% *}
-#	token_password=${new_tokens#* }
-#	log_Msg "token_username: ${token_username}"
-#	log_Msg "token_password: ${token_password}"
+	# log_Msg "Getting token user id and password"
+	# get_token_cmd="${XNAT_UTILS_HOME}/xnat_get_tokens --server=${g_server} --username=${g_user}"
+	# log_Msg "get_token_cmd: ${get_token_cmd}"
+	# get_token_cmd+=" --password=${g_password}"
+	# new_tokens=`${get_token_cmd}`
+	# token_username=${new_tokens% *}
+	# token_password=${new_tokens#* }
+	# log_Msg "token_username: ${token_username}"
+	# log_Msg "token_password: ${token_password}"
 
 	unset depend_on_job
 
@@ -172,16 +172,31 @@ main()
 
 		# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
 		log_Msg "Getting XNAT Session ID"
-		get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --project=${g_project} --subject=${g_subject} --session=${g_session}"
+		get_session_id_cmd=""
+		get_session_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py "
+		get_session_id_cmd+="--server=db.humanconnectome.org "
+		get_session_id_cmd+="--username=${g_user} "
+		get_session_id_cmd+="--project=${g_project} "
+		get_session_id_cmd+="--subject=${g_subject} "
+		get_session_id_cmd+="--session=${g_session} "
 		log_Msg "get_session_id_cmd: ${get_session_id_cmd}"
-		get_session_id_cmd+=" --password=${g_password}"
+		get_session_id_cmd+="--password=${g_password}"
+
 		sessionID=`${get_session_id_cmd}`
 		log_Msg "XNAT session ID: ${sessionID}"
 
 		# Get XNAT Workflow ID
 		server="https://db.humanconnectome.org/"
 		log_Msg "Getting XNAT workflow ID for this job from server: ${server}"
-		get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline PostFix -Status Queued -JSESSION ${jsession}"
+		get_workflow_id_cmd=""
+		get_workflow_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py"
+		get_workflow_id_cmd+=" -User ${g_user}"
+		get_workflow_id_cmd+=" -Server ${server}"
+		get_workflow_id_cmd+=" -ExperimentID ${sessionID}"
+		get_workflow_id_cmd+=" -ProjectID ${g_project}"
+		get_workflow_id_cmd+=" -Pipeline PostFix"
+		get_workflow_id_cmd+=" -Status Queued"
+		get_workflow_id_cmd+=" -JSESSION ${jsession}"
 		log_Msg "get_workflow_id_cmd: ${get_workflow_id_cmd}"
 		get_workflow_id_cmd+=" -Password ${g_password}"
 
@@ -210,8 +225,8 @@ main()
 			echo "#PBS -M ${g_notify}" >> ${script_file_to_submit}
 			echo "#PBS -m abe" >> ${script_file_to_submit}
 		fi
-		echo ""
-		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/PostFix.XNAT.sh \\" >> ${script_file_to_submit}
+		echo "" >> ${script_file_to_submit}
+		echo "${XNAT_PBS_JOBS}/PostFix/PostFix.XNAT.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}
 		echo "  --password=\"${g_password}\" \\" >> ${script_file_to_submit}
 		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
@@ -232,8 +247,11 @@ main()
 		processing_job_no=`${submit_cmd}`
 		log_Msg "processing_job_no: ${processing_job_no}"
 
+		if [ -z "${processing_job_no}" ] ; then
+			log_Err_Abort "Unable to get processing job number"
+		fi
+		
 		# Submit job to put the results in the DB
-		# put_script_file_to_submit=${LOG_DIR}/${g_subject}.PostFix.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 		put_script_file_to_submit=${working_directory_name}/${g_subject}.PostFix.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 		if [ -e "${put_script_file_to_submit}" ]; then
 			rm -f "${put_script_file_to_submit}"
@@ -242,9 +260,7 @@ main()
  		touch ${put_script_file_to_submit}
  		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
  		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
- 		#echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
  		echo "#PBS -o ${working_directory_name}" >> ${put_script_file_to_submit}
- 		#echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
  		echo "#PBS -e ${working_directory_name}" >> ${put_script_file_to_submit}
 
 		if [ -n "${g_notify}" ]; then
@@ -252,7 +268,7 @@ main()
 			echo "#PBS -m abe" >> ${put_script_file_to_submit}
 		fi
  		echo "" >> ${put_script_file_to_submit}
- 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
+ 		echo "${XNAT_PBS_JOBS}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
  		echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}
  		echo "  --password=\"${g_password}\" \\" >> ${put_script_file_to_submit}
  		echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}

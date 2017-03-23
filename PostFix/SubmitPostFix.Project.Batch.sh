@@ -26,10 +26,10 @@ log_Msg "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
 
-start_shadow_number=1
-max_shadow_number=1
+min_shadow_number=1
+max_shadow_number=8
 
-shadow_number=$(shuf -i ${start_shadow_number}-${max_shadow_number} -n 1)
+shadow_number=$(shuf -i ${min_shadow_number}-${max_shadow_number} -n 1)
 
 for subject in ${subjects} ; do
 
@@ -42,7 +42,7 @@ for subject in ${subjects} ; do
 		log_Msg " Using server: ${server}"
 		log_Msg "--------------------------------------------------------------------------------"
 
-		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/SubmitPostFix.OneSubject.sh \
+		${XNAT_PBS_JOBS}/PostFix/SubmitPostFix.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
 			--server=${server} \
@@ -52,7 +52,7 @@ for subject in ${subjects} ; do
 		shadow_number=$((shadow_number+1))
 		
 		if [ "${shadow_number}" -gt "${max_shadow_number}" ]; then
-			shadow_number=${start_shadow_number}
+			shadow_number=${min_shadow_number}
 		fi
 
 	fi
