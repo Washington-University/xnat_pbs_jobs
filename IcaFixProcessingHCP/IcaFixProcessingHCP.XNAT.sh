@@ -52,8 +52,8 @@ XNAT_UTILS_HOME=${PIPELINE_TOOLS_HOME}/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
 # home directory for these XNAT PBS job scripts
-XNAT_PBS_JOBS_HOME=${PIPELINE_TOOLS_HOME}/xnat_pbs_jobs
-echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
+XNAT_PBS_JOBS=${PIPELINE_TOOLS_HOME}/xnat_pbs_jobs
+echo "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
 
 # home directory for XNAT pipeline engine installation
 XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
@@ -255,7 +255,7 @@ main()
 	echo "----- Platform Information: End -----"
 
 	source ${XNAT_UTILS_HOME}/xnat_workflow_utilities.sh
-	source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/GetHcpDataUtils.sh
+	source ${XNAT_PBS_JOBS}/GetHcpDataUtils/GetHcpDataUtils.sh
 
 	# Set up step counters
 	total_steps=10
@@ -342,8 +342,8 @@ main()
 		${current_step} "Set up to run ICAFIX" ${step_percent}
 
 	# Source setup script to setup environment for running the script
-	source ${SCRIPTS_HOME}/SetUpHCPPipeline_IcaFixHCP.sh
-
+	source ${XNAT_PBS_JOBS}/IcaFixProcessingHCP/SetUpHCPPipeline_IcaFixHCP.sh
+	
 	# Already setup to run Python above
 	#source ${SCRIPTS_HOME}/epd-python_setup.sh
 
