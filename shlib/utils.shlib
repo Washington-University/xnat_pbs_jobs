@@ -1,0 +1,52 @@
+show_job_start()
+{
+	log_Msg "Job started on $(hostname) at $(date)"
+}
+
+show_platform_info()
+{
+	log_Msg "----- Platform Information: Begin -----"
+	uname -a
+	log_Msg "----- Platform Information: End -----"
+}
+
+create_start_time_file()
+{
+	local working_dir="${1}"
+	local pipeline_name="${2}"
+
+	log_Msg "Creating a start time file"
+	local start_time_file="${working_dir}/${pipeline_name}.starttime"
+	if [ -e "${start_time_file}" ]; then
+	   log_Msg "Removing old ${start_time_file}"
+	   rm -f "${start_time_file}"
+	fi
+
+	# Sleep for 1 minute to make sure start time file is created at
+	# least a minute after any file previously retrieved
+	log_Msg "Sleep for 1 minute before creating start time file."
+	sleep 1m || log_Err_Abort "Unable to sleep before creating start time file"
+
+	log_Msg "Creating start time file: ${start_time_file}"
+	touch ${start_time_file} || log_Err_Abort "Unable to touch start time file"
+	ls -l ${start_time_file}
+
+	# Sleep for 1 minute to make sure any files created or modified by the
+	# processing scripts are created at least 1 minute after creating
+	# the start time file
+	log_Msg "Sleep for 1 minute after creating start time file."
+	sleep 1m || log_Err_Abort "Unable to sleep after creating start time file"
+}
+
+source_script()
+{
+	local script_to_source=${1}
+
+	if [ -e ${script_to_source} ]; then
+		log_Msg "Sourcing: ${script_to_source}"
+		source ${script_to_source}
+		log_Msg "Completed sourcing: ${script_to_source}"
+	else
+		log_Err_Abort "Specified script to be sourced: ${script_to_source} DOES NOT EXIST"
+	fi
+}

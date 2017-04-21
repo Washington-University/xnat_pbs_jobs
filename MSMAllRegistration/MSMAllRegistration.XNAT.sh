@@ -484,7 +484,8 @@ main()
 		--output-registration-name="MSMAll_InitalReg" \
 		--high-res-mesh="164" \
 		--low-res-mesh="32" \
-		--input-registration-name="MSMSulc"
+		--input-registration-name="MSMSulc" \
+		--matlab-run-mode=0
 	
 	if [ $? -ne 0 ]; then
 		die 

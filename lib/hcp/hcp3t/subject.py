@@ -119,6 +119,5 @@ def _simple_interactive_demo():
     _inform("-- Removing text file " + test_file_name + " --")
     os.remove(test_file_name)
 
-
 if __name__ == '__main__':
     _simple_interactive_demo()

@@ -9,17 +9,17 @@ if ! type -t log_Msg | grep -q 'function' ; then
 	source ${XNAT_PBS_JOBS}/shlib/log.shlib
 fi
 
-log_Msg "Setting up for running ReApplyFix pipeline"
+log_Msg "Setting up for running DeDriftAndResample pipeline"
 log_Msg "The setup script must be SOURCED to correctly set up the environment"
 
-if [ -z "${COMPUTE}" ]; then
-	log_Msg "COMPUTE value unset.  Setting to the default of CHPC"
-	export COMPUTE="CHPC"
+if [ -z "${COMPUTE}" ] ; then
+    log_Msg "COMPUTE value unset.  Setting to the default of CHPC"
+    export COMPUTE="CHPC"
 fi
 
-if [ "${COMPUTE}" = "CHPC" ]; then
-	log_Msg "Setting up for processing on ${COMPUTE}"
-
+if [ "${COMPUTE}" = "CHPC" ] ; then
+    log_Msg "Setting up for processing on ${COMPUTE}"
+    
 	if [ "${CLUSTER}" = "2.0" ] ; then
 		log_Msg "Setting up for CHPC cluster ${CLUSTER}"
 
@@ -39,20 +39,20 @@ if [ "${COMPUTE}" = "CHPC" ]; then
 		log_Msg "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}"
 
 		# FreeSurfer
-		# export FSL_DIR="${FSLDIR}"
-		# export FREESURFER_HOME=/act/freesurfer-5.3.0-HCP
-		# source ${FREESURFER_HOME}/SetUpFreeSurfer.sh
-		# log_Msg "Set up to use FreeSurfer at ${FREESURFER_HOME}"
+		export FSL_DIR="${FSLDIR}"
+		export FREESURFER_HOME=/act/freesurfer-5.3-HCP
+		source ${FREESURFER_HOME}/SetUpFreeSurfer.sh
+		log_Msg "Set up to use FreeSurfer at ${FREESURFER_HOME}"
 
 		# EPD Python
-		export EPD_PYTHON_HOME=${HOME}/export/epc-7.3.2
+		export EPD_PYTHON_HOME=${HOME}/export/epd-7.3.2
 		export PATH=${EPD_PYTHON_HOME}/bin:${PATH}
 		log_Msg "Set up to use EPD Python at ${EPD_PYTHON_HOME}"
 
 		# Connectome Workbench
 		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.2.3/bin_rh_linux64
 		log_Msg "Set up to use Workbench at ${CARET7DIR}"
-
+		
 		# HCP Pipeline Scripts
 		export HCPPIPEDIR=${HOME}/pipeline_tools/Pipelines_dev
 		export HCPPIPEDIR_Config=${HCPPIPEDIR}/global/config
@@ -72,15 +72,24 @@ if [ "${COMPUTE}" = "CHPC" ]; then
 		log_Msg "Set up to use ICAFIX at ${ICAFIX}"
 
 		# MATLAB
-		export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/R2016b/v91
+		export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/2016b/v91
 		log_Msg "MATLAB_COMPILER_RUNTIME: ${MATLAB_COMPILER_RUNTIME}"
-		
+
+		# MSM
+		export MSMBINDIR=${HOME}/pipeline_tools/MSM_HOCR_v2/Centos
+		log_Msg "Set up to  use MSM binary at ${MSMBINDIR}"
+
+		export MSMCONFIGDIR=${HCPPIPEDIR}/MSMConfig
+		log_Msg "Set MSM Configuration files directory to ${MSMCONFIGDIR}"
+
 	else # unhandled value for ${CLUSTER}
-		log_Err_Abort "Processing setup for cluster ${CLUSTER} is currently not supported."
+		log_Err_Abort "Processing set up for cluster ${CLUSTER} is currently not supported."
 
 	fi
 
 else # unhandled value for ${COMPUTE}
-	log_Err_Abort "Processing setup for ${COMPUTE} is currently not supported."
+	log_Err_Abort "Processing set up for ${COMPUTE} is currently not supported."
 
 fi
+
+	

@@ -54,7 +54,7 @@ log_Err_Abort()
 		toolname="${log_toolName}"
 	fi
 
-	echo ${dateTime} "-" ${toolname} "-" "ABORTING:" "${msg}"
+	echo -e ${dateTime} "-" ${toolname} "-" "ABORTING:" "${msg}"
 	exit 1
 }
 

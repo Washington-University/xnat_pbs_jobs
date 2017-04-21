@@ -25,6 +25,7 @@ logging.config.fileConfig(file_utils.get_logging_config_file_name(__file__))
 logger = logging.getLogger(file_utils.get_logger_name(__file__))
 logger.info("logger: '" + logger.name + "' created and configured")
 
+
 class BatchSubmitter(batch_submitter.BatchSubmitter):
 
     def __init__(self):
@@ -48,7 +49,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             output_resource_suffix = config.get_value(subject.subject_id, 'OutputResourceSuffix')
 
             scan = subject.extra
-            
+
             submitter = one_subject_job_submitter.OneSubjectJobSubmitter(self._archive, self._archive.build_home)
 
             logger.info("-----")
@@ -69,7 +70,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter.username = username
             submitter.password = password
             submitter.server = 'https://db.humanconnectome.org'
-            
+
             submitter.project = subject.project
             submitter.subject = subject.subject_id
             submitter.session = subject.subject_id + '_3T'

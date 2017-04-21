@@ -1,7 +1,8 @@
-#!/bin/bash 
+#!/bin/bash
 
 if [ -z "${XNAT_PBS_JOBS}" ]; then
-	echo "$(basename ${0}): ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	script_name=$(basename "${0}")
+	echo "${script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
 	exit 1
 fi
 
@@ -9,11 +10,11 @@ if ! type -t log_Msg | grep -q 'function' ; then
 	source ${XNAT_PBS_JOBS}/shlib/log.shlib
 fi
 
-log_Msg "Setting up for running ReApplyFix pipeline"
+log_Msg "Setting up for running MultiRunICAFIX pipeline"
 log_Msg "The setup script must be SOURCED to correctly set up the environment"
 
 if [ -z "${COMPUTE}" ]; then
-	log_Msg "COMPUTE value unset.  Setting to the default of CHPC"
+	log_Msg "COMPUTE value unset. Setting to the default value of CHPC"
 	export COMPUTE="CHPC"
 fi
 
@@ -45,9 +46,9 @@ if [ "${COMPUTE}" = "CHPC" ]; then
 		# log_Msg "Set up to use FreeSurfer at ${FREESURFER_HOME}"
 
 		# EPD Python
-		export EPD_PYTHON_HOME=${HOME}/export/epc-7.3.2
-		export PATH=${EPD_PYTHON_HOME}/bin:${PATH}
-		log_Msg "Set up to use EPD Python at ${EPD_PYTHON_HOME}"
+		# export EPD_PYTHON_HOME=${HOME}/export/epc-7.3.2
+		# export PATH=${EPD_PYTHON_HOME}/bin:${PATH}
+		# local_log "Set up to use EPD Python at ${EPD_PYTHON_HOME}"
 
 		# Connectome Workbench
 		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.2.3/bin_rh_linux64
@@ -84,3 +85,5 @@ else # unhandled value for ${COMPUTE}
 	log_Err_Abort "Processing setup for ${COMPUTE} is currently not supported."
 
 fi
+
+

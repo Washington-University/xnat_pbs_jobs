@@ -24,8 +24,8 @@ __maintainer__ = "Timothy B. Brown"
 logging.config.fileConfig(file_utils.get_logging_config_file_name(__file__))
 logger = logging.getLogger(file_utils.get_logger_name(__file__))
 
-DNM = "---" # Does Not Matter
-NA = "N/A" # Not Available
+DNM = "---"  # Does Not Matter
+NA = "N/A"  # Not Available
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 

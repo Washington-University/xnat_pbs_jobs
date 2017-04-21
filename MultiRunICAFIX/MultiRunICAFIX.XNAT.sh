@@ -1,40 +1,23 @@
 #!/bin/bash
-set -e
 
-g_pipeline_name="ReApplyFix"
-g_script_name=$(basename "${0}")
+g_pipeline_name="MultiRunICAFIX"
 
 if [ -z "${XNAT_PBS_JOBS}" ]; then
-	echo "${g_script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	script_name=$(basename "${0}")
+	echo "${script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
 	exit 1
 fi
- 
+
 source "${XNAT_PBS_JOBS}/shlib/log.shlib"  # Logging related functions
 source "${XNAT_PBS_JOBS}/shlib/utils.shlib"  # Utility functions
 log_Msg "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
 
 usage()
 {
-	cat << EOF
+	cat <<EOF
 
-Run the HCP ReApplyFix.sh pipeline script for a subject
+Run the HCP MultiRunICAFIX pipeline
 
-Usage: ${g_script_name} PARAMETER..."
-
-PARAMETERs are [ ] = optional; < > = user supplied value
-  [--help]                 : show usage information and exit with non-zero return code
-   --user=<username>       : XNAT DB username
-   --password=<password>   : XNAT DB password
-   --server=<server>       : XNAT server (e.g. db.humanconnectome.org)
-   --project=<project>     : XNAT project (e.g. HCP_Staging_7T)
-   --subject=<subject>     : XNAT subject ID within project (e.g. 102311)
-   --session=<session>     : XNAT session ID within project (e.g. 102311_7T)
-   --scan=<scan>           : Scan ID (e.g. rfMRI_REST1_PA)
-   --working-dir=<dir>     : Working directory in which to place retrieved data
-                             and in which to produce results
-   --setup-script=<script> : Script to source to set up environment
-  [--reg-name=reg_name]    : Name of registration upon which to work
-   
 EOF
 }
 
@@ -49,11 +32,12 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_session
-	unset g_scan
 	unset g_working_dir
 	unset g_setup_script
-    unset g_reg_name
-
+	g_groups=""
+	g_concat_names=""
+	unset g_group_count
+	
 	# parse arguments
 	local num_args=${#arguments[@]}
 	local argument
@@ -91,10 +75,6 @@ get_options()
 				g_session=${argument#*=}
 				index=$(( index + 1 ))
 				;;
-			--scan=*)
-				g_scan=${argument#*=}
-				index=$(( index + 1 ))
-				;;
 			--working-dir=*)
 				g_working_dir=${argument#*=}
 				index=$(( index + 1 ))
@@ -103,8 +83,22 @@ get_options()
 				g_setup_script=${argument#*=}
 				index=$(( index + 1 ))
 				;;
-			--reg-name=*)
-				g_reg_name=${argument#*=}
+			--group=*)
+				a_group=${argument#*=}
+				if [ -z "${g_groups}" ]; then
+					g_groups="${a_group}"
+				else
+					g_groups+=" ${a_group}"
+				fi
+				index=$(( index + 1 ))
+				;;
+			--concat-name=*)
+				a_concat_name=${argument#*=}
+				if [ -z "${g_concat_names}" ]; then
+					g_concat_names="${a_concat_name}"
+				else
+					g_concat_names+=" ${a_concat_name}"
+				fi
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -154,12 +148,6 @@ get_options()
 		log_Msg "g_session: ${g_session}"
 	fi
 
-	if [ -z "${g_scan}" ]; then
-		error_msgs+="\nERROR: scan (--scan=) required"
-	else
-		log_Msg "g_scan: ${g_scan}"
-	fi
-
 	if [ -z "${g_working_dir}" ]; then
 		error_msgs+="\nERROR: working directory (--working-dir=) required"
 	else
@@ -172,8 +160,31 @@ get_options()
 		log_Msg "g_setup_script: ${g_setup_script}"
 	fi
 
-	log_Msg "g_reg_name: ${g_reg_name}"
+	if [ -z "${g_groups}" ]; then
+		error_msgs+="\nERROR: at least one group (--group=) required"
+	else
+		log_Msg "g_groups: ${g_groups}"
+	fi
+	
+	if [ -z "${g_concat_names}" ]; then
+		error_msgs+="\nERROR: at least one concat name (--concat-name=) required"
+	else
+		log_Msg "g_concat_names: ${g_concat_names}"
+	fi
 
+	g_groups=( $g_groups )
+	g_group_count=${#g_groups[@]}
+	
+	g_concat_names=( $g_concat_names )
+	local concat_name_count=${#g_concat_names[@]}
+
+	if [ ${g_group_count} -ne ${concat_name_count} ]; then
+		error_msgs+="\nERROR: number of groups specified must equal number of concat names specified"
+	else
+		log_Msg "group count: ${g_group_count}"
+		log_Msg "concat names count: ${concat_name_count}"
+	fi
+	
 	if [ ! -z "${error_msgs}" ]; then
 		usage
 		log_Err_Abort ${error_msgs}
@@ -183,42 +194,57 @@ get_options()
 main()
 {
 	show_job_start
-	
+
 	show_platform_info
-	
+
 	get_options "$@"
 
-	create_start_time_file ${g_working_dir} ${g_pipeline_name}	
+	create_start_time_file ${g_working_dir} ${g_pipeline_name}
 
 	source_script ${g_setup_script}
 
-	# Run ReApplyFix.sh script
+	source_script ${XNAT_PBS_JOBS}/ToolSetupScripts/epd-python_setup.sh
 
-	log_Msg "HCPPIPEDIR: ${HCPPIPEDIR}"
+	export FSL_FIXDIR=${ICAFIX}
+	log_Msg "FSL_FIXDIR: ${FSL_FIXDIR}"
+	
+	local index=0
+	while [ ${index} -lt ${g_group_count} ]; do
+		fMRI_names=${g_groups[index]}
+		concat_name=${g_concat_names[index]}
 
-	cmd=${HCPPIPEDIR}/ReApplyFix/ReApplyFixPipeline.sh
-	cmd+=" --path=${g_working_dir}"
-	cmd+=" --subject=${g_subject}"
-	cmd+=" --fmri-name=${g_scan}"
-	cmd+=" --high-pass=2000"
+		fMRI_names=${fMRI_names//@/ }
 
-	if [ ! -z "${g_reg_name}" ] ; then 
-		cmd+=" --reg-name=${g_reg_name}"
-	else
-		cmd+=" --reg-name=NONE"
-	fi
-	cmd+=" --low-res-mesh=32"
-	cmd+=" --matlab-run-mode=0"
+		files=""
+		for fMRI_name in ${fMRI_names} ; do
+			if [ -z "${files}" ]; then
+				files=${g_working_dir}/${g_subject}/MNINonLinear/Results/${fMRI_name}/${fMRI_name}.nii.gz
+			else
+				files=${files}@${g_working_dir}/${g_subject}/MNINonLinear/Results/${fMRI_name}/${fMRI_name}.nii.gz
+			fi
+		done
 
-	log_Msg "About to issue the following cmd"
-	log_Msg "${cmd}"
+		log_Msg "files: ${files}"
+		log_Msg "concat_name: ${concat_name}"
+		
+		# Run the hcp_fix_multi_run script
+		cmd="${HCPPIPEDIR}/ICAFIX/hcp_fix_multi_run"
+		cmd+=" ${files}"
+		cmd+=" 2000"
+		cmd+=" ${concat_name}"
 
-	${cmd}
-	return_code=$?
-	if [ ${return_code} -ne 0 ]; then
-		log_Err_Abort "ReApplyFixPipeline.sh non-zero return code: ${return_code}"
- 	fi
+		log_Msg "About to issue the following command"
+		log_Msg "${cmd}"
 
+		${cmd}
+		return_code=$?
+		if [ ${return_code} -ne 0 ]; then
+			log_Err_Abort "hcp_fix_multi_run non-zero return code: ${return_code}"
+		fi
+		
+		index=$(( index + 1 ))
+	done
+	
 	log_Msg "Complete"
 }
 
