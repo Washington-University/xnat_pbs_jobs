@@ -24,7 +24,7 @@ if [ "$COMPUTE" = "CHPC" ]; then
  		local_log "Setting up for CHPC cluster ${CLUSTER}"
 
 		# FSL
-		export FSLDIR=${HOME}/export/fsl-5.0.9-custom-bedpostx-20161206
+		export FSLDIR=/export/HCP/fsl-5.0.9-custom-bedpostx-20161206
 		source ${FSLDIR}/etc/fslconf/fsl.sh
 		local_log "Set up to use FSL at ${FSLDIR}"
 

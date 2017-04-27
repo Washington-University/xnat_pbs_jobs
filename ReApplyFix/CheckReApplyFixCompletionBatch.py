@@ -6,7 +6,7 @@ import logging
 import logging.config
 import os
 
-# import of third party modules
+# import of third-party modules
 
 # import of local modules
 import hcp.hcp3t.archive as hcp3t_archive
@@ -31,88 +31,87 @@ DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 def _write_header():
 
-    header_line = "\t".join(["Project",
-                             "Subject ID",
-                             "Scan",
-                             "Resource Exists",
-                             "Resource Date",
-                             "Files Exist"])
-    print(header_line)
+	header_line = "\t".join(["Project",
+							 "Subject ID",
+							 "Scan",
+							 "Resource Exists",
+							 "Resource Date",
+							 "Files Exist"])
+	print(header_line)
+	
 
+def _write_subject_info(output_file, project, subject_id, scan,
+						resource_exists, resource_date, files_exist):
 
-def _write_subject_info(output_file, project, subject_id, scan, 
-                        resource_exists, resource_date, files_exist):
-
-    subject_line = "\t".join([project,
-                              subject_id,
-                              scan,
-                              str(resource_exists),
-                              resource_date,
-                              str(files_exist)])
-    print(subject_line)
-    output_file.write(subject_line + os.linesep)
+	subject_line = "\t".join([project,
+							  subject_id,
+							  scan,
+							  str(resource_exists),
+							  resource_date,
+							  str(files_exist)])
+	print(subject_line)
+	output_file.write(subject_line + os.linesep)
 
 
 if __name__ == "__main__":
 
-    parser = my_argparse.MyArgumentParser()
+	parser = my_argparse.MyArgumentParser()
+	
+	parser.add_argument('-r', '--reg-name', dest='reg_name', required=False, default="", type=str)
+	args = parser.parse_args()
+	
+	if args.reg_name != "":
+		print("reg_name: " + args.reg_name)
+		
+	# get list of subjects to check
+	subject_file_name = file_utils.get_subjects_file_name(__file__)
+	logger.info("Retrieving subject list from: " + subject_file_name)
+	subject_list = hcp3t_subject.read_subject_info_list(subject_file_name, separator="\t")
 
-    parser.add_argument('-r', '--reg-name', dest='reg_name', required=False, default="", type=str)
-    args = parser.parse_args()
+	# open output file
+	output_file = open('ReApplyFix.status', 'w')
 
-    if args.reg_name != "":
-        print("reg_name: " + args.reg_name)
+	_write_header()
+	
+	# create archive
+	archive = hcp3t_archive.Hcp3T_Archive()
 
-    # get list of subjects to check
-    subject_file_name = file_utils.get_subjects_file_name(__file__)
-    logger.info("Retrieving subject list from: " + subject_file_name)
-    subject_list = hcp3t_subject.read_subject_info_list(subject_file_name, separator="\t")
+	# create one subject completion checker
+	completion_checker = one_subject_completion_checker.OneSubjectCompletionChecker()
 
-    # open output file
-    output_file = open('ReApplyFix.status', 'w')
+	if args.reg_name != "":
+		print("setting completion checker reg_name to " + args.reg_name)
+		completion_checker.reg_name = args.reg_name
 
-    # create archive
-    archive = hcp3t_archive.Hcp3T_Archive()
+	for subject in subject_list:
+		subject_id = subject.subject_id
+		project = subject.project
+		scan = subject.extra
+		logger.debug("       id: " + subject_id)
+		logger.debug("  project: " + project)
+		logger.debug("     scan: " + scan)
 
-    # create one subject completion checker
-    completion_checker = one_subject_completion_checker.OneSubjectCompletionChecker()
+		if completion_checker.does_processed_resource_exist(archive, subject, scan):
+			logger.debug("processed resource exists")
 
-    if args.reg_name != "":
-        print("setting completion checker reg_name to " + args.reg_name)
-        completion_checker.reg_name = args.reg_name
+			resource_exists = True
+			if args.reg_name != "":
+				fullpath = archive.reapplyfix_dir_fullpath(subject, scan, args.reg_name)
+			else:
+				fullpath = archive.reapplyfix_dir_fullpath(subject, scan)
 
-    for subject in subject_list:
-        subject_id = subject.subject_id
-        project = subject.project
-        scan = subject.extra
-        logger.debug("       id: " + subject_id)
-        logger.debug("  project: " + project)
-        logger.debug("     scan: " + scan)
+			timestamp = os.path.getmtime(fullpath)
+			resource_date = datetime.datetime.fromtimestamp(timestamp).strftime(DATE_FORMAT)
+			files_exist = completion_checker.is_processing_complete(archive, subject, scan)
 
-        if completion_checker.does_processed_resource_exist(archive, subject, scan):
-            logger.debug("processed resource exists")
+		else:
+			logger.debug("processed resource DOES NOT exist")
+			resource_exists = False
+			resource_date = NA
+			files_exist = False
 
-            resource_exists = True
-            if args.reg_name != "":
-                fullpath = archive.reapplyfix_dir_fullpath(subject, scan, args.reg_name)
-            else:
-                fullpath = archive.reapplyfix_dir_fullpath(subject, scan)
-
-            timestamp = os.path.getmtime(fullpath)
-            resource_date = datetime.datetime.fromtimestamp(timestamp).strftime(DATE_FORMAT)
-            if completion_checker.is_processing_complete(archive, subject, scan):
-                files_exist = True
-            else:
-                files_exist = False
-
-        else:
-            logger.debug("processed resource DOES NOT exist")
-            resource_exists = False
-            resource_date = NA
-            files_exist = False
-
-        _write_subject_info(output_file, project, subject_id, scan, 
-                            resource_exists, resource_date, files_exist) 
+		_write_subject_info(output_file, project, subject_id, scan,
+							resource_exists, resource_date, files_exist)
 
 
 

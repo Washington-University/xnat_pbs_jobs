@@ -119,6 +119,21 @@ def rm_dir_if_exists(full_path, verbose=False):
 			print("Removing directory: '" + full_path + "' and all its contents")
 		shutil.rmtree(full_path)
 
+def do_all_files_exist(file_name_list, verbose=False):
+	for file_name in file_name_list:
+		if verbose:
+			print("Checking for existence of file: " + file_name)
+		if os.path.isfile(file_name):
+			continue
+		
+		# If we get here, the most recently checked file does not exist
+		print("FILE DOES NOT EXIST: " + file_name)
+		return False
+
+	# If we get here, we've cycled through all the files and
+	# all of them exist.
+	return True
+
 
 if __name__ == '__main__':
 

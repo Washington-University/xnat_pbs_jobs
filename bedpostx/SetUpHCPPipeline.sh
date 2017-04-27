@@ -1,7 +1,7 @@
 
 echo ""
 echo "Setting up FSL"
-export FSLDIR=${HOME}/export/fsl-5.0.9-custom-bedpostx-20161206
+export FSLDIR=/export/HCP/export/fsl-5.0.9-custom-bedpostx-20161206
 source ${FSLDIR}/etc/fslconf/fsl.sh
 echo "Set up to use FSL at ${FSLDIR}"
 

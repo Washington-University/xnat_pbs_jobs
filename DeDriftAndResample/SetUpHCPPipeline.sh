@@ -24,7 +24,7 @@ if [ "${COMPUTE}" = "CHPC" ] ; then
 		log_Msg "Setting up for CHPC cluster ${CLUSTER}"
 
 		# FSL
-		export FSLDIR=${HOME}/export/fsl-5.0.9-custom-20170410
+		export FSLDIR=/export/HCP/fsl-5.0.9-custom-20170410
 		source ${FSLDIR}/etc/fslconf/fsl.sh
 		log_Msg "Set up to use FSL at ${FSLDIR}"
 		
@@ -40,12 +40,12 @@ if [ "${COMPUTE}" = "CHPC" ] ; then
 
 		# FreeSurfer
 		export FSL_DIR="${FSLDIR}"
-		export FREESURFER_HOME=/act/freesurfer-5.3-HCP
+		export FREESURFER_HOME=/act/freesurfer-5.3.0-HCP
 		source ${FREESURFER_HOME}/SetUpFreeSurfer.sh
 		log_Msg "Set up to use FreeSurfer at ${FREESURFER_HOME}"
 
 		# EPD Python
-		export EPD_PYTHON_HOME=${HOME}/export/epd-7.3.2
+		export EPD_PYTHON_HOME=/export/HCP/epd-7.3.2
 		export PATH=${EPD_PYTHON_HOME}/bin:${PATH}
 		log_Msg "Set up to use EPD Python at ${EPD_PYTHON_HOME}"
 
@@ -72,7 +72,7 @@ if [ "${COMPUTE}" = "CHPC" ] ; then
 		log_Msg "Set up to use ICAFIX at ${ICAFIX}"
 
 		# MATLAB
-		export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/2016b/v91
+		export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/R2016b/v91
 		log_Msg "MATLAB_COMPILER_RUNTIME: ${MATLAB_COMPILER_RUNTIME}"
 
 		# MSM
@@ -91,5 +91,3 @@ else # unhandled value for ${COMPUTE}
 	log_Err_Abort "Processing set up for ${COMPUTE} is currently not supported."
 
 fi
-
-	

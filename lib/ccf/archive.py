@@ -298,6 +298,23 @@ class CcfArchive(object):
 		path_expr += os.sep + '*' + self.FIX_PROCESSED_SUFFIX
 		dir_list = glob.glob(path_expr)
 		return sorted(dir_list)
+
+	def dedrift_and_resample_dir_full_path(self, subject_info):
+		"""
+		Full path to MSM All DeDrift and Resample resource directory
+		"""
+		path_expr = self.subject_resources_dir_full_path(subject_info)
+		path_expr += os.sep + 'MSMAllDeDrift'
+		return path_expr
+
+	def available_msmall_dedrift_and_resample_dir_full_paths(self, subject_info):
+		"""
+		List of full paths to any resource containing msmall dedrift and resample results
+		data for the specified subject
+		"""
+		path_expr = self.dedrift_and_resample_dir_full_path(subject_info)
+		dir_list = glob.glob(path_expr)
+		return sorted(dir_list)
 	
 	# Internal utility methods
 

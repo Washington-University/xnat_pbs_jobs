@@ -3,7 +3,7 @@ if [ "${COMPUTE}" = "CHPC" ]; then
 	if [ "${CLUSTER}" = "1.0" ] ; then
 		PATH_TO_LNDIR="/export/lndir-1.0.1/bin/lndir"
 	elif [ "${CLUSTER}" = "2.0" ]; then
-		PATH_TO_LNDIR="${HOME}/export/lndir-1.0.1/bin/lndir"
+		PATH_TO_LNDIR="/export/HCP/lndir-1.0.1/bin/lndir"
 	else
 		echo "GetHcpDataUtils.sh: ERROR - Unable to set PATH_TO_LNDIR value based on CLUSTER: ${CLUSTER}"
 		exit 1

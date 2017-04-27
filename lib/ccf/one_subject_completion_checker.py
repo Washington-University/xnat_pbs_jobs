@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 """
-Abstract Base Class for One Subject Completion Checker classes
+Abstract Base Class for One Subject Completion Checker Classes
 """
 
 # import of built-in modules
 import abc
-import logging
 
 # import of third-party modules
 
@@ -15,20 +14,12 @@ import utils.file_utils as file_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
-__copyright__ = "Copyright 2016, The Human Connectome Project"
+__copyright__ = "Copyright 2017, Connectome Coordination Facility"
 __maintainer__ = "Timothy B. Brown"
-
-# create and configure a module logger
-module_logger = logging.getLogger(__file__)
-module_logger.setLevel(logging.INFO)
-sh = logging.StreamHandler()
-sh.setFormatter(logging.Formatter('%(name)s: %(message)s'))
-module_logger.addHandler(sh)
-
 
 class OneSubjectCompletionChecker(abc.ABC):
 	"""
-	Abstract base class for classes that are used to check the completion
+	Abstract base class for classes that are used to check the completion 
 	of pipeline processing for one subject
 	"""
 

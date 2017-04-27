@@ -24,7 +24,7 @@ if [ "${COMPUTE}" = "CHPC" ]; then
 		log_Msg "Setting up for CHPC cluster ${CLUSTER}"
 
 		# FSL
-		export FSLDIR=${HOME}/export/fsl-5.0.9-custom-20170410
+		export FSLDIR=/export/HCP/fsl-5.0.9-custom-20170410
 		source ${FSLDIR}/etc/fslconf/fsl.sh
 		log_Msg "Set up to use FSL at ${FSLDIR}"
 		
@@ -45,7 +45,7 @@ if [ "${COMPUTE}" = "CHPC" ]; then
 		# log_Msg "Set up to use FreeSurfer at ${FREESURFER_HOME}"
 
 		# EPD Python
-		export EPD_PYTHON_HOME=${HOME}/export/epc-7.3.2
+		export EPD_PYTHON_HOME=/export/HCP/epd-7.3.2
 		export PATH=${EPD_PYTHON_HOME}/bin:${PATH}
 		log_Msg "Set up to use EPD Python at ${EPD_PYTHON_HOME}"
 

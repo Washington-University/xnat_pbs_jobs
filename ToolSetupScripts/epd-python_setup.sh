@@ -12,7 +12,7 @@ local_log()
 if [[ "${CLUSTER}" == "2.0" ]]; then
 	local_log "Setting up EPD Python for CLUSTER: ${CLUSTER}"
 
-    EPD_PYTHON_HOME=${HOME}/export/epd-7.3.2
+	EPD_PYTHON_HOME=/export/HCP/epd-7.3.2
     export PATH=${EPD_PYTHON_HOME}/bin:${PATH}
 
     # it is important that the ${EPD_PYTHON_HOME}/lib come late in the LD_LIBRARY_PATH so that the right 

@@ -169,6 +169,22 @@ main()
 	# root directory of the XNAT database archive
 	DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
 	log_Msg "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
+
+	# remove the following for production
+	DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/build_ssd/chpc/BUILD/test_data/hcpdb/archive"
+	log_Msg "---------------------------------------"
+	log_Msg "IMPORTANT IMPORTANT IMPORTANT IMPORTANT"
+	log_Msg ""
+	log_Msg " DATABASE_ARCHIVE_ROOT is set to ${DATABASE_ARCHIVE_ROOT}"
+	log_Msg ""
+	log_Msg " I AM USING THAT AS AN OVERRIDE VALUE!"
+	log_Msg " THIS SHOULD NEVER BE HAPPENING IN A "
+	log_Msg " PRODUCTION RUN. THIS IS FOR TESTING"
+	log_Msg " PURPOSES ONLY!!! "
+	log_Msg ""
+	log_Msg "IMPORTANT IMPORTANT IMPORTANT IMPORTANT"
+	log_Msg "---------------------------------------"
+	# remove the above for production
 	
 	# ----------------------------------------------------------------------------------------------
 	#  Figure out what resting state scans are available for this subject/session
@@ -188,15 +204,13 @@ main()
 		resting_state_scan_names="NONE"
 	fi
 
-	echo "Found the following resting state scans: ${resting_state_scan_names}"
+	log_Msg "Found the following resting state scans: ${resting_state_scan_names}"
 
 	popd
 
 	# ----------------------------------------------------------------------------------------------
 	#  Figure out what task scans are available for this subject/session 
 	# ----------------------------------------------------------------------------------------------
-	increment_step
-	update_xnat_workflow ${g_current_step} "Figure out what task scans should be processed" ${g_step_percent}
 
 	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES
 
@@ -212,7 +226,7 @@ main()
 		task_scan_names="NONE"
 	fi
 
-	echo "Found the following task scans: ${task_scan_names}"
+	log_Msg "Found the following task scans: ${task_scan_names}"
 
 	popd
 
@@ -238,8 +252,7 @@ main()
 	local rfMRINames="${resting_state_scan_names}" #List of Resting State Maps Space delimited list or NONE
 	local tfMRINames="${task_scan_names}" #Space delimited list or NONE
 	local SmoothingFWHM="2" #Should equal previous grayordiantes smoothing (because we are resampling from unsmoothed native mesh timeseries
-	# For value of HighPass, see step above in which prefiltered_func_data_mcf.par files are copied.
-	#local HighPass="2000" #For resting state fMRI
+	local HighPass="2000" #For resting state fMRI
 
 	Maps=`echo "$Maps" | sed s/" "/"@"/g`
 	MyelinMaps=`echo "$MyelinMaps" | sed s/" "/"@"/g`
@@ -247,22 +260,26 @@ main()
 	tfMRINames=`echo "$tfMRINames" | sed s/" "/"@"/g`
 
 	# Run DeDriftAndResamplePipeline.sh script
-	${HCPPIPEDIR}/DeDriftAndResample/DeDriftAndResamplePipeline.sh \
-		--path=${g_working_dir} \
-		--subject=${g_subject} \
-		--high-res-mesh=${HighResMesh} \
-		--low-res-meshes=${LowResMeshes} \
-		--registration-name="${RegName}" \
-		--dedrift-reg-files="${DeDriftRegFiles}" \
-		--concat-reg-name="${ConcatRegName}" \
-		--maps="${Maps}" \
-		--myelin-maps="${MyelinMaps}" \
-		--rfmri-names="${rfMRINames}" \
-		--tfmri-names="${tfMRINames}" \
-		--smoothing-fwhm=${SmoothingFWHM} \
-		--highpass=${HighPass} \
-		--matlab-run-mode=0
+	cmd=${HCPPIPEDIR}/DeDriftAndResample/DeDriftAndResamplePipeline.sh
+	cmd+=" --path=${g_working_dir} "
+	cmd+=" --subject=${g_subject} "
+	cmd+=" --high-res-mesh=${HighResMesh} "
+	cmd+=" --low-res-meshes=${LowResMeshes} "
+	cmd+=" --registration-name=${RegName} "
+	cmd+=" --dedrift-reg-files=${DeDriftRegFiles} "
+	cmd+=" --concat-reg-name=${ConcatRegName} "
+	cmd+=" --maps=${Maps} "
+	cmd+=" --myelin-maps=${MyelinMaps} "
+	cmd+=" --rfmri-names=${rfMRINames} "
+	cmd+=" --tfmri-names=${tfMRINames} "
+	cmd+=" --smoothing-fwhm=${SmoothingFWHM} "
+	cmd+=" --highpass=${HighPass} "
+	cmd+=" --matlab-run-mode=0 "
 
+	log_Msg "About to issue the following command"
+	log_Msg "${cmd}"
+
+	${cmd}
 	return_code=$?
 	if [ ${return_code} -ne 0 ]; then
 		log_Err_Abort "DeDriftAndResamplePipeline.sh non-zero return code: ${return_code}"

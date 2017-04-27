@@ -80,7 +80,7 @@ if [ "${COMPUTE}" = "CHPC" ] ; then
 		
 		echo ""
 		echo "${script_name}: Setting up FSL"
-		export FSLDIR=${HOME}/export/fsl-5.0.6-20150401
+		export FSLDIR=/export/HCP/fsl-5.0.6-20150401
 		source ${FSLDIR}/etc/fslconf/fsl.sh
 		echo "${script_name}: Set up to use FSL at ${FSLDIR}"
 		
@@ -93,7 +93,7 @@ if [ "${COMPUTE}" = "CHPC" ] ; then
 		
 		echo ""
 		echo "${script_name}: Setting up Python"
-		export EPD_PYTHON_HOME=${HOME}/export/epd-7.3.2
+		export EPD_PYTHON_HOME=/export/HCP/epd-7.3.2
 		export PATH=${EPD_PYTHON_HOME}/bin:${PATH}
 		echo "${script_name}: Set up to use EPD Python at ${EPD_PYTHON_HOME}"
 		
