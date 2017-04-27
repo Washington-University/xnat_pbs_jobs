@@ -30,11 +30,11 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
 
 		# Build a list of expected files
 		file_name_list = []
-	
+
+		# 100307/MNINonLinear
 		check_dir = os.sep.join([archive.dedrift_and_resample_dir_full_path(subject_info),
 								 str(subject_info.subject_id),
-								 'MNINonLinear'
-								 ])
+								 'MNINonLinear'])
 
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.ArealDistortion_MSMAll.164k_fs_LR.dscalar.nii')
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.corrThickness_MSMAll.164k_fs_LR.dscalar.nii')
@@ -57,11 +57,11 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.sulc_MSMAll.164k_fs_LR.dscalar.nii')
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.thickness_MSMAll.164k_fs_LR.dscalar.nii')
 
+		# 100307/MNINonLinear/fsaverage_LR32k
 		check_dir = os.sep.join([archive.dedrift_and_resample_dir_full_path(subject_info),
 								 str(subject_info.subject_id),
 								 'MNINonLinear',
-								 'fsaverage_LR32k'
-								 ])
+								 'fsaverage_LR32k'])
 		
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.ArealDistortion_MSMAll.32k_fs_LR.dscalar.nii')
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.BiasField_MSMAll.32k_fs_LR.dscalar.nii')
@@ -86,11 +86,11 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.sulc_MSMAll.32k_fs_LR.dscalar.nii')
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.thickness_MSMAll.32k_fs_LR.dscalar.nii')
 
+		# 100307/MNINonLinear/Native
 		check_dir = os.sep.join([archive.dedrift_and_resample_dir_full_path(subject_info),
 								 str(subject_info.subject_id),
 								 'MNINonLinear',
-								 'Native'
-								 ])
+								 'Native'])
 		
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.ArealDistortion_MSMAll.native.dscalar.nii')
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.BiasField_MSMAll.native.dscalar.nii')
@@ -105,20 +105,29 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.R.sphere.MSMAll.native.surf.gii')
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.SmoothedMyelinMap_BC_MSMAll.native.dscalar.nii')
 
+		# For all the preprocessed functional scans that exist for this subject
+		for func_name in archive.available_functional_preproc_names(subject_info):
 
+			# 100307/MNINonLinear/Results/tfMRI_EMOTION_LR
+			check_dir = os.sep.join([archive.dedrift_and_resample_dir_full_path(subject_info),
+									 str(subject_info.subject_id),
+									 'MNINonLinear',
+									 'Results',
+									 func_name])
+			file_name_list.append(check_dir + os.sep + func_name + '_Atlas_MSMAll.dtseries.nii')
+			file_name_list.append(check_dir + os.sep + func_name + '_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
+			file_name_list.append(check_dir + os.sep + func_name + '_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
+			file_name_list.append(check_dir + os.sep + func_name + '_s2_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
+			file_name_list.append(check_dir + os.sep + func_name + '_s2_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
+			
+			if archive.is_resting_state_scan_name(func_name):
+				file_name_list.append(check_dir + os.sep + func_name + '_Atlas_MSMAll_hp2000_clean.dtseries.nii')
+				check_dir += os.sep + func_name + '_hp2000.ica'
+				file_name_list.append(check_dir + os.sep + 'Atlas.dtseries.nii')
+				file_name_list.append(check_dir + os.sep + 'Atlas_hp_preclean.dtseries.nii')
+				file_name_list.append(check_dir + os.sep + 'mc' + os.sep + 'prefiltered_func_data_mcf.par')
 
-		# ICI
-		# TODO
-		
-		# need to cycle through functional preproc scans (see shell script)
-
-		# ICI
-		# TODO
-
-
-
-
-		
+		# 100307/T1w/fsaverage_LR32k
 		check_dir = os.sep.join([archive.dedrift_and_resample_dir_full_path(subject_info),
 								 str(subject_info.subject_id),
 								 'T1w',
@@ -141,6 +150,7 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.R.very_inflated_MSMAll.32k_fs_LR.surf.gii')
 		file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.R.white_MSMAll.32k_fs_LR.surf.gii')
 
+		# 100307/T1w/Native
 		check_dir = os.sep.join([archive.dedrift_and_resample_dir_full_path(subject_info),
 								 str(subject_info.subject_id),
 								 'T1w',

@@ -104,6 +104,22 @@ class CcfArchive(object):
 		return 'fMRI'
 
 	@property
+	def RESTING_STATE_SCAN_MARKER(self):
+		"""
+		Prefix to a resource directory name that indicates that the resource is for a resting
+		state functional MRI
+		"""
+		return 'r' + self.FUNCTIONAL_SCAN_MARKER
+
+	@property
+	def TASK_SCAN_MARKER(self):
+		"""
+		Prefix to a resource directory name that indicates that the resources is for a task
+		functional MRI
+		"""
+		return 't' + self.FUNCTIONAL_SCAN_MARKER
+	
+	@property
 	def FIX_PROCESSED_SUFFIX(self):
 		"""
 		Suffix to a resource directory name to indicate that the resource contains FIX processed
@@ -139,6 +155,22 @@ class CcfArchive(object):
 		for the specified project
 		"""
 		return self.xnat_archive.project_resources_root(project_id)
+
+	# scan name property checking methods
+
+	def is_resting_state_scan_name(self, scan_name):
+		"""
+		Return an indication of whether the specified name is for a 
+		resting state scan
+		"""
+		return scan_name.startswith(self.RESTING_STATE_SCAN_MARKER)
+
+	def is_task_scan_name(self, scan_name):
+		"""
+		Return an indication of whethe the specified name is for a
+		task scan
+		"""
+		return scan_name.startswith(self.TASK_SCAN_MARKER)
 	
 	# Unprocessed data paths and names
 
@@ -269,6 +301,14 @@ class CcfArchive(object):
 		path_expr += os.sep + '*' + self.FUNCTIONAL_SCAN_MARKER + '*' + self.PREPROC_SUFFIX
 		dir_list = glob.glob(path_expr)
 		return sorted(dir_list)
+
+	def available_functional_preproc_names(self, subject_info):
+		"""
+		List of names (not full paths) of functional scans that have been preprocessed
+		"""
+		dir_list = self.available_functional_preproc_dir_full_paths(subject_info)
+		name_list = self._get_scan_names_from_full_paths(dir_list)
+		return name_list
 	
 	# processed data paths and names
 
