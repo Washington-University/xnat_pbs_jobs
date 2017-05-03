@@ -5,7 +5,6 @@ import contextlib
 import logging
 import os
 import stat
-import time
 
 # import of third-party modules
 
@@ -16,12 +15,12 @@ import utils.str_utils as str_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
-__copyright__ = "Copyright 2017, Connectome Coordination Facility"
+__copyright__ = "Copyright 2017, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
 # create a module logger
 module_logger = logging.getLogger(__name__)
-module_logger.setLevel(logging.WARNING)  # Note: This can be overidden by log file configuration
+module_logger.setLevel(logging.WARNING)  # Note: This can be overridden by log file configuration
 
 
 class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
@@ -31,7 +30,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
 	@property
 	def PIPELINE_NAME(self):
-		return "DeDriftAndResample"
+		return "ReApplyFix"
 
 	@property
 	def WORK_NODE_COUNT(self):
@@ -41,9 +40,18 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 	def WORK_PPN(self):
 		return 1
 
+	@property
+	def reg_name(self):
+		return self._reg_name
+
+	@reg_name.setter
+	def reg_name(self, value):
+		self._reg_name = value
+		module_logger.debug(debug_utils.get_name() + ": set to " + str(value))
+
 	def create_work_script(self):
 		module_logger.debug(debug_utils.get_name())
-		
+
 		script_name = self.work_script_name
 
 		with contextlib.suppress(FileNotFoundError):
@@ -69,45 +77,36 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 		project_line = '  --project=' + self.project
 		subject_line = '  --subject=' + self.subject
 		session_line = '  --session=' + self.session
+		scan_line = '  --scan=' + self.scan
 		wdir_line = '  --working-dir=' + self.working_directory_name
-		setup_line = '  --setup-script=' + self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.setup_script
 
-		script = open(script_name, 'w')
+		setup_line = '  --setup-script=' + self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME
+		setup_line += os.sep + self.setup_script
 
-		script.write(resources_line + os.linesep)
-		script.write(stdout_line + os.linesep)
-		script.write(stderr_line + os.linesep)
-		script.write(os.linesep)
-		script.write(script_line + ' \\' + os.linesep)
-		script.write(user_line + ' \\' + os.linesep)
-		script.write(password_line + ' \\' + os.linesep)
-		script.write(server_line + ' \\' + os.linesep)
-		script.write(project_line + ' \\' + os.linesep)
-		script.write(subject_line + ' \\' + os.linesep)
-		script.write(session_line + ' \\' + os.linesep)
-		
-		script.write(wdir_line + '\\' + os.linesep)
-		script.write(setup_line + os.linesep)
+		reg_name_line = '  --reg-name=' + self.reg_name
 
-		script.close()
-		os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
-
-	def create_clean_data_script(self):
-		module_logger.debug(debug_utils.get_name())
-
-		# first create the "standard" version of the clean data script
-		super().create_clean_data_script()
-
-		# Add a statement to it to get rid of a bit more
-		script_name = self.clean_data_script_name
-
-		with open(script_name, "a") as script:
-			script.write('echo "Removing subdirectories for other subjects and groups"' + os.linesep)
-			script.write('find ' + self.working_directory_name + ' -maxdepth 1 -type d -not -newer ' + self.starttime_file_name + ' -exec rm -rf {} \;')
+		with open(script_name, 'w') as script:
+			script.write(resources_line + os.linesep)
+			script.write(stdout_line + os.linesep)
+			script.write(stderr_line + os.linesep)
 			script.write(os.linesep)
-			script.write('echo "Remaining files:"' + os.linesep)
-			script.write('find ' + self.working_directory_name + os.path.sep + self.subject + os.linesep)
+			script.write(script_line + ' \\' + os.linesep)
+			script.write(user_line + ' \\' + os.linesep)
+			script.write(password_line + ' \\' + os.linesep)
+			script.write(server_line + ' \\' + os.linesep)
+			script.write(project_line + ' \\' + os.linesep)
+			script.write(subject_line + ' \\' + os.linesep)
+			script.write(session_line + ' \\' + os.linesep)
+			script.write(scan_line + ' \\' + os.linesep)
+			script.write(wdir_line + ' \\' + os.linesep)
+			if self.reg_name != 'MSMSulc':
+				script.write(reg_name_line + ' \\' + os.linesep)
+			script.write(setup_line + os.linesep)
+			
+		os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
 		
 	def output_resource_name(self):
 		module_logger.debug(debug_utils.get_name())
-		return self.output_resource_suffix
+		return self.scan + '_' + self.output_resource_suffix
+	
+

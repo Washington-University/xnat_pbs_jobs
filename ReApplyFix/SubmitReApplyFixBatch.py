@@ -39,20 +39,14 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 			submitter = one_subject_job_submitter.OneSubjectJobSubmitter(
 				self._archive, self._archive.build_home)
 			
-			put_server = 'http://db-shadow' + str(self.get_and_inc_shadow_number()) + '.nrg.mir:8080'
+			put_server = 'http://db-shadow' + str(self.get_and_inc_shadow_number())
+			put_server += '.nrg.mir:8080'
 
-
-
-			# ici
-
-
-
-			
 			# get information for the subject from the configuration
 			setup_file = config.get_value(subject.subject_id, 'SetUpFile')
 			clean_output_first = config.get_bool_value(subject.subject_id, 'CleanOutputFirst')
 			processing_stage_str = config.get_value(subject.subject_id, 'ProcessingStage')
-			processing_stage = one_subject_job_submitter.ProcessingStage.from_string(processing_stage_str)
+			processing_stage = submitter.processing_stage_from_string(processing_stage_str)
 			walltime_limit_hrs = config.get_value(subject.subject_id, 'WalltimeLimitHours')
 			vmem_limit_gbs = config.get_value(subject.subject_id, 'VmemLimitGbs')
 			reg_name = config.get_value(subject.subject_id, 'RegName')
@@ -60,60 +54,65 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 
 			scan = subject.extra
 
-			submitter = one_subject_job_submitter.OneSubjectJobSubmitter(self._archive, self._archive.build_home)
+			module_logger.info("-----")
+			module_logger.info(" Submitting " + submitter.PIPELINE_NAME + " jobs for:")
+			module_logger.info("                project: " + subject.project)
+			module_logger.info("                subject: " + subject.subject_id)
+			module_logger.info("                   scan: " + scan)
+			module_logger.info("             put_server: " + put_server)
+			module_logger.info("             setup_file: " + setup_file)
+			module_logger.info("     clean_output_first: " + str(clean_output_first))
+			module_logger.info("       processing_stage: " + str(processing_stage))
+			module_logger.info("     walltime_limit_hrs: " + str(walltime_limit_hrs))
+			module_logger.info("         vmem_limit_gbs: " + str(vmem_limit_gbs))
+			module_logger.info("               reg_name: " + str(reg_name))
+			module_logger.info(" output_resource_suffix: " + str(output_resource_suffix))
+			module_logger.info("-----")
 
-			logger.info("-----")
-			logger.info(" Submitting " + submitter.PIPELINE_NAME + " jobs for:")
-			logger.info("                project: " + subject.project)
-			logger.info("                subject: " + subject.subject_id)
-			logger.info("                   scan: " + scan)
-			logger.info("             put_server: " + put_server)
-			logger.info("             setup_file: " + setup_file)
-			logger.info("     clean_output_first: " + str(clean_output_first))
-			logger.info("       processing_stage: " + str(processing_stage))
-			logger.info("     walltime_limit_hrs: " + str(walltime_limit_hrs))
-			logger.info("         vmem_limit_gbs: " + str(vmem_limit_gbs))
-			logger.info("               reg_name: " + str(reg_name))
-			logger.info(" output_resource_suffix: " + str(output_resource_suffix))
-			logger.info("-----")
-
+			# user and server information
 			submitter.username = username
 			submitter.password = password
 			submitter.server = 'https://db.humanconnectome.org'
 
+			# subject and project information
 			submitter.project = subject.project
 			submitter.subject = subject.subject_id
 			submitter.session = subject.subject_id + '_3T'
 			submitter.scan = scan
-
 			submitter.reg_name = reg_name
-			submitter.output_resource_suffix = output_resource_suffix
 
+			# job parameters
 			submitter.setup_script = setup_file
 			submitter.clean_output_resource_first = clean_output_first
 			submitter.put_server = put_server
 			submitter.walltime_limit_hours = walltime_limit_hrs
-			submitter.vmem_limit_gbs = vmem_limit_gbs
+			submitter.vmem_limit_gbs = vmem_limit_gbs			
+			submitter.output_resource_suffix = output_resource_suffix
 
+			# submit jobs
 			submitter.submit_jobs(processing_stage)
 
+			
 if __name__ == '__main__':
-
+	logging.config.fileConfig(
+		file_utils.get_logging_config_file_name(__file__),
+		disable_existing_loggers=False)
+		
 	# get ConnectomeDB credentials
 	userid = input("Connectome DB Username: ")
 	password = getpass.getpass("Connectome DB Password: ")
 
 	# read the configuration file
 	config_file_name = file_utils.get_config_file_name(__file__)
-	logger.info("Reading configuration from file: " + config_file_name)
+	module_logger.info("Reading configuration from file: " + config_file_name)
 	config = my_configparser.MyConfigParser()
 	config.read(config_file_name)
 
 	# get list of subjects to process
-	subject_file_name = file_utils.get_subjects_file_name(__file__)
-	logger.info("Retrieving subject list from: " + subject_file_name)
-	subject_list = hcp3t_subject.read_subject_info_list(subject_file_name, separator=':')
+	subject_file_name = 'subjectfiles' + os.sep + file_utils.get_subjects_file_name(__file__)
+	module_logger.info("Retrieving subject list from: " + subject_file_name)
+	subject_list = ccf_subject.read_subject_info_list(subject_file_name, separator=':')
 
 	# process the subjects in the list
-	batch_submitter = BatchSubmitter()
+	batch_submitter = BatchSubmitter('3T')
 	batch_submitter.submit_jobs(userid, password, subject_list, config)

@@ -19,6 +19,7 @@ import time
 
 # import of local modules
 import utils.debug_utils as debug_utils
+import utils.delete_resource as delete_resource
 import utils.file_utils as file_utils
 import utils.ordered_enum as ordered_enum
 import utils.os_utils as os_utils
@@ -68,7 +69,7 @@ class OneSubjectJobSubmitter(abc.ABC):
 	@property
 	@abc.abstractmethod
 	def PIPELINE_NAME(self):
-		pass
+		raise NotImplementedError()
 
 	@property
 	def archive(self):
@@ -420,15 +421,85 @@ class OneSubjectJobSubmitter(abc.ABC):
 
 		completed_put_submit_process = subprocess.run(
 			put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
-		put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
+		put_job_no = str_utils.remove_ending_new_linesa(completed_put_submit_process.stdout)
 		module_logger.debug(debug_utils.get_name() + ": put_job_no = " + str(put_job_no))
 		return put_job_no
 
 	@abc.abstractmethod
 	def create_work_script(self):
 		module_logger.debug(debug_utils.get_name())
-		pass
+		raise NotImplementedError()
 
 	@abc.abstractmethod
+	def output_resource_name(self):
+		module_logger.debug(debug_utils.get_name())
+		raise NotImplementedError()
+	
 	def submit_jobs(self, processing_stage=ProcessingStage.PUT_DATA):
-		pass
+		module_logger.debug(debug_utils.get_name() + ": processing_stage: " + str(processing_stage))
+
+		module_logger.info("-----")
+
+		module_logger.info("Submitting " + self.PIPELINE_NAME + " jobs for")
+		module_logger.info("  Project: " + self.project)
+		module_logger.info("  Subject: " + self.subject)
+		module_logger.info("  Session: " + self.session)
+		module_logger.info("	Stage: " + str(processing_stage))
+
+		# make sure working directories do not have the same name based on
+		# the same start time by sleeping a few seconds
+		time.sleep(5)
+
+		# build the working directory name
+		os.makedirs(name=self.working_directory_name)
+		
+		# determine output resource name
+		module_logger.info("Output Resource Name: " + self.output_resource_name())
+		
+		# clean output resource if requested
+		if self.clean_output_resource_first:
+			module_logger.info("Deleting resource: " + self.output_resource_name() + " for:")
+			module_logger.info("  project: " + self.project)
+			module_logger.info("  subject: " + self.subject)
+			module_logger.info("  session: " + self.session)
+		
+			delete_resource.delete_resource(
+				self.username, self.password,
+				str_utils.get_server_name(self.server),
+				self.project, self.subject, self.session,
+				self.output_resource_name())
+	
+		# create scripts for various stages of processing
+		if processing_stage >= ProcessingStage.PREPARE_SCRIPTS:
+			self.create_get_data_script()
+			self.create_work_script()
+			self.create_clean_data_script()
+			self.create_put_data_script()
+			
+		# Submit the job to get the data
+		if processing_stage >= ProcessingStage.GET_DATA:
+			get_data_job_no = self.submit_get_data_job()
+			module_logger.info("get_data_job_no: " + str(get_data_job_no))
+		else:
+			module_logger.info("Get data job not submitted")
+
+		# Submit the job to process the data (do the work)
+		if processing_stage >= ProcessingStage.PROCESS_DATA:
+			work_job_no = self.submit_process_data_job(get_data_job_no)
+			module_logger.info("work_job_no: " + str(work_job_no))
+		else:
+			module_logger.info("Process data job not submitted")
+
+		# Submit job to clean the data
+		if processing_stage >= ProcessingStage.CLEAN_DATA:
+			clean_job_no = self.submit_clean_data_job(work_job_no)
+			module_logger.info("clean_job_no: " + str(clean_job_no))
+		else:
+			module_logger.info("Clean data job not submitted")
+
+		# Submit job to put the resulting data in the DB
+		if processing_stage >= ProcessingStage.PUT_DATA:
+			put_job_no = self.submit_put_data_job(clean_job_no)
+			module_logger.info("put_job_no: " + str(put_job_no))
+		else:
+			module_logger.info("Put data job not submitted")

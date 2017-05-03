@@ -18,7 +18,7 @@ import utils.my_configparser as my_configparser
 
 # authorship information
 __author__ = "Timothy B. Brown"
-__copyright__ = "Copyright 2017, The Human Connectome Project"
+__copyright__ = "Copyright 2017, The Human Connectome Project/Connectome Coordination Facility"
 __maintainer__ = "Timothy B. Brown"
 
 # configure logging and create a module logger

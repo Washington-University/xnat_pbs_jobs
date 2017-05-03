@@ -2,10 +2,10 @@
 set -e
 
 g_pipeline_name="ReApplyFix"
-g_script_name=$(basename "${0}")
 
 if [ -z "${XNAT_PBS_JOBS}" ]; then
-	echo "${g_script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	local script_name=$(basename "${0}")
+	echo "${script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
 	exit 1
 fi
  
@@ -15,11 +15,12 @@ log_Msg "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
 
 usage()
 {
+	local script_name=$(basename "${0}")
 	cat << EOF
 
 Run the HCP ReApplyFix.sh pipeline script for a subject
 
-Usage: ${g_script_name} PARAMETER..."
+Usage: ${script_name} PARAMETER..."
 
 PARAMETERs are [ ] = optional; < > = user supplied value
   [--help]                 : show usage information and exit with non-zero return code
@@ -119,55 +120,55 @@ get_options()
 
 	# check required parameters
 	if [ -z "${g_user}" ]; then
-		error_msgs+="\nERROR: user (--user=) required"
+		error_msgs+="\n user (--user=) required"
 	else
 		log_Msg "g_user: ${g_user}"
 	fi
 
 	if [ -z "${g_password}" ]; then
-		error_msgs+="\nERROR: password (--password=) required"
+		error_msgs+="\n password (--password=) required"
 	else
 		log_Msg "g_password: ***** password mask *****"
 	fi
 
 	if [ -z "${g_server}" ]; then
-		error_msgs+="\nERROR: server (--server=) required"
+		error_msgs+="\n server (--server=) required"
 	else
 		log_Msg "g_server: ${g_server}"
 	fi
 
 	if [ -z "${g_project}" ]; then
-		error_msgs+="\nERROR: project (--project=) required"
+		error_msgs+="\n project (--project=) required"
 	else
 		log_Msg "g_project: ${g_project}"
 	fi
 
 	if [ -z "${g_subject}" ]; then
-		error_msgs+="\nERROR: subject (--subject=) required"
+		error_msgs+="\n subject (--subject=) required"
 	else
 		log_Msg "g_subject: ${g_subject}"
 	fi
 
 	if [ -z "${g_session}" ]; then
-		error_msgs+="\nERROR: session (--session=) required"
+		error_msgs+="\n session (--session=) required"
 	else
 		log_Msg "g_session: ${g_session}"
 	fi
 
 	if [ -z "${g_scan}" ]; then
-		error_msgs+="\nERROR: scan (--scan=) required"
+		error_msgs+="\n scan (--scan=) required"
 	else
 		log_Msg "g_scan: ${g_scan}"
 	fi
 
 	if [ -z "${g_working_dir}" ]; then
-		error_msgs+="\nERROR: working directory (--working-dir=) required"
+		error_msgs+="\n: working directory (--working-dir=) required"
 	else
 		log_Msg "g_working_dir: ${g_working_dir}"
 	fi
 
 	if [ -z "${g_setup_script}" ]; then
-		error_msgs+="\nERROR: set up script (--setup-script=) required"
+		error_msgs+="\n set up script (--setup-script=) required"
 	else
 		log_Msg "g_setup_script: ${g_setup_script}"
 	fi

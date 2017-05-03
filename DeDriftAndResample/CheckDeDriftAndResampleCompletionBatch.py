@@ -13,11 +13,10 @@ import ccf.archive as ccf_archive
 import ccf.dedrift_and_resample.one_subject_completion_checker as one_subject_completion_checker
 import ccf.subject as ccf_subject
 import utils.file_utils as file_utils
-import utils.my_argparse as my_argparse
 
 # authorship information
 __author__ = "Timothy B. Brown"
-__copyright__ = "Copyright 2017, The Connectome Coordination Facility"
+__copyright__ = "Copyright 2017, The Human Connectome Project/Connectome Coordination Facility"
 __maintainer__ = "Timothy B. Brown"
 
 # configure logging and create module logger
@@ -54,10 +53,6 @@ def _write_subject_info(output_file, project, subject_id, path,
 
 
 if __name__ == "__main__":
-
-	#parser = my_argparse.MyArgumentParser()
-	
-	#parser.add
 
 	# get list of subjects to check
 	subject_file_name = 'subjectfiles' + os.sep + file_utils.get_subjects_file_name(__file__)
