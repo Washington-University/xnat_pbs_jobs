@@ -142,7 +142,15 @@ class CcfArchive(object):
 		processed data
 		"""
 		return "PostFix"
-	
+
+	@property
+	def REAPPLY_FIX_SUFFIX(self):
+		"""
+		Suffix to a resource directory name to indicate that the resource contains ReApplyFix
+		processed data
+		"""
+		return "ReApplyFix"
+
 	def session_name(self, subject_info):
 		"""
 		The conventional session name for a subject in this project archive
@@ -429,6 +437,30 @@ class CcfArchive(object):
 		path_expr = self.bedpostx_dir_full_path(subject_info)
 		dir_list = glob.glob(path_expr)
 		return sorted(dir_list)
+
+	def reapplyfix_dir_full_path(self, subject_info, scan_name, reg_name=None):
+		path_expr = self.subject_resources_dir_full_path(subject_info) + os.sep + scan_name
+		path_expr += self.NAME_DELIMITER + self.REAPPLY_FIX_SUFFIX
+		if reg_name:
+			path_expr += reg_name
+
+		return path_expr
+		
+	def available_reapplyfix_dir_full_paths(self, subject_info, reg_name=None):
+		path_expr = self.subject_resources_dir_full_path(subject_info)
+		path_expr += os.sep + '*' + self.REAPPLY_FIX_SUFFIX
+		if reg_name:
+			path_expr += reg_name
+			
+		dir_list = glob.glob(path_expr)
+		return sorted(dir_list)
+
+	def available_reapplyfix_names(self, subject_info, reg_name=None):
+		dir_list = self.available_reapplyfix_dir_full_paths(subject_info, reg_name)
+		name_list = []
+		for directory in dir_list:
+			name_list.append(self._get_scan_name_from_path(directory))
+		return name_list
 	
 	# Internal utility methods
 

@@ -120,7 +120,7 @@ class CinabStyleDataRetriever(abc.ABC):
 
 	@abc.abstractmethod
 	def get_unproc_data(self, subject_info, output_study_dir):
-		raise NotImplementedError
+		raise NotImplementedError()
 
 	def get_functional_preproc_data(self, subject_info, output_study_dir):
 
@@ -213,11 +213,11 @@ class CinabStyleDataRetriever(abc.ABC):
 
 	@abc.abstractmethod
 	def get_preproc_data(self, subject_info, output_study_dir):
-		raise NotImplementedError
+		raise NotImplementedError()
 
 	@abc.abstractmethod
 	def get_full_data(self, subject_info, output_study_dir):
-		raise NotImplementedError
+		raise NotImplementedError()
 
 	def get_diffusion_preproc_vetting_data(self, subject_info, output_study_dir):
 
