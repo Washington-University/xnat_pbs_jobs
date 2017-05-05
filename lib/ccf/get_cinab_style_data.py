@@ -212,6 +212,35 @@ class DataRetriever(object):
 			self.archive.available_fix_processed_dir_full_paths(subject_info),
 			output_dir)
 		
+	def get_dedriftandresample_processed_data(self, subject_info, output_dir):
+		module_logger.debug(debug_utils.get_name())
+
+		self._get_processed_data(
+			self.archive.available_msmall_dedrift_and_resample_dir_full_paths(subject_info),
+			output_dir)
+
+	def get_resting_state_stats_data(self, subject_info, output_dir):
+		module_logger.debug(debug_utils.get_name())
+
+		self._get_processed_data(
+			self.archive.available_rss_processed_dir_full_paths(subject_info),
+			output_dir)
+
+	def get_postfix_data(self, subject_info, output_dir):
+		self._get_processed_data(
+			self.archive.available_postfix_processed_dir_full_paths(subject_info),
+			output_dir)
+		
+	def get_taskfmri_data(self, subject_info, output_dir):
+		self._get_processed_data(
+			self.archive.available_task_processed_dir_full_paths(subject_info),
+			output_dir)
+
+	def get_bedpostx_data(self, subject_info, output_dir):
+		self._get_processed_data(
+			self.archive.available_bedpostx_processed_dir_full_paths(subject_info),
+			output_dir)
+		
 	# prerequisites data for specific pipelines
 	
 	def get_struct_preproc_prereqs(self, subject_info, output_dir):
@@ -360,7 +389,72 @@ class DataRetriever(object):
 		put_to = output_dir
 
 		self._from_to(get_from, put_to)
+
+	def _copy_some_reapplyfix_links(self, subject_info, output_dir):
+		"""
+		Some files that already exist prio to running the ReApplyFix pipeline are
+		opened for writing/modification by the pipeline script. If these files are
+		left as symbolic links to file in the archive, they will not be able to be 
+		opened for writing. Each of these files need to be copied instead of linked.
+		"""
+
+		# find all paths that end with '.ica'
+		paths = glob.iglob(output_dir + os.sep + '**' + os.sep + '*.ica', recursive=True)
+		for path in paths:
+			if os.path.isdir(path):
+				for root, dirs, files in os.walk(path):
+					for file in files:
+						file_to_copy = os.path.join(root, file)
+						file_utils.make_link_into_copy(file_to_copy, verbose=True)
 		
+	def get_reapplyfix_prereqs(self, subject_info, output_dir):
+		"""
+		Get the subject specific data necessary to run the ReApplyFix pipeline
+		"""
+		self.get_all_pipeline_data(subject_info, output_dir)
+		self._copy_some_reapplyfix_links(subject_info, output_dir)
+		
+	# all pipeline data		
+		
+	def get_all_pipeline_data(self, subject_info, output_dir):
+		"""
+		Get all the subject specific data recognized.
+		Note, this is based on the recognized processing. It does not simply
+		get all data from all resources. There is a specific set of recognized
+		resource directories that are searched for and used. This means that
+		adding new resources to a session doesn't automatically cause those
+		resources to be copied/linked to the output_dir. (That gives us the 
+		freedom to have resources that are not specifically dealing with 
+		pipeline processing.) However, it also means that this method needs
+		to be updated when new pipelines are added to the processing stream.
+		"""
+
+		if self.copy:
+			# when copying (via rsync), data should be retrieved in chronological order
+			# (i.e. the order in which the pipelines are run)
+			self.get_unproc_data(subject_info, output_dir)
+			self.get_preproc_data(subject_info, output_dir)
+			self.get_fix_processed_data(subject_info, output_dir)
+			self.get_msmall_registration_data(subject_info, output_dir)
+			self.get_dedriftandresample_processed_data(subject_info, output_dir)
+			self.get_resting_state_stats_data(subject_info, output_dir)
+			self.get_postfix_data(subject_info, output_dir)
+			self.get_taskfmri_data(subject_info, output_dir)
+			self.get_bedpostx_data(subject_info, output_dir)
+			
+		else:
+			# when creating symbolic links, data should be retrieved in reverse
+			# chronological order
+			self.get_bedpostx_data(subject_info, output_dir)
+			self.get_taskfmri_data(subject_info, output_dir)
+			self.get_postfix_data(subject_info, output_dir)			
+			self.get_resting_state_stats_data(subject_info, output_dir)			
+			self.get_dedriftandresample_processed_data(subject_info, output_dir)
+			self.get_msmall_registration_data(subject_info, output_dir)
+			self.get_fix_processed_data(subject_info, output_dir)
+			self.get_preproc_data(subject_info, output_dir)			
+			self.get_unproc_data(subject_info, output_dir)
+			
 	def remove_non_subdirs(self, directory):
 		cmd = 'find ' + directory + ' -maxdepth 1 -not -type d -delete'
 		completed_process = subprocess.run(
@@ -390,7 +484,8 @@ def main():
 		"DIFF_PREPROC_PREREQS", "diff_preproc_prereqs",
 		"FUNC_PREPROC_PREREQS", "func_preproc_prereqs",
 		"MULTIRUNICAFIX_PREREQS", "multirunicafix_prereqs",
-		"DEDRIFTANDRESAMPLE_PREREQS", "dedriftandresample_prereqs"
+		"DEDRIFTANDRESAMPLE_PREREQS", "dedriftandresample_prereqs",
+		"REAPPLYFIX_PREREQS", "reapplyfix_prereqs"
 	]
 
 	default_phase_choice = phase_choices[0]
@@ -442,12 +537,13 @@ def main():
 		data_retriever.get_multirunicafix_prereqs(subject_info, args.output_study_dir)
 	elif args.phase == "DEDRIFTANDRESAMPLE_PREREQS":
 		data_retriever.get_dedriftandresample_prereqs(subject_info, args.output_study_dir)
-
 		# Get the group average drift data
 		# As of February 2017, the group average drift data has been moved from HCP_Staging to
 		# HCP_1200
 		data_retriever.get_msm_group_average_drift_data("HCP_1200", args.output_study_dir)
 
+	elif args.phase == "REAPPLYFIX_PREREQS":
+		data_retriever.get_reapplyfix_prereqs(subject_info, args.output_study_dir)
 	
 	if args.remove_non_subdirs:
 		# remove any non-subdirectory data at the output study directory level

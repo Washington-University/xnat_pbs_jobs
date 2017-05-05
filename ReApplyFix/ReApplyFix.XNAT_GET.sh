@@ -1,13 +1,16 @@
 #!/bin/bash
+set -e
 
-g_script_name="ReApplyFix.XNAT_GET.sh"
-g_database_archive_root="/HCP/hcpdb/archive"
+g_script_name=$(basename "${0}")
 
-inform()
-{
-	local msg=${1}
-	echo "${g_script_name}: ${msg}"
-}
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	echo "${g_script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
+source "${XNAT_PBS_JOBS}/shlib/log.shlib"  # Logging related functions
+source "${XNAT_PBS_JOBS}/shlib/utils.shlib"  # Utility functions
+log_Msg "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
 
 usage()
 {
@@ -15,7 +18,7 @@ usage()
 
 Get data from the XNAT archive necessary to run the HCP ReApplyFix.sh pipeline script
 
-Usage: ${SCRIPT_NAME} PARAMETER..."
+Usage: ${g_script_name} PARAMETER..."
 
 PARAMETERs are [ ] = optional; < > = user supplied value
   [--help]                 : show usage information and exit with non-zero return code
@@ -63,7 +66,7 @@ get_options()
 				;;
 			*)
 				usage
-				inform "ERROR: unrecognized option ${argument}"
+				log_Err_Abort "unrecognized option ${argument}"
 				exit 1
 				;;
 		esac
@@ -75,19 +78,19 @@ get_options()
 	if [ -z "${g_project}" ]; then
 		error_msgs+="\nERROR: project (--project=) required"
 	else
-		inform "g_project: ${g_project}"
+		log_Msg "g_project: ${g_project}"
 	fi
 
 	if [ -z "${g_subject}" ]; then
 		error_msgs+="\nERROR: subject (--subject=) required"
 	else
-		inform "g_subject: ${g_subject}"
+		log_Msg "g_subject: ${g_subject}"
 	fi
 
 	if [ -z "${g_working_dir}" ]; then
 		error_msgs+="\nERROR: working directory (--working-dir=) required"
 	else
-		inform "g_working_dir: ${g_working_dir}"
+		log_Msg "g_working_dir: ${g_working_dir}"
 	fi
 
 	# check required environment variables
@@ -95,106 +98,42 @@ get_options()
 		error_msgs+="\nERROR: XNAT_PBS_JOBS environment variable must be set"
 	else
 		g_xnat_pbs_jobs=${XNAT_PBS_JOBS}
-		inform "g_xnat_pbs_jobs: ${g_xnat_pbs_jobs}"
+		log_Msg "g_xnat_pbs_jobs: ${g_xnat_pbs_jobs}"
 	fi
 	
 	if [ ! -z "${error_msgs}" ]; then
 		usage
-		echo -e ${error_msgs}
-		exit 1
-	fi
-}
-
-replace_symlink_with_copy()
-{
-	local file=${1}
-	if [ -L ${file} ] ; then
-		inform "Creating local/non-symbolic link version of ${file}"
-		cp -L --preserve=timestamps ${file} ${file}.TMP.NOT_A_LINK
-		rm ${file}
-		mv ${file}.TMP.NOT_A_LINK ${file}
+		log_Err_Abort ${error_msgs}
 	fi
 }
 
 main()
 {
-	inform "Job started on `hostname` at `date`"
+	show_job_start
 
-	inform "----- Platform Information: Begin -----"
-	uname -a
-	inform "----- Platform Information: End -----"
+	show_platform_info
 
-	get_options $@
+	get_options "$@"
 
 	# Link CinaB-style data
-	inform "Activating Python 3"
+	log_Msg "Activating Python 3"
 	source activate python3 2>&1
 
-	inform "Getting CinaB-Style 3T data"
-	${g_xnat_pbs_jobs}/lib/hcp/hcp3t/get_cinab_style_data.py \
+	mkdir -p ${g_working_dir}/tmp
+	
+	log_Msg "Getting CinaB-Style data"
+	${g_xnat_pbs_jobs}/lib/ccf/get_cinab_style_data.py \
 		--project=${g_project} \
 		--subject=${g_subject} \
-		--study-dir=${g_working_dir} \
-		--phase=reapplyfix_prereqs
+		--study-dir=${g_working_dir}/tmp \
+		--phase=reapplyfix_prereqs \
+		--remove-non-subdirs
 
-	# FIX processed Resting State Scans
-	inform "Determine FIX processed Resting State Scans"
+	mv ${g_working_dir}/tmp/* ${g_working_dir}
+	rmdir ${g_working_dir}/tmp
 
-	g_session=${g_subject}_3T
-	pushd ${g_database_archive_root}/${g_project}/arc001/${g_session}/RESOURCES > /dev/null
-
-	fix_processed_resting_state_scan_names=""
-	resting_state_scan_dirs=`ls -d rfMRI_REST*_FIX`
-	for resting_state_scan_dir in ${resting_state_scan_dirs} ; do
-		scan_name=${resting_state_scan_dir%%_FIX} # take the _FIX off the end
-		fix_processed_resting_state_scan_names+="${scan_name} "
-	done
-	fix_processed_resting_state_scan_names=${fix_processed_resting_state_scan_names% } # remove trailing space
-	
-	inform "Found the following FIX Processed resting state scans: ${fix_processed_resting_state_scan_names}"
-
-	popd > /dev/null
-
-	# FIX processed Task scans
-	inform "Determine FIX processed Task Scans"
-	pushd ${g_database_archive_root}/${g_project}/arc001/${g_session}/RESOURCES > /dev/null
-
-	fix_processed_task_scan_names=""
-	task_scan_dirs=`ls -d tfMRI_*_FIX`
-	for task_scan_dir in ${task_scan_dirs} ; do
-		scan_name=${task_scan_dir%%_FIX} # take the _FIX off the end
-		fix_processed_task_scan_names+="${scan_name} "
-	done
-	fix_processed_task_scan_names=${fix_processed_task_scan_names% } # remove trailing space
-
-	inform "Found the following FIX Processed task scans: ${fix_processed_task_scan_names}"
-
-	popd > /dev/null
-
-	inform "Make local copies instead of symbolic links for .ica directory files."
-
-	local HighPass="2000"
-	for scan_name in ${fix_processed_resting_state_scan_names} ${fix_processed_task_scan_names} ; do
-		
-		inform "scan_name: ${scan_name}"
-		
-		working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica
-		inform "working_ica_dir: ${working_ica_dir}"
-
-		files_to_unlink=`find ${working_ica_dir} -print`
-		for file in ${files_to_unlink} ; do
-			replace_symlink_with_copy ${file}
-		done
-		
-	done
-
-	# if [ -d "${working_ica_dir}/mc" ] ; then
-	# 	inform "Directory: ${working_ica_dir}/mc EXISTS"
-	# 	rm --recursive --verbose ${working_ica_dir}/mc
-	# fi
-
-	inform "Complete"
+	log_Msg "Complete"
 }
 
 # Invoke the main to get things started
-main $@
+main "$@"

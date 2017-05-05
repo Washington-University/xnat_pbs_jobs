@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 g_pipeline_name="ReApplyFix"
 

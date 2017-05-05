@@ -91,7 +91,6 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 
 			# submit jobs
 			submitter.submit_jobs(processing_stage)
-
 			
 if __name__ == '__main__':
 	logging.config.fileConfig(

@@ -126,6 +126,22 @@ class CcfArchive(object):
 		data
 		"""
 		return "FIX"
+
+	@property
+	def RSS_PROCESSED_SUFFIX(self):
+		"""
+		Suffix to a resource directory name to indicate that the resource contains RSS 
+		(Resting State Stats) processed data
+		"""
+		return "RSS"
+
+	@property
+	def POSTFIX_PROCESSED_SUFFIX(self):
+		"""
+		Suffix to a resource directory name to indicate that the resource contains PostFix 
+		processed data
+		"""
+		return "PostFix"
 	
 	def session_name(self, subject_info):
 		"""
@@ -353,6 +369,64 @@ class CcfArchive(object):
 		data for the specified subject
 		"""
 		path_expr = self.dedrift_and_resample_dir_full_path(subject_info)
+		dir_list = glob.glob(path_expr)
+		return sorted(dir_list)
+
+	def available_rss_processed_dir_full_paths(self, subject_info):
+		"""
+		List of full paths to any resource containing RestingStateStats processed results data
+		for the specified subject
+		"""
+		path_expr = self.subject_resources_dir_full_path(subject_info)
+		path_expr += os.sep + '*' + self.RSS_PROCESSED_SUFFIX
+		dir_list = glob.glob(path_expr)
+		return sorted(dir_list)
+	
+	def available_postfix_processed_dir_full_paths(self, subject_info):
+		"""
+		List of full paths to any resource containing PostFix processed results data
+		for the specified subject
+		"""
+		path_expr = self.subject_resources_dir_full_path(subject_info)
+		path_expr += os.sep + '*' + self.POSTFIX_PROCESSED_SUFFIX
+		dir_list = glob.glob(path_expr)
+		return sorted(dir_list)
+
+	def available_task_processed_dir_full_paths(self, subject_info):
+		"""
+		List of full paths to any resource containing Task Analysis processed results data
+		for the specified subject
+		"""
+		dir_list = []
+		
+		path_expr = self.subject_resources_dir_full_path(subject_info)
+		path_expr += os.sep + self.TASK_SCAN_MARKER + '*'
+		first_dir_list = glob.glob(path_expr)
+
+		for directory in first_dir_list:
+			lastsepindex = directory.rfind(os.sep)
+			basename = directory[lastsepindex + 1:]
+			index = basename.find(self.NAME_DELIMITER)
+			rindex = basename.rfind(self.NAME_DELIMITER)
+			if index == rindex:
+				dir_list.append(directory)
+
+		return sorted(dir_list)
+
+	def bedpostx_dir_full_path(self, subject_info):
+		"""
+		Full path to bedpostx processed resource directory
+		"""
+		path_expr = self.subject_resources_dir_full_path(subject_info)
+		path_expr += os.sep + 'Diffusion_bedpostx'
+		return path_expr
+	
+	def available_bedpostx_processed_dir_full_paths(self, subject_info):
+		"""
+		List of full paths to any resource containing bedpostx processed results data
+		for the specified subject
+		"""
+		path_expr = self.bedpostx_dir_full_path(subject_info)
 		dir_list = glob.glob(path_expr)
 		return sorted(dir_list)
 	
