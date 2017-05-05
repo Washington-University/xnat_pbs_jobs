@@ -29,7 +29,6 @@ PARAMETERs are [ ] = optional; < > = user supplied value
 EOF
 }
 
-
 get_options()
 {
 	local arguments=($@)

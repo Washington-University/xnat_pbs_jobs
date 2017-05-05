@@ -84,7 +84,6 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 			# submit jobs
 			submitter.submit_jobs(processing_stage)
 
-			
 if __name__ == '__main__':
 	logging.config.fileConfig(
 		file_utils.get_logging_config_file_name(__file__),
@@ -99,7 +98,7 @@ if __name__ == '__main__':
 	module_logger.info("Reading configuration from file: " + config_file_name)
 	config = my_configparser.MyConfigParser()
 	config.read(config_file_name)
-	
+
 	# get list of subjects to process
 	subject_file_name = 'subjectfiles' + os.sep + file_utils.get_subjects_file_name(__file__)
 	module_logger.info("Retrieving subject list from: " + subject_file_name)
