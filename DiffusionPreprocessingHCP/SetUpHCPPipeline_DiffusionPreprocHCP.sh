@@ -44,7 +44,7 @@ if [ "${COMPUTE}" = "CHPC" ] ; then
 		echo "${setup_script_name}: Set up to use EPD Python at ${EPD_PYTHON_HOME}"
 
 		echo "${setup_script_name}: Setting up Workbench (a.k.a. CARET7)"
-		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.2.2/bin_rh_linux64
+		export CARET7DIR=/export/HCP/workbench-v1.2.2/bin_rh_linux64
 		echo "${setup_script_name}: Set up to use Workbench at ${CARET7DIR}"
 
 		echo "${setup_script_name}: Setting up HCP Pipelines"

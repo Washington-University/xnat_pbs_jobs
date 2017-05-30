@@ -147,8 +147,7 @@ get_options()
 	fi
 
 	if [ ${error_count} -gt 0 ]; then
-		echo "For usage information, use --help"
-		exit 1
+		log_Err_Abort "For usage information, use --help"
 	fi
 }
 

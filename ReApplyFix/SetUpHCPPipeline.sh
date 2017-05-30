@@ -50,7 +50,7 @@ if [ "${COMPUTE}" = "CHPC" ]; then
 		log_Msg "Set up to use EPD Python at ${EPD_PYTHON_HOME}"
 
 		# Connectome Workbench
-		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.2.3/bin_rh_linux64
+		export CARET7DIR=/export/HCP/workbench-v1.2.3/bin_rh_linux64
 		log_Msg "Set up to use Workbench at ${CARET7DIR}"
 
 		# HCP Pipeline Scripts

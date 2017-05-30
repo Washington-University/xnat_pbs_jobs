@@ -45,12 +45,12 @@ if [ "$COMPUTE" = "CHPC" ]; then
 		local_log "Set up to use FreeSurfer at ${FREESURFER_HOME}"
 
 		# EPD Python
-		export EPD_PYTHON_HOME=${HOME}/export/epc-7.3.2
+		export EPD_PYTHON_HOME=/export/HCP/epc-7.3.2
 		export PATH=${EPD_PYTHON_HOME}/bin:${PATH}
 		local_log "Set up to use EPD Python at ${EPD_PYTHON_HOME}"
 
 		# Connectome Workbench
-		export CARET7DIR=${HOME}/pipeline_tools/workbench-v1.2.3/bin_rh_linux64
+		export CARET7DIR=/export/HCP/workbench-v1.2.3/bin_rh_linux64
 		local_log "Set up to use Workbench at ${CARET7DIR}"
 
 		# HCP Pipeline Scripts
