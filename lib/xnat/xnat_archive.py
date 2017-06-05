@@ -90,11 +90,11 @@ class XNAT_Archive:
 		"""Returns the temporary build/processing directory root."""
 		COMPUTE_PLATFORM = os.getenv('COMPUTE', self.DEFAULT_COMPUTE_PLATFORM)
 		module_logger.debug("COMPUTE_PLATFORM = " + COMPUTE_PLATFORM)
-		BUILD_DIR = os.getenv('BUILD_DIR')
-		module_logger.debug("BUILD_DIR = " + str(BUILD_DIR))
+		XNAT_PBS_JOBS_BUILD_DIR = os.getenv('XNAT_PBS_JOBS_BUILD_DIR')
+		module_logger.debug("XNAT_PBS_JOBS_BUILD_DIR = " + str(XNAT_PBS_JOBS_BUILD_DIR))
 		
-		if BUILD_DIR:
-			return_value = BUILD_DIR
+		if XNAT_PBS_JOBS_BUILD_DIR:
+			return_value = XNAT_PBS_JOBS_BUILD_DIR
 		else:
 			if COMPUTE_PLATFORM == 'CHPC':
 				return_value = self.data_root + '/hcpdb/build_ssd/chpc/BUILD'

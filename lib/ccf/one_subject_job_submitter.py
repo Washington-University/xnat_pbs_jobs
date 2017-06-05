@@ -11,6 +11,7 @@ import contextlib
 import enum
 import logging
 import os
+import shutil
 import stat
 import subprocess
 import time
@@ -160,15 +161,6 @@ class OneSubjectJobSubmitter(abc.ABC):
 	def scan(self, value):
 		self._scan = value
 		module_logger.debug(debug_utils.get_name() + ": set to " + str(self._scan))
-
-	@property
-	def setup_script(self):
-		return self._setup_script
-
-	@setup_script.setter
-	def setup_script(self, value):
-		self._setup_script = value
-		module_logger.debug(debug_utils.get_name() + ": set to " + str(self._setup_script))
 
 	@property
 	def clean_output_resource_first(self):
@@ -373,6 +365,23 @@ class OneSubjectJobSubmitter(abc.ABC):
 		module_logger.debug(debug_utils.get_name())
 		return self.scripts_start_name + '.PROCESS_DATA_job.sh'
 
+	@property
+	def setup_file_name(self):
+		module_logger.debug(debug_utils.get_name())
+		return self.scripts_start_name + '.SETUP.sh'
+
+	def create_setup_file(self):
+		module_logger.debug(debug_utils.get_name())
+
+		setup_source_file_name = self.PIPELINE_NAME + '.SetUp.sh'
+		
+		xnat_pbs_jobs_control = os.getenv('XNAT_PBS_JOBS_CONTROL')
+		if xnat_pbs_jobs_control:
+			setup_source_file_name = xnat_pbs_jobs_control + os.sep + setup_source_file_name
+
+		shutil.copyfile(setup_source_file_name, self.setup_file_name)
+		os.chmod(self.setup_file_name, stat.S_IRWXU | stat.S_IRWXG)
+		
 	def submit_get_data_job(self, prior_job=None):
 		module_logger.debug(debug_utils.get_name())
 		if prior_job:
@@ -472,6 +481,7 @@ class OneSubjectJobSubmitter(abc.ABC):
 		# create scripts for various stages of processing
 		if processing_stage >= ProcessingStage.PREPARE_SCRIPTS:
 			self.create_get_data_script()
+			self.create_setup_file()
 			self.create_work_script()
 			self.create_clean_data_script()
 			self.create_put_data_script()

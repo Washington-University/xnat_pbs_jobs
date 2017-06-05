@@ -69,7 +69,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 		subject_line = '  --subject=' + self.subject
 		session_line = '  --session=' + self.session
 		wdir_line = '  --working-dir=' + self.working_directory_name
-		setup_line = '  --setup-script=' + self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.setup_script
+		setup_line = '  --setup-script=' + self.setup_file_name
 		
 		with open(script_name, 'w') as script:
 			script.write(resources_line + os.linesep)

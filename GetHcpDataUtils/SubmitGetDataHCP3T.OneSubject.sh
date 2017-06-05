@@ -71,11 +71,11 @@ get_options()
 	fi
 
 	# validate values retrieved from environment variables
-	if [ -z "${BUILD_DIR}" ]; then
-		inform "ERROR: BUILD_DIR environment variable must be set"
+	if [ -z "${XNAT_PBS_JOBS_BUILD_DIR}" ]; then
+		inform "ERROR: XNAT_PBS_JOBS_BUILD_DIR environment variable must be set"
 		error_count=$(( error_count + 1 ))
 	else
-		g_build_dir=${BUILD_DIR}
+		g_build_dir=${XNAT_PBS_JOBS_BUILD_DIR}
 		inform "g_build_dir: ${g_build_dir}"
 	fi
 

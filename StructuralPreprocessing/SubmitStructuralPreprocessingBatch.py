@@ -42,7 +42,6 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 			put_server = 'http://db-shadow' + str(self.get_and_inc_shadow_number()) + '.nrg.mir:8080'
 
 			# get information for the subject from the configuration
-			setup_file = config.get_value(subject.subject_id, 'SetUpFile')
 			clean_output_first = config.get_bool_value(subject.subject_id, 'CleanOutputFirst')
 			processing_stage_str = config.get_value(subject.subject_id, 'ProcessingStage')
 			processing_stage = submitter.processing_stage_from_string(processing_stage_str)
@@ -55,7 +54,6 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 			module_logger.info("                project: " + subject.project)
 			module_logger.info("                subject: " + subject.subject_id)
 			module_logger.info("             put_server: " + put_server)
-			module_logger.info("             setup_file: " + setup_file)
 			module_logger.info("     clean_output_first: " + str(clean_output_first))
 			module_logger.info("       processing_stage: " + str(processing_stage))
 			module_logger.info("     walltime_limit_hrs: " + str(walltime_limit_hrs))
@@ -74,15 +72,12 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 			submitter.session = subject.subject_id + '_3T'
 
 			# job parameters
-			submitter.setup_script = setup_file
 			submitter.clean_output_resource_first = clean_output_first
 			submitter.put_server = put_server
 			submitter.walltime_limit_hours = walltime_limit_hrs
 			submitter.vmem_limit_gbs = vmem_limit_gbs
 			submitter.output_resource_suffix = output_resource_suffix
 
-			continue
-		
 			# submit jobs
 			submitter.submit_jobs(processing_stage)
 			

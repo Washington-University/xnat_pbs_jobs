@@ -551,6 +551,6 @@ def main():
 		
 if __name__ == '__main__':
 	logging.config.fileConfig(
-		file_utils.get_logging_config_file_name(__file__),
+		file_utils.get_logging_config_file_name(__file__, use_env_variable=False),
 		disable_existing_loggers=False)
 	main()
