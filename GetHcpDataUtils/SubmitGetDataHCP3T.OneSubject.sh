@@ -87,11 +87,11 @@ get_options()
 		inform "g_xnat_pbs_jobs: ${g_xnat_pbs_jobs}"
 	fi
 
-	if [ -z "${LOG_DIR}" ]; then
-		inform "ERROR: LOG_DIR environment variable must be set"
+	if [ -z "${XNAT_PBS_JOBS_LOG_DIR}" ]; then
+		inform "ERROR: XNAT_PBS_JOBS_LOG_DIR environment variable must be set"
 		error_count=$(( error_count + 1 ))
 	else
-		g_log_dir=${LOG_DIR}
+		g_log_dir=${XNAT_PBS_JOBS_LOG_DIR}
 		inform "g_log_dir: ${g_log_dir}"
 	fi
 

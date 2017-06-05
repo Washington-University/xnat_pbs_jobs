@@ -109,8 +109,8 @@ main()
 		touch ${script_file_to_submit}
 		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${script_file_to_submit}
 		echo "#PBS -q HCPput" >> ${script_file_to_submit}
-		echo "#PBS -o ${LOG_DIR}" >> ${script_file_to_submit}
-		echo "#PBS -e ${LOG_DIR}" >> ${script_file_to_submit}
+		echo "#PBS -o ${XNAT_PBS_JOBS_LOG_DIR}" >> ${script_file_to_submit}
+		echo "#PBS -e ${XNAT_PBS_JOBS_LOG_DIR}" >> ${script_file_to_submit}
 		echo "" >> ${script_file_to_submit}
 		echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/FunctionalPreprocessingHCP/FunctionalPackagingHCP.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}

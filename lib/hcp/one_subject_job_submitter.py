@@ -54,7 +54,7 @@ class OneSubjectJobSubmitter(abc.ABC):
         # self._xnat_pbs_jobs_home += 'xnat_pbs_jobs'
 
         self._xnat_pbs_jobs_home = os_utils.getenv_required('XNAT_PBS_JOBS')
-        self._log_dir = os_utils.getenv_required('LOG_DIR')
+        self._log_dir = os_utils.getenv_required('XNAT_PBS_JOBS_LOG_DIR')
 
     @property
     @abc.abstractmethod

@@ -114,9 +114,9 @@ class OneSubjectPackageJobSubmitter():
 
     @property
     def log_directory(self):
-        log_dir = os.getenv('LOG_DIR')
+        log_dir = os.getenv('XNAT_PBS_JOBS_LOG_DIR')
         if not log_dir:
-            raise RuntimeError("Environment variable LOG_DIR must be set")
+            raise RuntimeError("Environment variable XNAT_PBS_JOBS_LOG_DIR must be set")
 
         return log_dir
 

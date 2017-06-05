@@ -29,6 +29,11 @@ def get_config_file_name(source_file_name):
 	if config_file_name.endswith('.py'):
 		config_file_name = config_file_name[:-3]
 	config_file_name += '.ini'
+
+	xnat_pbs_jobs_control = os.getenv('XNAT_PBS_JOBS_CONTROL')
+	if xnat_pbs_jobs_control:
+		config_file_name = xnat_pbs_jobs_control + os.sep + config_file_name
+		
 	return config_file_name
 
 
@@ -37,6 +42,11 @@ def get_subjects_file_name(source_file_name):
 	if subjects_file_name.endswith('.py'):
 		subjects_file_name = subjects_file_name[:-3]
 	subjects_file_name += '.subjects'
+
+	xnat_pbs_jobs_control = os.getenv('XNAT_PBS_JOBS_CONTROL')
+	if xnat_pbs_jobs_control:
+		subjects_file_name = xnat_pbs_jobs_control + os.sep + subjects_file_name
+
 	return subjects_file_name
 
 
@@ -45,6 +55,11 @@ def get_logging_config_file_name(source_file_name):
 	if logging_config_file_name.endswith('.py'):
 		logging_config_file_name = logging_config_file_name[:-3]
 	logging_config_file_name += '.logging.conf'
+
+	xnat_pbs_jobs_control = os.getenv('XNAT_PBS_JOBS_CONTROL')
+	if xnat_pbs_jobs_control:
+		logging_config_file_name = xnat_pbs_jobs_control + os.sep + logging_config_file_name
+
 	return logging_config_file_name
 
 

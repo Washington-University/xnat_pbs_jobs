@@ -491,8 +491,8 @@ main()
 
  		echo "#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
  		echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
- 		echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
- 		echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
+ 		echo "#PBS -o ${XNAT_PBS_JOBS_LOG_DIR}" >> ${put_script_file_to_submit}
+ 		echo "#PBS -e ${XNAT_PBS_JOBS_LOG_DIR}" >> ${put_script_file_to_submit}
  		echo "" >> ${put_script_file_to_submit}
 		echo "${XNAT_PBS_JOBS_HOME}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
  		echo "  --user=\"${g_user}\" \\" >> ${put_script_file_to_submit}

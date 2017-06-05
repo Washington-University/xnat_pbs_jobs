@@ -353,7 +353,7 @@ main()
 	ssh ${g_node} "source ${HOME}/.bash_profile; ${post_eddy_script_file_to_submit} > ${standard_out_file} 2>${standard_err_file}"
    
 	# Submit job to put the results in the DB
-	put_script_file_to_submit=${LOG_DIR}/${g_subject}.DiffusionPreprocHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+	put_script_file_to_submit=${XNAT_PBS_JOBS_LOG_DIR}/${g_subject}.DiffusionPreprocHCP.${g_project}.${g_session}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
  	if [ -e "${put_script_file_to_submit}" ]; then
  		rm -f "${put_script_file_to_submit}"
  	fi
@@ -361,8 +361,8 @@ main()
  	touch ${put_script_file_to_submit}
  	echo "#PBS -l nodes=1:ppn=1,walltime=2:00:00,vmem=4000mb" >> ${put_script_file_to_submit}
  	echo "#PBS -q HCPput" >> ${put_script_file_to_submit}
- 	echo "#PBS -o ${LOG_DIR}" >> ${put_script_file_to_submit}
- 	echo "#PBS -e ${LOG_DIR}" >> ${put_script_file_to_submit}
+ 	echo "#PBS -o ${XNAT_PBS_JOBS_LOG_DIR}" >> ${put_script_file_to_submit}
+ 	echo "#PBS -e ${XNAT_PBS_JOBS_LOG_DIR}" >> ${put_script_file_to_submit}
  	echo "" >> ${put_script_file_to_submit}
  	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
  	echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}

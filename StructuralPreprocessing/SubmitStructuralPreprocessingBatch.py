@@ -81,6 +81,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 			submitter.vmem_limit_gbs = vmem_limit_gbs
 			submitter.output_resource_suffix = output_resource_suffix
 
+			continue
+		
 			# submit jobs
 			submitter.submit_jobs(processing_stage)
 			
@@ -100,7 +102,7 @@ if __name__ == '__main__':
 	config.read(config_file_name)
 	
 	# get list of subjects to process
-	subject_file_name = 'subjectfiles' + os.sep + file_utils.get_subjects_file_name(__file__)
+	subject_file_name = file_utils.get_subjects_file_name(__file__)
 	module_logger.info("Retrieving subject list from: " + subject_file_name)
 	subject_list = ccf_subject.read_subject_info_list(subject_file_name, separator=":")
 

@@ -211,7 +211,7 @@ main()
 		ssh ${g_node} "source ${HOME}/.bash_profile; ${script_file_to_submit} > ${standard_out_file} 2>${standard_err_file}"
 
 		# Submit job to put the results in the DB
-		put_script_file_to_submit=${LOG_DIR}/${g_subject}.RestingStateStats.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
+		put_script_file_to_submit=${XNAT_PBS_JOBS_LOG_DIR}/${g_subject}.RestingStateStats.${g_project}.${g_session}.${scan}.${current_seconds_since_epoch}.XNAT_PBS_PUT_job.sh
 		if [ -e "${put_script_file_to_submit}" ]; then
 			rm -f "${put_script_file_to_submit}"
 		fi
