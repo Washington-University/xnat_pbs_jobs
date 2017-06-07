@@ -169,22 +169,6 @@ main()
 	DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
 	log_Msg "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
 
-	# remove the following for production
-	DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/build_ssd/chpc/BUILD/test_data/hcpdb/archive"
-	log_Msg "---------------------------------------"
-	log_Msg "IMPORTANT IMPORTANT IMPORTANT IMPORTANT"
-	log_Msg ""
-	log_Msg " DATABASE_ARCHIVE_ROOT is set to ${DATABASE_ARCHIVE_ROOT}"
-	log_Msg ""
-	log_Msg " I AM USING THAT AS AN OVERRIDE VALUE!"
-	log_Msg " THIS SHOULD NEVER BE HAPPENING IN A "
-	log_Msg " PRODUCTION RUN. THIS IS FOR TESTING"
-	log_Msg " PURPOSES ONLY!!! "
-	log_Msg ""
-	log_Msg "IMPORTANT IMPORTANT IMPORTANT IMPORTANT"
-	log_Msg "---------------------------------------"
-	# remove the above for production
-	
 	# ----------------------------------------------------------------------------------------------
 	#  Figure out what resting state scans are available for this subject/session
 	# ----------------------------------------------------------------------------------------------

@@ -277,15 +277,18 @@ RLLR_POSITIVE_DIR="RL"
 RLLR_NEGATIVE_DIR="LR"
 
 # home directory for pipeline tools
-PIPELINE_TOOLS_HOME=${HOME}/pipeline_tools
-log_Msg "PIPELINE_TOOLS_HOME: ${PIPELINE_TOOLS_HOME}"
+#PIPELINE_TOOLS_HOME=${HOME}/pipeline_tools
+#log_Msg "PIPELINE_TOOLS_HOME: ${PIPELINE_TOOLS_HOME}"
 
 # home directory for XNAT related utilities
-XNAT_UTILS_HOME=${PIPELINE_TOOLS_HOME}/xnat_utilities
-log_Msg "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
+if [ -z "${XNAT_UTILS_HOME}" ]; then
+	log_Err_Abort "XNAT_UTILS_HOME environment variable must be set"
+else
+	log_Msg "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
+fi
 
 # home directory for XNAT pipeline engine installation
-XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
+XNAT_PIPELINE_HOME=/export/HCP/pipeline
 log_Msg "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 
 # "base" of file name for first T1w scan
@@ -530,22 +533,6 @@ main()
 	# root directory of the XNAT database archive
 	DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
 	log_Msg "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
-
-	# remove the following for production
-	DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/build_ssd/chpc/BUILD/test_data/hcpdb/archive"
-	log_Msg "---------------------------------------"
-	log_Msg "IMPORTANT IMPORTANT IMPORTANT IMPORTANT"
-	log_Msg ""
-	log_Msg " DATABASE_ARCHIVE_ROOT is set to ${DATABASE_ARCHIVE_ROOT}"
-	log_Msg ""
-	log_Msg " I AM USING THAT AS AN OVERRIDE VALUE!"
-	log_Msg " THIS SHOULD NEVER BE HAPPENING IN A "
-	log_Msg " PRODUCTION RUN. THIS IS FOR TESTING"
-	log_Msg " PURPOSES ONLY!!! "
-	log_Msg ""
-	log_Msg "IMPORTANT IMPORTANT IMPORTANT IMPORTANT"
-	log_Msg "---------------------------------------"
-	# remove the above for production
 
 	# determine what resources exist and get parameters needed
 	

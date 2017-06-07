@@ -430,7 +430,7 @@ class OneSubjectJobSubmitter(abc.ABC):
 
 		completed_put_submit_process = subprocess.run(
 			put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
-		put_job_no = str_utils.remove_ending_new_linesa(completed_put_submit_process.stdout)
+		put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
 		module_logger.debug(debug_utils.get_name() + ": put_job_no = " + str(put_job_no))
 		return put_job_no
 
