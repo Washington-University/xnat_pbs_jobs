@@ -22,7 +22,7 @@
 #
 # This script runs the Task fMRI Analysis script to perform Task Analysis
 # for the Human Connectome Project for a specified project, subject, & 
-# session in the ConnectomeDB (db.humanconnectome.org) XNAT database.
+# session in the ConnectomeDB (${XNAT_PBS_JOBS_XNAT_SERVER}) XNAT database.
 #
 # The script is run not as an XNAT pipeline (under the control of the
 # XNAT Pipeline Engine), but in an "XNAT-aware" and "pipeline-like" manner.

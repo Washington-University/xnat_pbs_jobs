@@ -16,6 +16,10 @@ if [ -z "${NRG_PACKAGES}" ]; then
 	log_Err_Abort "NRG_PACKAGES environment variable must be set"
 fi
 
+if [ -z "${XNAT_PBS_JOBS_XNAT_SERVER}" ]; then
+	log_Err_Abort "XNAT_PBS_JOBS_XNAT_SERVER environment variable must be set"
+fi
+
 # Show script usage information
 usage()
 {
@@ -32,7 +36,7 @@ Usage: StructuralPreprocessingHCP.XNAT.sh <options>
   [--help] : show usage information and exit
    --user=<username>        : XNAT DB username
    --password=<password>    : XNAT DB password
-   --server=<server>        : XNAT server (e.g. db.humanconnectome.org)
+   --server=<server>        : XNAT server 
    --project=<project>      : XNAT project (e.g. HCP_500)
    --subject=<subject>      : XNAT subject ID within project (e.g. 100307)
    --session=<session>      : XNAT session ID within project (e.g. 100307_3T)
@@ -341,14 +345,14 @@ get_scan_data()
 	local file_name="${2}"
 	local item_name="${3}"
 
-	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "db.humanconnectome.org" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
+	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "${XNAT_PBS_JOBS_XNAT_SERVER}" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
 	echo ${result}
 }
 
 does_resource_exist()
 {
 	local resource_name="${1}"
-	local does_it_exist=`${XNAT_UTILS_HOME}/xnat_scan_info -s "db.humanconnectome.org" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" check_resource_exists`
+	local does_it_exist=`${XNAT_UTILS_HOME}/xnat_scan_info -s "${XNAT_PBS_JOBS_XNAT_SERVER}" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" check_resource_exists`
 	echo ${does_it_exist}
 }
 

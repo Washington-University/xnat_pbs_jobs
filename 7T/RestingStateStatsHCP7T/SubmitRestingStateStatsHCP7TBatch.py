@@ -8,9 +8,7 @@ import logging
 import logging.config
 import os
 
-
 # import of third party modules
-
 
 # import of local modules
 import hcp.batch_submitter as batch_submitter
@@ -19,7 +17,7 @@ import hcp.hcp7t.resting_state_stats.one_subject_job_submitter as one_subject_jo
 import hcp.hcp7t.subject as hcp7t_subject
 import utils.file_utils as file_utils
 import utils.my_configparser as my_configparser
-
+import utils.os_utils as os_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -76,7 +74,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 
             submitter.username = userid
             submitter.password = password
-            submitter.server = 'https://db.humanconnectome.org'
+            submitter.server = 'https://' + os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER')
 
             submitter.project = subject.project
             submitter.subject = subject.subject_id

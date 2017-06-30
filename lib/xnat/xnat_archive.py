@@ -21,7 +21,7 @@ __maintainer__ = "Timothy B. Brown"
 
 # create a module logger
 module_logger = logging.getLogger(__name__)
-module_logger.setLevel(logging.WARNING)  # Note: This can be overriddent by log file configuration.
+module_logger.setLevel(logging.WARNING)  # Note: This can be overridden by log file configuration.
 module_logger.setLevel(logging.INFO)  # Note: This can be overriddent by log file configuration.
 
 
@@ -43,68 +43,29 @@ class XNAT_Archive:
 
 	def __init__(self):
 		"""Constructs an XNAT_Archive object for direct access to an XNAT data archive."""
-		COMPUTE_PLATFORM = os.getenv('COMPUTE', self.DEFAULT_COMPUTE_PLATFORM)
-		module_logger.debug("COMPUTE_PLATFORM = " + COMPUTE_PLATFORM)
-		XNAT_DATA_ROOT = os.getenv('XNAT_DATA_ROOT')
-		module_logger.debug("XNAT_DATA_ROOT = " + str(XNAT_DATA_ROOT))
-		
-		if XNAT_DATA_ROOT:
-			print("xnat_archive.py: ---------------------------------------")
-			print("xnat_archive.py: IMPORTANT IMPORTANT IMPORTANT IMPORTANT")
-			print("xnat_archive.py: ")
-			print("xnat_archive.py:  XNAT_DATA_ROOT is set to " + XNAT_DATA_ROOT )
-			print("xnat_archive.py:  I AM USING THAT AS AN OVERRIDE VALUE  ")
-			print("xnat_archive.py:  FOR THE XNAT ARCHIVE'S DATA ROOT !!!  ")
-			print("xnat_archive.py:  THIS SHOULD NEVER BE HAPPENING IN A   ")
-			print("xnat_archive.py:  PRODUCTION RUN. THIS IS FOR TESTING   ")
-			print("xnat_archive.py:  PURPOSES ONLY!!!                      ")
-			print("xnat_archive.py: ")
-			print("xnat_archive.py: IMPORTANT IMPORTANT IMPORTANT IMPORTANT")
-			print("xnat_archive.py: ---------------------------------------")
+		module_logger.debug("xnat_archive.__init__")
 
-			self._data_root = XNAT_DATA_ROOT
-		else:
-			if COMPUTE_PLATFORM == 'CHPC':
-				self._data_root = '/HCP'
-			elif COMPUTE_PLATFORM == 'NRG':
-				self._data_root = '/data'
-			elif COMPUTE_PLATFORM == 'TIMS_DESKTOP':
-				self._data_root = '/home/tbb/mnt/fs01/data'
-			else:
-				raise ValueError('Unrecognized value for COMPUTE environment variable: ' + COMPUTE_PLATFORM)
-
-		module_logger.debug("self.data_root = " + self.data_root)
-		
-	@property
-	def data_root(self):
-		"""Returns the path to the root of all data."""
-		return self._data_root
-	
 	@property
 	def archive_root(self):
 		"""Returns the path to the root of the archive."""
-		return self.data_root + '/hcpdb/archive'
+		XNAT_PBS_JOBS_ARCHIVE_ROOT = os.getenv('XNAT_PBS_JOBS_ARCHIVE_ROOT')
+		module_logger.debug("XNAT_PBS_JOBS_ARCHIVE_ROOT = " + str(XNAT_PBS_JOBS_ARCHIVE_ROOT))
+
+		if not XNAT_PBS_JOBS_ARCHIVE_ROOT:
+			raise RuntimeError("Environment variable XNAT_PBS_JOBS_ARCHIVE_ROOT must be set")
+
+		return XNAT_PBS_JOBS_ARCHIVE_ROOT
 
 	@property
 	def build_space_root(self):
-		"""Returns the temporary build/processing directory root."""
-		COMPUTE_PLATFORM = os.getenv('COMPUTE', self.DEFAULT_COMPUTE_PLATFORM)
-		module_logger.debug("COMPUTE_PLATFORM = " + COMPUTE_PLATFORM)
+		"""Returns the path to the temporary build/processing directory root."""
 		XNAT_PBS_JOBS_BUILD_DIR = os.getenv('XNAT_PBS_JOBS_BUILD_DIR')
 		module_logger.debug("XNAT_PBS_JOBS_BUILD_DIR = " + str(XNAT_PBS_JOBS_BUILD_DIR))
-		
-		if XNAT_PBS_JOBS_BUILD_DIR:
-			return_value = XNAT_PBS_JOBS_BUILD_DIR
-		else:
-			if COMPUTE_PLATFORM == 'CHPC':
-				return_value = self.data_root + '/hcpdb/build_ssd/chpc/BUILD'
-			elif COMPUTE_PLATFORM == 'NRG':
-				return_value = self.data_root + '/hcpdb/build_ssd/chpc/BUILD'
-			elif COMPUTE_PLATFORM == 'TIMS_DESKTOP':
-				return_value = self.data_root + '/hcpdb/build_ssd/chpc/BUILD'
 
-		module_logger.debug("build_space_root = " + return_value)
-		return return_value
+		if not XNAT_PBS_JOBS_BUILD_DIR:
+			raise RuntimeError("Environment variable XNAT_PBS_JOBS_BUILD_DIR must be set")
+
+		return XNAT_PBS_JOBS_BUILD_DIR
 	
 	def project_archive_root(self, project_name):
 		"""Returns the path to the specified project's root directory in the archive.
@@ -126,7 +87,7 @@ class XNAT_Archive:
 
 def _simple_interactive_demo():
 	archive = XNAT_Archive()
-	project_name = 'CCF_AGING'
+	project_name = 'HCP_Staging'
 	
 	print('archive_root: ' + archive.archive_root)
 	print('project_archive_root(\'' + project_name + '\'): ' + archive.project_archive_root(project_name))
@@ -135,6 +96,6 @@ def _simple_interactive_demo():
 
 if __name__ == "__main__":
 	logging.config.fileConfig(
-		file_utils.get_logging_config_file_name(__file__),
+		file_utils.get_logging_config_file_name(__file__, False),
 		disable_existing_loggers=False)
 	_simple_interactive_demo()

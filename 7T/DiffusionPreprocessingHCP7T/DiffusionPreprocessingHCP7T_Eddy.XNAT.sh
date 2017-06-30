@@ -60,7 +60,7 @@ PARAMETERs are: [ ] = optional, < > = user-supplied-value
   [--help]              show usage information and exit with a non-zero return code
   --user=<username>     XNAT DB username
   --password=<password> XNAT DB password
-  --server=<server>     XNAT server (e.g. db.humanconnectome.org)
+  --server=<server>     XNAT server 
   --subject=<subject>   XNAT subject ID (e.g. 100307)
   --working-dir=<dir>   Working directory from which to read data
                         and in which to produce results

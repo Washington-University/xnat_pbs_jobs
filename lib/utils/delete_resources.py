@@ -9,6 +9,7 @@ import os
 # import of local modules
 import utils.delete_resource as delete_resource
 import utils.my_argparse as my_argparse
+import utils.os_utils as os_utils
 import utils.str_utils as str_utils
 
 # authorship information
@@ -35,7 +36,10 @@ def main():
     parser.add_argument(dest='input_file')
 
     # optional arguments
-    parser.add_argument('-ser', '--server', dest='server', required=False, default='https://db.humanconnectome.org', type=str)
+    parser.add_argument('-ser', '--server', dest='server', required=False,
+						default='https://' + os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER'),
+						type=str)
+	
     parser.add_argument('-p', '--password', dest='password', required=False, type=str)
 
     # parse the command line arguments

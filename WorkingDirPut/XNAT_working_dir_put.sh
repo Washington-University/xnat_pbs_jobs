@@ -21,7 +21,7 @@
 # ## Description
 #
 # This script pushes data from a working directory into a resource in 
-# the ConnectomeDB (db.humanconnectome.org) XNAT database.
+# the ConnectomeDB (${XNAT_PBS_JOBS_XNAT_SERVER}) XNAT database.
 #
 #~ND~END~
 
@@ -57,7 +57,7 @@ usage()
 	echo ""
 	echo "    --user=<username>          : XNAT DB username"
 	echo "    --password=<password>      : XNAT DB password"
-	echo "    --server=<server>          : XNAT server (e.g. db.humanconnectome.org)"
+	echo "    --server=<server>          : XNAT server (e.g. ${XNAT_PBS_JOBS_XNAT_SERVER})"
 	echo "    --project=<project>        : XNAT project (e.g. HCP_500)"
 	echo "    --subject=<subject>        : XNAT subject ID within project (e.g. 100307)"
 	echo "    --session=<session>        : XNAT session ID within project (e.g. 100307_3T)"

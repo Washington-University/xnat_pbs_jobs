@@ -22,7 +22,7 @@
 #
 # This script runs the MSM-All pipeline script that does MSM-All Registration
 # for the Human Connectome Project for a specified project, subject, session, 
-# and scan in the ConnectomeDB (db.humanconnectome.org) XNAT database.
+# and scan in the ConnectomeDB (${XNAT_PBS_JOBS_XNAT_SERVER}) XNAT database.
 #
 # The script is run not as an XNAT pipeline (under the control of the
 # XNAT Pipeline Engine), but in an "XNAT-aware" and "pipeline-like" manner.
@@ -79,7 +79,7 @@ usage()
 	echo ""
 	echo "    --user=<username>      : XNAT DB username"
 	echo "    --password=<password>  : XNAT DB password"
-	echo "    --server=<server>      : XNAT server (e.g. db.humanconnectome.org)"
+	echo "    --server=<server>      : XNAT server (e.g. ${XNAT_PBS_JOBS_XNAT_SERVER})"
 	echo "    --project=<project>    : XNAT project (e.g. HCP_500)"
 	echo "    --subject=<subject>    : XNAT subject ID within project (e.g. 100307)"
 	echo "    --session=<session>    : XNAT session ID within project (e.g. 100307_3T)"

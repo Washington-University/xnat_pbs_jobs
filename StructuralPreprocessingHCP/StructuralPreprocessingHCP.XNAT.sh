@@ -23,7 +23,7 @@
 # This script runs the Structural Preprocessing pipeline consisting of the 
 # PreFreeSurfer, FreeSurfer, and PostFreeSurfer pipeline scripts from the Human 
 # Connectome Project for a specified project, subject, session, and scan 
-# in the ConnectomeDB (db.humanconnectome.org) XNAT database.
+# in the ConnectomeDB (${XNAT_PBS_JOBS_XNAT_SERVER}) XNAT database.
 #
 # The script is run not as an XNAT pipeline (under the control of the
 # XNAT Pipeline Engine), but in an "XNAT-aware" and "pipeline-like" manner.
@@ -126,7 +126,7 @@ usage()
 	echo ""
 	echo "    --user=<username>        : XNAT DB username"
 	echo "    --password=<password>    : XNAT DB password"
-	echo "    --server=<server>        : XNAT server (e.g. db.humanconnectome.org)"
+	echo "    --server=<server>        : XNAT server (e.g. ${XNAT_PBS_JOBS_XNAT_SERVER})"
 	echo "    --project=<project>      : XNAT project (e.g. HCP_500)"
 	echo "    --subject=<subject>      : XNAT subject ID within project (e.g. 100307)"
 	echo "    --session=<session>      : XNAT session ID within project (e.g. 100307_3T)"
@@ -394,7 +394,7 @@ set_spin_echo_positive_and_negative_fieldmaps()
 does_resource_exist()
 {
 	local resource_name="${1}"
-	local does_it_exist=`${XNAT_UTILS_HOME}/xnat_scan_info -s "db.humanconnectome.org" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" check_resource_exists`
+	local does_it_exist=`${XNAT_UTILS_HOME}/xnat_scan_info -s "${XNAT_PBS_JOBS_XNAT_SERVER}" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" check_resource_exists`
 	echo ${does_it_exist}
 }
 
@@ -442,7 +442,7 @@ get_scan_data()
 	local file_name="${2}"
 	local item_name="${3}"
 
-	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "db.humanconnectome.org" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
+	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "${XNAT_PBS_JOBS_XNAT_SERVER}" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
 	echo ${result}
 }
 

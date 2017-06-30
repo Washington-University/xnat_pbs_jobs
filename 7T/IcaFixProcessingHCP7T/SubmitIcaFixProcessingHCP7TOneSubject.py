@@ -21,6 +21,7 @@ import hcp.hcp7t.subject as hcp7t_subject
 import hcp.one_subject_job_submitter as one_subject_job_submitter
 import utils.delete_resource as delete_resource
 import utils.os_utils as os_utils
+import utils.os_utils as os_utils
 import utils.str_utils as str_utils
 import xnat.xnat_access as xnat_access
 
@@ -195,14 +196,14 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
 
             # get JSESSION ID
             jsession_id = xnat_access.get_jsession_id(
-                server='db.humanconnectome.org',
+                server=os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER'),
                 username=username,
                 password=password)
             inform("jsession_id: " + jsession_id)
 
             # get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
             xnat_session_id = xnat_access.get_session_id(
-                server='db.humanconnectome.org',
+                server=os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER'),
                 username=username,
                 password=password,
                 project=project,

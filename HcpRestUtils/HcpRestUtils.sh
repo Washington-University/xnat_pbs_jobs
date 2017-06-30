@@ -27,7 +27,7 @@ delete_resource()
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
 	local get_session_id_cmd=""
 	get_session_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py "
-	get_session_id_cmd+="--server=db.humanconnectome.org "
+	get_session_id_cmd+="--server=${XNAT_PBS_JOBS_XNAT_SERVER} "
 	get_session_id_cmd+="--username=${user} "
 	get_session_id_cmd+="--password=${password} "
 	get_session_id_cmd+="--project=${project} "

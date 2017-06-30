@@ -30,7 +30,7 @@ PARAMETERs are [ ] = optional; < > = user supplied value
   [--help]                 : show usage information and exit with non-zero return code
    --user=<username>       : XNAT DB username
    --password=<password>   : XNAT DB password
-   --server=<server>       : XNAT server (e.g. db.humanconnectome.org)
+   --server=<server>       : XNAT server (e.g. ${XNAT_PBS_JOBS_XNAT_SERVER})
    --project=<project>     : XNAT project (e.g. HCP_Staging_7T)
    --subject=<subject>     : XNAT subject ID within project (e.g. 102311)
    --session=<session>     : XNAT session ID within project (e.g. 102311_7T)

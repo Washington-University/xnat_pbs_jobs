@@ -11,12 +11,13 @@ import getpass
 pass
 
 # import of local modules
-import hcp.hcp7t.subject as hcp7t_subject
-import hcp.hcp7t.archive as hcp7t_archive
-import utils.my_configparser as my_configparser
-import utils.file_utils as file_utils
-import hcp.batch_submitter as batch_submitter
 import SubmitIcaFixProcessingHCP7TOneSubject
+import hcp.batch_submitter as batch_submitter
+import hcp.hcp7t.archive as hcp7t_archive
+import hcp.hcp7t.subject as hcp7t_subject
+import utils.file_utils as file_utils
+import utils.my_configparser as my_configparser
+import utils.os_utils as os_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -110,7 +111,7 @@ class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
 
             # Use the "one subject submitter" to submit the jobs for the current subject
             self._one_subject_submitter.submit_jobs(
-                userid, password, 'https://db.humanconnectome.org',
+                userid, password, 'https://' + os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER'),
                 subject.project, subject.subject_id, subject.subject_id + '_7T',
                 subject.structural_reference_project, subject.subject_id + '_3T',
                 put_server, clean_output_first, setup_file, 

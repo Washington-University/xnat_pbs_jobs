@@ -250,7 +250,7 @@ get_scan_data()
 	local file_name="${2}"
 	local item_name="${3}"
 
-	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "db.humanconnectome.org" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
+	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "${XNAT_PBS_JOBS_XNAT_SERVER}" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
 	echo ${result}
 }
 

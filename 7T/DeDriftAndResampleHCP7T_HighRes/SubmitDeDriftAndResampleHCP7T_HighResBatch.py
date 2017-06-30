@@ -18,6 +18,7 @@ import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
 import utils.file_utils as file_utils
 import utils.my_configparser as my_configparser
+import utils.os_utils as os_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -92,7 +93,7 @@ class DeDriftAndResampleHcp7T_HighResBatchSubmitter(batch_submitter.BatchSubmitt
 
             one_subject_submitter.username = userid
             one_subject_submitter.password = password
-            one_subject_submitter.server = 'https://db.humanconnectome.org'
+            one_subject_submitter.server = 'https://' + os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER')
             one_subject_submitter.project = subject.project
             one_subject_submitter.subject = subject.subject_id
             one_subject_submitter.session = subject.subject_id + '_7T'
@@ -124,8 +125,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Get Connectome DB credentials
-    userid = input("Connectome DB Username: ")
-    password = getpass.getpass("Connectome DB Password: ")
+    userid = input("DB Username: ")
+    password = getpass.getpass("DB Password: ")
 
     # Get list of subjects to process
     subject_file_name = file_utils.get_subjects_file_name(__file__)

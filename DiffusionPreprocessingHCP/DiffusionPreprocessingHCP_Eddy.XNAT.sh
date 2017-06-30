@@ -23,7 +23,7 @@
 # This script runs the Diffusion Preprocessing pipeline Eddy phase 
 # consisting of the DiffPreprocPipeline_Eddy.sh pipeline script from
 # the Human Connectome Project for a specified project, subject, session,
-# in the ConnectomeDB (db.humanconnectome.org) XNAT database.
+# in the ConnectomeDB (${XNAT_PBS_JOBS_XNAT_SERVER}) XNAT database.
 #
 # The script is run not as an XNAT pipeline (under the control of the
 # XNAT Pipeline Engine), but in an "XNAT-aware" and "pipeline-like" manner.
@@ -90,7 +90,7 @@ PARAMETERs are: [ ] = optional, < > = user-supplied-value
   [--help]              show usage information and exit with a non-zero return code
   --user=<username>     XNAT DB username
   --password=<password> XNAT DB password
-  --server=<server>     XNAT server (e.g. db.humanconnectome.org)
+  --server=<server>     XNAT server (e.g. ${XNAT_PBS_JOBS_XNAT_SERVER})
   --subject=<subject>   XNAT subject ID (e.g. 100307)
   --working-dir=<dir>   Working directory from which to read data
                         and in which to produce results

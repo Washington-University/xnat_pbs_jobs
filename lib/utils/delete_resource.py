@@ -8,17 +8,14 @@ import os
 import subprocess
 import sys
 
-
 # import of third party modules
-# None
-
 
 # import of local modules
 import utils.my_argparse as my_argparse
+import utils.os_utils as os_utils
 import utils.str_utils as str_utils
 import utils.user_utils as user_utils
 import xnat.xnat_access as xnat_access
-
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -51,10 +48,7 @@ def delete_resource(user, password, server, project, subject, session, resource,
 
 	resource_uri = resource_url + variable_values
 
-	pipeline_engine = os.getenv('XNAT_PBS_JOBS_PIPELINE_ENGINE')
-	if not pipeline_engine:
-		_inform("XNAT_PBS_JOS_PIPELINE_ENGINE environment variable must be set")
-		exit(1)
+	pipeline_engine = os_utils.getenv_required('XNAT_PBS_JOBS_PIPELINE_ENGINE')
 
 	delete_cmd = 'java -Xmx1024m -jar ' + pipeline_engine + os.sep + 'lib' + os.sep + 'xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar'
 	delete_cmd += ' -u ' + user
@@ -89,7 +83,9 @@ def main():
 	parser.add_argument('-r', '--resource', dest='resource', required=True, type=str)
 
 	# optional arguments
-	parser.add_argument('-ser', '--server', dest='server', required=False, default='https://db.humanconnectome.org', type=str)
+	parser.add_argument('-ser', '--server', dest='server', required=False,
+						default='https://' + os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER'),
+						type=str)
 	parser.add_argument('-f', '--force', dest='force', action="store_true", required=False, default=False)
 	parser.add_argument('-pw', '--password', dest='password', required=False, type=str)
 

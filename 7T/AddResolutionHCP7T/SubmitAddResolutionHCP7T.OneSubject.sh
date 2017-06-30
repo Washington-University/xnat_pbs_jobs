@@ -111,7 +111,7 @@ get_options()
 	fi
 
 	if [ -z "${g_server}" ]; then
-		g_server="db.humanconnectome.org"
+		g_server="${XNAT_PBS_JOBS_XNAT_SERVER}"
 	fi
 	inform "Connectome DB Server: ${g_server}"
 
@@ -165,7 +165,7 @@ main()
 
 	# Get JSESSION ID
 	inform "Getting JSESSION ID"
-	curl_cmd="curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION"
+	curl_cmd="curl -u ${g_user}:${g_password} https://${XNAT_PBS_JOBS_XNAT_SERVER}/data/JSESSION"
 	jsession=`${curl_cmd}`
 	inform "jsession: ${jsession}"
 
@@ -176,7 +176,7 @@ main()
 	inform "XNAT session ID: ${sessionID}"
 
 	# Get XNAT Workflow ID
-	server="https://db.humanconnectome.org/"
+	server="https://${XNAT_PBS_JOBS_XNAT_SERVER}/"
 	inform "Getting XNAT workflow ID for this job from server: ${server}"
 	get_workflow_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py -User ${g_user} -Server ${server} -ExperimentID ${sessionID} -ProjectID ${g_project} -Pipeline ${PIPELINE_NAME} -Status Queued -JSESSION ${jsession}"
 	get_workflow_id_cmd+=" -Password ${g_password}"

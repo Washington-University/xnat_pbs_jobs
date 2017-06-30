@@ -23,7 +23,7 @@
 # This script runs the Diffusion Preprocessing pipeline PreEddy phase 
 # consisting of the DiffPreprocPipeline_PreEddy.sh pipeline script from
 # the Human Connectome Project for a specified project, subject, session,
-# in the ConnectomeDB (db.humanconnectome.org) XNAT database.
+# in the ConnectomeDB (${XNAT_PBS_JOBS_XNAT_SERVER}) XNAT database.
 #
 # The script is run not as an XNAT pipeline (under the control of the
 # XNAT Pipeline Engine), but in an "XNAT-aware" and "pipeline-like" manner.
@@ -99,7 +99,7 @@ PARAMETERs are: [ ] = optional, < > = user-supplied-value
   [--help]              show usage information and exit with a non-zero return code
   --user=<username>     XNAT DB username
   --password=<password> XNAT DB password
-  --server=<server>     XNAT server (e.g. db.humanconnectome.org)
+  --server=<server>     XNAT server (e.g. ${XNAT_PBS_JOBS_XNAT_SERVER})
   --project=<project>   XNAT project (e.g. HCP_500)
   --subject=<subject>   XNAT subject ID within project (e.g. 100307)
   --session=<session>   XNAT session ID within project (e.g. 100307_3T)
@@ -286,7 +286,7 @@ get_scan_data()
 	local file_name="${2}"
 	local item_name="${3}"
 	
-	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "db.humanconnectome.org" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
+	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "${XNAT_PBS_JOBS_XNAT_SERVER}" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
 	echo ${result}
 }
 

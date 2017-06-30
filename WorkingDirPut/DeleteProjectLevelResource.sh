@@ -68,7 +68,7 @@ get_options()
 		esac
 	done
 
-	local default_server="db.humanconnectome.org"
+	local default_server="${XNAT_PBS_JOBS_XNAT_SERVER}"
 
 	local error_count=0
 

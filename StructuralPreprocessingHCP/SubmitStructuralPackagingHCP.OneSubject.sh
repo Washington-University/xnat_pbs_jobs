@@ -67,7 +67,7 @@ get_options()
 	fi
 
 	if [ -z "${g_server}" ]; then
-		g_server="db.humanconnectome.org"
+		g_server="${XNAT_PBS_JOBS_XNAT_SERVER}"
 	fi
 	echo "Connectome DB Server: ${g_server}"
 

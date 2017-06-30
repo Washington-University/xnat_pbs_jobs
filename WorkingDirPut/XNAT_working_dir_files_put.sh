@@ -34,7 +34,7 @@ usage()
 	inform ""
 	inform "    --user=<username>          : XNAT DB username"
 	inform "    --password=<password>      : XNAT DB password"
-	inform "    --server=<server>          : XNAT server (e.g. db.humanconnectome.org)"
+	inform "    --server=<server>          : XNAT server (e.g. ${XNAT_PBS_JOBS_XNAT_SERVER})"
 	inform "    --project=<project>        : XNAT project (e.g. HCP_500)"
 	inform "    --subject=<subject>        : XNAT subject ID within project (e.g. 100307)"
 	inform "    --session=<session>        : XNAT session ID within project (e.g. 100307_3T)"

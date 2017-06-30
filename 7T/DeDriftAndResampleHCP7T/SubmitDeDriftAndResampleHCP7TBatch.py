@@ -17,6 +17,7 @@ import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
 import utils.file_utils as file_utils
 import utils.my_configparser as my_configparser
+import utils.os_utils as os_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -90,7 +91,7 @@ class DeDriftAndResampleHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
 
             one_subject_submitter.username = userid
             one_subject_submitter.password = password
-            one_subject_submitter.server = 'https://db.humanconnectome.org'
+            one_subject_submitter.server = 'https://' + os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER')
             one_subject_submitter.project = subject.project
             one_subject_submitter.subject = subject.subject_id
             one_subject_submitter.session = subject.subject_id + '_7T'

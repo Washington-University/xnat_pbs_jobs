@@ -102,7 +102,7 @@ get_options()
 	fi
 
 	if [ -z "${g_server}" ]; then
-		g_server="db.humanconnectome.org"
+		g_server="${XNAT_PBS_JOBS_XNAT_SERVER}"
 	fi
 	log_Msg "Connectome DB Server: ${g_server}"
 
@@ -154,14 +154,14 @@ main()
 
 	# Get JSESSION ID
 	log_Msg "Getting JSESSION ID"
-	jsession=`curl -u ${g_user}:${g_password} https://db.humanconnectome.org/data/JSESSION`
+	jsession=`curl -u ${g_user}:${g_password} https://${XNAT_PBS_JOBS_XNAT_SERVER}/data/JSESSION`
 	log_Msg "jsession: ${jsession}"
 
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
 	log_Msg "Getting XNAT Session ID"
 	get_session_id_cmd=""
 	get_session_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py "
-	get_session_id_cmd+="--server=db.humanconnectome.org "
+	get_session_id_cmd+="--server=${XNAT_PBS_JOBS_XNAT_SERVER} "
 	get_session_id_cmd+="--username=${g_user} "
 	get_session_id_cmd+="--project=${g_project} "
 	get_session_id_cmd+="--subject=${g_subject} "
@@ -173,7 +173,7 @@ main()
 	log_Msg "XNAT session ID: ${sessionID}"
 
 	# Get XNAT Workflow ID
-	server="https://db.humanconnectome.org/"
+	server="https://${XNAT_PBS_JOBS_XNAT_SERVER}/"
 	log_Msg "Getting XNAT workflow ID for this job from server: ${server}"
 	get_workflow_id_cmd=""
 	get_workflow_id_cmd+="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/workflow.py "

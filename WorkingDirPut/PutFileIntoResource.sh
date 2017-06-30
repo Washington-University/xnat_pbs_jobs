@@ -114,7 +114,7 @@ get_options()
 		esac
 	done
 
-	local default_server="db.humanconnectome.org"
+	local default_server="${XNAT_PBS_JOBS_XNAT_SERVER}"
 
 	local error_count=0
 
@@ -229,7 +229,7 @@ main()
 	source ${SCRIPTS_HOME}/epd-python_setup.sh
 
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g ConnectomeDB_E1234)
-	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=db.humanconnectome.org --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
+	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=${XNAT_PBS_JOBS_XNAT_SERVER} --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
 	#echo "get_session_id_cmd: ${get_session_id_cmd}"
 	sessionID=`${get_session_id_cmd}`
 	inform "XNAT session ID: ${sessionID}"

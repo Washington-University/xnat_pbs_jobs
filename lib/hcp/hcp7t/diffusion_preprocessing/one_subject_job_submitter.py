@@ -12,19 +12,16 @@ import stat
 import subprocess
 import time
 
-
 # import of third party modules
-# None
-
 
 # import of local modules
 import hcp.one_subject_job_submitter as one_subject_job_submitter
 import hcp.pe_dirs as pe_dirs
 import utils.delete_resource as delete_resource
 import utils.file_utils as futils
+import utils.os_utils as os_utils
 import utils.str_utils as str_utils
 import xnat.xnat_access as xnat_access
-
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -463,14 +460,14 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
             # get JSESSION ID
             jsession_id = xnat_access.get_jsession_id(
-                server='db.humanconnectome.org',
+                server=os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER'),
                 username=self.username,
                 password=self.password)
             _inform("jsession_id: " + jsession_id)
 
             # get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
             xnat_session_id = xnat_access.get_session_id(
-                server='db.humanconnectome.org',
+                server=os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER'),
                 username=self.username,
                 password=self.password,
                 project=kself.project,
@@ -480,7 +477,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
             # get XNAT Workflow ID
             workflow_obj = xnat_access.Workflow(self.username, self.password,
-                                                'https://db.humanconnectome.org', jsession_id)
+                                                os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER'),
+                                                jsession_id)
             self._workflow_id = workflow_obj.create_workflow(xnat_session_id,
                                                              self.project,
                                                              self.PIPELINE_NAME,

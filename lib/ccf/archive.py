@@ -208,6 +208,14 @@ class CcfArchive(object):
 		dir_list = glob.glob(path_expr)
 		return sorted(dir_list)
 
+	def available_structural_unproc_names(self, subject_info):
+		"""
+		List of names (not full paths) of structural unprocessed scans
+		"""
+		dir_list = self.available_structural_unproc_dir_full_paths(subject_info)
+		name_list = self._get_scan_names_from_full_paths(dir_list)
+		return name_list
+	
 	def available_functional_unproc_dir_full_paths(self, subject_info):
 		"""
 		List of full paths to any resources containing unprocessed functional scans

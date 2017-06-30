@@ -15,6 +15,7 @@ import ccf.multirunicafix.one_subject_job_submitter as one_subject_job_submitter
 import ccf.subject as ccf_subject
 import utils.file_utils as file_utils
 import utils.my_configparser as my_configparser
+import utils.os_utils as os_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -71,7 +72,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 			# user and server information
 			submitter.username = username
 			submitter.password = password
-			submitter.server = 'https://db.humanconnectome.org'
+			submitter.server = 'https://' + os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER')
 
 			# subject and project information
 			submitter.project = subject.project

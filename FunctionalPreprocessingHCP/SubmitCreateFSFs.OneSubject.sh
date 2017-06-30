@@ -102,7 +102,7 @@ get_options()
 	echo "Connectome DB Session: ${g_session}"
 
 	if [ -z "${g_put_server}" ]; then
-		g_put_server="db.humanconnectome.org"
+		g_put_server="${XNAT_PBS_JOBS_XNAT_SERVER}"
 	fi
 	echo "PUT server: ${g_put_server}"
 }

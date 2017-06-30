@@ -23,7 +23,7 @@
 # This script runs the Diffusion Preprocessing pipeline PostEddy phase 
 # consisting of the DiffPreprocPipeline_PostEddy.sh pipeline script from
 # the Human Connectome Project for a specified project, subject, session,
-# in the ConnectomeDB (db.humanconnectome.org) XNAT database.
+# in the ConnectomeDB (${XNAT_PBS_JOBS_XNAT_SERVER}) XNAT database.
 #
 # The script is run not as an XNAT pipeline (under the control of the
 # XNAT Pipeline Engine), but in an "XNAT-aware" and "pipeline-like" manner.
