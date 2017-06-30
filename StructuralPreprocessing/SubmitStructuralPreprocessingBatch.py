@@ -87,8 +87,8 @@ if __name__ == '__main__':
 		disable_existing_loggers=False)
 	
 	# get ConnectomeDB credentials
-	userid = input("Connectome DB Username: ")
-	password = getpass.getpass("Connectome DB Password: ")
+	userid = input("DB Username: ")
+	password = getpass.getpass("DB Password: ")
 
 	# read the configuration file
 	config_file_name = file_utils.get_config_file_name(__file__)
