@@ -1,0 +1,5 @@
+#!/bin/bash
+
+source activate python3 2>/dev/null
+./CheckStructuralPreprocessingPrereqsBatch
+source deactivate 2>/dev/null

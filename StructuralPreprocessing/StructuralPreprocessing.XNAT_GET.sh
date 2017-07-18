@@ -20,11 +20,12 @@ Get data from the XNAT archive necessary to run Structural Preprocessing pipelin
 Usage: ${g_script_name} PARAMETER..."
 
 PARAMETERs are [ ] = optional; < > = user supplied value
-  [--help]                 : show usage information and exit with non-zero return code
-   --project=<project>     : XNAT project (e.g. HCP_500)
-   --subject=<subject>     : XNAT subject ID within project (e.g. 100307)
-   --working-dir=<dir>     : Working directory in which to place retrieved data
-                             and in which to produce results
+  [--help]                   : show usage information and exit with non-zero return code
+   --project=<project>       : XNAT project (e.g. HCP_500)
+   --subject=<subject>       : XNAT subject ID within project (e.g. 100307)
+   --classifier=<classifier> : XNAT session classifier (e.g. 3T, 7T, MR, V1, V2, etc.)
+   --working-dir=<dir>       : Working directory in which to place retrieved data
+                               and in which to produce results
 
 EOF
 }
@@ -36,6 +37,7 @@ get_options()
 	# initialize global output variables
 	unset g_project
 	unset g_subject
+	unset g_classifier
 	unset g_working_dir
 
 	# parse arguments
@@ -57,6 +59,10 @@ get_options()
 				;;
 			--subject=*)
 				g_subject=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--classifier=*)
+				g_classifier=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			--working-dir=*)
@@ -85,6 +91,11 @@ get_options()
 		log_Msg "g_subject: ${g_subject}"
 	fi
 
+	if [ -z "${g_classifier}" ]; then
+		g_classifier="3T"
+	fi
+	log_Msg "g_classifier: ${g_classifier}"
+	
 	if [ -z "${g_working_dir}" ]; then
 		error_msgs+="\nERROR: working directory (--working-dir=) required"
 	else
@@ -123,6 +134,7 @@ main()
 	${g_xnat_pbs_jobs}/lib/ccf/get_cinab_style_data.py \
 		--project=${g_project} \
 		--subject=${g_subject} \
+		--classifier=${g_classifier} \
 		--study-dir=${g_working_dir}/tmp \
 		--phase=struct_preproc_prereqs \
 		--remove-non-subdirs

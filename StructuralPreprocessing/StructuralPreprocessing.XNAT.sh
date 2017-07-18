@@ -14,10 +14,32 @@ log_Msg "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
 
 if [ -z "${NRG_PACKAGES}" ]; then
 	log_Err_Abort "NRG_PACKAGES environment variable must be set"
+else
+	log_Msg "NRG_PACKAGES: ${NRG_PACKAGES}"
 fi
 
 if [ -z "${XNAT_PBS_JOBS_XNAT_SERVER}" ]; then
 	log_Err_Abort "XNAT_PBS_JOBS_XNAT_SERVER environment variable must be set"
+else
+	log_Msg "XNAT_PBS_JOBS_XNAT_SERVER: ${XNAT_PBS_JOBS_XNAT_SERVER}"
+fi
+
+if [ -z "${XNAT_PBS_JOBS_ARCHIVE_ROOT}" ]; then
+	log_Err_Abort "XNAT_PBS_JOBS_ARCHIVE_ROOT environment variable must be set"
+else
+	log_Msg "XNAT_PBS_JOBS_ARCHIVE_ROOT: ${XNAT_PBS_JOBS_ARCHIVE_ROOT}"
+fi
+
+if [ -z "${XNAT_UTILS_HOME}" ]; then
+	log_Err_Abort "XNAT_UTILS_HOME environment variable must be set"
+else
+	log_Msg "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
+fi
+
+if [ -z "${XNAT_PBS_JOBS_PIPELINE_ENGINE}" ]; then
+	log_Err_Abort "XNAT_PBS_JOBS_PIPELINE_ENGINE environment variable must be set"
+else
+	log_Msg "XNAT_PBS_JOBS_PIPELINE_ENGINE: ${XNAT_PBS_JOBS_PIPELINE_ENGINE}"
 fi
 
 # Show script usage information
@@ -45,6 +67,30 @@ Usage: StructuralPreprocessingHCP.XNAT.sh <options>
    --setup-script=<script>  : Full path to script to source to set up environment before running
                               HCP Pipeline Scripts. If unspecified the default value of:
                               ${DEFAULT_SETUP_SCRIPT} is used.
+   --first-t1w-directory-name=<directory-name>
+                            : TBW
+   --first-t1w-resource-name=<resource-name>
+                            : Name of XNAT session resource that contains the first T1w scan
+   --first-t1w-file-name=<file-name>
+                            : Name of first T1w file
+  [--second-t1w-directory-name=<directory-name>]
+                            : TBW
+  [--second-t1w-resource-name=<resource-name>]
+                            : Name of XNAT session resource that contains the second T1w scan
+  [--second-t1w-file-name=<file-name>]
+                            : Name of second T1w file
+   --first-t2w-directory-name=<directory-name>
+                            : TBW
+   --first-t2w-resource-name=<resource-name>
+                            : Name of XNAT session resource that contains the first T2w scan
+   --first-t2w-file-name=<file-name>
+                            : Name of first T2w file
+  [--second-t2w-directory-name=<directory-name>]
+                            : TBW
+  [--second-t2w-resource-name=<resource-name>]
+                            : Name of XNAT session resource that contains the second T2w scan
+  [--second-t2w-file-name=<file-name>]
+                            : Name of second T2w file
   [--fieldmap-type=<type>]  : <type> values
                               GE: Siemens Gradient Echo Fieldmaps
                               SiemensGradientEcho: Siemens Gradient Echo Fieldmaps (equiv. to GE)
@@ -52,19 +98,32 @@ Usage: StructuralPreprocessingHCP.XNAT.sh <options>
                               SpinEcho: Spin Echo Fieldmaps (equiv. to SE)
                               NONE: No fieldmaps
                               If unspecified, defaults to GE
-  [--phase-encoding-dir=<dir-indication>]
-                            : <dir-indication> values
-                               RL: Phase Encoding directions used are RL (positive) and LR (negative)
-                               LR: same as RL
-                               PA: Phase Encoding directions used are PA (positive) and AP (negative)
-                               AP: same as PA
-                               If unspecified, defaults to RL
   [--seed=<rng-seed>]       : Random number generator seed for recon-all, passed to FreeSurferPipeline.sh script
                               If unspecified, no seed value is passed to the FreeSurferPipeline.sh script.
                               In that case, no seed value is passed to random number generator seed using
                               tools.
   [--brainsize=<brainsize>] : brainsize value passed to the PreFreeSurferPipeline.sh script
                               If unspecified, the default value of 150 is used.
+
+   NB: The following template files are expected to be found in HCPPIPEDIR/global/templates
+
+   --t1template=<name>      : MNI T1w template 
+   --t1templatebrain=<name> : Brain extracted MNI T1w template
+   --t1template2mm=<name>   : MNI 2mm T1w template
+   --t2template=<name>      : MNI T2w template
+   --t2templatebrain=<name> : Brain extracted MNI T2w template
+   --t2template2mm=<name>   : MNI 2mm T2w template
+   --templatemask=<name>    : Brain mask MNI Template
+   --template2mmmask=<name> : Brain mask MNI 2mm Template
+
+   NB: The following file are expected to be found in HCPPIPEDIR/global/config
+
+   --fnirtconfig=<name>     : FNIRT 2mm Configuration file
+  [--gdcoeffs=<name>]       : Gradient Distortion Coefficients file
+                              If not specified, this value defaults to NONE and 
+                              no gradient distortion correction is performed.
+  [--topupconfig=<name>]    : Configuration file for topup or "NONE" if not used
+                              Defaults to "NONE"
 
 EOF
 }
@@ -86,14 +145,48 @@ get_options()
 	unset g_setup_script	
 
 	unset g_fieldmap_type
-	unset g_phase_encoding_dir
+#	unset g_phase_encoding_dir
 	unset g_seed
 	unset g_brainsize
 
+	unset g_first_t1w_directory_name
+	unset g_first_t1w_resource_name
+	unset g_first_t1w_file_name
+
+	unset g_second_t1w_directory_name
+	unset g_second_t1w_resource_name
+	unset g_second_t1w_file_name
+
+	unset g_first_t2w_directory_name
+	unset g_first_t2w_resource_name
+	unset g_first_t2w_file_name
+
+	unset g_second_t2w_directory_name
+	unset g_second_t2w_resource_name
+	unset g_second_t2w_file_name
+
+	unset g_session_classifier
+
+	unset g_t1template
+	unset g_t1templatebrain
+	unset g_t1template2mm
+	unset g_t2template
+	unset g_t2templatebrain
+	unset g_t2template2mm
+	unset g_templatemask
+	unset g_template2mmmask
+
+	unset g_fnirtconfig
+	
 	# set default values
 	g_fieldmap_type="GE"
-	g_phase_encoding_dir="RL"
+#	g_phase_encoding_dir="RL"
 	g_brainsize="150"
+	g_session_classifier="3T"
+	g_gdcoeffs="NONE"
+	g_topupconfig="NONE"
+	g_se_phase_pos="NONE"
+	g_se_phase_neg="NONE"
 	
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -132,6 +225,10 @@ get_options()
 				g_session=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
+			--session-classifier=*)
+				g_session_classifier=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
 			--working-dir=*)
 				g_working_dir=${argument/*=/""}
 				index=$(( index + 1 ))
@@ -144,16 +241,116 @@ get_options()
 				g_fieldmap_type=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--phase-encoding-dir=*)
-				g_phase_encoding_dir=${argument/*=/""}
-				index=$(( index + 1 ))
-				;;
+#			--phase-encoding-dir=*)
+#				g_phase_encoding_dir=${argument/*=/""}
+#				index=$(( index + 1 ))
+#				;;
 			--seed=*)
 				g_seed=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--brainsize=*)
 				g_brainsize=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--first-t1w-directory-name=*)
+				g_first_t1w_directory_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--first-t1w-resource-name=*)
+				g_first_t1w_resource_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--first-t1w-file-name=*)
+				g_first_t1w_file_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--second-t1w-directory-name=*)
+				g_second_t1w_directory_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--second-t1w-resource-name=*)
+				g_second_t1w_resource_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--second-t1w-file-name=*)
+				g_second_t1w_file_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--first-t2w-directory-name=*)
+				g_first_t2w_directory_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--first-t2w-resource-name=*)
+				g_first_t2w_resource_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--first-t2w-file-name=*)
+				g_first_t2w_file_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--second-t2w-directory-name=*)
+				g_second_t2w_directory_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--second-t2w-resource-name=*)
+				g_second_t2w_resource_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--second-t2w-file-name=*)
+				g_second_t2w_file_name=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--t1template=*)
+				g_t1template=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--t1templatebrain=*)
+				g_t1templatebrain=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--t1template2mm=*)
+				g_t1template2mm=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--t2template=*)
+				g_t2template=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--t2templatebrain=*)
+				g_t2templatebrain=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--t2template2mm=*)
+				g_t2template2mm=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--templatemask=*)
+				g_templatemask=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--template2mmmask=*)
+				g_template2mmmask=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--fnirtconfig=*)
+				g_fnirtconfig=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--gdcoeffs=*)
+				g_gdcoeffs=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--topupconfig=*)
+				g_topupconfig=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--se-phase-pos=*)
+				g_se_phase_pos=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--se-phase-neg=*)
+				g_se_phase_neg=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -163,22 +360,22 @@ get_options()
 		esac
 	done
 
-	local error_count=0
+ 	local error_count=0
 
-	# check parameters
-	if [ -z "${g_user}" ]; then
-		log_Err "user (--user=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		log_Msg "g_user: ${g_user}"
-	fi
+ 	# check parameters
+ 	if [ -z "${g_user}" ]; then
+ 		log_Err "user (--user=) required"
+ 		error_count=$(( error_count + 1 ))
+ 	else
+ 		log_Msg "g_user: ${g_user}"
+ 	fi
 
-	if [ -z "${g_password}" ]; then
-		log_Err "password (--password=) required"
-		error_count=$(( error_count + 1 ))
-	else
-		log_Msg "g_password: *******"
-	fi
+ 	if [ -z "${g_password}" ]; then
+ 		log_Err "password (--password=) required"
+ 		error_count=$(( error_count + 1 ))
+ 	else
+ 		log_Msg "g_password: *******"
+ 	fi
 
 	if [ -z "${g_server}" ]; then
 		log_Err "server (--server=) required"
@@ -208,6 +405,13 @@ get_options()
 		log_Msg "g_session: ${g_session}"
 	fi
 
+	if [ -z "${g_session_classifier}" ]; then
+		log_Err "session classifier (--session-classifier=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_session_classifier: ${g_session_classifier}"
+	fi
+	
 	if [ -z "${g_working_dir}" ]; then
 		log_Err "working directory (--working-dir=) required"
 		error_count=$(( error_count + 1 ))
@@ -229,71 +433,213 @@ get_options()
 		log_Msg "g_fieldmap_type: ${g_fieldmap_type}"
 	fi
 	
-	if [[ ("${g_fieldmap_type}" != "GE") && ("${g_fieldmap_type}" != "SiemensGradientEcho") && ("${g_fieldmap_type}" != "SE") && ("${g_fieldmap_type}" != "SpinEcho") && ("${g_fieldmap_type}" != "NONE") ]] ; then
-		log_Err "unrecognized g_fieldmap_type: ${g_fieldmap_type}"
-		error_count=$(( error_count + 1 ))
-	fi
+ 	if [[ ("${g_fieldmap_type}" != "GE") && ("${g_fieldmap_type}" != "SiemensGradientEcho") && ("${g_fieldmap_type}" != "SE") && ("${g_fieldmap_type}" != "SpinEcho") && ("${g_fieldmap_type}" != "NONE") ]] ; then
+ 		log_Err "unrecognized g_fieldmap_type: ${g_fieldmap_type}"
+ 		error_count=$(( error_count + 1 ))
+ 	fi
 
-	if [ -z "${g_phase_encoding_dir}" ]; then
-		log_Err "phase encoding dir (--phase-encoding-dir=) required"
-		error_count=$(( error_count + 1 ))
-	fi
+ 	# if [ -z "${g_phase_encoding_dir}" ]; then
+ 	# 	log_Err "phase encoding dir (--phase-encoding-dir=) required"
+ 	# 	error_count=$(( error_count + 1 ))
+ 	# fi
 
-	if [[ ("${g_phase_encoding_dir}" == "LR") || ("${g_phase_encoding_dir}" == "RL") ]] ; then
-		g_phase_encoding_dir="RL"
-		log_Msg "g_phase_encoding_dir: ${g_phase_encoding_dir}"
-	elif [[ ("${g_phase_encoding_dir}" == "AP") || ("${g_phase_encoding_dir}" == "PA") ]] ; then
-		g_phase_encoding_dir="PA"
-		log_Msg "g_phase_encoding_dir: ${g_phase_encoding_dir}"
-	else
-		log_Err "unrecognized g_phase_encoding_dir: ${g_phase_encoding_dir}"
-		error_count=$(( error_count + 1 ))		
-	fi
+ 	# if [[ ("${g_phase_encoding_dir}" == "LR") || ("${g_phase_encoding_dir}" == "RL") ]] ; then
+ 	# 	g_phase_encoding_dir="RL"
+ 	# 	log_Msg "g_phase_encoding_dir: ${g_phase_encoding_dir}"
+ 	# elif [[ ("${g_phase_encoding_dir}" == "AP") || ("${g_phase_encoding_dir}" == "PA") ]] ; then
+ 	# 	g_phase_encoding_dir="PA"
+ 	# 	log_Msg "g_phase_encoding_dir: ${g_phase_encoding_dir}"
+ 	# else
+ 	# 	log_Err "unrecognized g_phase_encoding_dir: ${g_phase_encoding_dir}"
+ 	# 	error_count=$(( error_count + 1 ))		
+ 	# fi
 
-	if [ ! -z "${g_seed}" ]; then
-		log_Msg "g_seed: ${g_seed}"
-	fi
+ 	if [ ! -z "${g_seed}" ]; then
+ 		log_Msg "g_seed: ${g_seed}"
+ 	fi
 
 	if [ -z "${g_brainsize}" ]; then
-		log_Err "brainsize (--brainsize=) required"
+ 		log_Err "brainsize (--brainsize=) required"
+ 	else
+ 		log_Msg "g_brainsize: ${g_brainsize}"
+ 	fi
+
+ 	if [ -z "${g_first_t1w_directory_name}" ]; then
+ 		log_Err "first T1w directory name (--first-t1w-directory-name=) required"
+ 		error_count=$(( error_count + 1 ))
+ 	else
+ 		log_Msg "g_first_t1w_directory_name: ${g_first_t1w_directory_name}"
+ 	fi
+	
+ 	if [ -z "${g_first_t1w_resource_name}" ]; then
+ 		log_Err "first T1w resource name (--first-t1w-resource-name=) required"
+ 		error_count=$(( error_count + 1 ))
+ 	else
+ 		log_Msg "g_first_t1w_resource_name: ${g_first_t1w_resource_name}"
+ 	fi
+
+ 	if [ -z "${g_first_t1w_file_name}" ]; then
+ 		log_Err "first T1w file name (--first-t1w-file-name=) required"
+ 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_brainsize: ${g_brainsize}"
+ 		log_Msg "g_first_t1w_file_name: ${g_first_t1w_file_name}"
+ 	fi
+
+ 	if [ ! -z "${g_second_t1w_directory_name}" ]; then
+ 		log_Msg "g_second_t1w_directory_name: ${g_second_t1w_directory_name}"
+ 	fi
+	
+ 	if [ ! -z "${g_second_t1w_resource_name}" ]; then
+ 		log_Msg "g_second_t1w_resource_name: ${g_second_t1w_resource_name}"
+ 	fi
+
+ 	if [ ! -z "${g_second_t1w_file_name}" ]; then
+ 		log_Msg "g_second_t1w_file_name: ${g_second_t1w_file_name}"
+ 	fi
+
+ 	if [ -z "${g_first_t2w_directory_name}" ]; then
+ 		log_Err "first T2w directory name (--first-t2w-directory-name=) required"
+ 		error_count=$(( error_count + 1 ))
+ 	else
+ 		log_Msg "g_first_t2w_directory_name: ${g_first_t2w_directory_name}"
+ 	fi
+
+ 	if [ -z "${g_first_t2w_resource_name}" ]; then
+ 		log_Err "first T2w resource name (--first-t2w-resource-name=) required"
+ 		error_count=$(( error_count + 1 ))
+ 	else
+ 		log_Msg "g_first_t2w_resource_name: ${g_first_t2w_resource_name}"
+ 	fi
+
+ 	if [ -z "${g_first_t2w_file_name}" ]; then
+ 		log_Err "first T2w file name (--first-t2w-file-name=) required"
+ 		error_count=$(( error_count + 1 ))
+ 	else
+ 		log_Msg "g_first_t2w_file_name: ${g_first_t2w_file_name}"
+ 	fi
+
+ 	if [ ! -z "${g_second_t2w_directory_name}" ]; then
+ 		log_Msg "g_second_t2w_directory_name: ${g_first_t2w_directory_name}"
+ 	fi
+	
+ 	if [ ! -z "${g_second_t2w_resource_name}" ]; then
+ 		log_Msg "g_second_t2w_resource_name: ${g_second_t2w_resource_name}"
+ 	fi
+
+ 	if [ ! -z "${g_second_t2w_file_name}" ]; then
+ 		log_Msg "g_second_t2w_file_name: ${g_second_t2w_file_name}"
+ 	fi
+
+ 	if [ -z "${g_t1template}" ]; then
+ 		log_Err "--t1template= required"
+ 		error_count=$(( error_count + 1 ))
+ 	else
+ 		log_Msg "g_t1template: ${g_t1template}"
+ 	fi
+
+	if [ -z "${g_t1templatebrain}" ]; then
+		log_Err "--t1templatebrain= required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_t1templatebrain: ${g_t1templatebrain}"
+	fi
+	
+	if [ -z "${g_t1template2mm}" ]; then
+		log_Err "--t1template2mm= required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_t1template2mm: ${g_t1template2mm}"
+	fi
+	
+	if [ -z "${g_t2template}" ]; then
+		log_Err "MNI T2w template (--t2template=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_t2template: ${g_t2template}"
 	fi
 
-	if [ ${error_count} -gt 0 ]; then
-		log_Err_Abort "For usage information, use --help"
+	if [ -z "${g_t2templatebrain}" ]; then
+		log_Err "--t2templatebrain= required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_t2templatebrain: ${g_t2templatebrain}"
 	fi
+	
+	if [ -z "${g_t2template2mm}" ]; then
+		log_Err "--t2template2mm= required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_t2template2mm: ${g_t2template2mm}"
+	fi
+	
+	if [ -z "${g_templatemask}" ]; then
+		log_Err "--templatemask= required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_templatemask: ${g_templatemask}"
+	fi
+	
+	if [ -z "${g_template2mmmask}" ]; then
+		log_Err "--template2mmmask= required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_template2mmmask: ${g_template2mmmask}"
+	fi
+
+	if [ -z "${g_fnirtconfig}" ]; then
+		log_Err "--fnirtconfig= required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_fnirtconfig: ${g_fnirtconfig}"
+	fi
+
+	if [ -z "${g_gdcoeffs}" ]; then
+		log_Err "--gdcoeffs= required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_gdcoeffs: ${g_gdcoeffs}"
+	fi
+
+	if [ -z "${g_topupconfig}" ]; then
+		log_Err "--topupconfig= required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_topupconfig: ${g_topupconfig}"
+	fi
+
+	if [ -z "${g_se_phase_pos}" ]; then
+		log_Err "--se-phase-pos= required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_se_phase_pos: ${g_se_phase_pos}"
+	fi
+
+	if [ -z "${g_se_phase_neg}" ]; then
+		log_Err "--se-phase-neg= required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "g_se_phase_neg: ${g_se_phase_neg}"
+	fi
+
+ 	if [ ${error_count} -gt 0 ]; then
+ 		log_Err_Abort "For usage information, use --help"
+ 	fi
 }
 
 # part of file name that indicates a Spin Echo Fieldmap file
-SPIN_ECHO_FIELDMAP_NAME="SpinEchoFieldMap"
+#SPIN_ECHO_FIELDMAP_NAME="SpinEchoFieldMap"
 
 # For phase encoding directions PA and AP, which one is the "positive" direction
-PAAP_POSITIVE_DIR="PA"
+#PAAP_POSITIVE_DIR="PA"
 
 # For phase encoding directions PA and AP, which one is the "negative" direction
-PAAP_NEGATIVE_DIR="AP"
+#PAAP_NEGATIVE_DIR="AP"
 
 # For phase encoding directions RL and LR, which one is the "positive" direction
-RLLR_POSITIVE_DIR="RL"
+#RLLR_POSITIVE_DIR="RL"
 
 # For phase encoding directions RL and LR, which one is the "negative" direction
-RLLR_NEGATIVE_DIR="LR"
-
-# home directory for pipeline tools
-#PIPELINE_TOOLS_HOME=${HOME}/pipeline_tools
-#log_Msg "PIPELINE_TOOLS_HOME: ${PIPELINE_TOOLS_HOME}"
-
-# home directory for XNAT related utilities
-if [ -z "${XNAT_UTILS_HOME}" ]; then
-	log_Err_Abort "XNAT_UTILS_HOME environment variable must be set"
-else
-	log_Msg "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
-fi
-
-# home directory for XNAT pipeline engine installation
-XNAT_PIPELINE_HOME=/export/HCP/pipeline
-log_Msg "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
+#RLLR_NEGATIVE_DIR="LR"
 
 # "base" of file name for first T1w scan
 FIRST_T1W_FILE_NAME_BASE="T1w_MPR1"
@@ -308,7 +654,7 @@ FIRST_T2W_FILE_NAME_BASE="T2w_SPC1"
 SECOND_T2W_FILE_NAME_BASE="T2w_SPC2"
 
 # database resources suffix for unprocessed data
-UNPROC_SUFFIX="_unproc"
+#UNPROC_SUFFIX="_unproc"
 
 # file name extension for compressed NIFTI fiiles
 COMPRESSED_NIFTI_EXTENSION=".nii.gz"
@@ -319,25 +665,21 @@ MAG_FIELDMAP_NAME="FieldMap_Magnitude"
 # part of file name that indicates a Siemens Gradient Echo Phase Fieldmap file
 PHASE_FIELDMAP_NAME="FieldMap_Phase"
 
-# part of file name that indicates the Tesla rating for the scanner
-TESLA_SPEC="3T"
+# set_spin_echo_positive_and_negative_fieldmaps()
+# {
+# 	if [[ "${g_phase_encoding_dir}" == "PA" ]]; then
+# 		g_positive_spin_echo_fieldmap_name="${SPIN_ECHO_FIELDMAP_NAME}_${PAAP_POSITIVE_DIR}"
+# 		g_negative_spin_echo_fieldmap_name="${SPIN_ECHO_FIELDMAP_NAME}_${PAAP_NEGATIVE_DIR}"
+# 	elif [[ "${g_phase_encoding_dir}" == "RL" ]]; then
+# 		g_positive_spin_echo_fieldmap_name="${SPIN_ECHO_FIELDMAP_NAME}_${RLLR_POSITIVE_DIR}"
+# 		g_negative_spin_echo_fieldmap_name="${SPIN_ECHO_FIELDMAP_NAME}_${RLLR_NEGATIVE_DIR}"
+# 	else
+# 		log_Err_Abort "unrecognizied g_phase_encoding_dir: ${g_phase_encoding_dir}"
+# 	fi
 
-# home directory for scripts to be sourced to setup the environment
-SETUP_SCRIPTS_HOME=${HOME}/SCRIPTS
-log_Msg "SETUP_SCRIPTS_HOME: ${SETUP_SCRIPTS_HOME}"
-
-set_spin_echo_positive_and_negative_fieldmaps()
-{
-	if [[ "${g_phase_encoding_dir}" == "PA" ]]; then
-		g_positive_spin_echo_fieldmap_name="${SPIN_ECHO_FIELDMAP_NAME}_${PAAP_POSITIVE_DIR}"
-		g_negative_spin_echo_fieldmap_name="${SPIN_ECHO_FIELDMAP_NAME}_${PAAP_NEGATIVE_DIR}"
-	elif [[ "${g_phase_encoding_dir}" == "RL" ]]; then
-		g_positive_spin_echo_fieldmap_name="${SPIN_ECHO_FIELDMAP_NAME}_${RLLR_POSITIVE_DIR}"
-		g_negative_spin_echo_fieldmap_name="${SPIN_ECHO_FIELDMAP_NAME}_${RLLR_NEGATIVE_DIR}"
-	else
-		log_Err_Abort "unrecognizied g_phase_encoding_dir: ${g_phase_encoding_dir}"
-	fi
-}
+# 	log_Msg "g_positive_spin_echo_fieldmap_name: ${g_positive_spin_echo_fieldmap_name}"
+# 	log_Msg "g_negative_spin_echo_fieldmap_name: ${g_negative_spin_echo_fieldmap_name}"
+# }
 
 get_scan_data() 
 {
@@ -358,152 +700,172 @@ does_resource_exist()
 
 does_first_t1w_scan_exist()
 {
-	local does_it_exist=`does_resource_exist "${FIRST_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" check_resource_exists`
+	local does_it_exist
+	if [ -z "${g_first_t1w_resource_name}" ]; then
+		does_it_exist="FALSE"
+	else
+		does_it_exist=`does_resource_exist "${g_first_t1w_resource_name}" check_resource_exists`
+	fi
 	echo ${does_it_exist}
 }
 
 get_parameters_for_first_t1w_scan() 
 {
-	g_first_t1w_series_description=""
+#	g_first_t1w_series_description=""
 	g_first_t1w_sample_spacing=""
 	g_first_t1w_deltaTE=""
 	g_first_t1w_positive_dwell_time=""
-	g_first_t1w_negative_dwell_time=""
-
-	g_first_t1w_series_description=`get_scan_data "${FIRST_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${FIRST_T1W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}" "series_description"`
-	log_Msg "g_first_t1w_series_description: ${g_first_t1w_series_description}"
+#	g_first_t1w_negative_dwell_time=""
+	
+#	g_first_t1w_series_description=`get_scan_data "${g_first_t1w_resource_name}" "${g_first_t1w_file_name}" "series_description"`
+#	log_Msg "g_first_t1w_series_description: ${g_first_t1w_series_description}"
 
 	# sample_spacing value in XNAT DB is in nanoseconds, but needs to be specified in seconds
-	g_first_t1w_sample_spacing=`get_scan_data "${FIRST_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${FIRST_T1W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}" "parameters/readoutSampleSpacing"`
+	g_first_t1w_sample_spacing=`get_scan_data "${g_first_t1w_resource_name}" "${g_first_t1w_file_name}" "parameters/readoutSampleSpacing"`
 	sample_spacing_in_secs=`echo "${g_first_t1w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
 	g_first_t1w_sample_spacing=${sample_spacing_in_secs}
 	log_Msg "g_first_t1w_sample_spacing: ${g_first_t1w_sample_spacing}"
 
 	if [[ ("${g_fieldmap_type}" = "GE") || ("${g_fieldmap_type}" = "SiemensGradientEcho") ]] ; then
-		g_first_t1w_deltaTE=`get_scan_data "${FIRST_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
+		g_first_t1w_deltaTE=`get_scan_data "${g_first_t1w_resource_name}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
 		log_Msg "g_first_t1w_deltaTE: ${g_first_t1w_deltaTE}"
 
 	elif [[ ("${g_fieldmap_type}" = "SE") || ("${g_fieldmap_type}" = "SpinEcho") ]] ; then
-		g_first_t1w_positive_dwell_time=`get_scan_data "${FIRST_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${g_positive_spin_echo_fieldmap_name}${COMPRESSED_NIFTI_EXTENSION}" "parameters/echoSpacing"`
+		g_first_t1w_positive_dwell_time=`get_scan_data "${g_first_t1w_resource_name}" "${g_se_phase_pos}" "parameters/echoSpacing"`
 		log_Msg "g_first_t1w_positive_dwell_time: ${g_first_t1w_positive_dwell_time}"
 
-		g_first_t1w_negative_dwell_time=`get_scan_data "${FIRST_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${g_negative_spin_echo_fieldmap_name}${COMPRESSED_NIFTI_EXTENSION}" "parameters/echoSpacing"`
-		log_Msg "g_first_t1w_negative_dwell_time: ${g_first_t1w_negative_dwell_time}"
+#		g_first_t1w_negative_dwell_time=`get_scan_data "${g_first_t1w_resource_name}" "${g_se_phase_neg}" "parameters/echoSpacing"`
+#		log_Msg "g_first_t1w_negative_dwell_time: ${g_first_t1w_negative_dwell_time}"
 	fi
 }
 
 does_second_t1w_scan_exist()
 {
-	local does_it_exist=`does_resource_exist "${SECOND_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" check_resource_exists`
+	local does_it_exist
+	if [ -z "${g_second_t1w_resource_name}" ]; then
+		does_it_exist="FALSE"
+	else
+		does_it_exist=`does_resource_exist "${g_second_t1w_resource_name}" check_resource_exists`
+	fi
 	echo ${does_it_exist}
 }
 
-get_parameters_for_second_t1w_scan() 
-{
-	g_second_t1w_series_description=""
-	g_second_t1w_sample_spacing=""
-	g_second_t1w_deltaTE=""
-	g_second_t1w_positive_dwell_time=""
-	g_second_t1w_negative_dwell_time=""
-
-	g_second_t1w_series_description=`get_scan_data "${SECOND_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${SECOND_T1W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}" "series_description"`
-	log_Msg "g_second_t1w_series_description: ${g_second_t1w_series_description}"
-
-	# sample_spacing value in XNAT DB is in nanoseconds, but needs to be specified in seconds	
-	g_second_t1w_sample_spacing=`get_scan_data "${SECOND_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${SECOND_T1W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}" "parameters/readoutSampleSpacing"`
-	sample_spacing_in_secs=`echo "${g_second_t1w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
-	g_second_t1w_sample_spacing=${sample_spacing_in_secs}
-	log_Msg "g_second_t1w_sample_spacing: ${g_second_t1w_sample_spacing}"
-
-	if [[ ("${g_fieldmap_type}" = "GE") || ("${g_fieldmap_type}" = "SiemensGradientEcho") ]] ; then
-		g_second_t1w_deltaTE=`get_scan_data "${SECOND_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
-		log_Msg "g_second_t1w_deltaTE: ${g_second_t1w_deltaTE}"
-
-	elif [[ ("${g_fieldmap_type}" = "SE") || ("${g_fieldmap_type}" = "SpinEcho") ]] ; then
-		g_second_t1w_positive_dwell_time=`get_scan_data "${SECOND_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${g_positive_spin_echo_fieldmap_name}${COMPRESSED_NIFTI_EXTENSION}" "parameters/echoSpacing"`
-		log_Msg "g_second_t1w_positive_dwell_time: ${g_second_t1w_positive_dwell_time}"
-
-		g_second_t1w_negative_dwell_time=`get_scan_data "${SECOND_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${g_negative_spin_echo_fieldmap_name}${COMPRESSED_NIFTI_EXTENSION}" "parameters/echoSpacing"`
-		log_Msg "g_second_t1w_negative_dwell_time: ${g_second_t1w_negative_dwell_time}"
-	fi
-}
+#get_parameters_for_second_t1w_scan() 
+#{
+#	g_second_t1w_series_description=""
+#	g_second_t1w_sample_spacing=""
+#	g_second_t1w_deltaTE=""
+#	g_second_t1w_positive_dwell_time=""
+#	g_second_t1w_negative_dwell_time=""
+#
+#	g_second_t1w_series_description=`get_scan_data "${g_second_t1w_resource_name}" "${g_second_t1w_file_name}" "series_description"`
+#	log_Msg "g_second_t1w_series_description: ${g_second_t1w_series_description}"
+#
+#	# sample_spacing value in XNAT DB is in nanoseconds, but needs to be specified in seconds	
+#	g_second_t1w_sample_spacing=`get_scan_data "${g_second_t1w_resource_name}" "${g_second_t1w_file_name}" "parameters/readoutSampleSpacing"`
+#	sample_spacing_in_secs=`echo "${g_second_t1w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
+#	g_second_t1w_sample_spacing=${sample_spacing_in_secs}
+#	log_Msg "g_second_t1w_sample_spacing: ${g_second_t1w_sample_spacing}"
+#
+#	if [[ ("${g_fieldmap_type}" = "GE") || ("${g_fieldmap_type}" = "SiemensGradientEcho") ]] ; then
+#		g_second_t1w_deltaTE=`get_scan_data "${g_second_t1w_resource_name}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
+#		log_Msg "g_second_t1w_deltaTE: ${g_second_t1w_deltaTE}"
+#
+#	elif [[ ("${g_fieldmap_type}" = "SE") || ("${g_fieldmap_type}" = "SpinEcho") ]] ; then
+#		g_second_t1w_positive_dwell_time=`get_scan_data "${g_second_t1w_resource_name}" "${g_se_phase_pos}" "parameters/echoSpacing"`
+#		log_Msg "g_second_t1w_positive_dwell_time: ${g_second_t1w_positive_dwell_time}"
+#
+#		g_second_t1w_negative_dwell_time=`get_scan_data "${g_second_t1w_resource_name}" "${g_se_phase_neg}" "parameters/echoSpacing"`
+#		log_Msg "g_second_t1w_negative_dwell_time: ${g_second_t1w_negative_dwell_time}"
+#	fi
+#}
 
 does_first_t2w_scan_exist()
 {
-	local does_it_exist=`does_resource_exist "${FIRST_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" check_resource_exists`
+	local does_it_exist
+	if [ -z "${g_first_t2w_resource_name}" ]; then
+		does_it_exist="FALSE"
+	else
+		does_it_exist=`does_resource_exist "${g_first_t2w_resource_name}" check_resource_exists`
+	fi
 	echo ${does_it_exist}
 }
 
 get_parameters_for_first_t2w_scan()
 {
-	g_first_t2w_series_description=""
+#	g_first_t2w_series_description=""
 	g_first_t2w_sample_spacing=""
-	g_first_t2w_deltaTE=""
-	g_first_t2w_positive_dwell_time=""
-	g_first_t2w_negative_dwell_time=""
+#	g_first_t2w_deltaTE=""
+#	g_first_t2w_positive_dwell_time=""
+#	g_first_t2w_negative_dwell_time=""
 
-	g_first_t2w_series_description=`get_scan_data "${FIRST_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${FIRST_T2W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}" "series_description"`
-	log_Msg "g_first_t2w_series_description: ${g_first_t2w_series_description}"
+#	g_first_t2w_series_description=`get_scan_data "${g_first_t2w_resource_name}" "${g_first_t2w_file_name}" "series_description"`
+#	log_Msg "g_first_t2w_series_description: ${g_first_t2w_series_description}"
 
 	# sample_spacing value in XNAT DB is in nanoseconds, but needs to be specified in seconds
-	g_first_t2w_sample_spacing=`get_scan_data "${FIRST_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${FIRST_T2W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}" "parameters/readoutSampleSpacing"`
+	g_first_t2w_sample_spacing=`get_scan_data "${g_first_t2w_resource_name}" "${g_first_t2w_file_name}" "parameters/readoutSampleSpacing"`
 	sample_spacing_in_secs=`echo "${g_first_t2w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
 	g_first_t2w_sample_spacing=${sample_spacing_in_secs}
 	log_Msg "g_first_t2w_sample_spacing: ${g_first_t2w_sample_spacing}"
 
-	if [[ ("${g_fieldmap_type}" = "GE") || ("${g_fieldmap_type}" = "SiemensGradientEcho") ]] ; then
-		g_first_t2w_deltaTE=`get_scan_data "${FIRST_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
-		log_Msg "g_first_t2w_deltaTE: ${g_first_t2w_deltaTE}"
-		
-	elif [[ ("${g_fieldmap_type}" = "SE") || ("${g_fieldmap_type}" = "SpinEcho") ]] ; then
-		g_first_t2w_positive_dwell_time=`get_scan_data "${FIRST_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${g_positive_spin_echo_fieldmap_name}${COMPRESSED_NIFTI_EXTENSION}" "parameters/echoSpacing"`
-		log_Msg "g_first_t2w_positive_dwell_time: ${g_first_t2w_positive_dwell_time}"
-
-		g_first_t2w_negative_dwell_time=`get_scan_data "${FIRST_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${g_negative_spin_echo_fieldmap_name}${COMPRESSED_NIFTI_EXTENSION}" "parameters/echoSpacing"`
-		log_Msg "g_first_t2w_negative_dwell_time: ${g_first_t2w_negative_dwell_time}"
-	fi
+#	if [[ ("${g_fieldmap_type}" = "GE") || ("${g_fieldmap_type}" = "SiemensGradientEcho") ]] ; then
+#		g_first_t2w_deltaTE=`get_scan_data "${g_first_t2w_resource_name}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
+#		log_Msg "g_first_t2w_deltaTE: ${g_first_t2w_deltaTE}"
+#		
+#	elif [[ ("${g_fieldmap_type}" = "SE") || ("${g_fieldmap_type}" = "SpinEcho") ]] ; then
+#		g_first_t2w_positive_dwell_time=`get_scan_data "${g_first_t2w_resource_name}" "${g_se_phase_pos}" "parameters/echoSpacing"`
+#		log_Msg "g_first_t2w_positive_dwell_time: ${g_first_t2w_positive_dwell_time}"
+#
+#		g_first_t2w_negative_dwell_time=`get_scan_data "${g_first_t2w_resource_name}" "${g_se_phase_neg}" "parameters/echoSpacing"`
+#		log_Msg "g_first_t2w_negative_dwell_time: ${g_first_t2w_negative_dwell_time}"
+#	fi
 }
 
 does_second_t2w_scan_exist()
 {
-	local does_it_exist=`does_resource_exist "${SECOND_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" check_resource_exists`
+	local does_it_exist
+	if [ -z "${g_second_t2w_resource_name}" ]; then
+		does_it_exist="FALSE"
+	else
+		does_it_exist=`does_resource_exist "${g_second_t2w_resource_name}" check_resource_exists`
+	fi
 	echo ${does_it_exist}
 }
 
-get_parameters_for_second_t2w_scan()
-{
-	g_second_t2w_series_description=""
-	g_second_t2w_sample_spacing=""
-	g_second_t2w_deltaTE=""
-	g_second_t2w_positive_dwell_time=""
-	g_second__t2w_negative_dwell_time=""
+#get_parameters_for_second_t2w_scan()
+#{
+#	g_second_t2w_series_description=""
+#	g_second_t2w_sample_spacing=""
+#	g_second_t2w_deltaTE=""
+#	g_second_t2w_positive_dwell_time=""
+#	g_second_t2w_negative_dwell_time=""
 
-	g_second_t2w_series_description=`get_scan_data "${SECOND_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${SECOND_T2W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}" "series_description"`
-	log_Msg "g_second_t2w_series_description: ${g_second_t2w_series_description}"
+#	g_second_t2w_series_description=`get_scan_data "${g_second_t2w_resource_name}" "${g_second_t2w_file_name}" "series_description"`
+#	log_Msg "g_second_t2w_series_description: ${g_second_t2w_series_description}"
 
-	# sample_spacing value in XNAT DB is in nanoseconds, but needs to be specified in seconds
-	g_second_t2w_sample_spacing=`get_scan_data "${SECOND_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${SECOND_T2W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}" "parameters/readoutSampleSpacing"`
-	sample_spacing_in_secs=`echo "${g_second_t2w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
-	g_second_t2w_sample_spacing=${sample_spacing_in_secs}
-	log_Msg "g_second_t2w_sample_spacing: ${g_second_t2w_sample_spacing}"
+#	# sample_spacing value in XNAT DB is in nanoseconds, but needs to be specified in seconds
+#	g_second_t2w_sample_spacing=`get_scan_data "${g_second_t2w_resource_name}" "${g_second_t2w_file_name}" "parameters/readoutSampleSpacing"`
+#	sample_spacing_in_secs=`echo "${g_second_t2w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
+#	g_second_t2w_sample_spacing=${sample_spacing_in_secs}
+#	log_Msg "g_second_t2w_sample_spacing: ${g_second_t2w_sample_spacing}"
 
-	if [[ ("${g_fieldmap_type}" = "GE") || ("${g_fieldmap_type}" = "SiemensGradientEcho") ]] ; then
-		g_second_t2w_deltaTE=`get_scan_data "${SECOND_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
-		log_Msg "g_second_t2w_deltaTE: ${g_second_t2w_deltaTE}"
-		
-	elif [[ ("${g_fieldmap_type}" = "SE") || ("${g_fieldmap_type}" = "SpinEcho") ]] ; then
-		g_second_t2w_positive_dwell_time=`get_scan_data "${SECOND_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${g_positive_spin_echo_fieldmap_name}${COMPRESSED_NIFTI_EXTENSION}" "parameters/echoSpacing"`
-		log_Msg "g_second_t2w_positive_dwell_time: ${g_second_t2w_positive_dwell_time}"
-
-		g_second_t2w_negative_dwell_time=`get_scan_data "${SECOND_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${g_negative_spin_echo_fieldmap_name}${COMPRESSED_NIFTI_EXTENSION}" "parameters/echoSpacing"`
-		log_Msg "g_second_t2w_negative_dwell_time: ${g_second_t2w_negative_dwell_time}"
-	fi
-}
+#	if [[ ("${g_fieldmap_type}" = "GE") || ("${g_fieldmap_type}" = "SiemensGradientEcho") ]] ; then
+#		g_second_t2w_deltaTE=`get_scan_data "${g_second_t2w_resource_name}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
+#		log_Msg "g_second_t2w_deltaTE: ${g_second_t2w_deltaTE}"
+#		
+#	elif [[ ("${g_fieldmap_type}" = "SE") || ("${g_fieldmap_type}" = "SpinEcho") ]] ; then
+#		g_second_t2w_positive_dwell_time=`get_scan_data "${g_second_t2w_resource_name}" "${g_se_phase_pos}" "parameters/echoSpacing"`
+#		log_Msg "g_second_t2w_positive_dwell_time: ${g_second_t2w_positive_dwell_time}"
+#
+#		g_second_t2w_negative_dwell_time=`get_scan_data "${g_second_t2w_resource_name}" "${g_se_phase_neg}" "parameters/echoSpacing"`
+#		log_Msg "g_second_t2w_negative_dwell_time: ${g_second_t2w_negative_dwell_time}"
+#	fi
+#}
 
 do_gradient_echo_field_maps_exist()
 {
-	magnitude_fieldmaps=`find ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/T[1-2]w*_unproc -maxdepth 1 -name "*${MAG_FIELDMAP_NAME}*"`
-	phase_fieldmaps=`find ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/T[1-2]w*_unproc -maxdepth 1 -name "*${PHASE_FIELDMAP_NAME}*"`
+	magnitude_fieldmaps=`find ${XNAT_PBS_JOBS_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/T[1-2]w*_unproc -maxdepth 1 -name "*${MAG_FIELDMAP_NAME}*"`
+	phase_fieldmaps=`find ${XNAT_PBS_JOBS_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/T[1-2]w*_unproc -maxdepth 1 -name "*${PHASE_FIELDMAP_NAME}*"`
 
 	if [ -z "${magnitude_fieldmaps}" ] ; then
 		echo "FALSE"
@@ -526,20 +888,15 @@ main()
 	
 	get_options "$@"
 
-	set_spin_echo_positive_and_negative_fieldmaps
+#	set_spin_echo_positive_and_negative_fieldmaps
 
 	create_start_time_file ${g_working_dir} ${g_pipeline_name}
 
 	source_script ${g_setup_script}
 
 	source_script ${XNAT_PBS_JOBS}/ToolSetupScripts/epd-python_setup.sh
-	
-	# root directory of the XNAT database archive
-	DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
-	log_Msg "DATABASE_ARCHIVE_ROOT: ${DATABASE_ARCHIVE_ROOT}"
 
 	# determine what resources exist and get parameters needed
-	
 	first_T1w_resource_exists=`does_first_t1w_scan_exist`
 	log_Msg "first_T1w_resource_exists: ${first_T1w_resource_exists}"
 
@@ -550,9 +907,9 @@ main()
 	second_T1w_resource_exists=`does_second_t1w_scan_exist`
 	log_Msg "second_T1w_resource_exists: ${second_T1w_resource_exists}"
 
-	if [ "${second_T1w_resource_exists}" = "TRUE" ] ; then
-		get_parameters_for_second_t1w_scan
-	fi
+#	if [ "${second_T1w_resource_exists}" = "TRUE" ] ; then
+#		get_parameters_for_second_t1w_scan
+#	fi
 
 	first_T2w_resource_exists=`does_first_t2w_scan_exist`
 	log_Msg "first_T2w_resource_exists: ${first_T2w_resource_exists}"
@@ -564,10 +921,10 @@ main()
 	second_T2w_resource_exists=`does_second_t2w_scan_exist`
 	log_Msg "second_T2w_resource_exists: ${second_T2w_resource_exists}"
 	
-	if [ "${second_T2w_resource_exists}" = "TRUE" ] ; then
-		get_parameters_for_second_t2w_scan
-	fi
-	
+#	if [ "${second_T2w_resource_exists}" = "TRUE" ] ; then
+#		get_parameters_for_second_t2w_scan
+#	fi
+
 	gradient_echo_field_maps_exist=`do_gradient_echo_field_maps_exist`
 	log_Msg "gradient_echo_field_maps_exist: ${gradient_echo_field_maps_exist}"
 	
@@ -576,25 +933,24 @@ main()
 	t1_spec=""
 	
 	if [ "${first_T1w_resource_exists}" = "TRUE" ]; then
-		first_T1w_file="${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${FIRST_T1W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}"
-		
+		first_T1w_file="${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t1w_directory_name}/${g_first_t1w_file_name}"
 		if [ -e "${first_T1w_file}" ] ; then
 			t1_spec+=${first_T1w_file}
 		else
-			log_Err_Abort "The first T1w file: \'${first_T1w_file}\' does not exist"
+			log_Err_Abort "The first T1w file: '${first_T1w_file}' does not exist"
 		fi
 	else
 		log_Err_Abort "NO FIRST T1W RESOURCE"
 	fi
 
  	if [ "${second_T1w_resource_exists}" = "TRUE" ]; then
- 		second_T1w_file="${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${SECOND_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${SECOND_T1W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}"
-
+ 		second_T1w_file="${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_second_t1w_directory_name}/${g_second_t1w_file_name}"
+		
  		if [ -e "${second_T1w_file}" ] ; then
 			t1_spec+=@
  			t1_spec+=${second_T1w_file}
  		else
- 			log_Err_Abort "The second T1w file: \'${second_T1w_file}\' does not exist"
+ 			log_Err_Abort "The second T1w file: '${second_T1w_file}' does not exist"
  		fi
  	else
 		t1_spec+=@
@@ -607,25 +963,25 @@ main()
  	t2_spec=""
 
  	if [ "${first_T2w_resource_exists}" = "TRUE" ]; then
- 		first_T2w_file="${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T2W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${FIRST_T2W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}"
+ 		first_T2w_file="${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t2w_directory_name}/${g_first_t2w_file_name}"
 		
  		if [ -e "${first_T2w_file}" ] ; then
  			t2_spec+=${first_T2w_file}
  		else
- 			log_Err_Abort "The first T2w file: \'${first_T2w_file}\' does not exist"
+ 			log_Err_Abort "The first T2w file: '${first_T2w_file}' does not exist"
  		fi
  	else
  		log_Err_Abort "NO FIRST T2W RESOURCE"
  	fi
 
  	if [ "${second_T2w_resource_exists}" = "TRUE" ]; then
- 		second_T2w_file="${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${SECOND_T2W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${SECOND_T2W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}"
+ 		second_T2w_file="${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_second_t2w_directory}/${g_second_t2w_file_name}"
 
  		if [ -e "${second_T2w_file}" ] ; then
  			t2_spec+=@
 			t2_spec+=${second_T2w_file}
 		else
-			log_Err_Abort "The second T2w file: \'${second_T2w_file}\' does not exist"
+			log_Err_Abort "The second T2w file: '${second_T2w_file}' does not exist"
 		fi
  	else
 		t2_spec+=@
@@ -633,7 +989,7 @@ main()
 	fi
 	
  	log_Msg "t2_spec: ${t2_spec}"
-
+	
 	# Run the PreFreeSurferPipeline.sh script
  	PreFreeSurfer_cmd=""
  	PreFreeSurfer_cmd+="${HCPPIPEDIR}/PreFreeSurfer/PreFreeSurferPipeline.sh"
@@ -641,16 +997,22 @@ main()
  	PreFreeSurfer_cmd+=" --subject=${g_subject}"
  	PreFreeSurfer_cmd+=" --t1=${t1_spec}"
  	PreFreeSurfer_cmd+=" --t2=${t2_spec}"
- 	PreFreeSurfer_cmd+=" --t1template=${HCPPIPEDIR}/global/templates/MNI152_T1_0.7mm.nii.gz"
- 	PreFreeSurfer_cmd+=" --t1templatebrain=${HCPPIPEDIR}/global/templates/MNI152_T1_0.7mm_brain.nii.gz"
- 	PreFreeSurfer_cmd+=" --t1template2mm=${HCPPIPEDIR}/global/templates/MNI152_T1_2mm.nii.gz"
- 	PreFreeSurfer_cmd+=" --t2template=${HCPPIPEDIR}/global/templates/MNI152_T2_0.7mm.nii.gz"
- 	PreFreeSurfer_cmd+=" --t2templatebrain=${HCPPIPEDIR}/global/templates/MNI152_T2_0.7mm_brain.nii.gz"
- 	PreFreeSurfer_cmd+=" --t2template2mm=${HCPPIPEDIR}/global/templates/MNI152_T2_2mm.nii.gz"
-	PreFreeSurfer_cmd+=" --templatemask=${HCPPIPEDIR}/global/templates/MNI152_T1_0.7mm_brain_mask.nii.gz"
-	PreFreeSurfer_cmd+=" --template2mmmask=${HCPPIPEDIR}/global/templates/MNI152_T1_2mm_brain_mask_dil.nii.gz"
-	PreFreeSurfer_cmd+=" --fnirtconfig=${HCPPIPEDIR}/global/config/T1_2_MNI152_2mm.cnf"
-	PreFreeSurfer_cmd+=" --gdcoeffs=${HCPPIPEDIR}/global/config/coeff_SC72C_Skyra.grad"
+	PreFreeSurfer_cmd+=" --t1template=${HCPPIPEDIR}/global/templates/${g_t1template}"
+	PreFreeSurfer_cmd+=" --t1templatebrain=${HCPPIPEDIR}/global/templates/${g_t1templatebrain}"
+ 	PreFreeSurfer_cmd+=" --t1template2mm=${HCPPIPEDIR}/global/templates/${g_t1template2mm}"
+	PreFreeSurfer_cmd+=" --t2template=${HCPPIPEDIR}/global/templates/${g_t2template}"
+ 	PreFreeSurfer_cmd+=" --t2templatebrain=${HCPPIPEDIR}/global/templates/${g_t2templatebrain}"
+ 	PreFreeSurfer_cmd+=" --t2template2mm=${HCPPIPEDIR}/global/templates/${g_t2template2mm}"
+	PreFreeSurfer_cmd+=" --templatemask=${HCPPIPEDIR}/global/templates/${g_templatemask}"
+	PreFreeSurfer_cmd+=" --template2mmmask=${HCPPIPEDIR}/global/templates/${g_template2mmmask}"
+	PreFreeSurfer_cmd+=" --fnirtconfig=${HCPPIPEDIR}/global/config/${g_fnirtconfig}"
+
+	if [ "${g_gdcoeffs}" = "NONE" ]; then
+		PreFreeSurfer_cmd+=" --gdcoeffs=${g_gdcoeffs}"
+	else
+		PreFreeSurfer_cmd+=" --gdcoeffs=${HCPPIPEDIR}/global/config/${g_gdcoeffs}"
+	fi
+
 	PreFreeSurfer_cmd+=" --brainsize=${g_brainsize}"
 
 	if [[ ("${g_fieldmap_type}" == "GE") || ("${g_fieldmap_type}" == "SiemensGradientEcho") ]] ; then
@@ -665,8 +1027,8 @@ main()
 			PreFreeSurfer_cmd+=" --t2samplespacing=${g_first_t2w_sample_spacing}"
 			PreFreeSurfer_cmd+=" --avgrdcmethod=FIELDMAP"
 			PreFreeSurfer_cmd+=" --topupconfig=NONE"
-			PreFreeSurfer_cmd+=" --fmapmag=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
-			PreFreeSurfer_cmd+=" --fmapphase=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${PHASE_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
+			PreFreeSurfer_cmd+=" --fmapmag=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${g_session_classifier}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
+			PreFreeSurfer_cmd+=" --fmapphase=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${g_session_classifier}_${PHASE_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
 			PreFreeSurfer_cmd+=" --unwarpdir=z"
 		else
 			log_Msg "adding parameters for when Siemens gradient echo fieldmaps should be used but do NOT exist"
@@ -675,13 +1037,22 @@ main()
 			PreFreeSurfer_cmd+=" --t2samplespacing=NONE"
 			PreFreeSurfer_cmd+=" --avgrdcmethod=NONE"
 			PreFreeSurfer_cmd+=" --topupconfig=NONE"
-			PreFreeSurfer_cmd+=" --fmapmag=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
-			PreFreeSurfer_cmd+=" --fmapphase=${g_working_dir}/${g_subject}/unprocessed/${TESLA_SPEC}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${TESLA_SPEC}_${PHASE_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
+			PreFreeSurfer_cmd+=" --fmapmag=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${g_session_classifier}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
+			PreFreeSurfer_cmd+=" --fmapphase=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${g_session_classifier}_${PHASE_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
 			PreFreeSurfer_cmd+=" --unwarpdir=z"
 		fi
 	elif [[ ("${g_fieldmap_type}" == "SE") || ("${g_fieldmap_type}" == "SpinEcho") ]] ; then
 		# add parameters for SpinEcho fieldmap usage
-		log_Err_Abort "SpinEcho fieldmaps UNHANDLED YET"
+		PreFreeSurfer_cmd+=" --echodiff=NONE"
+		PreFreeSurfer_cmd+=" --t1samplespacing=${g_first_t1w_sample_spacing}"
+		PreFreeSurfer_cmd+=" --t2samplespacing=${g_first_t2w_sample_spacing}"
+		PreFreeSurfer_cmd+=" --avgrdcmethod=TOPUP"
+		PreFreeSurfer_cmd+=" --SEPhaseNeg=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t1w_directory_name}/${g_se_phase_neg}"
+		PreFreeSurfer_cmd+=" --SEPhasePos=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t1w_directory_name}/${g_se_phase_pos}"
+		PreFreeSurfer_cmd+=" --echospacing=${g_first_t1w_positive_dwell_time}"
+		PreFreeSurfer_cmd+=" --topupconfig=${HCPPIPEDIR}/global/config/${g_topupconfig}"
+		PreFreeSurfer_cmd+=" --seunwarpdir=y"
+		PreFreeSurfer_cmd+=" --unwarpdir=z"
 	else
 		log_Err_Abort "Unrecognized g_fieldmap_type: ${g_fieldmap_type}"
 	fi
@@ -689,7 +1060,7 @@ main()
 	log_Msg ""
 	log_Msg "PreFreeSurfer_cmd: ${PreFreeSurfer_cmd}"
 	log_Msg ""
-
+	
 	pushd ${g_working_dir}
 	${PreFreeSurfer_cmd}
 	return_code=$?
@@ -766,7 +1137,7 @@ main()
 		log_Msg ""
 		
 		pushd ${g_working_dir}/${g_subject}
-		source ${SETUP_SCRIPTS_HOME}/freesurfer53_setup.sh
+		source ${XNAT_PBS_JOBS}/ToolSetupScripts/freesurfer53_setup.sh
 		${snap_montage_cmd}
 		return_code=$?
 		if [ ${return_code} -ne 0 ]; then
@@ -779,7 +1150,7 @@ main()
 
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
 	log_Msg "Getting XNAT Session ID"
-	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=${g_server} --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
+	get_session_id_cmd="python ${XNAT_PBS_JOBS_PIPELINE_ENGINE}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=${g_server} --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
 	sessionID=`${get_session_id_cmd}`
 	log_Msg "XNAT session ID: ${sessionID}"
 
@@ -789,7 +1160,7 @@ main()
 	stats2xml_cmd+=" -p ${g_project}"
 	stats2xml_cmd+=" -x ${sessionID}"
 	stats2xml_cmd+=" -t Freesurfer"
-	stats2xml_cmd+=" -d ${TESLA_SPEC}"
+	stats2xml_cmd+=" -d ${g_session_classifier}"
 	stats2xml_cmd+=" -o ${g_working_dir}/${g_subject}/"
 	stats2xml_cmd+=" ${g_working_dir}/${g_subject}/T1w/${g_subject}/stats"
 
@@ -807,9 +1178,9 @@ main()
 
 	# Put generated FreeSurfer stats file in DB
 
-	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/assessors/${sessionID}_freesurfer_${TESLA_SPEC}?allowDataDeletion=true&inbody=true"
+	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/assessors/${sessionID}_freesurfer_${g_session_classifier}?allowDataDeletion=true&inbody=true"
 
-	java_cmd="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
+	java_cmd="java -Xmx1024m -jar ${XNAT_PBS_JOBS_PIPELINE_ENGINE}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
 	java_cmd+=" -u ${g_user}"
 	java_cmd+=" -p ${g_password}"
 	java_cmd+=" -r ${resource_uri}"	
@@ -829,7 +1200,7 @@ main()
 	popd
 
 	# Put snapshots in DB and remove local copies
-	db_resource="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/assessors/${sessionID}_freesurfer_${TESLA_SPEC}/resources/SNAPSHOTS"
+	db_resource="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/assessors/${sessionID}_freesurfer_${g_session_classifier}/resources/SNAPSHOTS"
 	log_Msg "db_resource: ${db_resource}"
 	
 	# Replace very first instance of HCP in working directory name with data.
@@ -844,7 +1215,7 @@ main()
 
 	resource_uri="${db_resource}/files?overwrite=true&replace=true&reference=${xnat_local_resource}"
 
-	java_cmd="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
+	java_cmd="java -Xmx1024m -jar ${XNAT_PBS_JOBS_PIPELINE_ENGINE}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
 	java_cmd+=" -u ${g_user}"
 	java_cmd+=" -p ${g_password}"
 	java_cmd+=" -r ${resource_uri}"	

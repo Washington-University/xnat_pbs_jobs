@@ -29,8 +29,8 @@ module_logger.setLevel(logging.WARNING)  # Note: This can be overridden by file 
 
 class BatchSubmitter(batch_submitter.BatchSubmitter):
 
-	def __init__(self, tesla_spec):
-		super().__init__(ccf_archive.CcfArchive(tesla_spec))
+	def __init__(self):
+		super().__init__(ccf_archive.CcfArchive())
 
 	def submit_jobs(self, username, password, subject_list, config):
 
@@ -49,17 +49,20 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 			walltime_limit_hrs = config.get_value(subject.subject_id, 'WalltimeLimitHours')
 			vmem_limit_gbs = config.get_value(subject.subject_id, 'VmemLimitGbs')
 			output_resource_suffix = config.get_value(subject.subject_id, 'OutputResourceSuffix')
+			brain_size = config.get_value(subject.subject_id, 'BrainSize')
 			
 			module_logger.info("-----")
 			module_logger.info(" Submitting " + submitter.PIPELINE_NAME + " jobs for:")
 			module_logger.info("                project: " + subject.project)
 			module_logger.info("                subject: " + subject.subject_id)
+			module_logger.info("     session classifier: " + subject.classifier)
 			module_logger.info("             put_server: " + put_server)
 			module_logger.info("     clean_output_first: " + str(clean_output_first))
 			module_logger.info("       processing_stage: " + str(processing_stage))
 			module_logger.info("     walltime_limit_hrs: " + str(walltime_limit_hrs))
 			module_logger.info("         vmem_limit_gbs: " + str(vmem_limit_gbs))
 			module_logger.info(" output_resource_suffix: " + output_resource_suffix)
+			module_logger.info("             brain_size: " + brain_size)
 			module_logger.info("-----")
 
 			# user and server information
@@ -70,8 +73,10 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 			# subject and project information
 			submitter.project = subject.project
 			submitter.subject = subject.subject_id
-			submitter.session = subject.subject_id + '_3T'
-
+			submitter.session = subject.subject_id + '_' + subject.classifier
+			submitter.classifier = subject.classifier
+			submitter.brain_size = brain_size
+			
 			# job parameters
 			submitter.clean_output_resource_first = clean_output_first
 			submitter.put_server = put_server
@@ -101,7 +106,7 @@ if __name__ == '__main__':
 	subject_file_name = file_utils.get_subjects_file_name(__file__)
 	module_logger.info("Retrieving subject list from: " + subject_file_name)
 	subject_list = ccf_subject.read_subject_info_list(subject_file_name, separator=":")
-
+	
 	# process the subjects in the list
-	batch_submitter = BatchSubmitter('3T')
+	batch_submitter = BatchSubmitter()
 	batch_submitter.submit_jobs(userid, password, subject_list, config)
