@@ -29,8 +29,8 @@ module_logger.setLevel(logging.WARNING)  # can be overridden by configuration fi
 
 class BatchSubmitter(batch_submitter.BatchSubmitter):
 
-	def __init__(self, tesla_spec):
-		super().__init__(ccf_archive.CcfArchive(tesla_spec))
+	def __init__(self):
+		super().__init__(ccf_archive.CcfArchive())
 
 	def submit_jobs(self, username, password, subject_list, config):
 
@@ -59,6 +59,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 			module_logger.info(" Submitting " + submitter.PIPELINE_NAME + " jobs for:")
 			module_logger.info("                project: " + subject.project)
 			module_logger.info("                subject: " + subject.subject_id)
+			module_logger.info("     session classifier: " + subject.classifier)
 			module_logger.info("                   scan: " + scan)
 			module_logger.info("             put_server: " + put_server)
 			module_logger.info("             setup_file: " + setup_file)
@@ -78,7 +79,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 			# subject and project information
 			submitter.project = subject.project
 			submitter.subject = subject.subject_id
-			submitter.session = subject.subject_id + '_3T'
+			submitter.session = subject.subject_id + '_' + subject.classifier
 			submitter.scan = scan
 			submitter.reg_name = reg_name
 
