@@ -436,12 +436,13 @@ main()
 
 		if [[ ${scan} == *REST* ]] ; then
 			#echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=32000mb,vmem=50000mb" >> ${script_file_to_submit}
-			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=40000mb,vmem=64000mb" >> ${script_file_to_submit}
+			echo "#PBS -l nodes=1:ppn=1,walltime=48:00:00,mem=40000mb,vmem=64000mb" >> ${script_file_to_submit}
 		elif [[ ${scan} == *MOVIE* ]]; then
 			#echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=32000mb,vmem=50000mb" >> ${script_file_to_submit}
-			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=40000mb,vmem=64000mb" >> ${script_file_to_submit}
+			echo "#PBS -l nodes=1:ppn=1,walltime=48:00:00,mem=40000mb,vmem=64000mb" >> ${script_file_to_submit}
 		elif [[ ${scan} == *RET* ]]; then
-			echo "#PBS -l nodes=1:ppn=1,walltime=12:00:00,vmem=8000mb" >> ${script_file_to_submit}
+			#echo "#PBS -l nodes=1:ppn=1,walltime=12:00:00,vmem=8000mb" >> ${script_file_to_submit}
+			echo "#PBS -l nodes=1:ppn=1,walltime=24:00:00,vmem=8000mb" >> ${script_file_to_submit}
 		else
 			echo "#PBS -l nodes=1:ppn=1,walltime=36:00:00,vmem=30000mb" >> ${script_file_to_submit}
 		fi
@@ -453,8 +454,12 @@ main()
 			echo "#PBS -q ${g_queue}" >> ${script_file_to_submit}
 		fi
 
+		cp --verbose \
+		   ${XNAT_PBS_JOBS_HOME}/7T/FunctionalPreprocessingHCP7T/FunctionalPreprocessingHCP7T.XNAT.sh \
+		   ${working_directory_name}
+		
 		echo "" >> ${script_file_to_submit}
-		echo "${XNAT_PBS_JOBS_HOME}/7T/FunctionalPreprocessingHCP7T/FunctionalPreprocessingHCP7T.XNAT.sh \\" >> ${script_file_to_submit}
+		echo "${working_directory_name}/FunctionalPreprocessingHCP7T.XNAT.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}
 		echo "  --password=\"${g_password}\" \\" >> ${script_file_to_submit}
 		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
