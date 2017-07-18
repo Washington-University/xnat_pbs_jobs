@@ -35,20 +35,11 @@ class CcfArchive(object):
 	or a change in conventions could cause this code to no longer be correct.
 	"""
 
-	def __init__(self, tesla_spec):
+	def __init__(self):
 		"""
 		Initialize a CcfArchive object.
 		"""
-		self._tesla_spec = tesla_spec
 		self._xnat_archive = xnat_archive.XNAT_Archive()
-
-	@property
-	def tesla_spec(self):
-		"""
-		The conventional specification of the TESLA rating of the MRI scanner
-		used for collecting data in this archive. (e.g. '3T' or '7T')
-		"""
-		return self._tesla_spec
 
 	@property
 	def NAME_DELIMITER(self):
@@ -155,8 +146,8 @@ class CcfArchive(object):
 		"""
 		The conventional session name for a subject in this project archive
 		"""
-		return subject_info.subject_id + self.NAME_DELIMITER + self.tesla_spec
-
+		return subject_info.subject_id + self.NAME_DELIMITER + subject_info.classifier
+	
 	def session_dir_full_path(self, subject_info):
 		"""
 		The full path to the conventional session directory for a subject
@@ -216,6 +207,42 @@ class CcfArchive(object):
 		name_list = self._get_scan_names_from_full_paths(dir_list)
 		return name_list
 	
+	def available_t1w_unproc_dir_full_paths(self, subject_info):
+		"""
+		List of full paths to any resources containing unprocessed T1w scans 
+		for the specified subject
+		"""
+		path_expr = self.subject_resources_dir_full_path(subject_info)
+		path_expr += os.sep + 'T1w' + self.NAME_DELIMITER + '*' + self.UNPROC_SUFFIX
+		dir_list = glob.glob(path_expr)
+		return sorted(dir_list)
+
+	def available_t1w_unproc_names(self, subject_info):
+		"""
+		List of names (not full paths) of T1w unprocessed scans
+		"""
+		dir_list = self.available_t1w_unproc_dir_full_paths(subject_info)
+		name_list = self._get_scan_names_from_full_paths(dir_list)
+		return name_list
+	
+	def available_t2w_unproc_dir_full_paths(self, subject_info):
+		"""
+		List of full paths to any resources containing unprocessed T2w scans 
+		for the specified subject
+		"""
+		path_expr = self.subject_resources_dir_full_path(subject_info)
+		path_expr += os.sep + 'T2w' + self.NAME_DELIMITER + '*' + self.UNPROC_SUFFIX
+		dir_list = glob.glob(path_expr)
+		return sorted(dir_list)
+
+	def available_t2w_unproc_names(self, subject_info):
+		"""
+		List of names (not full paths) of T2w unprocessed scans
+		"""
+		dir_list = self.available_t2w_unproc_dir_full_paths(subject_info)
+		name_list = self._get_scan_names_from_full_paths(dir_list)
+		return name_list
+
 	def available_functional_unproc_dir_full_paths(self, subject_info):
 		"""
 		List of full paths to any resources containing unprocessed functional scans
