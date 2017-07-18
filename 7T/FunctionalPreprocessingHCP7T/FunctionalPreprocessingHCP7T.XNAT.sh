@@ -429,6 +429,19 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Run the GenericfMRIVolumeProcessingPipeline.sh script" ${step_percent}
 
+	unwarp_dir_spec=""
+	if [ "${phase_encoding_dir}" = "${NEGATIVE_PHASE_ENCODING_DIRECTION}" ] ; then
+		# AP
+		unwarp_dir_spec="-y"
+	elif [ "${phase_encoding_dir}" = "${POSITIVE_PHASE_ENCODING_DIRECTION}" ] ; then
+		# PA
+		unwarp_dir_spec="y"
+	else
+		inform "Unrecognized phase_encoding_dir: ${phase_encoding_dir}"
+		inform "Aborting"
+		exit 1
+	fi
+	
  	volume_cmd=""
  	volume_cmd+="${HCPPIPEDIR}/fMRIVolume/GenericfMRIVolumeProcessingPipeline.sh"
  	volume_cmd+=" --path=${g_working_dir}"
@@ -440,7 +453,7 @@ main()
 	volume_cmd+=" --SEPhasePos=${g_working_dir}/${g_subject}/unprocessed/7T/${g_scan}/${g_subject}_7T_SpinEchoFieldMap_${POSITIVE_PHASE_ENCODING_DIRECTION}.nii.gz"
 	volume_cmd+=" --echospacing=${echo_spacing}"
 	volume_cmd+=" --echodiff=NONE"
-	volume_cmd+=" --unwarpdir=y"
+	volume_cmd+=" --unwarpdir=${unwarp_dir_spec}"
 	volume_cmd+=" --fmrires=1.60"
 	volume_cmd+=" --dcmethod=TOPUP"
 	volume_cmd+=" --gdcoeffs=${HCPPIPEDIR}/global/config/trunc.CMRR_7TAS_coeff_SC72CD.grad"
