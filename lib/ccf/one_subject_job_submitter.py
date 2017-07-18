@@ -68,6 +68,22 @@ class OneSubjectJobSubmitter(abc.ABC):
 		return ProcessingStage.from_string(str_value)
 
 	@property
+	def PAAP_POSITIVE_DIR(self):
+		return "PA"
+
+	@property
+	def PAAP_NEGATIVE_DIR(self):
+		return "AP"
+
+	@property
+	def RLLR_POSITIVE_DIR(self):
+		return "RL"
+
+	@property
+	def RLLR_NEGATIVE_DIR(self):
+		return "LR"
+	
+	@property
 	@abc.abstractmethod
 	def PIPELINE_NAME(self):
 		raise NotImplementedError()
@@ -153,6 +169,15 @@ class OneSubjectJobSubmitter(abc.ABC):
 		self._session = value
 		module_logger.debug(debug_utils.get_name() + ": set to " + str(self._session))
 
+	@property
+	def classifier(self):
+		return self._classifier
+
+	@classifier.setter
+	def classifier(self, value):
+		self._classifier = value
+		module_logger.debug(debug_utils.get_name() + ": set to " + str(self._classifier))
+		
 	@property
 	def scan(self):
 		return self._scan
@@ -268,6 +293,7 @@ class OneSubjectJobSubmitter(abc.ABC):
 		script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_GET.sh \\' + os.linesep)
 		script.write('  --project=' + self.project + ' \\' + os.linesep)
 		script.write('  --subject=' + self.subject + ' \\' + os.linesep)
+		script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
 		script.write('  --working-dir=' + self.working_directory_name + os.linesep)
 
 		script.close()
