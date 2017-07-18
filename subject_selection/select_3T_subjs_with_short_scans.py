@@ -40,7 +40,7 @@ def get_volume_count(file_name):
 def get_expected_volume_count(file_name):
     file_base_name = os.path.basename(file_name)
     #_inform("file_base_name: " + file_base_name)
-    (subject_id, tesla_spec, dwi, dircount_str, pe_dir_and_suffix) = file_base_name.split('_')
+    (subject_id, session_classifier, dwi, dircount_str, pe_dir_and_suffix) = file_base_name.split('_')
     dircount_str = dircount_str[3:]
     #_inform("dircount_str: " + dircount_str)
     return int(dircount_str)
