@@ -19,9 +19,13 @@ rm -f *.incomplete.status
 for subject in ${subjects} ; do
 	if [[ ${subject} != \#* ]]; then
 
-		project=HCP_Staging_7T
+		#project=HCP_Staging_7T
+		project=HCP_1200
 
-		./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject} --post-patch # --details
+		#./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject} --post-patch # --details
+		#./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject} # --details
+		#./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject} --details
+		./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject}
 
 	fi
 
