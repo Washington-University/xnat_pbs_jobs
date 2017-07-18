@@ -47,6 +47,10 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         return '7T'
 
     @property
+    def SESSION_CLASSIFIER(self):
+        return self.TESLA_SPEC
+	
+    @property
     def DEDRIFT_AND_RESAMPLE_HIGHRES_RESOURCE_NAME(self):
         """Name of MSM All DeDriftAndResample HighRes resource"""
         return 'MSMAllDeDrift_HighRes'
