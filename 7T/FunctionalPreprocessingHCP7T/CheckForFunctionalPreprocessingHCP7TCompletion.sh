@@ -400,8 +400,6 @@ main()
 				check_file_exists "${check_dir}/PhaseTwo.nii.gz"
 				check_file_exists "${check_dir}/PhaseTwo_vol1.nii.gz"
 				check_file_exists "${check_dir}/qa.txt"
-				check_file_exists "${check_dir}/SBRef2PhaseTwo_gdc.mat"
-				check_file_exists "${check_dir}/SBRef2PhaseTwo_gdc.nii.gz"
 				check_file_exists "${check_dir}/SBRef2WarpField.mat"
 				check_file_exists "${check_dir}/SBRef_dc_jac.nii.gz"
 				check_file_exists "${check_dir}/SBRef_dc.nii.gz"
