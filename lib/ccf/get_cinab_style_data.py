@@ -101,7 +101,7 @@ class DataRetriever(object):
 			unproc_loc = get_from.rfind(self.archive.NAME_DELIMITER + self.archive.UNPROC_SUFFIX)
 			sub_dir = get_from[last_sep_loc + 1:unproc_loc]
 			put_to = output_dir + os.sep + subject_info.subject_id + os.sep + 'unprocessed'
-			put_to += os.sep + self.archive.tesla_spec + os.sep + sub_dir
+			put_to += os.sep + subject_info.classifier + os.sep + sub_dir
 			module_logger.debug(debug_utils.get_name() + "   put_to: " + put_to)
 
 			self._from_to(get_from, put_to)
@@ -496,7 +496,7 @@ def main():
 		default=default_phase_choice)
 
 	parser.add_argument(
-		'-t', '--tesla-spec', dest='tesla_spec', required=False, type=str,
+		'-cl', '--classifier', dest='session_classifier', required=False, type=str,
 		default='3T')
 
 	# parse the command line arguments
@@ -507,11 +507,11 @@ def main():
 	
 	# show arguments
 	module_logger.info("Arguments:")
-	module_logger.info("    Project: " + args.project)
-	module_logger.info("    Subject: " + args.subject)
-	module_logger.info(" Tesla Spec: " + args.tesla_spec)
-	module_logger.info(" Output Dir: " + args.output_study_dir)
-	module_logger.info("      Phase: " + args.phase)
+	module_logger.info("            Project: " + args.project)
+	module_logger.info("            Subject: " + args.subject)
+	module_logger.info(" Session Classifier: " + args.session_classifier)
+	module_logger.info("         Output Dir: " + args.output_study_dir)
+	module_logger.info("              Phase: " + args.phase)
 	if args.copy:
 		module_logger.info("               Copy: " + str(args.copy))
 	if args.log:
@@ -519,8 +519,8 @@ def main():
 	if args.remove_non_subdirs:
 		module_logger.info(" Remove Non-Subdirs: " + str(args.remove_non_subdirs))
 
-	subject_info = ccf_subject.SubjectInfo(args.project, args.subject)
-	archive = ccf_archive.CcfArchive(args.tesla_spec)
+	subject_info = ccf_subject.SubjectInfo(args.project, args.subject, args.session_classifier)
+	archive = ccf_archive.CcfArchive()
 
 	data_retriever = DataRetriever(archive)
 	data_retriever.copy = args.copy
