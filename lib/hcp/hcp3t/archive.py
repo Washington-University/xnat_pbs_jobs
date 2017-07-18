@@ -45,6 +45,10 @@ class Hcp3T_Archive(hcp_archive.HcpArchive):
         """String to indicate the tesla rating of the scanner used."""
         return '3T'
 
+    @property
+    def SESSION_CLASSIFIER(self):
+        return self.TESLA_SPEC
+	
     def __init__(self):
         """Constructs an Hcp3T_Archive object."""
         super().__init__()
