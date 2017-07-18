@@ -32,12 +32,13 @@ class SubjectInfo:
 	def DEFAULT_SEPARATOR(cls):
 		return ":"
 
-	def __init__(self, project=None, subject_id=None, extra=None):
+	def __init__(self, project=None, subject_id=None, classifier=None, extra=None):
 		"""
 		Initialize a SubjectInfo object.
 		"""
 		self._project = project
 		self._subject_id = subject_id
+		self._classifier = classifier
 		self._extra = extra
 
 	@property
@@ -55,6 +56,17 @@ class SubjectInfo:
 		return self._subject_id
 
 	@property
+	def classifier(self):
+		"""
+		An additional piece of information used to classify the session. Sometimes (e.g. in HCP) 
+		this is the conventional specification of the TESLA rating of the MRI scanner
+		used for collecting data in this archive (e.g. '3T' or '7T'). It might also be used 
+		to simply indicate that the session was for MRI scans (e.g. 'MR') or might be a visit
+		indicator (e.g. 'V1', 'V2', 'V3', etc.).
+		"""
+		return self._classifier
+	
+	@property
 	def extra(self):
 		"""
 		Extra processing information
@@ -66,7 +78,7 @@ class SubjectInfo:
 		Returns informal string representation
 		"""
 		separator = SubjectInfo.DEFAULT_SEPARATOR()
-		return str(self.project) + separator + str(self.subject_id) + separator + str(self.extra)
+		return str(self.project) + separator + str(self.subject_id) + separator + str(self.classifier) + separator + str(self.extra)
 
 
 def read_subject_info_list(file_name, separator=SubjectInfo.DEFAULT_SEPARATOR()):
@@ -85,16 +97,16 @@ def read_subject_info_list(file_name, separator=SubjectInfo.DEFAULT_SEPARATOR())
 
 		# ignore blank lines and comment lines - starting with #
 		if line != '' and line[0] != '#':
-			(project, subject_id, extra) = line.split(separator)
+			(project, subject_id, classifier, extra) = line.split(separator)
 			# Make the string 'None' in the file translate to a None type instead of
 			# just the string itself
 			if extra == 'None':
 				extra = None
-			subject_info = SubjectInfo(project, subject_id, extra)
+			subject_info = SubjectInfo(project, subject_id, classifier, extra)
 			subject_info_list.append(subject_info)
 
 	input_file.close()
-
+	
 	return subject_info_list
 
 
@@ -115,18 +127,21 @@ def write_subject_info_list(file_name, subject_info_list):
 def _simple_interactive_demo():
 
 	print("-- Creating 2 CCF SubjectInfo objects --")
-	subject_info1 = SubjectInfo('HCP_500', '100206', 'extra stuff')
-	subject_info2 = SubjectInfo('HCP_1200', '100307')
-
+	subject_info1 = SubjectInfo('HCP_500', '100206', '3T', 'extra stuff')
+	subject_info2 = SubjectInfo('HCP_1200', '100307', '3T')
+	subject_info3 = SubjectInfo('testproject', 'HCA6018857', 'MR', 'extra stuff')
+	
 	print("-- Showing the CCF SubjectInfo objects --")
 	print(str(subject_info1))
 	print(str(subject_info2))
-
+	print(str(subject_info3))
+	
 	test_file_name = 'test_subjects.txt'
 	print("-- Writing the SubjectInfo objects to a text file: " + test_file_name + " --")
 	subject_info_list_out = []
 	subject_info_list_out.append(subject_info1)
 	subject_info_list_out.append(subject_info2)
+	subject_info_list_out.append(subject_info3)
 	write_subject_info_list(test_file_name, subject_info_list_out)
 
 	print("-- Retrieving the list of SubjectInfo objects from the file --")
