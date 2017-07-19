@@ -1,20 +1,27 @@
 #!/bin/bash
-
 set -e
-
-SCRIPT_NAME=`basename ${0}`
+g_script_name=$(basename "${0}")
 
 inform()
 {
 	msg=${1}
-	echo "${SCRIPT_NAME} | ${msg}"
+	echo "${g_script_name} | ${msg}"
 }
 
-# home directory for scripts to be sourced to setup the environment
-SCRIPTS_HOME=/home/HCPpipeline/SCRIPTS
+if [ -z "${XNAT_PBS_JOBS}" ] ; then
+	echo "${g_script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
 
-# home directory for XNAT pipeline engine installation
-XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
+if [ -z "${XNAT_PBS_JOBS_XNAT_SERVER}" ] ; then
+	echo "${g_script_name}: ABORTING: XNAT_PBS_JOBS_XNAT_SERVER environment variable must be set"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS_PIPELINE_ENGINE}" ] ; then
+	echo "${g_script_name}: ABORTING: XNAT_PBS_JOBS_PIPELINE_ENGINE environment variable must be set"
+	exit 1
+fi
 
 # Example invocation
 #
@@ -226,10 +233,10 @@ main()
 	get_options $@
 
 	# Set up to run Python
-	source ${SCRIPTS_HOME}/epd-python_setup.sh
+	source ${XNAT_PBS_JOBS}/ToolSetupScripts/epd-python_setup.sh
 
 	# Get XNAT Session ID (a.k.a. the experiment ID, e.g ConnectomeDB_E1234)
-	get_session_id_cmd="python ${XNAT_PIPELINE_HOME}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=${XNAT_PBS_JOBS_XNAT_SERVER} --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
+	get_session_id_cmd="python ${XNAT_PBS_JOBS_PIPELINE_ENGINE}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=${XNAT_PBS_JOBS_XNAT_SERVER} --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
 	#echo "get_session_id_cmd: ${get_session_id_cmd}"
 	sessionID=`${get_session_id_cmd}`
 	inform "XNAT session ID: ${sessionID}"
@@ -268,7 +275,7 @@ main()
 
 	if [ ! -z "${put_it}" ]; then
 		java_cmd=""
-		java_cmd+="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
+		java_cmd+="java -Xmx1024m -jar ${XNAT_PBS_JOBS_PIPELINE_ENGINE}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
 		java_cmd+=" -u ${g_user}"
 		java_cmd+=" -p ${g_password}"
 		java_cmd+=" -m PUT"

@@ -3,7 +3,7 @@ set -e
 g_script_name=$(basename "${0}")
 
 if [ -z "${XNAT_PBS_JOBS}" ]; then
-	echo "${g_script_home}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	echo "${g_script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
 	exit 1
 fi
 

@@ -7,7 +7,7 @@
 #
 # ## Copyright Notice
 #
-# Copyright (C) 2015 The Human Connectome Project
+# Copyright (C) 2015-2017 The Human Connectome Project
 #
 # * Washington University in St. Louis
 # * University of Minnesota
@@ -27,20 +27,14 @@
 
 # If any commands exit with a non-zero value, this script exits
 set -e
+g_script_name=$(basename "${0}")
 
 echo "Job started on `hostname` at `date`"
 
-# home directory for these XNAT PBS job scripts
-XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
-echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
-
-# home directory for scripts to be sourced to setup the environment
-SCRIPTS_HOME=/home/HCPpipeline/SCRIPTS
-echo "SCRIPTS_HOME: ${SCRIPTS_HOME}"
-
-# home directory for XNAT pipeline engine installation
-XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
-echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
+if [ -z "${XNAT_PBS_JOBS}" ] ; then
+	echo "${g_script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
 
 # Show script usage information 
 usage()
@@ -255,7 +249,7 @@ main()
 	echo "-------------------------------------------------"
 	echo "Deleting previous resource"	
 	echo "-------------------------------------------------"
-	${XNAT_PBS_JOBS_HOME}/WorkingDirPut/DeleteResource.sh \
+	${XNAT_PBS_JOBS}/WorkingDirPut/DeleteResource.sh \
 		--user=${g_user} \
 		--password=${g_password} \
 		--server=${g_server} \
@@ -280,7 +274,7 @@ main()
 	# Mask password (${g_password})
 	files=`find ${g_working_dir} -maxdepth 1 -print`
 	for file in ${files} ; do
-		${XNAT_PBS_JOBS_HOME}/WorkingDirPut/mask_password.sh --password="${g_password}" --file="${file}" --verbose
+		${XNAT_PBS_JOBS}/WorkingDirPut/mask_password.sh --password="${g_password}" --file="${file}" --verbose
 	done
 
 	# Push the data into the DB
@@ -288,7 +282,7 @@ main()
 	echo "-------------------------------------------------"
 	echo "Putting new data into DB from db_working_dir: ${db_working_dir}"
 	echo "-------------------------------------------------"
-	${XNAT_PBS_JOBS_HOME}/WorkingDirPut/PutDirIntoResource.sh \
+	${XNAT_PBS_JOBS}/WorkingDirPut/PutDirIntoResource.sh \
 		--user=${g_user} \
 		--password=${g_password} \
 		--server=${g_server} \

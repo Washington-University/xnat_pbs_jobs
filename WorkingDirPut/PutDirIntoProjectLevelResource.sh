@@ -1,8 +1,12 @@
 #!/bin/bash
 set -e
+g_script_name=`basename ${0}`
 
 # home directory for XNAT pipeline engine installation
-XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
+if [ -z "${XNAT_PBS_JOBS_PIPELINE_ENGINE}" ] ; then
+	echo "${g_script_name}: ABORTING: XNAT_PBS_JOBS_PIPELINE_ENGINE environment variable must be set"
+	exit 1
+fi
 
 show_msg() 
 {
@@ -201,7 +205,7 @@ main()
 
 	if [ ! -z "${put_it}" ]; then
 		java_cmd=""
-		java_cmd+="java -Xmx1024m -jar ${XNAT_PIPELINE_HOME}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
+		java_cmd+="java -Xmx1024m -jar ${XNAT_PBS_JOBS_PIPELINE_ENGINE}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
 		java_cmd+=" -u ${g_user}"
 		java_cmd+=" -p ${g_password}"
 		java_cmd+=" -m PUT"

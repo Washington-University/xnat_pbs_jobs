@@ -1,7 +1,11 @@
 #!/bin/bash
+g_script_name=$(basename "${0}")
 
-g_user=tbbrown
-g_password=uns3cur3
+g_user=nobody
+g_password=nothing
+
+echo "${g_script_name}: ABORTING: you need to edit this script and put in a user name and password"
+exit 1
 
 do_put()
 {

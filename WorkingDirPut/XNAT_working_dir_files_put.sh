@@ -2,20 +2,20 @@
 
 # If any commands exit with a non-zero value, this script exits
 set -e
-
-SCRIPT_NAME=`basename ${0}`
+g_script_name=$(basename "${0}")
 
 inform() 
 {
 	msg=${1}
-	echo "${SCRIPT_NAME} | ${msg}"
+	echo "${g_script_name} | ${msg}"
 }
 
 inform "Job stared on `hostname` at `date`"
 
-# home directory for these XNAT PBS job scripts
-XNAT_PBS_JOBS_HOME=${HOME}/pipeline_tools/xnat_pbs_jobs
-inform "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
+if [ -z "${XNAT_PBS_JOBS}" ] ; then
+	echo "${g_script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
 
 usage()
 {
@@ -26,7 +26,7 @@ usage()
 	inform "  in the working directory in the existing resource. The files"
 	inform "  will overwrite any existing files with the same path.       "
 	inform ""
-	inform "  Usage: ${SCRIPT_NAME} <options>"
+	inform "  Usage: ${g_script_name} <options>"
 	inform ""
 	inform "  Options: [ ] = optional, < > = user-supplied-value"
 	inform ""
@@ -228,7 +228,7 @@ main()
 	# Mask password
 	local files=`find ${g_working_dir} -maxdepth 1 -print`
 	for file in ${files} ; do
-		${XNAT_PBS_JOBS_HOME}/WorkingDirPut/mask_password.sh --password="${g_password}" --file="${file}" --verbose
+		${XNAT_PBS_JOBS}/WorkingDirPut/mask_password.sh --password="${g_password}" --file="${file}" --verbose
 	done
 
 	# Push files into the DB
@@ -249,7 +249,7 @@ main()
 
 				db_file=${file/HCP/data}
 
-				${XNAT_PBS_JOBS_HOME}/WorkingDirPut/PutFileIntoResource.sh \
+				${XNAT_PBS_JOBS}/WorkingDirPut/PutFileIntoResource.sh \
 					--user=${g_user} \
 					--password=${g_password} \
 					--project=${g_project} \
