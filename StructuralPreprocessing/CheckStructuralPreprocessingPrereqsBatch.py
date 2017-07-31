@@ -23,22 +23,22 @@ module_logger.setLevel(logging.INFO) # Note: This can be overridden by file conf
 
 if __name__ == "__main__":
 
-	# get list of subjects to check
-	subject_file_name = file_utils.get_subjects_file_name(__file__)
-	module_logger.info("Retrieving subject list from: " + subject_file_name)
+    # get list of subjects to check
+    subject_file_name = file_utils.get_subjects_file_name(__file__)
+    module_logger.info("Retrieving subject list from: " + subject_file_name)
 
-	subject_list = ccf_subject.read_subject_info_list(subject_file_name, separator=":")
+    subject_list = ccf_subject.read_subject_info_list(subject_file_name, separator=":")
 
-	# create archive
-	archive = ccf_archive.CcfArchive('3T')
+    # create archive
+    archive = ccf_archive.CcfArchive('3T')
 
-	# create one prerequisites checker
-	prereq_checker = one_subject_prereq_checker.OneSubjectPrereqChecker()
+    # create one prerequisites checker
+    prereq_checker = one_subject_prereq_checker.OneSubjectPrereqChecker()
 
-	for subject in subject_list:
-		print("subject: " + str(subject))
-		subject_id = subject.subject_id
-		project = subject.project
-		scan = subject.extra
+    for subject in subject_list:
+        print("subject: " + str(subject))
+        subject_id = subject.subject_id
+        project = subject.project
+        scan = subject.extra
 
-		prereq_checker.are_prereqs_met(archive, subject, True)
+        prereq_checker.are_prereqs_met(archive, subject, True)
