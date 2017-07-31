@@ -1,0 +1,94 @@
+#!/bin/bash
+
+get_options()
+{
+	local arguments=($@)
+
+	unset g_project
+	unset g_subject
+	unset g_classifier
+	unset g_verbose
+
+	# parse arguments
+	local num_args=${#arguments[@]}
+	local argument
+	local index=0
+
+	while [ ${index} -lt ${num_args} ]; do
+		argument=${arguments[index]}
+
+		case ${argument} in
+			--project=*)
+				g_project=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--subject=*)
+				g_subject=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--classifier=*)
+				g_classifier=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--verbose)
+				g_verbose=TRUE
+				index=$(( index + 1 ))
+				;;
+			*)
+				echo "ABORT unrecognized option: ${argument}"
+				exit 1
+				;;
+		esac
+	done
+
+	local error_count=0
+	
+ 	# check parameters
+	if [ -z "${g_project}" ]; then
+		echo "project (--project=) required"
+		error_count=$(( error_count + 1 ))
+	fi
+
+	if [ -z "${g_subject}" ]; then
+		echo "subject (--subject=) required"
+		error_count=$(( error_count + 1 ))
+	fi
+
+	if [ -z "${g_classifier}" ]; then
+		echo "classifier (--classifier=) required"
+		error_count=$(( error_count + 1 ))
+	fi
+	
+ 	if [ ${error_count} -gt 0 ]; then
+ 		echo "ABORTING"
+		exit 1
+ 	fi
+}
+
+main()
+{
+	get_options "$@"
+
+	source activate python3 2>/dev/null
+	local verbose=""
+	if [ "${g_verbose}" = "TRUE" ] ; then
+		verbose="--verbose"
+	fi
+	
+	local completion_check_file=${g_project}_${g_subject}_${g_classifier}_completion_check.txt
+	
+	if ${g_my_path}/../lib/ccf/structural_preprocessing/one_subject_completion_checker.py --project=${g_project} --subject=${g_subject} --classifier=${g_classifier} ${verbose} \
+				   > ${completion_check_file} ; then
+		echo "COMPLETE"
+
+		# put the completion check file in the resource
+
+		
+	else
+		echo "NOT COMPLETE"
+	fi
+	source deactivate 2>/dev/null
+}
+
+g_my_path=$(dirname "${0}")
+main "$@"
