@@ -15,15 +15,15 @@ __maintainer__ = "Timothy B. Brown"
 
 class OneSubjectPrereqChecker(ccf.one_subject_prereq_checker.OneSubjectPrereqChecker):
 
-	def __init__(self):
-		super().__init__()
+    def __init__(self):
+        super().__init__()
 
-	def are_prereqs_met(self, archive, subject_info, verbose=False):
+    def are_prereqs_met(self, archive, subject_info, verbose=False):
 
-		struct_unproc_dir_paths = archive.available_structural_unproc_names(subject_info)
-		print(str(struct_unproc_dir_paths))
-			  
-		# does at least 1 T1w unprocessed resource exist
+        struct_unproc_dir_paths = archive.available_structural_unproc_names(subject_info)
+        print(str(struct_unproc_dir_paths))
 
-		
-		# does at least 1 T2w unprocessed resource exist
+        # does at least 1 T1w unprocessed resource exist
+
+
+        # does at least 1 T2w unprocessed resource exist
