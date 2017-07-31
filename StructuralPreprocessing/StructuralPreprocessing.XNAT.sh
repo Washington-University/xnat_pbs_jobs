@@ -1031,7 +1031,7 @@ main()
 
 	# Put generated FreeSurfer stats file in DB
 
-	resource_uri="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}"
+	resource_uri="https://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}"
 	resource_uri+="/experiments/${sessionID}"
 	resource_uri+="/assessors/${sessionID}_freesurfer_${g_session_classifier}"
 	resource_uri+="?allowDataDeletion=true&inbody=true"
@@ -1055,9 +1055,8 @@ main()
 	fi
 	popd
 
-
 	# Put snapshots in DB and remove local copies
-	db_resource="http://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/assessors/${sessionID}_freesurfer_${g_session_classifier}/resources/SNAPSHOTS"
+	db_resource="https://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/assessors/${sessionID}_freesurfer_${g_session_classifier}/resources/SNAPSHOTS"
 	log_Msg "db_resource: ${db_resource}"
 	
 	local_resource="${g_working_dir}/${g_subject}/T1w/${g_subject}/snapshots"
