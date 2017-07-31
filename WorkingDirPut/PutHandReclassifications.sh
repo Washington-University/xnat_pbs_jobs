@@ -9,20 +9,20 @@ exit 1
 
 do_put()
 {
-	local project=${1}
-	local subject=${2}
-	local scan=${3}
+    local project=${1}
+    local subject=${2}
+    local scan=${3}
 
-	/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/PutDirIntoResource.sh \
-		--user=${g_user} \
-		--password=${g_password} \
-		--project=${project} \
-		--subject=${subject} \
-		--session=${subject}_3T \
-		--resource=rfMRI_${scan}_HandReclassification \
-		--dir=/data/hcpdb/build_ssd/chpc/BUILD/HandReclassifications/${subject}_${scan}_HandReclassification \
-		--reason="HandReclassification" \
-		--force
+    /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/PutDirIntoResource.sh \
+        --user=${g_user} \
+        --password=${g_password} \
+        --project=${project} \
+        --subject=${subject} \
+        --session=${subject}_3T \
+        --resource=rfMRI_${scan}_HandReclassification \
+        --dir=/data/hcpdb/build_ssd/chpc/BUILD/HandReclassifications/${subject}_${scan}_HandReclassification \
+        --reason="HandReclassification" \
+        --force
 }
 
 # # --------------------
@@ -34,7 +34,7 @@ do_put()
 # scan_list+=" REST2_LR "
 
 # for scan in ${scan_list} ; do
-# 	do_put ${project} ${subject} ${scan} 
+#   do_put ${project} ${subject} ${scan}
 # done
 
 # # --------------------
@@ -45,7 +45,7 @@ do_put()
 # scan_list+=" REST1_RL "
 
 # for scan in ${scan_list} ; do
-# 	do_put ${project} ${subject} ${scan}
+#   do_put ${project} ${subject} ${scan}
 # done
 
 # exit
@@ -58,7 +58,7 @@ do_put()
 # scan_list+=" REST2_LR "
 
 # for scan in ${scan_list} ; do
-# 	do_put ${project} ${subject} ${scan}
+#   do_put ${project} ${subject} ${scan}
 # done
 
 # # --------------------
@@ -69,7 +69,7 @@ do_put()
 # scan_list+=" REST1_RL "
 
 # for scan in ${scan_list} ; do
-# 	do_put ${project} ${subject} ${scan}
+#   do_put ${project} ${subject} ${scan}
 # done
 
 # --------------------
@@ -83,7 +83,7 @@ do_put()
 # scan_list+=" REST2_RL "
 
 # for scan in ${scan_list} ; do
-# 	do_put ${project} ${subject} ${scan}
+#   do_put ${project} ${subject} ${scan}
 # done
 
 # # --------------------
@@ -95,7 +95,7 @@ do_put()
 # scan_list+=" REST1_RL "
 
 # for scan in ${scan_list} ; do
-# 	do_put ${project} ${subject} ${scan}
+#   do_put ${project} ${subject} ${scan}
 # done
 
 # # --------------------
@@ -106,7 +106,7 @@ do_put()
 # scan_list+=" REST1_RL "
 
 # for scan in ${scan_list} ; do
-# 	do_put ${project} ${subject} ${scan}
+#   do_put ${project} ${subject} ${scan}
 # done
 
 # --------------------
@@ -117,7 +117,7 @@ scan_list=""
 scan_list+=" REST2_LR "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 # --------------------
@@ -128,7 +128,7 @@ scan_list=""
 scan_list+=" REST1_LR "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 # --------------------
@@ -139,7 +139,7 @@ scan_list=""
 scan_list+=" REST1_RL "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 # --------------------
@@ -150,7 +150,7 @@ scan_list=""
 scan_list+=" REST1_RL "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 # --------------------
@@ -162,7 +162,7 @@ scan_list+=" REST1_LR "
 scan_list+=" REST2_LR "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 # --------------------
@@ -173,7 +173,7 @@ scan_list=""
 scan_list+=" REST2_LR "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 # --------------------
@@ -184,7 +184,7 @@ scan_list=""
 scan_list+=" REST2_LR "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 # --------------------
@@ -198,7 +198,7 @@ scan_list+=" REST2_LR "
 scan_list+=" REST2_RL "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 # --------------------
@@ -209,7 +209,7 @@ scan_list=""
 scan_list+=" REST1_LR "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 # --------------------
@@ -221,7 +221,7 @@ scan_list+=" REST1_LR "
 scan_list+=" REST2_LR "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 # --------------------
@@ -232,7 +232,7 @@ scan_list=""
 scan_list+=" REST2_LR "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 # --------------------
@@ -245,7 +245,7 @@ scan_list+=" REST2_LR "
 scan_list+=" REST2_RL "
 
 for scan in ${scan_list} ; do
-	do_put ${project} ${subject} ${scan}
+    do_put ${project} ${subject} ${scan}
 done
 
 
