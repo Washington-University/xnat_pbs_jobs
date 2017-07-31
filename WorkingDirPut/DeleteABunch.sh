@@ -38,15 +38,15 @@ pe_dirs+=" RL "
 pe_dirs+=" LR "
 
 for task in ${tasks} ; do
-	for pe_dir in ${pe_dirs} ; do
-		resources+=" tfMRI_${task} "
-		resources+=" tfMRI_${task}_PostMsmAllTaskAnalysis "
-		resources+=" tfMRI_${task}_${pe_dir}_preproc "
-	done
+    for pe_dir in ${pe_dirs} ; do
+        resources+=" tfMRI_${task} "
+        resources+=" tfMRI_${task}_PostMsmAllTaskAnalysis "
+        resources+=" tfMRI_${task}_${pe_dir}_preproc "
+    done
 done
 
 
 for resource in ${resources} ; do
-	echo "Deleting resource: ${resource}"
-	./DeleteResource.sh --user=tbbrown --project=HCP_Staging --subject=${subject} --session=${subject}_3T --resource=${resource} --password=${password} --force
+    echo "Deleting resource: ${resource}"
+    ./DeleteResource.sh --user=tbbrown --project=HCP_Staging --subject=${subject} --session=${subject}_3T --resource=${resource} --password=${password} --force
 done
