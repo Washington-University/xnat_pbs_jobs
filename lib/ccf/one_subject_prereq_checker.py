@@ -17,11 +17,11 @@ __copyright__ = "Copyright 2017, Connectome Coordination Facility"
 __maintainer__ = "Timothy B. Brown"
 
 class OneSubjectPrereqChecker(abc.ABC):
-	"""
-	Abstract base class for classes that are used to check for prerequisites
-	for running a particular pipeline's processing for one subject
-	"""
+    """
+    Abstract base class for classes that are used to check for prerequisites
+    for running a particular pipeline's processing for one subject
+    """
 
-	@abc.abstractmethod
-	def are_prereqs_met(self, archive, subject_info, verbose):
-		pass
+    @abc.abstractmethod
+    def are_prereqs_met(self, archive, subject_info, verbose):
+        pass
