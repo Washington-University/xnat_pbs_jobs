@@ -19,9 +19,10 @@ rm -f *.incomplete.status
 for subject in ${subjects} ; do
 	if [[ ${subject} != \#* ]]; then
 
-		project=HCP_Staging_7T
+		#project=HCP_Staging_7T
+		project=HCP_1200
 
-		./CheckIcaFixProcessingHCP7TCompletion.sh --project=${project} --subject=${subject} #--details
+		./CheckIcaFixProcessingHCP7TCompletion.sh --project=${project} --subject=${subject} # --post-patch --details
 
 	fi
 

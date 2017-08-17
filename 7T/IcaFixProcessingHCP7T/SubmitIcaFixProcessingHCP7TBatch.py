@@ -43,6 +43,13 @@ class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
         self._one_subject_submitter = SubmitIcaFixProcessingHCP7TOneSubject.IcaFix7TOneSubjectJobSubmitter(
             self._archive, self._archive.build_home)
 
+        self._current_shadow_number = 2
+
+    def increment_shadow_number(self):
+        self._current_shadow_number += 1
+        if self._current_shadow_number > 8:
+            self._current_shadow_number = 2
+        
     def submit_jobs(self, subject_list):
         """Submit a batch of ICA+FIX processing jobs.
 
@@ -117,7 +124,8 @@ class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
                 put_server, clean_output_first, setup_file, 
                 incomplete_only, scan_spec, 
                 wall_time_limit, mem_limit, vmem_limit)
-            self.increment_shadow_number
+            
+            self.increment_shadow_number()
 
 
 if __name__ == "__main__":

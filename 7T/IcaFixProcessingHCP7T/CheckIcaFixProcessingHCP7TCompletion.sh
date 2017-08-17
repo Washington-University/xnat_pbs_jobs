@@ -61,6 +61,8 @@ get_options()
 	unset g_details
 	unset g_scans
 	unset g_report_level
+	unset g_post_patch
+	g_post_patch="FALSE"
 
     # parse arguments
     local index=0
@@ -102,6 +104,10 @@ get_options()
 				g_report_level="$(echo ${g_report_level} | tr '[:lower:]' '[:upper:]')"
 				index=$(( index + 1 ))
                 ;;
+			--post-patch)
+			    g_post_patch="TRUE"
+				index=$(( index + 1 ))
+				;;
             *)
                 inform "Unrecognized Option: ${argument}"
                 exit 1
@@ -264,6 +270,19 @@ main()
 				results_scan_dir=${results_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir} # rfMRI_REST1_7T_FIX/MNINonLinear/Results/rfMRI_REST1_7T_PA
 				ica_dir=${results_scan_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_hp2000.ica  # rfMRI_REST1_7T_FIX/MNINonLinear/Results/rfMRI_REST1_7T_PA/rfMRI_REST1_7T_PA_hp2000.ica
 				
+
+				check_dir=${results_scan_dir}
+
+				if [ "${g_post_patch}" = "TRUE" ]; then
+					check_file_exists "${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas_1.6mm_hp2000_clean.dtseries.nii"
+				else
+					check_file_exists "${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas_MSMSulc.59k_hp2000_clean.dtseries.nii"
+				fi
+				check_file_exists "${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_Atlas_hp2000_clean.dtseries.nii"
+				check_file_exists "${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_hp2000_clean.nii.gz"
+				check_file_exists "${check_dir}/${prefix}${scan_without_pe_dir}${TESLA_SPEC}_${pe_dir}_hp2000.nii.gz"
+
+
 				check_dir=${ica_dir}
 				verbose_msg "1. check_dir: ${check_dir}"
 
