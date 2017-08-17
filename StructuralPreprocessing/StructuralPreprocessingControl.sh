@@ -7,5 +7,5 @@ if [ -z "${XNAT_PBS_JOBS}" ]; then
 fi
 
 source activate python3 2>/dev/null
-${XNAT_PBS_JOBS}/lib/ccf/structural_preprocessing/StructuralPreprocessingControlPanel.py $@
+${XNAT_PBS_JOBS}/lib/ccf/structural_preprocessing/StructuralPreprocessingControl.py $@
 source deactivate 2>/dev/null
