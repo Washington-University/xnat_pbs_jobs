@@ -25,7 +25,7 @@ for subject in ${subjects} ; do
 		#./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject} --post-patch # --details
 		#./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject} # --details
 		#./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject} --details
-		./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject}
+		./CheckForFunctionalPreprocessingHCP7TCompletion.sh --project=${project} --subject=${subject} --post-patch
 
 	fi
 
