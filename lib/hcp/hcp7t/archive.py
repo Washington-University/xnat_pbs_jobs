@@ -49,7 +49,7 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
     @property
     def SESSION_CLASSIFIER(self):
         return self.TESLA_SPEC
-	
+
     @property
     def DEDRIFT_AND_RESAMPLE_HIGHRES_RESOURCE_NAME(self):
         """Name of MSM All DeDriftAndResample HighRes resource"""
@@ -74,6 +74,13 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         ica_dir = results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000.ica'
 
         file_name_list = []
+
+        file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_MSMSulc.59k_hp2000_clean.dtseries.nii')
+        #file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_1.6mm_hp2000_clean.dtseries.nii')
+        file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_hp2000_clean.dtseries.nii')
+        file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000_clean.nii.gz')
+        file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000.nii.gz')
+
         file_name_list.append(ica_dir + os.sep + 'Atlas_hp_preclean.dtseries.nii')
         file_name_list.append(ica_dir + os.sep + 'Atlas.nii.gz')
         file_name_list.append(ica_dir + os.sep + 'mask.nii.gz')
