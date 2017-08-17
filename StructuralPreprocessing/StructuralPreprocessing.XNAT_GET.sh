@@ -102,14 +102,6 @@ get_options()
 		log_Msg "g_working_dir: ${g_working_dir}"
 	fi
 
-	# check required environment variables
-	if [ -z "${XNAT_PBS_JOBS}" ]; then
-		error_msgs+="\nERROR: XNAT_PBS_JOBS environment variable must be set"
-	else
-		g_xnat_pbs_jobs=${XNAT_PBS_JOBS}
-		log_Msg "g_xnat_pbs_jobs: ${g_xnat_pbs_jobs}"
-	fi
-	
 	if [ ! -z "${error_msgs}" ]; then
 		usage
 		log_Err_Abort ${error_msgs}
@@ -131,7 +123,7 @@ main()
 	mkdir -p ${g_working_dir}/tmp
 	
 	log_Msg "Getting CinaB-Style data"
-	${g_xnat_pbs_jobs}/lib/ccf/get_cinab_style_data.py \
+	${XNAT_PBS_JOBS}/lib/ccf/get_cinab_style_data.py \
 		--project=${g_project} \
 		--subject=${g_subject} \
 		--classifier=${g_classifier} \

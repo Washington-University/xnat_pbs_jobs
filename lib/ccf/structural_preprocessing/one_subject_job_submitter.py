@@ -7,11 +7,13 @@ import logging
 import os
 import shutil
 import stat
+import subprocess
 
 # import of third-party modules
 
 # import of local modules
 import ccf.one_subject_job_submitter as one_subject_job_submitter
+import ccf.processing_stage as ccf_processing_stage
 import ccf.subject as ccf_subject
 import utils.debug_utils as debug_utils
 import utils.os_utils as os_utils
@@ -60,7 +62,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     def brain_size(self, value):
         self._brain_size = value
         module_logger.debug(debug_utils.get_name() + ": set to " + str(self._brain_size))
-        
+
     @property
     def T1W_TEMPLATE_NAME(self):
         return "MNI152_T1_0.8mm.nii.gz"
@@ -104,6 +106,11 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     @property
     def TOPUP_CONFIG_FILE_NAME(self):
         return "b02b0.cnf"
+
+    @property
+    def freesurfer_assessor_script_name(self):
+        module_logger.debug(debug_utils.get_name())
+        return self.scripts_start_name + '.FREESURFER_ASSESSOR_job.sh'
 
     def _get_positive_spin_echo_path(self, subject_info):
         t1w_resource_paths = self.archive.available_t1w_unproc_dir_full_paths(subject_info)
@@ -150,7 +157,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         full_path = self._get_negative_spin_echo_path(subject_info)
         basename = os.path.basename(full_path)
         return basename
-    
+
     def _get_first_t1w_name(self, subject_info):
         t1w_unproc_names = self.archive.available_t1w_unproc_names(subject_info)
         if len(t1w_unproc_names) > 0:
@@ -180,7 +187,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     def _get_first_t2w_file_name(self, subject_info):
         return self.session + self.archive.NAME_DELIMITER + self._get_first_t2w_name(subject_info) + '.nii.gz'
-        
+
     def create_work_script(self):
         module_logger.debug(debug_utils.get_name())
 
@@ -190,19 +197,19 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         xnat_script_dest_name = self.working_directory_name + os.sep
         xnat_script_dest_name += self.PIPELINE_NAME + '.XNAT.sh'
-        
+
         shutil.copy(xnat_script_source_name, xnat_script_dest_name)
         os.chmod(xnat_script_dest_name, stat.S_IRWXU | stat.S_IRWXG)
 
         # write the work script (that calls the .XNAT script)
-        
+
         subject_info = ccf_subject.SubjectInfo(self.project, self.subject, self.classifier)
 
         script_name = self.work_script_name
 
         with contextlib.suppress(FileNotFoundError):
             os.remove(script_name)
-            
+
         walltime_limit_str = str(self.walltime_limit_hours) + ':00:00'
         vmem_limit_str = str(self.vmem_limit_gbs) + 'gb'
 
@@ -210,13 +217,11 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         resources_line += ':ppn=' + str(self.WORK_PPN)
         resources_line += ',walltime=' + walltime_limit_str
         resources_line += ',vmem=' + vmem_limit_str
-        
+
         stdout_line = '#PBS -o ' + self.working_directory_name
         stderr_line = '#PBS -e ' + self.working_directory_name
 
-        #script_line = self.xnat_pbs_jobs_home + os.sep
-        #script_line += self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT.sh'
-        script_line = xnat_script_dest_name
+        script_line    = xnat_script_dest_name
         user_line      = '  --user=' + self.username
         password_line  = '  --password=' + self.password
         server_line    = '  --server=' + str_utils.get_server_name(self.server)
@@ -225,7 +230,6 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         session_line   = '  --session=' + self.session
         session_classifier_line = '  --session-classifier=' + self.classifier
         fieldmap_type_line      = '  --fieldmap-type=' + self.FIELDMAP_TYPE_SPEC
-        #phase_encoding_dir_line = '  --phase-encoding-dir=' + self.PHASE_ENCODING_DIR_SPEC
 
         first_t1w_directory_name_line = '  --first-t1w-directory-name=' + self._get_first_t1w_name(subject_info)
         first_t1w_resource_name_line  = '  --first-t1w-resource-name=' + self._get_first_t1w_resource_name(subject_info)
@@ -252,12 +256,9 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         se_phase_pos_line    = '  --se-phase-pos=' + self._get_positive_spin_echo_file_name(subject_info)
         se_phase_neg_line    = '  --se-phase-neg=' + self._get_negative_spin_echo_file_name(subject_info)
 
-
-
-        
         wdir_line = '  --working-dir=' + self.working_directory_name
         setup_line = '  --setup-script=' + self.setup_file_name
-        
+
         with open(script_name, 'w') as script:
             script.write(resources_line + os.linesep)
             script.write(stdout_line + os.linesep)
@@ -293,13 +294,96 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             script.write(topupconfig_line + ' \\' + os.linesep)
             script.write(se_phase_pos_line + ' \\' + os.linesep)
             script.write(se_phase_neg_line + ' \\' + os.linesep)
-            
+
             script.write(wdir_line + ' \\' + os.linesep)
             script.write(setup_line + os.linesep)
 
             os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
 
+    def create_freesurfer_assessor_script(self):
+        module_logger.debug(debug_utils.get_name())
+
+        # copy the .FREESURFER_ASSESSOR script to the working directory
+        freesurfer_assessor_source_name = self.xnat_pbs_jobs_home + os.sep
+        freesurfer_assessor_source_name += self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.FREESURFER_ASSESSOR.sh'
+
+        freesurfer_assessor_dest_name = self.working_directory_name + os.sep
+        freesurfer_assessor_dest_name += self.PIPELINE_NAME + '.FREESURFER_ASSESSOR.sh'
+
+        shutil.copy(freesurfer_assessor_source_name, freesurfer_assessor_dest_name)
+        os.chmod(freesurfer_assessor_dest_name, stat.S_IRWXU | stat.S_IRWXG)
+
+        # write the freesurfer assessor submission script (that calls the .FREESURFER_ASSESSOR script)
+
+        script_name = self.freesurfer_assessor_script_name
+
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(script_name)
+
+        script = open(script_name, 'w')
+
+        self._write_bash_header(script)
+        script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4gb' + os.linesep)
+        script.write('#PBS -o ' + self.working_directory_name + os.linesep)
+        script.write('#PBS -e ' + self.working_directory_name + os.linesep)
+        script.write(os.linesep)
+
+        script_line    = freesurfer_assessor_dest_name
+        user_line      = '  --user='        + self.username
+        password_line  = '  --password='    + self.password
+        server_line    = '  --server='      + str_utils.get_server_name(self.server)
+        project_line   = '  --project='     + self.project
+        subject_line   = '  --subject='     + self.subject
+        session_line   = '  --session='     + self.session
+        session_classifier_line = '  --session-classifier=' + self.classifier
+        wdir_line      = '  --working-dir=' + self.working_directory_name
+
+        script.write(script_line   + ' \\' + os.linesep)
+        script.write(user_line     + ' \\' + os.linesep)
+        script.write(password_line + ' \\' + os.linesep)
+        script.write(server_line + ' \\' + os.linesep)
+        script.write(project_line + ' \\' + os.linesep)
+        script.write(subject_line + ' \\' + os.linesep)
+        script.write(session_line + ' \\' + os.linesep)
+        script.write(session_classifier_line + ' \\' + os.linesep)
+        script.write(wdir_line + os.linesep)
+
+        script.close()
+        os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
+
+
+    def create_scripts(self, stage):
+        module_logger.debug(debug_utils.get_name())
+        super().create_scripts(stage)
+
+        if stage >= ccf_processing_stage.ProcessingStage.PREPARE_SCRIPTS:
+            self.create_freesurfer_assessor_script()
+
+    def submit_process_data_jobs(self, stage, prior_job=None):
+        module_logger.debug(debug_utils.get_name())
+
+        # go ahead and submit the standard process data job and then
+        # submit an additional freesurfer assessor job
+
+        standard_process_data_jobno, all_process_data_jobs = super().submit_process_data_jobs(stage, prior_job)
+
+        if stage >= ccf_processing_stage.ProcessingStage.PROCESS_DATA:
+            if standard_process_data_jobno:
+                fs_submit_cmd = 'qsub -W depend=afterok:' + standard_process_data_jobno + ' ' + self.freesurfer_assessor_script_name
+            else:
+                fs_submit_cmd = 'qsub ' + self.freesurfer_assessor_script_name
+
+            completed_submit_process = subprocess.run(
+                fs_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            fs_job_no = str_utils.remove_ending_new_lines(completed_submit_process.stdout)
+            all_process_data_jobs.append(fs_job_no)
+            return fs_job_no, all_process_data_jobs
+
+        else:
+            module_logger.info("freesurfer assessor job not submitted")
+            return standard_process_data_jobno, all_process_data_jobs
+
     def output_resource_name(self):
         module_logger.debug(debug_utils.get_name())
         return self.output_resource_suffix
-    
+
