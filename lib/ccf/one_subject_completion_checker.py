@@ -6,6 +6,7 @@ Abstract Base Class for One Subject Completion Checker Classes
 
 # import of built-in modules
 import abc
+import sys
 
 # import of third-party modules
 
@@ -19,7 +20,7 @@ __maintainer__ = "Timothy B. Brown"
 
 class OneSubjectCompletionChecker(abc.ABC):
     """
-    Abstract base class for classes that are used to check the completion 
+    Abstract base class for classes that are used to check the completion
     of pipeline processing for one subject
     """
 
@@ -31,5 +32,5 @@ class OneSubjectCompletionChecker(abc.ABC):
     def is_processing_complete(self, archive, subject_info, verbose):
         pass
 
-    def do_all_files_exist(self, file_name_list, verbose=False):
-        return file_utils.do_all_files_exist(file_name_list, verbose)
+    def do_all_files_exist(self, file_name_list, verbose=False, output=sys.stdout, short_circuit=True):
+        return file_utils.do_all_files_exist(file_name_list, verbose, output, short_circuit)

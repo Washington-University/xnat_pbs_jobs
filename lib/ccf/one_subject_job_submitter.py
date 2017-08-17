@@ -8,7 +8,6 @@ that submits jobs for a pipeline for one subject.
 # import of built-in modules
 import abc
 import contextlib
-import enum
 import logging
 import os
 import shutil
@@ -19,10 +18,10 @@ import time
 # import of third-party modules
 
 # import of local modules
+import ccf.processing_stage as ccf_processing_stage
 import utils.debug_utils as debug_utils
 import utils.delete_resource as delete_resource
 import utils.file_utils as file_utils
-import utils.ordered_enum as ordered_enum
 import utils.os_utils as os_utils
 import utils.str_utils as str_utils
 
@@ -34,15 +33,6 @@ __maintainer__ = "Timothy B. Brown"
 # create a module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.WARNING)  # Note: This can be overidden by log file configuration
-
-
-@enum.unique
-class ProcessingStage(ordered_enum.OrderedEnum):
-    PREPARE_SCRIPTS = 0
-    GET_DATA = 1
-    PROCESS_DATA = 2
-    CLEAN_DATA = 3
-    PUT_DATA = 4
 
 
 class OneSubjectJobSubmitter(abc.ABC):
@@ -63,9 +53,10 @@ class OneSubjectJobSubmitter(abc.ABC):
 
         self._scan = None
         self._working_directory_name = None
+        self._check_directory_name = None
 
     def processing_stage_from_string(self, str_value):
-        return ProcessingStage.from_string(str_value)
+        return ccf_processing_stage.ProcessingStage.from_string(str_value)
 
     @property
     def PAAP_POSITIVE_DIR(self):
@@ -82,7 +73,7 @@ class OneSubjectJobSubmitter(abc.ABC):
     @property
     def RLLR_NEGATIVE_DIR(self):
         return "LR"
-    
+
     @property
     @abc.abstractmethod
     def PIPELINE_NAME(self):
@@ -177,7 +168,7 @@ class OneSubjectJobSubmitter(abc.ABC):
     def classifier(self, value):
         self._classifier = value
         module_logger.debug(debug_utils.get_name() + ": set to " + str(self._classifier))
-        
+
     @property
     def scan(self):
         return self._scan
@@ -253,6 +244,14 @@ class OneSubjectJobSubmitter(abc.ABC):
 
         return self._working_directory_name
 
+    @property
+    def check_directory_name(self):
+        return self.working_directory_name + '.CHECK_DATA'
+
+    @property
+    def mark_directory_name(self):
+        return self.working_directory_name + '.MARK_RUNNING_STATUS'
+    
     @property
     def scripts_start_name(self):
         start_name = self.working_directory_name
@@ -398,70 +397,199 @@ class OneSubjectJobSubmitter(abc.ABC):
         module_logger.debug(debug_utils.get_name())
         return self.scripts_start_name + '.SETUP.sh'
 
+    @property
+    def check_script_name(self):
+        module_logger.debug(debug_utils.get_name())
+        name = self.check_directory_name
+        name += os.sep + self.subject
+        name += '.' + self.PIPELINE_NAME
+        if self.scan:
+            name += '_' + self.scan
+        name += '.' + self.project
+        name += '.' + self.session
+        name += '.' + 'XNAT_CHECK_DATA_job.sh'
+        return name
+
     def create_setup_file(self):
         module_logger.debug(debug_utils.get_name())
 
         setup_source_file_name = self.PIPELINE_NAME + '.SetUp.sh'
-        
+
         xnat_pbs_jobs_control = os.getenv('XNAT_PBS_JOBS_CONTROL')
         if xnat_pbs_jobs_control:
             setup_source_file_name = xnat_pbs_jobs_control + os.sep + setup_source_file_name
 
         shutil.copyfile(setup_source_file_name, self.setup_file_name)
         os.chmod(self.setup_file_name, stat.S_IRWXU | stat.S_IRWXG)
+
+    def create_check_script(self):
+        module_logger.debug(debug_utils.get_name())
+
+        script_name = self.check_script_name
+
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(script_name)
+
+        script = open(script_name, 'w')
+
+        self._write_bash_header(script)
+        script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4gb' + os.linesep)
+        script.write('#PBS -o ' + self.log_dir + os.linesep)
+        script.write('#PBS -e ' + self.log_dir + os.linesep)
+        script.write(os.linesep)
+        script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_CHECK.sh \\' + os.linesep)
+        script.write('  --user="' + self.username + '" \\' + os.linesep)
+        script.write('  --password="' + self.password + '" \\' + os.linesep)
+        script.write('  --server="' + str_utils.get_server_name(self.put_server) + '" \\' + os.linesep)
+        script.write('  --project=' + self.project + ' \\' + os.linesep)
+        script.write('  --subject=' + self.subject + ' \\' + os.linesep)
+        script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
+        script.write('  --working-dir=' + self.check_directory_name + os.linesep)
+
+        script.close()
+        os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
+
+    @property
+    def mark_no_longer_running_script_name(self):
+        module_logger.debug(debug_utils.get_name())
+        name = self.mark_directory_name
+        name += os.sep + self.subject
+        name += '.' + self.PIPELINE_NAME
+        if self.scan:
+            name += '_' + self.scan
+        name += '.' + self.project
+        name += '.' + 'MARK_RUNNING_STATUS_job.sh'
+        return name
         
-    def submit_get_data_job(self, prior_job=None):
+    def create_mark_no_longer_running_script(self):
         module_logger.debug(debug_utils.get_name())
-        if prior_job:
-            get_data_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.get_data_script_name
-        else:
-            get_data_submit_cmd = 'qsub ' + self.get_data_script_name
 
-        completed_get_data_submit_process = subprocess.run(
-            get_data_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
-        get_data_job_no = str_utils.remove_ending_new_lines(completed_get_data_submit_process.stdout)
-        module_logger.debug(debug_utils.get_name() + ": get_data_job_no = " + str(get_data_job_no))
-        return get_data_job_no
+        script_name = self.mark_no_longer_running_script_name
 
-    def submit_process_data_job(self, prior_job=None):
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(script_name)
+
+        script = open(script_name, 'w')
+
+        self._write_bash_header(script)
+        script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4gb' + os.linesep)
+        script.write('#PBS -o ' + self.log_dir + os.linesep)
+        script.write('#PBS -e ' + self.log_dir + os.linesep)
+        script.write(os.linesep)
+        script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.MARK_RUNNING_STATUS.sh \\' + os.linesep)
+        script.write('  --project=' + self.project + ' \\' + os.linesep)
+        script.write('  --subject=' + self.subject + ' \\' + os.linesep)
+        script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
+        script.write('  --done' + os.linesep)
+        script.write(os.linesep)
+        script.write("rm -rf " + self.mark_directory_name)
+        
+        script.close()
+        os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
+        
+    def submit_get_data_jobs(self, stage, prior_job=None):
         module_logger.debug(debug_utils.get_name())
-        if prior_job:
-            work_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.work_script_name
+
+        if stage >= ccf_processing_stage.ProcessingStage.GET_DATA:
+            if prior_job:
+                get_data_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.get_data_script_name
+            else:
+                get_data_submit_cmd = 'qsub ' + self.get_data_script_name
+
+            completed_submit_process = subprocess.run(
+                get_data_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            get_data_job_no = str_utils.remove_ending_new_lines(completed_submit_process.stdout)
+            return get_data_job_no, [get_data_job_no]
+
         else:
-            work_submit_cmd = 'qsub ' + self.work_script_name
+            module_logger.info("Get data job not submitted")
+            return None, None
 
-        completed_work_submit_process = subprocess.run(
-            work_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
-        work_job_no = str_utils.remove_ending_new_lines(completed_work_submit_process.stdout)
-        module_logger.debug(debug_utils.get_name() + ": work_job_no = " + str(work_job_no))
-        return work_job_no
-
-    def submit_clean_data_job(self, prior_job=None):
+    def submit_process_data_jobs(self, stage, prior_job=None):
         module_logger.debug(debug_utils.get_name())
-        if prior_job:
-            clean_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.clean_data_script_name
+
+        if stage >= ccf_processing_stage.ProcessingStage.PROCESS_DATA:
+            if prior_job:
+                work_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.work_script_name
+            else:
+                work_submit_cmd = 'qsub ' + self.work_script_name
+
+            completed_submit_process = subprocess.run(
+                work_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            work_job_no = str_utils.remove_ending_new_lines(completed_submit_process.stdout)
+            return work_job_no, [work_job_no]
+
         else:
-            clean_submit_cmd = 'qsub ' + self.clean_data_script_name
+            module_logger.info("Process data job not submitted")
+            return None, None
 
-        completed_clean_submit_process = subprocess.run(
-            clean_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
-        clean_job_no = str_utils.remove_ending_new_lines(completed_clean_submit_process.stdout)
-        module_logger.debug(debug_utils.get_name() + ": clean_job_no = " + str(clean_job_no))
-        return clean_job_no
-
-    def submit_put_data_job(self, prior_job=None):
+    def submit_clean_data_jobs(self, stage, prior_job=None):
         module_logger.debug(debug_utils.get_name())
-        if prior_job:
-            put_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.put_data_script_name
+
+        if stage >= ccf_processing_stage.ProcessingStage.CLEAN_DATA:
+            if prior_job:
+                clean_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.clean_data_script_name
+            else:
+                clean_submit_cmd = 'qsub ' + self.clean_data_script_name
+
+            completed_submit_process = subprocess.run(
+                clean_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            clean_job_no = str_utils.remove_ending_new_lines(completed_submit_process.stdout)
+            return clean_job_no, [clean_job_no]
+
         else:
-            put_submit_cmd = 'qsub ' + self.put_data_script_name
+            module_logger.info("Clean data job not submitted")
+            return None, None
 
-        completed_put_submit_process = subprocess.run(
-            put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
-        put_job_no = str_utils.remove_ending_new_lines(completed_put_submit_process.stdout)
-        module_logger.debug(debug_utils.get_name() + ": put_job_no = " + str(put_job_no))
-        return put_job_no
+    def submit_put_data_jobs(self, stage, prior_job=None):
+        module_logger.debug(debug_utils.get_name())
 
+        if stage >= ccf_processing_stage.ProcessingStage.PUT_DATA:
+            if prior_job:
+                put_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.put_data_script_name
+            else:
+                put_submit_cmd = 'qsub ' + self.put_data_script_name
+
+            completed_submit_process = subprocess.run(
+                put_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            put_job_no = str_utils.remove_ending_new_lines(completed_submit_process.stdout)
+            return put_job_no, [put_job_no]
+
+        else:
+            module_logger.info("Put data job not submitted")
+            return None, None
+
+    def submit_check_jobs(self, stage, prior_job=None):
+        module_logger.debug(debug_utils.get_name())
+
+        if stage >= ccf_processing_stage.ProcessingStage.CHECK_DATA:
+            if prior_job:
+                check_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.check_script_name
+            else:
+                check_submit_cmd = 'qsub ' + self.check_script_name
+
+            completed_submit_process = subprocess.run(
+                check_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            check_job_no = str_utils.remove_ending_new_lines(completed_submit_process.stdout)
+            return check_job_no, [check_job_no]
+
+        else:
+            module_logger.info("Check data job not submitted")
+            return None, None
+
+    def submit_no_longer_running_jobs(self, stage, prior_job=None):
+        module_logger.debug(debug_utils.get_name())
+
+        if prior_job:
+            cmd = 'qsub -W depend=afterany:' + prior_job + ' ' + self.mark_no_longer_running_script_name
+        else:
+            cmd = 'qsub ' + self.mark_no_longer_running_script_name
+
+        completed_submit_process = subprocess.run(
+            cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+        job_no = str_utils.remove_ending_new_lines(completed_submit_process.stdout)
+        return job_no, [job_no]
+        
     @abc.abstractmethod
     def create_work_script(self):
         module_logger.debug(debug_utils.get_name())
@@ -471,8 +599,95 @@ class OneSubjectJobSubmitter(abc.ABC):
     def output_resource_name(self):
         module_logger.debug(debug_utils.get_name())
         raise NotImplementedError()
-    
-    def submit_jobs(self, processing_stage=ProcessingStage.PUT_DATA):
+
+    def create_scripts(self, stage):
+        module_logger.debug(debug_utils.get_name())
+
+        if stage >= ccf_processing_stage.ProcessingStage.PREPARE_SCRIPTS:
+            self.create_get_data_script()
+            self.create_setup_file()
+            self.create_work_script()
+            self.create_clean_data_script()
+            self.create_put_data_script()
+            self.create_check_script()
+            self.create_mark_no_longer_running_script()
+            
+        else:
+            module_logger.info("Scripts not created")
+
+    def mark_running_status(self, stage):
+        module_logger.debug(debug_utils.get_name())
+
+        if stage > ccf_processing_stage.ProcessingStage.PREPARE_SCRIPTS:
+            mark_cmd = self._xnat_pbs_jobs_home
+            mark_cmd += os.sep + 'StructuralPreprocessing'
+            mark_cmd += os.sep + 'StructuralPreprocessing.MARK_RUNNING_STATUS.sh' 
+            mark_cmd += ' --project=' + self.project
+            mark_cmd += ' --subject=' + self.subject
+            mark_cmd += ' --classifier=' + self.classifier
+            mark_cmd += ' --queued'
+
+            completed_mark_cmd_process = subprocess.run(
+                mark_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            print(completed_mark_cmd_process.stdout)
+            
+            return
+        
+    def do_job_submissions(self, processing_stage):
+        submitted_jobs_list = []
+        prior = None
+
+        # create scripts
+        self.create_scripts(stage=processing_stage)
+
+        # create running status marker file to indicate that jobs are queued
+        self.mark_running_status(stage=processing_stage)
+
+        # Submit job(s) to get the data
+        last_get_data_job_no, all_get_data_job_nos = self.submit_get_data_jobs(stage=processing_stage, prior_job=prior)
+        if all_get_data_job_nos:
+            submitted_jobs_list.append((ccf_processing_stage.ProcessingStage.GET_DATA.name, all_get_data_job_nos))
+        if last_get_data_job_no:
+            prior = last_get_data_job_no
+
+        # Submit job(s) to process the data
+        last_process_job_no, all_process_data_job_nos = self.submit_process_data_jobs(stage=processing_stage, prior_job=prior)
+        if all_process_data_job_nos:
+            submitted_jobs_list.append((ccf_processing_stage.ProcessingStage.PROCESS_DATA.name, all_process_data_job_nos))
+        if last_process_job_no:
+            prior = last_process_job_no
+
+        # Submit job(s) to clean the data
+        last_clean_job_no, all_clean_data_job_nos = self.submit_clean_data_jobs(stage=processing_stage, prior_job=prior)
+        if all_process_data_job_nos:
+            submitted_jobs_list.append((ccf_processing_stage.ProcessingStage.CLEAN_DATA.name, all_clean_data_job_nos))
+        if last_clean_job_no:
+            prior = last_clean_job_no
+
+        # Submit job(s) to put the resulting data in the DB
+        last_put_job_no, all_put_job_nos = self.submit_put_data_jobs(stage=processing_stage, prior_job=prior)
+        if all_put_job_nos:
+            submitted_jobs_list.append((ccf_processing_stage.ProcessingStage.PUT_DATA.name, all_put_job_nos))
+        if last_put_job_no:
+            prior = last_put_job_no
+
+        # Submit job(s) to perform completeness check
+        last_check_job_no, all_check_job_nos = self.submit_check_jobs(stage=processing_stage, prior_job=prior)
+        if all_check_job_nos:
+            submitted_jobs_list.append((ccf_processing_stage.ProcessingStage.CHECK_DATA.name, all_check_job_nos))
+        if last_check_job_no:
+            prior = last_check_job_no
+
+        # Submit job(s) to change running status marker file
+        last_running_status_job_no, all_running_status_job_nos = self.submit_no_longer_running_jobs(stage=processing_stage, prior_job=prior)
+        if all_running_status_job_nos:
+            submitted_jobs_list.append(('Running Status', all_running_status_job_nos))
+        if last_running_status_job_no:
+            prior = last_running_status_job_no
+            
+        return submitted_jobs_list
+
+    def submit_jobs(self, processing_stage=ccf_processing_stage.ProcessingStage.CHECK_DATA):
         module_logger.debug(debug_utils.get_name() + ": processing_stage: " + str(processing_stage))
 
         module_logger.info("-----")
@@ -489,55 +704,23 @@ class OneSubjectJobSubmitter(abc.ABC):
 
         # build the working directory name
         os.makedirs(name=self.working_directory_name)
+        os.makedirs(name=self.check_directory_name)
+        os.makedirs(name=self.mark_directory_name)
         
         # determine output resource name
         module_logger.info("Output Resource Name: " + self.output_resource_name())
-        
+
         # clean output resource if requested
         if self.clean_output_resource_first:
             module_logger.info("Deleting resource: " + self.output_resource_name() + " for:")
             module_logger.info("  project: " + self.project)
             module_logger.info("  subject: " + self.subject)
             module_logger.info("  session: " + self.session)
-        
+
             delete_resource.delete_resource(
                 self.username, self.password,
                 str_utils.get_server_name(self.server),
                 self.project, self.subject, self.session,
                 self.output_resource_name())
-    
-        # create scripts for various stages of processing
-        if processing_stage >= ProcessingStage.PREPARE_SCRIPTS:
-            self.create_get_data_script()
-            self.create_setup_file()
-            self.create_work_script()
-            self.create_clean_data_script()
-            self.create_put_data_script()
-            
-        # Submit the job to get the data
-        if processing_stage >= ProcessingStage.GET_DATA:
-            get_data_job_no = self.submit_get_data_job()
-            module_logger.info("get_data_job_no: " + str(get_data_job_no))
-        else:
-            module_logger.info("Get data job not submitted")
 
-        # Submit the job to process the data (do the work)
-        if processing_stage >= ProcessingStage.PROCESS_DATA:
-            work_job_no = self.submit_process_data_job(get_data_job_no)
-            module_logger.info("work_job_no: " + str(work_job_no))
-        else:
-            module_logger.info("Process data job not submitted")
-
-        # Submit job to clean the data
-        if processing_stage >= ProcessingStage.CLEAN_DATA:
-            clean_job_no = self.submit_clean_data_job(work_job_no)
-            module_logger.info("clean_job_no: " + str(clean_job_no))
-        else:
-            module_logger.info("Clean data job not submitted")
-
-        # Submit job to put the resulting data in the DB
-        if processing_stage >= ProcessingStage.PUT_DATA:
-            put_job_no = self.submit_put_data_job(clean_job_no)
-            module_logger.info("put_job_no: " + str(put_job_no))
-        else:
-            module_logger.info("Put data job not submitted")
+        return self.do_job_submissions(processing_stage)

@@ -58,14 +58,14 @@ class SubjectInfo:
     @property
     def classifier(self):
         """
-        An additional piece of information used to classify the session. Sometimes (e.g. in HCP) 
+        An additional piece of information used to classify the session. Sometimes (e.g. in HCP)
         this is the conventional specification of the TESLA rating of the MRI scanner
-        used for collecting data in this archive (e.g. '3T' or '7T'). It might also be used 
+        used for collecting data in this archive (e.g. '3T' or '7T'). It might also be used
         to simply indicate that the session was for MRI scans (e.g. 'MR') or might be a visit
         indicator (e.g. 'V1', 'V2', 'V3', etc.).
         """
         return self._classifier
-    
+
     @property
     def extra(self):
         """
@@ -106,7 +106,7 @@ def read_subject_info_list(file_name, separator=SubjectInfo.DEFAULT_SEPARATOR())
             subject_info_list.append(subject_info)
 
     input_file.close()
-    
+
     return subject_info_list
 
 
@@ -130,12 +130,12 @@ def _simple_interactive_demo():
     subject_info1 = SubjectInfo('HCP_500', '100206', '3T', 'extra stuff')
     subject_info2 = SubjectInfo('HCP_1200', '100307', '3T')
     subject_info3 = SubjectInfo('testproject', 'HCA6018857', 'MR', 'extra stuff')
-    
+
     print("-- Showing the CCF SubjectInfo objects --")
     print(str(subject_info1))
     print(str(subject_info2))
     print(str(subject_info3))
-    
+
     test_file_name = 'test_subjects.txt'
     print("-- Writing the SubjectInfo objects to a text file: " + test_file_name + " --")
     subject_info_list_out = []

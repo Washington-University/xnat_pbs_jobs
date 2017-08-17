@@ -76,9 +76,9 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             concat_name = "rfMRI_" + concat_name + "_RL_LR"
         else:
             concat_name = "tfMRI_" + concat_name + "_RL_LR"
-        
+
         return concat_name
-    
+
     @property
     def WORK_NODE_COUNT(self):
         return 1
@@ -117,7 +117,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         session_line = '  --session=' + self.session
         wdir_line = '  --working-dir=' + self.working_directory_name
         setup_line = '  --setup-script=' + self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.setup_script
-        
+
         script = open(script_name, 'w')
 
         script.write(resources_line + os.linesep)
@@ -137,7 +137,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         for name in self._concat_name_list:
             script.write('  --concat-name=' + name + ' \\' + os.linesep)
-            
+
         script.write(wdir_line + ' \\' + os.linesep)
         script.write(setup_line + os.linesep)
 
@@ -189,7 +189,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         self._concat_name_list = []
         for group in self._group_list:
             self._concat_name_list.append(self._concat(group))
-        
+
         # create scripts for various stages of processing
         if processing_stage >= one_subject_job_submitter.ProcessingStage.PREPARE_SCRIPTS:
             self.create_get_data_script()

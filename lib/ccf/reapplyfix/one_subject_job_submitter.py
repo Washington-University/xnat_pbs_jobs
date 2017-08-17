@@ -102,11 +102,11 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             if self.reg_name != 'MSMSulc':
                 script.write(reg_name_line + ' \\' + os.linesep)
             script.write(setup_line + os.linesep)
-            
+
         os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
-        
+
     def output_resource_name(self):
         module_logger.debug(debug_utils.get_name())
         return self.scan + '_' + self.output_resource_suffix
-    
+
 

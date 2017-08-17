@@ -85,7 +85,7 @@ class CcfArchive(object):
         data
         """
         return "preproc"
-    
+
     @property
     def FUNCTIONAL_SCAN_MARKER(self):
         """
@@ -109,7 +109,7 @@ class CcfArchive(object):
         functional MRI
         """
         return 't' + self.FUNCTIONAL_SCAN_MARKER
-    
+
     @property
     def FIX_PROCESSED_SUFFIX(self):
         """
@@ -121,7 +121,7 @@ class CcfArchive(object):
     @property
     def RSS_PROCESSED_SUFFIX(self):
         """
-        Suffix to a resource directory name to indicate that the resource contains RSS 
+        Suffix to a resource directory name to indicate that the resource contains RSS
         (Resting State Stats) processed data
         """
         return "RSS"
@@ -129,7 +129,7 @@ class CcfArchive(object):
     @property
     def POSTFIX_PROCESSED_SUFFIX(self):
         """
-        Suffix to a resource directory name to indicate that the resource contains PostFix 
+        Suffix to a resource directory name to indicate that the resource contains PostFix
         processed data
         """
         return "PostFix"
@@ -147,7 +147,7 @@ class CcfArchive(object):
         The conventional session name for a subject in this project archive
         """
         return subject_info.subject_id + self.NAME_DELIMITER + subject_info.classifier
-    
+
     def session_dir_full_path(self, subject_info):
         """
         The full path to the conventional session directory for a subject
@@ -175,7 +175,7 @@ class CcfArchive(object):
 
     def is_resting_state_scan_name(self, scan_name):
         """
-        Return an indication of whether the specified name is for a 
+        Return an indication of whether the specified name is for a
         resting state scan
         """
         return scan_name.startswith(self.RESTING_STATE_SCAN_MARKER)
@@ -186,7 +186,7 @@ class CcfArchive(object):
         task scan
         """
         return scan_name.startswith(self.TASK_SCAN_MARKER)
-    
+
     # Unprocessed data paths and names
 
     def available_structural_unproc_dir_full_paths(self, subject_info):
@@ -206,10 +206,10 @@ class CcfArchive(object):
         dir_list = self.available_structural_unproc_dir_full_paths(subject_info)
         name_list = self._get_scan_names_from_full_paths(dir_list)
         return name_list
-    
+
     def available_t1w_unproc_dir_full_paths(self, subject_info):
         """
-        List of full paths to any resources containing unprocessed T1w scans 
+        List of full paths to any resources containing unprocessed T1w scans
         for the specified subject
         """
         path_expr = self.subject_resources_dir_full_path(subject_info)
@@ -224,10 +224,10 @@ class CcfArchive(object):
         dir_list = self.available_t1w_unproc_dir_full_paths(subject_info)
         name_list = self._get_scan_names_from_full_paths(dir_list)
         return name_list
-    
+
     def available_t2w_unproc_dir_full_paths(self, subject_info):
         """
-        List of full paths to any resources containing unprocessed T2w scans 
+        List of full paths to any resources containing unprocessed T2w scans
         for the specified subject
         """
         path_expr = self.subject_resources_dir_full_path(subject_info)
@@ -280,7 +280,7 @@ class CcfArchive(object):
         path = self.subject_resources_dir_full_path(subject_info)
         path += os.sep + 'Diffusion' + self.NAME_DELIMITER + self.UNPROC_SUFFIX
         return path
-    
+
     def available_diffusion_unproc_dir_full_paths(self, subject_info):
         """
         List of full paths to any resources containing unprocessing diffusion scans
@@ -303,10 +303,14 @@ class CcfArchive(object):
         """
         Full path to structural preproc resource directory
         """
-        path_expr = self.subject_resources_dir_full_path(subject_info)
-        path_expr += os.sep + 'Structural' + self.NAME_DELIMITER + self.PREPROC_SUFFIX
+        path_expr = self.subject_resources_dir_full_path(subject_info) + os.sep
+        path_expr += self.structural_preproc_dir_name(subject_info)
         return path_expr
 
+    def structural_preproc_dir_name(self, subject_info):
+        name = 'Structural' + self.NAME_DELIMITER + self.PREPROC_SUFFIX
+        return name
+    
     def available_structural_preproc_dir_full_paths(self, subject_info):
         """
         List of full paths to any resource containing preprocessed structural data
@@ -333,7 +337,7 @@ class CcfArchive(object):
         path_expr = self.supplemental_structural_preproc_dir_full_path(subject_info)
         dir_list = glob.glob(path_expr)
         return sorted(dir_list)
-        
+
     def diffusion_preproc_dir_full_path(self, subject_info):
         """
         Full path to diffusion preproc resource directory
@@ -341,7 +345,7 @@ class CcfArchive(object):
         path_expr = self.subject_resources_dir_full_path(subject_info)
         path_expr += os.sep + 'Diffusion' + self.NAME_DELIMITER + self.PREPROC_SUFFIX
         return path_expr
-        
+
     def available_diffusion_preproc_dir_full_paths(self, subject_info):
         """
         List of full paths to any resource containing preprocessed diffusion data
@@ -368,7 +372,7 @@ class CcfArchive(object):
         dir_list = self.available_functional_preproc_dir_full_paths(subject_info)
         name_list = self._get_scan_names_from_full_paths(dir_list)
         return name_list
-    
+
     # processed data paths and names
 
     def msmall_registration_dir_full_path(self, subject_info):
@@ -424,7 +428,7 @@ class CcfArchive(object):
         path_expr += os.sep + '*' + self.RSS_PROCESSED_SUFFIX
         dir_list = glob.glob(path_expr)
         return sorted(dir_list)
-    
+
     def available_postfix_processed_dir_full_paths(self, subject_info):
         """
         List of full paths to any resource containing PostFix processed results data
@@ -441,7 +445,7 @@ class CcfArchive(object):
         for the specified subject
         """
         dir_list = []
-        
+
         path_expr = self.subject_resources_dir_full_path(subject_info)
         path_expr += os.sep + self.TASK_SCAN_MARKER + '*'
         first_dir_list = glob.glob(path_expr)
@@ -463,7 +467,7 @@ class CcfArchive(object):
         path_expr = self.subject_resources_dir_full_path(subject_info)
         path_expr += os.sep + 'Diffusion_bedpostx'
         return path_expr
-    
+
     def available_bedpostx_processed_dir_full_paths(self, subject_info):
         """
         List of full paths to any resource containing bedpostx processed results data
@@ -480,13 +484,13 @@ class CcfArchive(object):
             path_expr += reg_name
 
         return path_expr
-        
+
     def available_reapplyfix_dir_full_paths(self, subject_info, reg_name=None):
         path_expr = self.subject_resources_dir_full_path(subject_info)
         path_expr += os.sep + '*' + self.REAPPLY_FIX_SUFFIX
         if reg_name:
             path_expr += reg_name
-            
+
         dir_list = glob.glob(path_expr)
         return sorted(dir_list)
 
@@ -496,7 +500,7 @@ class CcfArchive(object):
         for directory in dir_list:
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
-    
+
     # Internal utility methods
 
     def _get_scan_names_from_full_paths(self, dir_list):
