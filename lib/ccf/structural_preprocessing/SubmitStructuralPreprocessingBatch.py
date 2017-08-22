@@ -92,6 +92,19 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 
             print("-----")
 
+def do_submissions(userid, password, subject_list):
+
+    # read the configuration file
+    config_file_name = file_utils.get_config_file_name(__file__)
+    print("Reading configuration from file: " + config_file_name)
+    config = my_configparser.MyConfigParser()
+    config.read(config_file_name)
+
+    # process the subjects in the list
+    batch_submitter = BatchSubmitter()
+    batch_submitter.submit_jobs(userid, password, subject_list, config)
+    
+            
 if __name__ == '__main__':
 
     logging.config.fileConfig(
@@ -102,17 +115,9 @@ if __name__ == '__main__':
     userid = input("DB Username: ")
     password = getpass.getpass("DB Password: ")
 
-    # read the configuration file
-    config_file_name = file_utils.get_config_file_name(__file__)
-    print("Reading configuration from file: " + config_file_name)
-    config = my_configparser.MyConfigParser()
-    config.read(config_file_name)
-
     # get list of subjects to process
     subject_file_name = file_utils.get_subjects_file_name(__file__)
     print("Retrieving subject list from: " + subject_file_name)
     subject_list = ccf_subject.read_subject_info_list(subject_file_name, separator=":")
 
-    # process the subjects in the list
-    batch_submitter = BatchSubmitter()
-    batch_submitter.submit_jobs(userid, password, subject_list, config)
+    do_submissions(userid, password, subject_list)
