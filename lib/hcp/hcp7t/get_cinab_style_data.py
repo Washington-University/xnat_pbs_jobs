@@ -107,7 +107,7 @@ def main():
     # optional arguments
     parser.add_argument('-c',  '--copy',  dest='copy',  action='store_true', required=False, default=False)
     parser.add_argument('-ph', '--phase', dest='phase', required=False,
-                        choices=["full", "diffusion_preprc_vetting", "ICAFIX"], default="full")
+                        choices=["full", "diffusion_preproc_vetting", "ICAFIX"], default="full")
 
     # parse the command line arguments
     args = parser.parse_args()
