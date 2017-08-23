@@ -740,6 +740,9 @@ do_gradient_echo_field_maps_exist()
 #   - run the scripts
 main()
 {
+	local UNWARPDIR="z"
+	local SEUNWARPDIR="y"
+	
 	show_job_start
 
 	show_platform_info
@@ -877,7 +880,7 @@ main()
 			PreFreeSurfer_cmd+=" --topupconfig=NONE"
 			PreFreeSurfer_cmd+=" --fmapmag=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${g_session_classifier}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
 			PreFreeSurfer_cmd+=" --fmapphase=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${g_session_classifier}_${PHASE_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
-			PreFreeSurfer_cmd+=" --unwarpdir=z"
+			PreFreeSurfer_cmd+=" --unwarpdir=${UNWARPDIR}"
 		else
 			log_Msg "adding parameters for when Siemens gradient echo fieldmaps should be used but do NOT exist"
 			PreFreeSurfer_cmd+=" --echodiff=NONE"
@@ -887,7 +890,7 @@ main()
 			PreFreeSurfer_cmd+=" --topupconfig=NONE"
 			PreFreeSurfer_cmd+=" --fmapmag=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${g_session_classifier}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
 			PreFreeSurfer_cmd+=" --fmapphase=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${g_session_classifier}_${PHASE_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
-			PreFreeSurfer_cmd+=" --unwarpdir=z"
+			PreFreeSurfer_cmd+=" --unwarpdir=${UNWARPDIR}"
 		fi
 	elif [[ ("${g_fieldmap_type}" == "SE") || ("${g_fieldmap_type}" == "SpinEcho") ]] ; then
 		# add parameters for SpinEcho fieldmap usage
@@ -899,8 +902,8 @@ main()
 		PreFreeSurfer_cmd+=" --SEPhasePos=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t1w_directory_name}/${g_se_phase_pos}"
 		PreFreeSurfer_cmd+=" --echospacing=${g_first_t1w_positive_dwell_time}"
 		PreFreeSurfer_cmd+=" --topupconfig=${HCPPIPEDIR}/global/config/${g_topupconfig}"
-		PreFreeSurfer_cmd+=" --seunwarpdir=y"
-		PreFreeSurfer_cmd+=" --unwarpdir=z"
+		PreFreeSurfer_cmd+=" --seunwarpdir=${SEUNWARPDIR}"
+		PreFreeSurfer_cmd+=" --unwarpdir=${UNWARPDIR}"
 	else
 		log_Err_Abort "Unrecognized g_fieldmap_type: ${g_fieldmap_type}"
 	fi
@@ -968,159 +971,6 @@ main()
 		log_Err_Abort "PostFreeSurferPipeline.sh non-zero return code: ${return_code}"
 	fi
 	popd
-
-	# # GENERATE_SNAPSHOT
-
-	# # use a sub-shell so that freesurfer53_setup.sh only affects the snap_montage_cmd 
-	# (
-	# 	source "${XNAT_PBS_JOBS}/shlib/log.shlib"  # Logging related functions
-		
-	# 	snap_montage_cmd=""
-	# 	snap_montage_cmd+="/export/HCP/bin/xvfb_wrapper.sh ${NRG_PACKAGES}/tools/HCP/Freesurfer/freesurfer_includes/snap_montage_fs5.csh"
-	# 	snap_montage_cmd+=" ${g_subject}"
-	# 	snap_montage_cmd+=" ${g_working_dir}/${g_subject}/T1w"
-		
-	# 	log_Msg ""
-	# 	log_Msg "snap_montage_cmd: ${snap_montage_cmd}"
-	# 	log_Msg ""
-		
-	# 	pushd ${g_working_dir}/${g_subject}
-	# 	source ${XNAT_PBS_JOBS}/ToolSetupScripts/freesurfer53_setup.sh
-	# 	${snap_montage_cmd}
-	# 	return_code=$?
-	# 	if [ ${return_code} -ne 0 ]; then
-	# 		log_Err_Abort "snap_montage command non-zero return code: ${return_code}"
-	# 	fi
-	# 	popd
-	# )
-
-	# # Show created .gif files
-	# log_Msg "Show the GIF files created by the snap_montage_fs5.csh script"
-	# pushd ${g_working_dir}/${g_subject}
-	# find . -name "*.gif"
-	# popd
-	
-	# # CREATE_ASSESSOR
-
-	# # Get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
-	# log_Msg "Getting XNAT Session ID"
-	# get_session_id_script="${XNAT_PBS_JOBS_PIPELINE_ENGINE}/catalog/ToolsHCP/resources/scripts/sessionid.py"
-	# get_session_id_cmd="python ${get_session_id_script}"
-	# get_session_id_cmd+=" --server=${g_server}"
-	# get_session_id_cmd+=" --username=${g_user}"
-	# get_session_id_cmd+=" --password=${g_password}"
-	# get_session_id_cmd+=" --project=${g_project} "
-	# get_session_id_cmd+=" --subject=${g_subject} "
-	# get_session_id_cmd+=" --session=${g_session}"
-	# sessionID=`${get_session_id_cmd}`
-	# log_Msg "XNAT session ID: ${sessionID}"
-
- 	# # Generate XNAT XML from FreeSurfer stats files	
-	# stats2xml_cmd=""
-	# stats2xml_cmd+="${NRG_PACKAGES}/tools/HCP/Freesurfer/freesurfer_includes/stats2xml_mrh.pl"
-	# stats2xml_cmd+=" -p ${g_project}"
-	# stats2xml_cmd+=" -x ${sessionID}"
-	# stats2xml_cmd+=" -t Freesurfer"
-	# stats2xml_cmd+=" -d ${g_session_classifier}"
-	# stats2xml_cmd+=" -o ${g_working_dir}/${g_subject}/"
-	# stats2xml_cmd+=" ${g_working_dir}/${g_subject}/T1w/${g_subject}/stats"
-
-	# log_Msg "stats2xml_cmd: ${stats2xml_cmd}"
-
-	# pushd ${g_working_dir}/${g_subject}
-	# ${stats2xml_cmd}
-	# return_code=$?
-	# if [ ${return_code} -ne 0 ]; then
-	# 	log_Err_Abort "stats2xml_cmd non-zero return code: ${return_code}"
-	# fi
-	# popd
-
-	# # Show created *freesurfer5.xml file
-	# log_Msg "Show freesurfer5.xml file created by stats2xml_mrh.pl"
-	# pushd ${g_working_dir}/${g_subject}
-	# find . -name "${sessionID}_freesurfer5.xml"
-	# popd
-	
-	# # Put generated FreeSurfer stats file in DB
-
-	# resource_uri="https://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}"
-	# resource_uri+="/experiments/${sessionID}"
-	# resource_uri+="/assessors/${sessionID}_freesurfer_${g_session_classifier}"
-	# resource_uri+="?allowDataDeletion=true&inbody=true"
-	
-	# java_cmd="java -Xmx1024m -jar ${XNAT_PBS_JOBS_PIPELINE_ENGINE}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
-	# java_cmd+=" -u ${g_user}"
-	# java_cmd+=" -p ${g_password}"
-	# java_cmd+=" -r ${resource_uri}"	
-	# java_cmd+=" -l ${g_working_dir}/${g_subject}/${sessionID}_freesurfer5.xml"
-	# java_cmd+=" -m PUT"
-
-	# log_Msg ""
-	# log_Msg "java_cmd: ${java_cmd}"
-	# log_Msg ""
-
-	# pushd ${g_working_dir}/${g_subject}
-	# ${java_cmd}
-	# return_code=$?
-	# if [ ${return_code} -ne 0 ]; then
-	# 	log_Err_Abort "java_cmd non-zero return code: ${return_code}"
-	# fi
-	# popd
-
-	# # Put snapshots in DB and remove local copies
-	# db_resource="https://${g_server}/data/archive/projects/${g_project}/subjects/${g_subject}/experiments/${sessionID}/assessors/${sessionID}_freesurfer_${g_session_classifier}/resources/SNAPSHOTS"
-	# log_Msg "db_resource: ${db_resource}"
-	
-	# local_resource="${g_working_dir}/${g_subject}/T1w/${g_subject}/snapshots"
-	# log_Msg "local_resource: ${local_resource}"
-
-	# # show files in local_resource
-	# log_Msg "Files in ${local_resource}"
-	# find ${local_resource} -print
-	
-	# # create zip file to send to DB
-	# zipped_file=$(basename ${local_resource}).zip
-	# log_Msg "zipped_file: ${zipped_file}"
-
-	# pushd ${local_resource}
-
-	# zip_cmd="zip --recurse-paths --test ${zipped_file} ."
-	# log_Msg "zip_cmd: ${zip_cmd}"
-	# ${zip_cmd}
-	
-	# # Replace very first instance of HCP in working directory name with data.
-	# # So, for example, "/HCP/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/..." becomes "/data/hcpdb/build_ssd/chpc/BUILD/HCP_Staging/..."
-	# # The reference= part of the PUT operation expects a reference to something that is local to the machine
-	# # running XNAT.
-	# #	xnat_local_resource=${local_resource/HCP/data}
-	# #	log_Msg "xnat_local_resource: ${xnat_local_resource}"
-	# #	resource_uri="${db_resource}/files?overwrite=true&replace=true&reference=${xnat_local_resource}"
-	
-	# resource_uri="${db_resource}/files?overwrite=true&replace=true&extract=true"
-
-	# java_cmd="java -Xmx1024m -jar ${XNAT_PBS_JOBS_PIPELINE_ENGINE}/lib/xnat-data-client-1.6.4-SNAPSHOT-jar-with-dependencies.jar"
-	# java_cmd+=" -u ${g_user}"
-	# java_cmd+=" -p ${g_password}"
-	# java_cmd+=" -m PUT"
-	# java_cmd+=" -r ${resource_uri}"	
-	# java_cmd+=" -l ${zipped_file}"
-	
-	# log_Msg ""
-	# log_Msg "java_cmd: ${java_cmd}"
-	# log_Msg ""
-	# ${java_cmd}
-	# return_code=$?
-	# if [ ${return_code} -ne 0 ]; then
-	# 	log_Err_Abort "java_cmd non-zero return code: ${return_code}"
-	# fi
-
-	# popd
-	
-	# rm_cmd="rm -r ${local_resource}"
-	# log_Msg ""
-	# log_Msg "rm_cmd: ${rm_cmd}"
-	# log_Msg ""
-	# ${rm_cmd}
 
 	log_Msg "Complete"
 }
