@@ -373,6 +373,23 @@ class CcfArchive(object):
         name_list = self._get_scan_names_from_full_paths(dir_list)
         return name_list
 
+    def functional_preproc_dir_full_path(self, subject_info):
+        """
+        Full path to functional preprocessed resource for the specified subject 
+        (including the specified scan in the subject_info.extra field)
+        """
+        path_expr = self.subject_resources_dir_full_path(subject_info)
+        path_expr += os.sep + self.functional_preproc_dir_name(subject_info)
+        return path_expr
+
+    def functional_preproc_dir_name(self, subject_info):
+        """
+        Name of functional preprocessed resource for the specified subject
+        (including the specified scan in the subject_info.extra field)
+        """
+        name = subject_info.extra + '_' + self.PREPROC_SUFFIX
+        return name
+    
     # processed data paths and names
 
     def msmall_registration_dir_full_path(self, subject_info):

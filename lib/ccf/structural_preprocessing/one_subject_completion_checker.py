@@ -26,6 +26,21 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
     def my_resource(self, archive, subject_info):
         return archive.structural_preproc_dir_full_path(subject_info)
 
+    def my_resource_time_stamp(self, archive, subject_info):
+        return os.path.getmtime(self.my_resource(archive, subject_info))
+    
+    def latest_prereq_resource_time_stamp(self, archive, subject_info):
+        latest_time_stamp = 0
+
+        struct_unproc_dir_paths = archive.available_structural_unproc_dir_full_paths(subject_info)
+
+        for full_path in struct_unproc_dir_paths:
+            this_time_stamp = os.path.getmtime(full_path)
+            if this_time_stamp > latest_time_stamp:
+                latest_time_stamp = this_time_stamp
+
+        return latest_time_stamp
+
     def completion_marker_file_name(self):
         return 'StructuralPreprocessing.XNAT_CHECK.sh.success'
     
@@ -59,19 +74,13 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
             return False
         
         return True
-    
-    def is_processing_complete(self, archive, subject_info, verbose=False, output=sys.stdout, short_circuit=True):
-        # If the processed resource does not exist, then the process is certainly not complete.
-        if not self.does_processed_resource_exist(archive, subject_info):
-            if verbose:
-                print("resource: " + self.my_resource(archive, subject_info) + " DOES NOT EXIST", file=output)
-            return False
 
-        # Build a list of expected files
+    def list_of_expected_files(self, archive, subject_info):
+
         file_name_list = []
 
         # <subject-id>/MNINonLinear
-        check_dir = os.sep.join([archive.structural_preproc_dir_full_path(subject_info),
+        check_dir = os.sep.join([self.my_resource(archive, subject_info),
                                  str(subject_info.subject_id),
                                  'MNINonLinear'])
 
@@ -157,7 +166,7 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
         file_name_list.append(check_dir + os.sep + 'wmparc.nii.gz')
 
         # <subject-id>/MNINonLinear/fsaverage
-        check_dir = os.sep.join([archive.structural_preproc_dir_full_path(subject_info),
+        check_dir = os.sep.join([self.my_resource(archive, subject_info),
                                  str(subject_info.subject_id),
                                  'MNINonLinear',
                                  'fsaverage'])
@@ -167,7 +176,7 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
         file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.R.sphere.164k_fs_R.surf.gii')
 
         # <subject-id>/MNINonLinear/fsaverage_LR32k
-        check_dir = os.sep.join([archive.structural_preproc_dir_full_path(subject_info),
+        check_dir = os.sep.join([self.my_resource(archive, subject_info),
                                  str(subject_info.subject_id),
                                  'MNINonLinear',
                                  'fsaverage_LR32k'])
@@ -236,7 +245,7 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
         file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.thickness.32k_fs_LR.dscalar.nii')
 
         # <subject-id>/MNINonLinear/Native
-        check_dir = os.sep.join([archive.structural_preproc_dir_full_path(subject_info),
+        check_dir = os.sep.join([self.my_resource(archive, subject_info),
                                  str(subject_info.subject_id),
                                  'MNINonLinear',
                                  'Native'])
@@ -317,7 +326,7 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
         file_name_list.append(check_dir + os.sep + subject_info.subject_id + '.thickness.native.dscalar.nii')
 
         # <subject-id>/MNINonLinear/Native/MSMSulc
-        check_dir = os.sep.join([archive.structural_preproc_dir_full_path(subject_info),
+        check_dir = os.sep.join([self.my_resource(archive, subject_info),
                                  str(subject_info.subject_id),
                                  'MNINonLinear',
                                  'Native',
@@ -330,7 +339,7 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
         file_name_list.append(check_dir + os.sep + 'R.transformed_and_reprojected.func.gii')
 
         # <subject-id>/MNINonLinear/Native/MSMSulc/R.logdir
-        check_dir = os.sep.join([archive.structural_preproc_dir_full_path(subject_info),
+        check_dir = os.sep.join([self.my_resource(archive, subject_info),
                                  str(subject_info.subject_id),
                                  'MNINonLinear',
                                  'Native',
@@ -340,7 +349,7 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
         file_name_list.append(check_dir + os.sep + 'MSM.log')
 
         # <subject-id>/MNINonLinear/ROIs
-        check_dir = os.sep.join([archive.structural_preproc_dir_full_path(subject_info),
+        check_dir = os.sep.join([self.my_resource(archive, subject_info),
                                  str(subject_info.subject_id),
                                  'MNINonLinear',
                                  'ROIs'])
@@ -351,7 +360,7 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
         file_name_list.append(check_dir + os.sep + 'wmparc.2.nii.gz')
 
         # <subject-id>/MNINonLinear/xfms
-        check_dir = os.sep.join([archive.structural_preproc_dir_full_path(subject_info),
+        check_dir = os.sep.join([self.my_resource(archive, subject_info),
                                  str(subject_info.subject_id),
                                  'MNINonLinear',
                                  'xfms'])
@@ -370,7 +379,25 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
         file_name_list.append(check_dir + os.sep + 'standard2acpc_dc.nii.gz')
         file_name_list.append(check_dir + os.sep + 'T1w_acpc_dc_restore_brain_to_MNILinear.nii.gz')
 
-        return self.do_all_files_exist(file_name_list, verbose, output, short_circuit)
+        return file_name_list
+    
+    def is_processing_complete(self, archive, subject_info, verbose=False, output=sys.stdout, short_circuit=True):
+        # If the processed resource does not exist, then the processing is certainly not complete.
+        if not self.does_processed_resource_exist(archive, subject_info):
+            if verbose:
+                print("resource: " + self.my_resource(archive, subject_info) + " DOES NOT EXIST", file=output)
+            return False
+
+        # If processed resource is not newer than prerequisite resources, then the processing is not complete
+        if self.my_resource_time_stamp(archive, subject_info) <= self.latest_prereq_resource_time_stamp(archive, subject_info):
+            if verbose:
+                print("resource: " + self.my_resource(archive, subject_info) + " IS NOT NEWER THAN ALL PREREQUISITES", file=output)
+            return False
+        
+        # If processed resource exists and is newer than all the prerequisite resources, then check
+        # to see if all the expected files exist
+        expected_file_list = self.list_of_expected_files(archive, subject_info)
+        return self.do_all_files_exist(expected_file_list, verbose, output, short_circuit)
 
 
 if __name__ == "__main__":
