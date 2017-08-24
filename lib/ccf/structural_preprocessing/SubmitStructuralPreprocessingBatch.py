@@ -12,6 +12,7 @@ import os
 import ccf.archive as ccf_archive
 import ccf.batch_submitter as batch_submitter
 import ccf.structural_preprocessing.one_subject_job_submitter as one_subject_job_submitter
+import ccf.structural_preprocessing.one_subject_run_status_checker as one_subject_run_status_checker
 import ccf.subject as ccf_subject
 import utils.file_utils as file_utils
 import utils.my_configparser as my_configparser
@@ -37,6 +38,16 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
         # submit jobs for the listed subjects
         for subject in subject_list:
 
+            run_status_checker = one_subject_run_status_checker.OneSubjectRunStatusChecker()
+            if run_status_checker.get_queued_or_running(subject):
+                print("-----")
+                print("\t NOT SUBMITTING JOBS FOR")
+                print("\t               project: " + subject.project)
+                print("\t               subject: " + subject.subject_id)
+                print("\t    session classifier: " + subject.classifier)
+                print("\t JOBS ARE ALREADY QUEUED OR RUNNING")
+                continue
+            
             submitter = one_subject_job_submitter.OneSubjectJobSubmitter(
                 self._archive, self._archive.build_home)
 

@@ -31,9 +31,8 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
     
     def latest_prereq_resource_time_stamp(self, archive, subject_info):
         latest_time_stamp = 0
-
         struct_unproc_dir_paths = archive.available_structural_unproc_dir_full_paths(subject_info)
-
+        
         for full_path in struct_unproc_dir_paths:
             this_time_stamp = os.path.getmtime(full_path)
             if this_time_stamp > latest_time_stamp:
@@ -43,6 +42,9 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
 
     def completion_marker_file_name(self):
         return 'StructuralPreprocessing.XNAT_CHECK.sh.success'
+
+    def starttime_marker_file_name(self):
+        return 'StructuralPreprocessing.starttime'
     
     def does_processed_resource_exist(self, archive, subject_info):
         fullpath = self.my_resource(archive, subject_info)
@@ -57,13 +59,19 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
 
         resource_path = self.my_resource(archive, subject_info)
         completion_marker_file_path = resource_path + os.sep + self.completion_marker_file_name()
-
-        # If the completion marker file does not exist, then the process is certainly not marked
+        starttime_marker_file_path = resource_path + os.sep + self.starttime_marker_file_name()
+        
+        # If the completion marker file does not exist, then the processing is certainly not marked
         # as complete.
         marker_file_exists = os.path.exists(completion_marker_file_path)
         if not marker_file_exists:
             return False
 
+        # If the completion marker file is older than the starttime marker file, then any mark
+        # of completeness is invalid.
+        if os.path.getmtime(completion_marker_file_path) < os.path.getmtime(starttime_marker_file_path):
+            return False
+        
         # If the completion marker file does exist, then look at the contents for further
         # confirmation
 
@@ -389,7 +397,10 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
             return False
 
         # If processed resource is not newer than prerequisite resources, then the processing is not complete
-        if self.my_resource_time_stamp(archive, subject_info) <= self.latest_prereq_resource_time_stamp(archive, subject_info):
+        resource_time_stamp = self.my_resource_time_stamp(archive, subject_info)
+        latest_prereq_time_stamp = self.latest_prereq_resource_time_stamp(archive, subject_info)
+        
+        if resource_time_stamp <= latest_prereq_time_stamp:
             if verbose:
                 print("resource: " + self.my_resource(archive, subject_info) + " IS NOT NEWER THAN ALL PREREQUISITES", file=output)
             return False
@@ -435,10 +446,10 @@ if __name__ == "__main__":
             verbose=args.verbose,
             output=processing_output,
             short_circuit=not args.check_all):
-        print("Exiting with 0 code")
+        print("Exiting with 0 code - Completion Check Successful")
         exit(0)
     else:
-        print("Exiting with 1 code")
+        print("Exiting with 1 code - Completion Check Unsuccessful")
         exit(1)
 
 
