@@ -3,7 +3,6 @@
 # import of built-in modules
 import contextlib
 import glob
-import json
 import logging
 import os
 import shutil
@@ -176,24 +175,6 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     def _get_first_t1w_file_name(self, subject_info):
         return self.session + self.archive.NAME_DELIMITER + self._get_first_t1w_name(subject_info) + '.nii.gz'
 
-    def _get_first_t1w_json_file_name(self, subject_info):
-        return self.session + self.archive.NAME_DELIMITER + self._get_first_t1w_name(subject_info) + '.json'
-
-    def _get_first_t1w_readout_sample_spacing(self, subject_info):
-
-        json_file_path = self.archive.subject_resources_dir_full_path(subject_info)
-        json_file_path += os.sep + self._get_first_t1w_resource_name(subject_info)
-        json_file_path += os.sep + self._get_first_t1w_json_file_name(subject_info)
-
-        json_file = open(json_file_path, "r")
-        json_result = json.load(json_file)
-        json_file.close()
-
-        readout_sample_spacing_in_nanoseconds = float(json_result['ReadoutSampleSpacing'])
-        readout_sample_spacing_in_seconds = readout_sample_spacing_in_nanoseconds / 1000000000.0
-
-        return readout_sample_spacing_in_seconds
-
     def _get_first_t2w_name(self, subject_info):
         t2w_unproc_names = self.archive.available_t2w_unproc_names(subject_info)
         if len(t2w_unproc_names) > 0:
@@ -208,24 +189,6 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     def _get_first_t2w_file_name(self, subject_info):
         return self.session + self.archive.NAME_DELIMITER + self._get_first_t2w_name(subject_info) + '.nii.gz'
-
-    def _get_first_t2w_json_file_name(self, subject_info):
-        return self.session + self.archive.NAME_DELIMITER + self._get_first_t2w_name(subject_info) + '.json'
-
-    def _get_first_t2w_readout_sample_spacing(self, subject_info):
-
-        json_file_path = self.archive.subject_resources_dir_full_path(subject_info)
-        json_file_path += os.sep + self._get_first_t2w_resource_name(subject_info)
-        json_file_path += os.sep + self._get_first_t2w_json_file_name(subject_info)
-
-        json_file = open(json_file_path, "r")
-        json_result = json.load(json_file)
-        json_file.close()
-
-        readout_sample_spacing_in_nanoseconds = float(json_result['ReadoutSampleSpacing'])
-        readout_sample_spacing_in_seconds = readout_sample_spacing_in_nanoseconds / 1000000000.0
-
-        return readout_sample_spacing_in_seconds
 
     def create_work_script(self):
         module_logger.debug(debug_utils.get_name())
@@ -272,20 +235,9 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         first_t1w_directory_name_line = '  --first-t1w-directory-name=' + self._get_first_t1w_name(subject_info)
         first_t1w_resource_name_line  = '  --first-t1w-resource-name=' + self._get_first_t1w_resource_name(subject_info)
-
-        # This line is an example of how to get some processing parameters out of the corresponding .json files
-        # This line is not currently used.
-        first_t1w_sample_spacing_line = '  --first-t1w-sample-spacing=' + ("%11.9f" % self._get_first_t1w_readout_sample_spacing(subject_info))
-
         first_t1w_file_name_line      = '  --first-t1w-file-name=' + self._get_first_t1w_file_name(subject_info)
-
         first_t2w_directory_name_line = '  --first-t2w-directory-name=' + self._get_first_t2w_name(subject_info)
         first_t2w_resource_name_line  = '  --first-t2w-resource-name=' + self._get_first_t2w_resource_name(subject_info)
-
-        # This line is an example of how to get some processing parameters out of the corresponding .json files
-        # This line is not currently used.
-        first_t2w_sample_spacing_line = '  --first-t2w-sample-spacing=' + ("%11.9f" % self._get_first_t2w_readout_sample_spacing(subject_info))
-
         first_t2w_file_name_line      = '  --first-t2w-file-name=' + self._get_first_t2w_file_name(subject_info)
         brain_size_line               = '  --brainsize=' + str(self.brain_size)
 
