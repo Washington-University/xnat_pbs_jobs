@@ -14,6 +14,7 @@ import ccf.structural_preprocessing.one_subject_prereq_checker as one_subject_pr
 import ccf.structural_preprocessing.one_subject_run_status_checker as one_subject_run_status_checker
 import ccf.subject as ccf_subject
 import utils.file_utils as file_utils
+import utils.my_argparse as my_argparse
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -42,6 +43,24 @@ def _write_subject_info(output_file, project, subject_id, classifier, prereqs_me
 
 if __name__ == "__main__":
 
+    parser = my_argparse.MyArgumentParser(description="Batch mode checking of completion of Structural Preprocessing")
+
+    # optional arguments
+    # The --bypass-mark option tells this program to ignore whether the resource
+    # is marked complete and just go ahead and do a full completion check.
+    parser.add_argument('-b', '--bypass-mark', dest='bypass_mark', action='store_true', required=False, default=False)
+    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', required=False, default=False)
+
+    # parse the command line arguments
+    args = parser.parse_args()
+
+    if args.bypass_mark:
+        module_logger.info("Bypassing completion markers and doing complete check")
+        print("Bypassing completion markers and doing complete check")
+    else:
+        module_logger.info("Completion check is done by checking for completion markers")
+        print("Completion check is done by checking for completion markers")
+        
     # get list of subjects to check
     subject_file_name = file_utils.get_subjects_file_name(__file__)
     module_logger.info("Retrieving subject list from: " + subject_file_name)
@@ -76,7 +95,11 @@ if __name__ == "__main__":
             
             timestamp = os.path.getmtime(fullpath)
             resource_date = datetime.datetime.fromtimestamp(timestamp).strftime(DATE_FORMAT)
-            files_exist = completion_checker.is_processing_marked_complete(archive, subject)
+            if args.bypass_mark:
+                files_exist = completion_checker.is_processing_complete(archive, subject, verbose=args.verbose)
+            else:
+                files_exist = completion_checker.is_processing_marked_complete(archive, subject)
+
             prereqs_met = prereq_checker.are_prereqs_met(archive, subject)
 
         else:

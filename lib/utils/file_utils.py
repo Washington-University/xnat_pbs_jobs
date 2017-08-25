@@ -159,8 +159,8 @@ def do_all_files_exist(file_name_list, verbose=False, output=sys.stdout, short_c
     
     for file_name in file_name_list:
         if verbose:
-            print("Checking for existence of file: " + file_name, file=output)
-        if os.path.isfile(file_name):
+            print("Checking for existence of: " + file_name, file=output)
+        if os.path.exists(file_name):
             continue
 
         # If we get here, the most recently checked file does not exist
