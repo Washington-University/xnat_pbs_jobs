@@ -23,7 +23,7 @@ def _inform(msg):
 
 
 def main():
-    parser = my_argparse.MyArgumentParser(description="Simple program to delete duplicate lines in a text file.")
+    parser = my_argparse.MyArgumentParser(description="Simple program to delete duplicate lines in a text file. Unlike the Linux/Unix uniq utility, it doesn't require duplicates to be adjacent.")
 
     # optional arguments
     parser.add_argument('-i', '--input-file', dest='input_file_name', required=False, default=None, type=str)

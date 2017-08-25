@@ -625,16 +625,6 @@ MAG_FIELDMAP_NAME="FieldMap_Magnitude"
 # part of file name that indicates a Siemens Gradient Echo Phase Fieldmap file
 PHASE_FIELDMAP_NAME="FieldMap_Phase"
 
-get_scan_data() 
-{
-	local resource_name="${1}"
-	local file_name="${2}"
-	local item_name="${3}"
-
-	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "${XNAT_PBS_JOBS_XNAT_SERVER}" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
-	echo ${result}
-}
-
 does_resource_exist()
 {
 	local resource_name="${1}"
@@ -660,17 +650,40 @@ get_parameters_for_first_t1w_scan()
 	g_first_t1w_positive_dwell_time=""
 
 	# sample_spacing value in XNAT DB is in nanoseconds, but needs to be specified in seconds
-	g_first_t1w_sample_spacing=`get_scan_data "${g_first_t1w_resource_name}" "${g_first_t1w_file_name}" "parameters/readoutSampleSpacing"`
+	local first_t1w_file
+	first_t1w_file="${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t1w_directory_name}/${g_first_t1w_file_name}"
+	g_first_t1w_sample_spacing=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${first_t1w_file} -k ReadoutSampleSpacing)
+	
 	sample_spacing_in_secs=`echo "${g_first_t1w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
 	g_first_t1w_sample_spacing=${sample_spacing_in_secs}
 	log_Msg "g_first_t1w_sample_spacing: ${g_first_t1w_sample_spacing}"
 
 	if [[ ("${g_fieldmap_type}" = "GE") || ("${g_fieldmap_type}" = "SiemensGradientEcho") ]] ; then
-		g_first_t1w_deltaTE=`get_scan_data "${g_first_t1w_resource_name}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
-		log_Msg "g_first_t1w_deltaTE: ${g_first_t1w_deltaTE}"
+
+		# I'd like to be getting this value the same way as above and below, using the get_json_meta_data application.
+		# However, I don't have any example Siemens Gradient Echo field maps (in particular the magnitude field map)
+		# that have their meta-data in parallel JSON files. So I don't have a way of knowing what the key is
+		# (like ReadoutSampleSpacing above, and EffectiveEchoSpacing below) that I should use to the this needed
+		# scan meta data.
+
+		# Here is how it is done using the get_scan_data bash function (which you will find in older versions of this script)
+		#g_first_t1w_deltaTE=`get_scan_data "${g_first_t1w_resource_name}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
+		#log_Msg "g_first_t1w_deltaTE: ${g_first_t1w_deltaTE}"
+		
+		# Here is how it should be done using the get_json_meta_data.sh script. Except the I_DONT_KNOW will have to be changed to the actual key.
+		#local mag_fieldmap_name
+		#mag_fieldmap_name="${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${g_session_classifier}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
+		#g_first_t1w_deltaTE=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${mag_fieldmap_name} -k I_DONT_KNOW)
+		#log_Msg "g_first_t1w_deltaTE: ${g_first_t1w_deltaTE}"
+
+		# For now I'm going to abort with an error message indicating that this is not supported in this script.
+		log_Err_Abort "Field Map Type SiemensGradientEcho is not supported by this script yet. See the comments in the script just prior to this abort operation."
+
 
 	elif [[ ("${g_fieldmap_type}" = "SE") || ("${g_fieldmap_type}" = "SpinEcho") ]] ; then
-		g_first_t1w_positive_dwell_time=`get_scan_data "${g_first_t1w_resource_name}" "${g_se_phase_pos}" "parameters/echoSpacing"`
+		local se_phase_pos_file
+		se_phase_pos_file="${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t1w_directory_name}/${g_se_phase_pos}"
+		g_first_t1w_positive_dwell_time=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${se_phase_pos_file} -k EffectiveEchoSpacing)
 		log_Msg "g_first_t1w_positive_dwell_time: ${g_first_t1w_positive_dwell_time}"
 
 	fi
@@ -703,7 +716,10 @@ get_parameters_for_first_t2w_scan()
 	g_first_t2w_sample_spacing=""
 
 	# sample_spacing value in XNAT DB is in nanoseconds, but needs to be specified in seconds
-	g_first_t2w_sample_spacing=`get_scan_data "${g_first_t2w_resource_name}" "${g_first_t2w_file_name}" "parameters/readoutSampleSpacing"`
+	local first_t2w_file
+	first_t2w_file="${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t2w_directory_name}/${g_first_t2w_file_name}"
+	g_first_t2w_sample_spacing=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${first_t2w_file} -k ReadoutSampleSpacing)
+
 	sample_spacing_in_secs=`echo "${g_first_t2w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
 	g_first_t2w_sample_spacing=${sample_spacing_in_secs}
 	log_Msg "g_first_t2w_sample_spacing: ${g_first_t2w_sample_spacing}"

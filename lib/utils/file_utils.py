@@ -24,6 +24,18 @@ def writeln(file, line):
 
 wl = writeln
 
+def get_meta_data_json_file_name(source_file_name):
+    meta_data_json_file_name = source_file_name
+
+    if meta_data_json_file_name.endswith('.nii'):
+        meta_data_json_file_name = meta_data_json_file_name[:-4]
+    elif meta_data_json_file_name.endswith('.nii.gz'):
+        meta_data_json_file_name = meta_data_json_file_name[:-7]
+
+    meta_data_json_file_name += '.json'
+
+    return meta_data_json_file_name
+
 
 def get_config_file_name(source_file_name, use_env_variable=True):
     if use_env_variable:
