@@ -84,6 +84,11 @@ class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
             mem_limit = int(config.get_value(subject.subject_id, 'MemLimit'))
             vmem_limit = int(config.get_value(subject.subject_id, 'VmemLimit'))
 
+            if config.get_value(subject.subject_id, 'SkipXnatWorkflow') == 'True':
+                skip_xnat_workflow = True
+            else:
+                skip_xnat_workflow = False
+            
             scan = subject.extra
 
             _inform("")
@@ -96,6 +101,7 @@ class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
             _inform("         put_server: " + put_server )
             _inform("         setup_file: " + setup_file )
             _inform(" clean_output_first: " + str(clean_output_first) )
+            _inform(" skip XNAT workflow: " + str(skip_xnat_workflow) )
             _inform("    wall_time_limit: " + str(wall_time_limit) )
             _inform("          mem_limit: " + str(mem_limit) )
             _inform("         vmem_limit: " + str(vmem_limit) )
@@ -123,7 +129,8 @@ class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
                 subject.structural_reference_project, subject.subject_id + '_3T',
                 put_server, clean_output_first, setup_file, 
                 incomplete_only, scan_spec, 
-                wall_time_limit, mem_limit, vmem_limit)
+                wall_time_limit, mem_limit, vmem_limit,
+                skip_xnat_workflow)
             
             self.increment_shadow_number()
 

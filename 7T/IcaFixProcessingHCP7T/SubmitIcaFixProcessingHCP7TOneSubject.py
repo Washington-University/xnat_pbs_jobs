@@ -67,7 +67,8 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
                     incomplete_only, scan,
                     walltime_limit_hours,
                     mem_limit_gbs,
-                    vmem_limit_gbs):
+                    vmem_limit_gbs,
+                    skip_xnat_workflow):
         """Submit job(s) to perform IcaFixProcessing for HCP 7T data for the
         specified subject.
 
@@ -213,11 +214,12 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
             inform("xnat_session_id: " + xnat_session_id)
 
             # get XNAT Workflow ID
-            workflow_obj = xnat_access.Workflow(username, password, server, jsession_id)
-            workflow_id = workflow_obj.create_workflow(xnat_session_id, project, self.PIPELINE_NAME, 'Queued')
+            if not skip_xnat_workflow:
+                workflow_obj = xnat_access.Workflow(username, password, server, jsession_id)
+                workflow_id = workflow_obj.create_workflow(xnat_session_id, project, self.PIPELINE_NAME, 'Queued')
 
-            inform("workflow_id: " + workflow_id)
-
+                inform("workflow_id: " + workflow_id)
+                
             # Clean the output resource if requested
             if clean_output_resource_first:
                 inform("Deleting resource: " + output_resource_name + " for:")
@@ -275,7 +277,9 @@ class IcaFix7TOneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubm
             work_script.write('  --structural-reference-session="' + structural_reference_session + '" \\' + os.linesep)
             work_script.write('  --scan="' + long_scan_name + '" \\' + os.linesep)
             work_script.write('  --working-dir="' + working_directory_name + '" \\' + os.linesep)
-            work_script.write('  --workflow-id="' + workflow_id + '" \\' + os.linesep)
+            if not skip_xnat_workflow:
+                work_script.write('  --workflow-id="' + workflow_id + '" \\' + os.linesep)
+                
             work_script.write('  --xnat-session-id=' + xnat_session_id + '\\' + os.linesep)
             work_script.write('  --setup-script=' + setup_script + os.linesep)
 

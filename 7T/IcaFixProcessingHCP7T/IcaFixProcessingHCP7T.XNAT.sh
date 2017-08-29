@@ -209,8 +209,7 @@ get_options()
 	fi
 
 	if [ -z "${g_workflow_id}" ]; then
-		inform "ERROR: workflow ID (--workflow-id=) required"
-		error_count=$(( error_count + 1 ))
+		inform "No workflow ID specified. Will skip workflow updates."
 	else
 		inform "g_workflow_id: ${g_workflow_id}"
 	fi
@@ -244,8 +243,25 @@ get_options()
 
 die()
 {
-	xnat_workflow_fail ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_fail ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	else
+		inform "FAILING"
+	fi
 	exit 1
+}
+
+update_steps()
+{
+	local current_step=${1}
+	local msg=${2}
+	local step_percent=${3}
+
+	inform "---------- Step Information: Begin ----------"
+	inform "Current Step: ${current_step}"
+	inform "   Step Desc: ${msg}"
+	inform "Step Percent: ${step_percent}"
+	inform "---------- Step Information: End ------------"
 }
 
 main()
@@ -260,14 +276,20 @@ main()
 	total_steps=12
 	current_step=0
 
-	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	fi
 
 	# Step - Link functionally preprocessed data from DB
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Link functionally preprocessed data from DB" ${step_percent}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Link functionally preprocessed data from DB" ${step_percent}
+	else
+		update_steps ${current_step} "Link functionally preprocessed data from DB" ${step_percent}
+	fi
 
 	preproc_scan=${g_scan%_7T*}${g_scan##*_7T}
 	inform "preproc_scan: ${preproc_scan}"
@@ -279,8 +301,12 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Link supplemental structurally preprocessed data from DB" ${step_percent}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Link supplemental structurally preprocessed data from DB" ${step_percent}
+	else
+		update_steps ${current_step} "Link supplemental structurally preprocessed data from DB" ${step_percent}
+	fi
 	
 	link_hcp_supplemental_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_structural_reference_project}" \
 		"${g_subject}" "${g_structural_reference_session}" "${g_working_dir}"
@@ -289,8 +315,12 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Link Structurally preprocessed data from DB" ${step_percent}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Link Structurally preprocessed data from DB" ${step_percent}
+	else
+		update_steps ${current_step} "Link Structurally preprocessed data from DB" ${step_percent}
+	fi
 
 	link_hcp_struct_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_structural_reference_project}" "${g_subject}" \
 		"${g_structural_reference_session}" "${g_working_dir}"
@@ -299,8 +329,12 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Link unprocessed data from DB" ${step_percent}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Link unprocessed data from DB" ${step_percent}
+	else
+		update_steps ${current_step} "Link unprocessed data from DB" ${step_percent}
+	fi
 
 	link_hcp_struct_unproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_structural_reference_project}" "${g_subject}" \
 		"${g_structural_reference_session}" "${g_working_dir}"
@@ -313,14 +347,18 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Create a start_time file" ${step_percent}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Create a start_time file" ${step_percent}
+	else
+		update_steps ${current_step} "Create a start_time file" ${step_percent}
+	fi
 
 	start_time_file="${g_working_dir}/${PIPELINE_NAME}.starttime"
 	if [ -e "${start_time_file}" ]; then
 		inform "Removing old ${start_time_file}"
 		rm -f ${start_time_file}
-		fi
+	fi
 
 	# Sleep for 1 minute to make sure start_time file is created at least a
 	# minute after any files copied or linked above.
@@ -340,8 +378,12 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Set up environment to run scripts" ${step_percent}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Set up environment to run scripts" ${step_percent}
+	else
+		update_steps ${current_step} "Set up environment to run scripts" ${step_percent}
+	fi
 
 	# Source setup script to setup environment for running the script
 	inform "Sourcing ${g_setup_script} to set up environment"
@@ -357,8 +399,12 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "run hcp_fix" ${step_percent}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "run hcp_fix" ${step_percent}
+	else
+		update_steps ${current_step} "run hcp_fix" ${step_percent}
+	fi
 
 	icafix_cmd=""
 	icafix_cmd+="${HCPPIPEDIR_FIX}/hcp_fix"
@@ -381,8 +427,12 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "run ReApplyFixPipeline for 59k low res mesh" ${step_percent}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "run ReApplyFixPipeline for 59k low res mesh" ${step_percent}
+	else
+		update_steps ${current_step} "run ReApplyFixPipeline for 59k low res mesh" ${step_percent}
+	fi
 
 	reapplyfix_cmd=""
 	reapplyfix_cmd+="${HCPPIPEDIR}/ReApplyFix/ReApplyFixPipeline.sh"
@@ -407,9 +457,13 @@ main()
 	# Step - Show any newly created or modified files
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
-	
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Show newly created or modified files" ${step_percent}
+
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Show newly created or modified files" ${step_percent}
+	else
+		update_steps ${current_step} "Show newly created or modified files" ${step_percent}
+	fi
 	
 	inform "Newly created/modified files:"
 	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
@@ -418,8 +472,12 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 	
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Remove files not newly created or modified" ${step_percent}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Remove files not newly created or modified" ${step_percent}
+	else
+		update_steps ${current_step} "Remove files not newly created or modified" ${step_percent}
+	fi
 	
 	inform "The following files are being removed"
 	find ${g_working_dir}/${g_subject} -not -newer ${start_time_file} -print -delete
@@ -428,8 +486,12 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Move data up in directory tree" ${step_percent}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Move data up in directory tree" ${step_percent}
+	else
+		update_steps ${current_step} "Move data up in directory tree" ${step_percent}
+	fi
 
 	mv --verbose ${g_working_dir}/${g_subject}/MNINonLinear/Results/rfMRI_REST* ${g_working_dir}
 	mv --verbose ${g_working_dir}/${g_subject}/MNINonLinear/Results/tfMRI_MOVIE* ${g_working_dir}
@@ -442,7 +504,11 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 
-	xnat_workflow_complete ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	if [ -n "${g_workflow_id}" ]; then
+		xnat_workflow_complete ${g_server} ${g_user} ${g_password} ${g_workflow_id}
+	else
+		update_steps ${current_step} "Complete" ${step_percent}
+	fi
 }
 
 # Invoke the main function to get things started
