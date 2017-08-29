@@ -30,13 +30,13 @@ NA = "N/A"  # Not Available
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 def _write_header(output_file):
-    header_line = "\t".join(["Project", "Subject ID", "Classifier", "Prereqs Met", "Resource",  "Exists", "Complete", "Queued/Running"])
+    header_line = "\t".join(["Project", "Subject ID", "Classifier", "Prereqs Met", "Resource",  "Exists", "Resource Date", "Complete", "Queued/Running"])
     print(header_line)
     output_file.write(header_line + os.linesep)
 
     
-def _write_subject_info(output_file, project, subject_id, classifier, prereqs_met, resource, exists, complete, queued_or_running):
-    subject_line = "\t".join([project, subject_id, classifier, str(prereqs_met), resource, str(exists), str(complete), str(queued_or_running)])
+def _write_subject_info(output_file, project, subject_id, classifier, prereqs_met, resource, exists, resource_date_str, complete, queued_or_running):
+    subject_line = "\t".join([project, subject_id, classifier, str(prereqs_met), resource, str(exists), resource_date_str, str(complete), str(queued_or_running)])
     print(subject_line)
     output_file.write(subject_line + os.linesep)
     
@@ -87,6 +87,12 @@ if __name__ == "__main__":
         scan = subject.extra
         classifier = subject.classifier
 
+        prereqs_met = prereq_checker.are_prereqs_met(archive, subject)
+        print(subject_id)
+        print(prereqs_met)
+        
+        queued_or_running = running_checker.get_queued_or_running(subject)
+        
         if completion_checker.does_processed_resource_exist(archive, subject):
             resource_exists = True
 
@@ -100,15 +106,11 @@ if __name__ == "__main__":
             else:
                 files_exist = completion_checker.is_processing_marked_complete(archive, subject)
 
-            prereqs_met = prereq_checker.are_prereqs_met(archive, subject)
-
         else:
+            resource = DNM
             resource_exists = False
             resource_date = NA
             files_exist = False
-            prereqs_met = False
             
-        queued_or_running = running_checker.get_queued_or_running(subject)
-        
-        _write_subject_info(output_file, project, subject_id, classifier, prereqs_met, resource, resource_exists, files_exist, queued_or_running)
+        _write_subject_info(output_file, project, subject_id, classifier, prereqs_met, resource, resource_exists, resource_date, files_exist, queued_or_running)
             

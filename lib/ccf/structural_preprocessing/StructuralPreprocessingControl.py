@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # import of built-in modules
+import datetime
 import logging
 import os
 import sys
@@ -47,6 +48,10 @@ __maintainer__ = "Timothy B. Brown"
 # configure logging and create a module logger
 module_logger = logging.getLogger(file_utils.get_logger_name(__file__))
 module_logger.setLevel(logging.INFO) # Note: This can be overridden by file configuration
+
+DNM = "---"  # Does Not Matter
+NA = "N/A"  # Not Available
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 class Login(QDialog):
     def __init__(self, parent=None):
@@ -103,7 +108,7 @@ class Login(QDialog):
 class StatusInfo(object):
 
     def __init__(self, project, subject_id, classifier,
-                 prerequisites_met, output_resource, output_resource_exists,
+                 prerequisites_met, output_resource, output_resource_exists, output_resource_date,
                  processing_complete, run_status):
         super().__init__()
         self.project = project
@@ -112,6 +117,7 @@ class StatusInfo(object):
         self.prerequisites_met = prerequisites_met
         self.output_resource = output_resource
         self.output_resource_exists = output_resource_exists
+        self.output_resource_date = output_resource_date
         self.processing_complete = processing_complete
         self.run_status = run_status
 
@@ -122,6 +128,7 @@ class StatusInfo(object):
                           str(self.prerequisites_met),
                           self.output_resource,
                           str(self.output_resource_exists),
+                          self.output_resource_date,
                           str(self.processing_complete),
                           str(self.run_status)])
         
@@ -173,6 +180,14 @@ class StatusInfo(object):
     def output_resource_exists(self, value):
         self._output_resource_exists = value
 
+    @property
+    def output_resource_date(self):
+        return self._output_resource_date
+
+    @output_resource_date.setter
+    def output_resource_date(self, value):
+        self._output_resource_date = value
+        
     @property
     def processing_complete(self):
         return self._processing_complete
@@ -291,7 +306,7 @@ class ControlPanelWidget(QWidget):
 
     @property
     def header_labels(self):
-        return ["Project", "Subject ID", "Classifier", "Prereqs Met", "Resource", "Exists", "Complete", "Queued/Running"]
+        return ["Project", "Subject ID", "Classifier", "Prereqs Met", "Resource", "Exists", "Resource Date", "Complete", "Queued/Running"]
     
     def createTable(self):
         self.tableWidget = QTableWidget()
@@ -313,11 +328,21 @@ class ControlPanelWidget(QWidget):
             prereqs_met = self.prereq_checker.are_prereqs_met(self.archive, subject)
             resource = self.archive.structural_preproc_dir_name(subject)
             resource_exists = self.completion_checker.does_processed_resource_exist(self.archive, subject)
+
+            if resource_exists:
+                resource_fullpath = self.archive.structural_preproc_dir_full_path(subject)
+                timestamp = os.path.getmtime(resource_fullpath)
+                resource_date = datetime.datetime.fromtimestamp(timestamp).strftime(DATE_FORMAT)
+            else:
+                resource = DNM
+                resource_date = NA
+            
             processing_complete = self.completion_checker.is_processing_marked_complete(self.archive, subject)
             run_status = self.run_status_checker.get_queued_or_running(subject)
             
             status_list.append(StatusInfo(subject.project, subject.subject_id, subject.classifier,
-                                          prereqs_met, resource, resource_exists, processing_complete, run_status))
+                                          prereqs_met, resource, resource_exists, resource_date,
+                                          processing_complete, run_status))
 
         return status_list
     
@@ -360,11 +385,14 @@ class ControlPanelWidget(QWidget):
         self.tableWidget.setItem(row, 5, QTableWidgetItem(str(status_item.output_resource_exists)))
         self.tableWidget.item(row, 5).setTextAlignment(Qt.AlignCenter)
 
-        self.tableWidget.setItem(row, 6, QTableWidgetItem(str(status_item.processing_complete)))
+        self.tableWidget.setItem(row, 6, QTableWidgetItem(str(status_item.output_resource_date)))
         self.tableWidget.item(row, 6).setTextAlignment(Qt.AlignCenter)
 
-        self.tableWidget.setItem(row, 7, QTableWidgetItem(str(status_item.run_status)))
+        self.tableWidget.setItem(row, 7, QTableWidgetItem(str(status_item.processing_complete)))
         self.tableWidget.item(row, 7).setTextAlignment(Qt.AlignCenter)
+
+        self.tableWidget.setItem(row, 8, QTableWidgetItem(str(status_item.run_status)))
+        self.tableWidget.item(row, 8).setTextAlignment(Qt.AlignCenter)
 
     def exportTable(self):
         status_list = self.build_status_list(self._subject_list)
@@ -403,8 +431,8 @@ class MyMainWindow(QMainWindow):
         
         self.left = 0
         self.top = 0
-        self.width = 800
-        self.height = 400
+        self.width = 900
+        self.height = 500
 
         self.initUI(archive, subject_list, prereq_checker, completion_checker, run_status_checker)
 

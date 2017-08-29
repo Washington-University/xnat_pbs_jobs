@@ -69,6 +69,9 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
 
         # If the completion marker file is older than the starttime marker file, then any mark
         # of completeness is invalid.
+        if not os.path.exists(starttime_marker_file_path):
+            return False
+        
         if os.path.getmtime(completion_marker_file_path) < os.path.getmtime(starttime_marker_file_path):
             return False
         
