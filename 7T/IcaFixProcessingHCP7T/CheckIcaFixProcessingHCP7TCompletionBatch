@@ -8,7 +8,7 @@ inform()
 	echo "${SCRIPT_NAME}: ${msg}"
 }
 
-subject_file_name="CheckIcaFixProcessingHCP7TCompletion.Batch.subjects"
+subject_file_name="CheckIcaFixProcessingHCP7TCompletionBatch.subjects"
 inform "Retrieving subject list from ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
@@ -22,7 +22,7 @@ for subject in ${subjects} ; do
 		#project=HCP_Staging_7T
 		project=HCP_1200
 
-		./CheckIcaFixProcessingHCP7TCompletion.sh --project=${project} --subject=${subject} # --post-patch --details
+		./CheckIcaFixProcessingHCP7TCompletion --project=${project} --subject=${subject} # --post-patch --details
 
 	fi
 

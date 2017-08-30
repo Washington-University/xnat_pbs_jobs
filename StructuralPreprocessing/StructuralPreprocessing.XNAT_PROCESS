@@ -819,9 +819,6 @@ main()
  		else
  			log_Err_Abort "The second T1w file: '${second_T1w_file}' does not exist"
  		fi
- 	else
-		t1_spec+=@
-		t1_spec+=${first_T1w_file}
  	fi
 
  	log_Msg "t1_spec: ${t1_spec}"
@@ -850,9 +847,6 @@ main()
 		else
 			log_Err_Abort "The second T2w file: '${second_T2w_file}' does not exist"
 		fi
- 	else
-		t2_spec+=@
-		t2_spec+=${first_T2w_file}
 	fi
 	
  	log_Msg "t2_spec: ${t2_spec}"

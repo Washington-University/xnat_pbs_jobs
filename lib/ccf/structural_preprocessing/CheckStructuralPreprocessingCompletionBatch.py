@@ -88,8 +88,6 @@ if __name__ == "__main__":
         classifier = subject.classifier
 
         prereqs_met = prereq_checker.are_prereqs_met(archive, subject)
-        print(subject_id)
-        print(prereqs_met)
         
         queued_or_running = running_checker.get_queued_or_running(subject)
         

@@ -52,8 +52,7 @@ class OneSubjectJobSubmitter(abc.ABC):
         self._log_dir = os_utils.getenv_required('XNAT_PBS_JOBS_LOG_DIR')
 
         self._scan = None
-        self._working_directory_name = None
-        self._check_directory_name = None
+        self._working_directory_name_prefix = None
 
     def processing_stage_from_string(self, str_value):
         return ccf_processing_stage.ProcessingStage.from_string(str_value)
@@ -224,14 +223,14 @@ class OneSubjectJobSubmitter(abc.ABC):
         module_logger.debug(debug_utils.get_name() + ": set to " + str(value))
 
     @property
-    def working_directory_name(self):
-        # Since the working directory name contains a timestamp, it is
-        # important to only build the working directory name one time.
-        # The first time it is requested, self._working_directory_name
+    def working_directory_name_prefix(self):
+        # Since the working directory name prefix contains a timestamp, it is
+        # important to only build the working directory name prefix one time.
+        # The first time it is requested, self._working_directory_name_prefix
         # will have a value of None. In that case, build the name, store
         # it and return it. For any subsequent requests, simply return
         # the previously built name.
-        if self._working_directory_name is None:
+        if self._working_directory_name_prefix is None:
             current_seconds_since_epoch = int(time.time())
             wdir = self.build_home
             wdir += os.sep + self.project
@@ -240,17 +239,21 @@ class OneSubjectJobSubmitter(abc.ABC):
             if self.scan:
                 wdir += '.' + self.scan
             wdir += '.' + str(current_seconds_since_epoch)
-            self._working_directory_name = wdir
+            self._working_directory_name_prefix = wdir
 
-        return self._working_directory_name
+        return self._working_directory_name_prefix
 
     @property
+    def working_directory_name(self):
+        return self.working_directory_name_prefix + '.XNAT_PROCESS_DATA'
+        
+    @property
     def check_directory_name(self):
-        return self.working_directory_name + '.CHECK_DATA'
+        return self.working_directory_name_prefix + '.XNAT_CHECK_DATA'
 
     @property
     def mark_directory_name(self):
-        return self.working_directory_name + '.MARK_RUNNING_STATUS'
+        return self.working_directory_name_prefix + '.XNAT_MARK_RUNNING_STATUS'
     
     @property
     def scripts_start_name(self):
@@ -289,7 +292,7 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('#PBS -o ' + self.working_directory_name + os.linesep)
         script.write('#PBS -e ' + self.working_directory_name + os.linesep)
         script.write(os.linesep)
-        script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_GET.sh \\' + os.linesep)
+        script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_GET \\' + os.linesep)
         script.write('  --project=' + self.project + ' \\' + os.linesep)
         script.write('  --subject=' + self.subject + ' \\' + os.linesep)
         script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
@@ -437,7 +440,7 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('#PBS -o ' + self.log_dir + os.linesep)
         script.write('#PBS -e ' + self.log_dir + os.linesep)
         script.write(os.linesep)
-        script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_CHECK.sh \\' + os.linesep)
+        script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_CHECK \\' + os.linesep)
         script.write('  --user="' + self.username + '" \\' + os.linesep)
         script.write('  --password="' + self.password + '" \\' + os.linesep)
         script.write('  --server="' + str_utils.get_server_name(self.put_server) + '" \\' + os.linesep)
@@ -476,7 +479,7 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('#PBS -o ' + self.log_dir + os.linesep)
         script.write('#PBS -e ' + self.log_dir + os.linesep)
         script.write(os.linesep)
-        script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.MARK_RUNNING_STATUS.sh \\' + os.linesep)
+        script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_MARK_RUNNING_STATUS \\' + os.linesep)
         script.write('  --project=' + self.project + ' \\' + os.linesep)
         script.write('  --subject=' + self.subject + ' \\' + os.linesep)
         script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
@@ -621,7 +624,7 @@ class OneSubjectJobSubmitter(abc.ABC):
         if stage > ccf_processing_stage.ProcessingStage.PREPARE_SCRIPTS:
             mark_cmd = self._xnat_pbs_jobs_home
             mark_cmd += os.sep + 'StructuralPreprocessing'
-            mark_cmd += os.sep + 'StructuralPreprocessing.MARK_RUNNING_STATUS.sh' 
+            mark_cmd += os.sep + 'StructuralPreprocessing.XNAT_MARK_RUNNING_STATUS' 
             mark_cmd += ' --project=' + self.project
             mark_cmd += ' --subject=' + self.subject
             mark_cmd += ' --classifier=' + self.classifier

@@ -112,7 +112,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     @property
     def freesurfer_assessor_script_name(self):
         module_logger.debug(debug_utils.get_name())
-        return self.scripts_start_name + '.FREESURFER_ASSESSOR_job.sh'
+        return self.scripts_start_name + '.XNAT_CREATE_FREESURFER_ASSESSOR_job.sh'
 
     def _get_positive_spin_echo_path(self, subject_info):
         t1w_resource_paths = self.archive.available_t1w_unproc_dir_full_paths(subject_info)
@@ -195,10 +195,10 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         # copy the .XNAT script to the working directory
         xnat_script_source_name = self.xnat_pbs_jobs_home + os.sep
-        xnat_script_source_name += self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT.sh'
+        xnat_script_source_name += self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_PROCESS'
 
         xnat_script_dest_name = self.working_directory_name + os.sep
-        xnat_script_dest_name += self.PIPELINE_NAME + '.XNAT.sh'
+        xnat_script_dest_name += self.PIPELINE_NAME + '.XNAT_PROCESS'
 
         shutil.copy(xnat_script_source_name, xnat_script_dest_name)
         os.chmod(xnat_script_dest_name, stat.S_IRWXU | stat.S_IRWXG)
@@ -306,15 +306,15 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         # copy the .FREESURFER_ASSESSOR script to the working directory
         freesurfer_assessor_source_name = self.xnat_pbs_jobs_home + os.sep
-        freesurfer_assessor_source_name += self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.FREESURFER_ASSESSOR.sh'
+        freesurfer_assessor_source_name += self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_CREATE_FREESURFER_ASSESSOR'
 
         freesurfer_assessor_dest_name = self.working_directory_name + os.sep
-        freesurfer_assessor_dest_name += self.PIPELINE_NAME + '.FREESURFER_ASSESSOR.sh'
+        freesurfer_assessor_dest_name += self.PIPELINE_NAME + '.XNAT_CREATE_FREESURFER_ASSESSOR'
 
         shutil.copy(freesurfer_assessor_source_name, freesurfer_assessor_dest_name)
         os.chmod(freesurfer_assessor_dest_name, stat.S_IRWXU | stat.S_IRWXG)
 
-        # write the freesurfer assessor submission script (that calls the .FREESURFER_ASSESSOR script)
+        # write the freesurfer assessor submission script (that calls the .XNAT_CREATE_FREESURFER_ASSESSOR script)
 
         script_name = self.freesurfer_assessor_script_name
 
