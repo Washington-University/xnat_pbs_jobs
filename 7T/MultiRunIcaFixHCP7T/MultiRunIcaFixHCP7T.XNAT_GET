@@ -21,12 +21,14 @@ usage()
 Get data from the XNAT archive necessary to run the MultiRunIcaFix processing pipeline
 on 7T HCP data.
 
-Usage: ${g_script_name} PARAMETER..."
+Usage: ${g_script_name} PARAMETER...
 
 PARAMETERs are [ ] = optional; < > = user supplied value
   [--help]             : show this usage information and exit with non-zero return code
    --subject=<subject> : XNAT subject ID within project (e.g. 100307)
    --project=<project> : XNAT project (e.g. HCP_1200)
+   --working-dir=<dir> : Working directory in which to place retrieved data 
+
 EOF
 }
 
@@ -37,13 +39,18 @@ get_options()
 	# initialize global output variables
 	unset g_subject
 	unset g_project
+	unset g_working_dir
 
 	# parse arguments
 	local num_args=${#arguments[@]}
+	echo "num_args: ${num_args}"
+	
 	local argument
 	local index=0
 
 	while [ ${index} -lt ${num_args} ]; do
+		argument=${arguments[index]}
+
 		case ${argument} in
 			--help)
 				usage
@@ -55,6 +62,10 @@ get_options()
 				;;
 			--project=*)
 				g_project=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--working-dir=*)
+				g_working_dir=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -71,16 +82,23 @@ get_options()
 		log_Err "subject (--subject=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_subject: ${g_subject}"
+		log_Msg "subject: ${g_subject}"
 	fi
 
 	if [ -z "${g_project}" ]; then
 		log_Err "project (--project=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_project: ${g_project}"
-	fi	
+		log_Msg "project: ${g_project}"
+	fi
 
+	if [ -z "${g_working_dir}" ]; then
+		log_Err "working_dir (--working-dir=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "working_dir: ${g_working_dir}"
+	fi
+	
 	if [ ${error_count} -gt 0 ]; then
 		log_Err_Abort "For usage information, use --help"
 	fi
@@ -98,13 +116,19 @@ main()
 	log_Msg "Activating Python 3"
 	source activate python3 2>&1
 
+	mkdir -p ${g_working_dir}/tmp
+	
 	log_Msg "Getting CinaB-Style data"
-	${XNAT_PBS_JOBS}/lib/hcp/hcp7t/get_cinab_style_data.py
+	${XNAT_PBS_JOBS}/lib/hcp/hcp7t/get_cinab_style_data.py \
+					--subject=${g_subject} \
+					--project=${g_project} \
+					--study-dir=${g_working_dir}/tmp \
+					--phase="multirunicafix_prereqs" \
+					--remove-non-subdirs \
+					--log
 
-
-
-
-
+	mv ${g_working_dir}/tmp/* ${g_working_dir}
+	rmdir ${g_working_dir}/tmp
 	
 	log_Msg "Complete"
 }

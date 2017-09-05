@@ -529,12 +529,16 @@ def main():
     # retrieve data based on phase requested
     if args.phase == "STRUCT_PREPROC_PREREQS":
         data_retriever.get_struct_preproc_prereqs(subject_info, args.output_study_dir)
+
     elif args.phase == "DIFF_PREPROC_PREREQS":
         data_retriever.get_diffusion_preproc_prereqs(subject_info, args.output_study_dir)
+
     elif args.phase == "FUNC_PREPROC_PREREQS":
         data_retriever.get_functional_preproc_prereqs(subject_info, args.output_study_dir)
+
     elif args.phase == "MULTIRUNICAFIX_PREREQS":
         data_retriever.get_multirunicafix_prereqs(subject_info, args.output_study_dir)
+
     elif args.phase == "DEDRIFTANDRESAMPLE_PREREQS":
         data_retriever.get_dedriftandresample_prereqs(subject_info, args.output_study_dir)
         # Get the group average drift data
