@@ -8,7 +8,12 @@ inform()
 	echo "${SCRIPT_NAME}: ${msg}"
 }
 
-subject_file_name="CheckIcaFixProcessingHCP7TCompletionBatch.subjects"
+if [ -z "${XNAT_PBS_JOBS_CONTROL}" ]; then
+	inform "ABORTING: XNAT_PBS_JOBS_CONTROL environment variable must be set"
+	exit 1
+fi
+
+subject_file_name="${XNAT_PBS_JOBS_CONTROL}/CheckIcaFixProcessingHCP7TCompletionBatch.subjects"
 inform "Retrieving subject list from ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
