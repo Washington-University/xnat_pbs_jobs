@@ -122,7 +122,7 @@ if __name__ == '__main__':
         file_utils.get_logging_config_file_name(__file__),
         disable_existing_loggers=False)
 
-    # get ConnectomeDB credentials
+    # get Database credentials
     userid = input("DB Username: ")
     password = getpass.getpass("DB Password: ")
 
