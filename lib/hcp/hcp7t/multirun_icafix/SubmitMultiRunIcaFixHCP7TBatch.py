@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 # import of built-in modules
+import getpass
+import logging
 
 # import of third-party modules
 
@@ -25,7 +27,7 @@ module_logger.setLevel(logging.WARNING)
 class BatchSubmitter(batch_submitter.BatchSubmitter):
 
     def __init__(self):
-        super.__init__(hcp7t_archive.HCP7T_Archive)
+        super().__init__(hcp7t_archive.Hcp7T_Archive())
 
     def submit_jobs(self, username, password, subject_list, config):
 
@@ -50,9 +52,9 @@ def do_submissions(userid, password, subject_list):
 
 if __name__ == '__main__':
 
-    logging.config.fileConfig(
-        file_utils.get_logging_config_file_name(__file__),
-        disable_existing_loggers=False)
+    logging_config_file_name = file_utils.get_logging_config_file_name(__file__)
+    print("Reading logging configuration from file: " + logging_config_file_name)
+    logging.config.fileConfig(logging_config_file_name, disable_existing_loggers=False)
 
     # get Database credentials
     userid = input("DB Username: ")
