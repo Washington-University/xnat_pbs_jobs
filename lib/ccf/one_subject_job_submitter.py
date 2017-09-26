@@ -81,28 +81,28 @@ class OneSubjectJobSubmitter(abc.ABC):
     @property
     def archive(self):
         """
-        Returns the archive with which this submitter is to work.
+        The archive with which this submitter is to work.
         """
         return self._archive
 
     @property
     def build_home(self):
         """
-        Returns the temporary (e.g. build space) root directory.
+        The temporary (e.g. build space) root directory.
         """
         return self._build_home
 
     @property
     def xnat_pbs_jobs_home(self):
         """
-        Returns the home directory for the XNAT PBS job scripts.
+        The home directory for the XNAT PBS job scripts.
         """
         return self._xnat_pbs_jobs_home
 
     @property
     def log_dir(self):
         """
-        Returns the directory in which to place PUT logs.
+        The directory in which to place PUT logs.
         """
         return self._log_dir
 
@@ -248,11 +248,17 @@ class OneSubjectJobSubmitter(abc.ABC):
         return self.working_directory_name_prefix + '.XNAT_PROCESS_DATA'
         
     @property
-    def check_directory_name(self):
+    def check_data_directory_name(self):
+        """
+        Directory in which the check data job script will reside
+        """
         return self.working_directory_name_prefix + '.XNAT_CHECK_DATA'
 
     @property
-    def mark_directory_name(self):
+    def mark_completion_directory_name(self):
+        """
+        Directory in which the mark completion job script will reside
+        """
         return self.working_directory_name_prefix + '.XNAT_MARK_RUNNING_STATUS'
     
     @property
@@ -267,7 +273,8 @@ class OneSubjectJobSubmitter(abc.ABC):
         return start_name
 
     @property
-    def get_data_script_name(self):
+    def get_data_job_script_name(self):
+        """Name of the script to be submitted to perform the get data job"""
         module_logger.debug(debug_utils.get_name())
         return self.scripts_start_name + '.XNAT_GET_DATA_job.sh'
 
@@ -276,10 +283,19 @@ class OneSubjectJobSubmitter(abc.ABC):
         file_utils.wl(script, bash_line)
         file_utils.wl(script, '')
 
-    def create_get_data_script(self):
+    @property
+    def get_data_program_path(self):
+        """Path to the program that can get the appropriate data for this processing"""
+        name = self.xnat_pbs_jobs_home
+        name += os.sep + self.PIPELINE_NAME
+        name += os.sep + self.PIPELINE_NAME + '.XNAT_GET'
+        return name
+        
+    def create_get_data_job_script(self):
+        """Create the script to be submitted to perform the get data job"""
         module_logger.debug(debug_utils.get_name())
 
-        script_name = self.get_data_script_name
+        script_name = self.get_data_job_script_name
 
         with contextlib.suppress(FileNotFoundError):
             os.remove(script_name)
@@ -292,7 +308,7 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('#PBS -o ' + self.working_directory_name + os.linesep)
         script.write('#PBS -e ' + self.working_directory_name + os.linesep)
         script.write(os.linesep)
-        script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_GET \\' + os.linesep)
+        script.write(self.get_data_program_path + ' \\' + os.linesep)
         script.write('  --project=' + self.project + ' \\' + os.linesep)
         script.write('  --subject=' + self.subject + ' \\' + os.linesep)
         script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
@@ -391,7 +407,10 @@ class OneSubjectJobSubmitter(abc.ABC):
         os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
 
     @property
-    def work_script_name(self):
+    def process_data_job_script_name(self):
+        """
+        Name of script to be submitted as a job to perform the processing of the data.
+        """
         module_logger.debug(debug_utils.get_name())
         return self.scripts_start_name + '.PROCESS_DATA_job.sh'
 
@@ -401,9 +420,12 @@ class OneSubjectJobSubmitter(abc.ABC):
         return self.scripts_start_name + '.SETUP.sh'
 
     @property
-    def check_script_name(self):
+    def check_data_job_script_name(self):
+        """
+        Name of script to be submitted as a job to perform the check data functionality.
+        """
         module_logger.debug(debug_utils.get_name())
-        name = self.check_directory_name
+        name = self.check_data_directory_name
         name += os.sep + self.subject
         name += '.' + self.PIPELINE_NAME
         if self.scan:
@@ -415,9 +437,9 @@ class OneSubjectJobSubmitter(abc.ABC):
 
     def create_setup_file(self):
         module_logger.debug(debug_utils.get_name())
-
+        
         setup_source_file_name = self.PIPELINE_NAME + '.SetUp.sh'
-
+        
         xnat_pbs_jobs_control = os.getenv('XNAT_PBS_JOBS_CONTROL')
         if xnat_pbs_jobs_control:
             setup_source_file_name = xnat_pbs_jobs_control + os.sep + setup_source_file_name
@@ -425,10 +447,23 @@ class OneSubjectJobSubmitter(abc.ABC):
         shutil.copyfile(setup_source_file_name, self.setup_file_name)
         os.chmod(self.setup_file_name, stat.S_IRWXU | stat.S_IRWXG)
 
-    def create_check_script(self):
+    @property
+    def check_data_program_path(self):
+        """
+        Path to program in the XNAT_PBS_JOBS that performs the actual check of result data.
+        """
+        name = self.xnat_pbs_jobs_home
+        name += os.sep + self.PIPELINE_NAME
+        name += os.sep + self.PIPELINE_NAME + '.XNAT_CHECK'
+        return name
+    
+    def create_check_data_job_script(self):
+        """
+        Create the script to be submitted as a job to perform the check data functionality.
+        """
         module_logger.debug(debug_utils.get_name())
 
-        script_name = self.check_script_name
+        script_name = self.check_data_job_script_name
 
         with contextlib.suppress(FileNotFoundError):
             os.remove(script_name)
@@ -440,14 +475,14 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('#PBS -o ' + self.log_dir + os.linesep)
         script.write('#PBS -e ' + self.log_dir + os.linesep)
         script.write(os.linesep)
-        script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_CHECK \\' + os.linesep)
+        script.write(self.check_data_program_path + ' \\' + os.linesep)
         script.write('  --user="' + self.username + '" \\' + os.linesep)
         script.write('  --password="' + self.password + '" \\' + os.linesep)
         script.write('  --server="' + str_utils.get_server_name(self.put_server) + '" \\' + os.linesep)
         script.write('  --project=' + self.project + ' \\' + os.linesep)
         script.write('  --subject=' + self.subject + ' \\' + os.linesep)
         script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
-        script.write('  --working-dir=' + self.check_directory_name + os.linesep)
+        script.write('  --working-dir=' + self.check_data_directory_name + os.linesep)
 
         script.close()
         os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
@@ -455,7 +490,7 @@ class OneSubjectJobSubmitter(abc.ABC):
     @property
     def mark_no_longer_running_script_name(self):
         module_logger.debug(debug_utils.get_name())
-        name = self.mark_directory_name
+        name = self.mark_completion_directory_name
         name += os.sep + self.subject
         name += '.' + self.PIPELINE_NAME
         if self.scan:
@@ -463,7 +498,17 @@ class OneSubjectJobSubmitter(abc.ABC):
         name += '.' + self.project
         name += '.' + 'MARK_RUNNING_STATUS_job.sh'
         return name
-        
+
+    @property
+    def mark_running_status_program_path(self):
+        """
+        Path to program in XNAT_PBS_JOS that performs the mark of running status.
+        """
+        name = self.xnat_pbs_jobs_home
+        name += os.sep + self.PIPELINE_NAME
+        name += os.sep + self.PIPELINE_NAME + '.XNAT_MARK_RUNNING_STATUS'
+        return name
+    
     def create_mark_no_longer_running_script(self):
         module_logger.debug(debug_utils.get_name())
 
@@ -479,13 +524,13 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('#PBS -o ' + self.log_dir + os.linesep)
         script.write('#PBS -e ' + self.log_dir + os.linesep)
         script.write(os.linesep)
-        script.write(self.xnat_pbs_jobs_home + os.sep + self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_MARK_RUNNING_STATUS \\' + os.linesep)
+        script.write(self.mark_running_status_program_path + ' \\' + os.linesep)
         script.write('  --project=' + self.project + ' \\' + os.linesep)
         script.write('  --subject=' + self.subject + ' \\' + os.linesep)
         script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
         script.write('  --done' + os.linesep)
         script.write(os.linesep)
-        script.write("rm -rf " + self.mark_directory_name)
+        script.write("rm -rf " + self.mark_completion_directory_name)
         
         script.close()
         os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
@@ -495,9 +540,9 @@ class OneSubjectJobSubmitter(abc.ABC):
 
         if stage >= ccf_processing_stage.ProcessingStage.GET_DATA:
             if prior_job:
-                get_data_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.get_data_script_name
+                get_data_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.get_data_job_script_name
             else:
-                get_data_submit_cmd = 'qsub ' + self.get_data_script_name
+                get_data_submit_cmd = 'qsub ' + self.get_data_job_script_name
 
             completed_submit_process = subprocess.run(
                 get_data_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
@@ -513,9 +558,9 @@ class OneSubjectJobSubmitter(abc.ABC):
 
         if stage >= ccf_processing_stage.ProcessingStage.PROCESS_DATA:
             if prior_job:
-                work_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.work_script_name
+                work_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.process_data_job_script_name
             else:
-                work_submit_cmd = 'qsub ' + self.work_script_name
+                work_submit_cmd = 'qsub ' + self.process_data_job_script_name
 
             completed_submit_process = subprocess.run(
                 work_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
@@ -567,9 +612,9 @@ class OneSubjectJobSubmitter(abc.ABC):
 
         if stage >= ccf_processing_stage.ProcessingStage.CHECK_DATA:
             if prior_job:
-                check_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.check_script_name
+                check_submit_cmd = 'qsub -W depend=afterok:' + prior_job + ' ' + self.check_data_job_script_name
             else:
-                check_submit_cmd = 'qsub ' + self.check_script_name
+                check_submit_cmd = 'qsub ' + self.check_data_job_script_name
 
             completed_submit_process = subprocess.run(
                 check_submit_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
@@ -594,48 +639,32 @@ class OneSubjectJobSubmitter(abc.ABC):
         return job_no, [job_no]
         
     @abc.abstractmethod
-    def create_work_script(self):
-        module_logger.debug(debug_utils.get_name())
+    def create_process_data_job_script(self):
         raise NotImplementedError()
 
     @abc.abstractmethod
     def output_resource_name(self):
-        module_logger.debug(debug_utils.get_name())
         raise NotImplementedError()
 
     def create_scripts(self, stage):
         module_logger.debug(debug_utils.get_name())
 
         if stage >= ccf_processing_stage.ProcessingStage.PREPARE_SCRIPTS:
-            self.create_get_data_script()
+            self.create_get_data_job_script()
             self.create_setup_file()
-            self.create_work_script()
+            self.create_process_data_job_script()
             self.create_clean_data_script()
             self.create_put_data_script()
-            self.create_check_script()
+            self.create_check_data_job_script()
             self.create_mark_no_longer_running_script()
             
         else:
             module_logger.info("Scripts not created")
 
+    @abc.abstractmethod
     def mark_running_status(self, stage):
-        module_logger.debug(debug_utils.get_name())
+        raise NotImplementedError()
 
-        if stage > ccf_processing_stage.ProcessingStage.PREPARE_SCRIPTS:
-            mark_cmd = self._xnat_pbs_jobs_home
-            mark_cmd += os.sep + 'StructuralPreprocessing'
-            mark_cmd += os.sep + 'StructuralPreprocessing.XNAT_MARK_RUNNING_STATUS' 
-            mark_cmd += ' --project=' + self.project
-            mark_cmd += ' --subject=' + self.subject
-            mark_cmd += ' --classifier=' + self.classifier
-            mark_cmd += ' --queued'
-
-            completed_mark_cmd_process = subprocess.run(
-                mark_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
-            print(completed_mark_cmd_process.stdout)
-            
-            return
-        
     def do_job_submissions(self, processing_stage):
         submitted_jobs_list = []
         prior = None
@@ -707,8 +736,8 @@ class OneSubjectJobSubmitter(abc.ABC):
 
         # build the working directory name
         os.makedirs(name=self.working_directory_name)
-        os.makedirs(name=self.check_directory_name)
-        os.makedirs(name=self.mark_directory_name)
+        os.makedirs(name=self.check_data_directory_name)
+        os.makedirs(name=self.mark_completion_directory_name)
         
         # determine output resource name
         module_logger.info("Output Resource Name: " + self.output_resource_name())

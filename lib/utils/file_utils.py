@@ -145,14 +145,51 @@ def getmtime_str(path, date_format=DEFAULT_DATE_FORMAT):
 
 
 def make_link_into_copy(full_path, verbose=False, output=sys.stdout):
+    """
+    If the specified full_path is a symbolic link, copy the file it 
+    is linked to into the location of the symbolic link. So the 
+    full_path specified will now be a copy of the file that it 
+    previously was a link to.
+    """
     if os.path.islink(full_path):
-        if verbose:
-            print("Making: '" + full_path + "' a copy instead of a symbolic link", file=output)
         linked_to = os.readlink(full_path)
+        if not os.path.isabs(linked_to):
+            linked_to = os.path.dirname(full_path) + os.sep + linked_to
+
+        if verbose:
+            print("Making: '" + full_path + "' a copy of '" + linked_to +
+                  "' instead of a symbolic link", file=output)
+        
         os.remove(full_path)
         shutil.copy2(linked_to, full_path)
 
 
+def make_all_links_into_copies(full_path, verbose=False, output=sys.stdout):
+    """
+    If the specified full_path is not a directory and the specified full_path
+    is a symbolic link, convert the full_path to a copy of the previously linked
+    file. If the specified full_path is a directory, then recursively search 
+    for symbolic links in the directory tree and convert all of them to 
+    copies of their previously linked to files.
+    """
+    if os.path.isdir(full_path):
+        # walk the directory's contents and recursively call this
+        # function
+        for root, dirs, files in os.walk(full_path):
+            if verbose:
+                print("Checking Directory:", root, file=output)
+            for dir in dirs:
+                next_full_path = '%s%s%s' % (root, os.sep, dir)
+                make_all_links_into_copies(next_full_path, verbose, output)
+            for file in files:
+                next_full_path = '%s%s%s' % (root, os.sep, file)
+                make_all_links_into_copies(next_full_path, verbose, output)
+    else:
+        if verbose:
+            print("Checking File.....:", full_path, file=output)
+        make_link_into_copy(full_path, verbose, output)
+
+        
 def rm_file_if_exists(full_path, verbose=False, output=sys.stdout):
     if os.path.isfile(full_path):
         if verbose:

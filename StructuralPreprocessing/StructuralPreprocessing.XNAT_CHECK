@@ -171,7 +171,6 @@ main()
 
 	get_options "$@"
 
-	# Link CinaB-style data
 	log_Msg "Activating Python 3"
 	source activate python3 2>&1
 

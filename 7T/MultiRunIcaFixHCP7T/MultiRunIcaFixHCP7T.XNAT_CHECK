@@ -1,0 +1,39 @@
+#!/bin/bash
+g_script_name=$(basename "${0}")
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	echo "${g_script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
+source "${XNAT_PBS_JOBS}/shlib/log.shlib"  # Logging related functions
+source "${XNAT_PBS_JOBS}/shlib/utils.shlib"  # Utility functions
+log_Msg "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
+
+if [ -z "${XNAT_PBS_JOBS_ARCHIVE_ROOT}" ]; then
+	log_Err_Abort "XNAT_PBS_JOBS_ARCHIVE_ROOT environment variable must be set"
+else
+	log_Msg "XNAT_PBS_JOBS_ARCHIVE_ROOT: ${XNAT_PBS_JOBS_ARCHIVE_ROOT}"
+fi
+
+usage()
+{
+	cat <<EOF
+
+Check a created MultiRunIcaFixHCP7T processed resource for completeness
+
+Usage: ${g_script_name} PARAMETER..."
+
+PARAMETERs are [ ] = optional; < > = user supplied value
+  [--help]                   : show usage information and exit with non-zero return code
+   --user=<username>         : XNAT DB username
+   --password=<password>     : XNAT DB password
+   --server=<server>         : XNAT server
+   --project=<project>       : XNAT project (e.g. HCP_500)
+   --subject=<subject>       : XNAT subject ID within project (e.g. 100307)
+   --classifier=<classifier> : XNAT session classifier (e.g. 3T, 7T, MR, V1, V2, etc.)
+   --working-dir=<dir>       : Working directory in which to place retrieved data
+                               and in which to produce results
+
+EOF
+}

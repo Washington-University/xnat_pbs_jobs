@@ -28,12 +28,12 @@ from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import qApp
 
 # import of local modules
-import ccf.archive as ccf_archive
-import ccf.structural_preprocessing.SubmitStructuralPreprocessingBatch as SubmitStructuralPreprocessingBatch
-import ccf.structural_preprocessing.one_subject_completion_checker as one_subject_completion_checker
-import ccf.structural_preprocessing.one_subject_prereq_checker as one_subject_prereq_checker
-import ccf.structural_preprocessing.one_subject_run_status_checker as one_subject_run_status_checker
-import ccf.subject as ccf_subject
+import hcp.hcp7t.archive as hcp7t_archive
+import hcp.hcp7t.multirun_icafix.SubmitMultiRunIcaFixHCP7TBatch as SubmitMultiRunIcaFixHCP7TBatch
+import hcp.hcp7t.multirun_icafix.one_subject_completion_checker as one_subject_completion_checker
+import hcp.hcp7t.multirun_icafix.one_subject_prereq_checker as one_subject_prereq_checker
+import hcp.hcp7t.multirun_icafix.one_subject_run_status_checker as one_subject_run_status_checker
+import hcp.hcp7t.subject as hcp7t_subject
 import qt_utils.login_dialog as login_dialog
 import utils.file_utils as file_utils
 
@@ -54,13 +54,12 @@ DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 class StatusInfo(object):
 
-    def __init__(self, project, subject_id, classifier,
+    def __init__(self, project, subject_id,
                  prerequisites_met, output_resource, output_resource_exists, output_resource_date,
                  processing_complete, run_status):
         super().__init__()
         self.project = project
         self.subject_id = subject_id
-        self.classifier = classifier
         self.prerequisites_met = prerequisites_met
         self.output_resource = output_resource
         self.output_resource_exists = output_resource_exists
@@ -71,14 +70,13 @@ class StatusInfo(object):
     def __str__(self):
         return "\t".join([self.project,
                           self.subject_id,
-                          self.classifier,
                           str(self.prerequisites_met),
                           self.output_resource,
                           str(self.output_resource_exists),
                           self.output_resource_date,
                           str(self.processing_complete),
                           str(self.run_status)])
-        
+
     @property
     def project(self):
         return self._project
@@ -94,14 +92,6 @@ class StatusInfo(object):
     @subject_id.setter
     def subject_id(self, value):
         self._subject_id = value
-
-    @property
-    def classifier(self):
-        return self._classifier
-
-    @classifier.setter
-    def classifier(self, value):
-        self._classifier = value
 
     @property
     def prerequisites_met(self):
@@ -150,8 +140,8 @@ class StatusInfo(object):
     @run_status.setter
     def run_status(self, value):
         self._run_status = value
-        
-        
+    
+
 class ControlPanelWidget(QWidget):
 
     def __init__(self, archive, subject_list, prereq_checker, completion_checker, run_status_checker):
@@ -219,7 +209,7 @@ class ControlPanelWidget(QWidget):
             
         else:
             if self._login.exec_() == QDialog.Accepted:
-                SubmitStructuralPreprocessingBatch.do_submissions(
+                SubmitMultiRunIcaFixHCP7TBatch.do_submissions(
                     self._login.username, self._login.password, launch_subject_list)
                 self.on_refresh_click()
                 
@@ -254,7 +244,7 @@ class ControlPanelWidget(QWidget):
 
     @property
     def header_labels(self):
-        return ["Project", "Subject ID", "Classifier", "Prereqs Met", "Resource", "Exists", "Resource Date", "Complete", "Queued/Running"]
+        return ["Project", "Subject ID", "Prereqs Met", "Resource", "Exists", "Resource Date", "Complete", "Queued/Running"]
     
     def createTable(self):
         self.tableWidget = QTableWidget()
@@ -274,10 +264,18 @@ class ControlPanelWidget(QWidget):
 
         for subject in self._subject_list:
             prereqs_met = self.prereq_checker.are_prereqs_met(self.archive, subject)
-            resource = self.archive.structural_preproc_dir_name(subject)
+            # ici
+            
+            resource = self.archive.multirun_icafix_proc_dir_name(subject)
+
+
+
+            
             resource_exists = self.completion_checker.does_processed_resource_exist(self.archive, subject)
 
             if resource_exists:
+
+                # ici
                 resource_fullpath = self.archive.structural_preproc_dir_full_path(subject)
                 timestamp = os.path.getmtime(resource_fullpath)
                 resource_date = datetime.datetime.fromtimestamp(timestamp).strftime(DATE_FORMAT)
@@ -288,7 +286,7 @@ class ControlPanelWidget(QWidget):
             processing_complete = self.completion_checker.is_processing_marked_complete(self.archive, subject)
             run_status = self.run_status_checker.get_queued_or_running(subject)
             
-            status_list.append(StatusInfo(subject.project, subject.subject_id, subject.classifier,
+            status_list.append(StatusInfo(subject.project, subject.subject_id, 
                                           prereqs_met, resource, resource_exists, resource_date,
                                           processing_complete, run_status))
 
@@ -321,26 +319,23 @@ class ControlPanelWidget(QWidget):
         self.tableWidget.setItem(row, 1, QTableWidgetItem(status_item.subject_id))
         self.tableWidget.item(row, 1).setTextAlignment(Qt.AlignCenter)
 
-        self.tableWidget.setItem(row, 2, QTableWidgetItem(status_item.classifier))
+        self.tableWidget.setItem(row, 2, QTableWidgetItem(str(status_item.prerequisites_met)))
         self.tableWidget.item(row, 2).setTextAlignment(Qt.AlignCenter)
 
-        self.tableWidget.setItem(row, 3, QTableWidgetItem(str(status_item.prerequisites_met)))
+        self.tableWidget.setItem(row, 3, QTableWidgetItem(str(status_item.output_resource)))
         self.tableWidget.item(row, 3).setTextAlignment(Qt.AlignCenter)
 
-        self.tableWidget.setItem(row, 4, QTableWidgetItem(str(status_item.output_resource)))
+        self.tableWidget.setItem(row, 4, QTableWidgetItem(str(status_item.output_resource_exists)))
         self.tableWidget.item(row, 4).setTextAlignment(Qt.AlignCenter)
 
-        self.tableWidget.setItem(row, 5, QTableWidgetItem(str(status_item.output_resource_exists)))
+        self.tableWidget.setItem(row, 5, QTableWidgetItem(str(status_item.output_resource_date)))
         self.tableWidget.item(row, 5).setTextAlignment(Qt.AlignCenter)
 
-        self.tableWidget.setItem(row, 6, QTableWidgetItem(str(status_item.output_resource_date)))
+        self.tableWidget.setItem(row, 6, QTableWidgetItem(str(status_item.processing_complete)))
         self.tableWidget.item(row, 6).setTextAlignment(Qt.AlignCenter)
 
-        self.tableWidget.setItem(row, 7, QTableWidgetItem(str(status_item.processing_complete)))
+        self.tableWidget.setItem(row, 7, QTableWidgetItem(str(status_item.run_status)))
         self.tableWidget.item(row, 7).setTextAlignment(Qt.AlignCenter)
-
-        self.tableWidget.setItem(row, 8, QTableWidgetItem(str(status_item.run_status)))
-        self.tableWidget.item(row, 8).setTextAlignment(Qt.AlignCenter)
 
     def exportTable(self):
         status_list = self.build_status_list(self._subject_list)
@@ -360,7 +355,7 @@ class MyMainWindow(QMainWindow):
 
     def __init__(self, archive, subject_list, prereq_checker, completion_checker, run_status_checker):
         super().__init__()
-        self.title = "Structural Preprocessing Control"
+        self.title = "7T Multi-run ICA FIX Processing Control"
 
         exitAction = QAction('&Exit', self)
         exitAction.setShortcut('Ctrl+Q')
@@ -394,7 +389,7 @@ class MyMainWindow(QMainWindow):
         #subject_file_name, other_stuff = QFileDialog.getOpenFileName(self, "Open Subject File", "", "Subject Files (*.subjects);;All Files (*)", options=options)
         subject_file_name, other_stuff = QFileDialog.getOpenFileName(self, "Open Subject File", control_location, "Subject Files (*.subjects);;All Files (*)", options=options)
         if subject_file_name:
-            new_subject_list = ccf_subject.read_subject_info_list(subject_file_name, separator=":")
+            new_subject_list = hcp7t_subject.read_subject_info_list(subject_file_name, separator=":")
             self.controlPanel.subject_list = new_subject_list
         
     def initUI(self, archive, subject_list, prereq_checker, completion_checker, run_status_checker):
@@ -410,13 +405,9 @@ class MyMainWindow(QMainWindow):
         
 if __name__ == "__main__":
 
-    # get list of subjects to work with
-    #subject_file_name = file_utils.get_subjects_file_name(__file__)
-    #print("Retrieving subject list from: " + subject_file_name)
-    #subject_list = ccf_subject.read_subject_info_list(subject_file_name, separator=":")
     subject_list = []
-    
-    archive = ccf_archive.CcfArchive()
+
+    archive = hcp7t_archive.Hcp7T_Archive()
     prereq_checker = one_subject_prereq_checker.OneSubjectPrereqChecker()
     completion_checker = one_subject_completion_checker.OneSubjectCompletionChecker()
     run_status_checker = one_subject_run_status_checker.OneSubjectRunStatusChecker()
@@ -430,3 +421,6 @@ if __name__ == "__main__":
 
     sys.exit(app.exec_())
 
+
+
+        

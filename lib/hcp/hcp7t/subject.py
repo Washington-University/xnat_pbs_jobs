@@ -10,14 +10,11 @@ in simple text files.
 import os
 import sys
 
-
 # import of third party modules
-
 
 # import of local modules
 import hcp.subject as hcp_subject
 import utils.str_utils as str_utils
-
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -64,11 +61,25 @@ class Hcp7TSubjectInfo(hcp_subject.HcpSubjectInfo):
     def __str__(self):
         """Returns the informal string representation."""
         separator = super().DEFAULT_SEPARATOR()
-        return str(self.project + separator + 
-                   self.structural_reference_project + separator +
-                   self.subject_id + separator + 
-                   str(self.extra))
+        project = 'None'
+        ref_project = 'None'
+        subject_id = 'None'
+        extra = 'None'
+        
+        if self.project:
+            project = self.project
 
+        if self.structural_reference_project:
+            ref_project = self.structural_reference_project
+
+        if self.subject_id:
+            subject_id = self.subject_id
+
+        if self.extra:
+            extra = self.extra
+
+        result_str = separator.join([project, ref_project, subject_id, extra])
+        return result_str
 
 def read_subject_info_list(file_name, separator=Hcp7TSubjectInfo.DEFAULT_SEPARATOR()):
     """Reads a subject information list from the specified file.
@@ -99,8 +110,15 @@ def read_subject_info_list(file_name, separator=Hcp7TSubjectInfo.DEFAULT_SEPARAT
 
             # Make the string 'None' in the file translate to a None type instead of just the
             # string itself
+            if project == 'None':
+                project = None
+            if structural_ref_project == 'None':
+                structural_ref_project = None
+            if subject_id == 'None':
+                subject_id = None
             if extra == 'None':
                 extra = None
+
             subject_info = Hcp7TSubjectInfo(project, structural_ref_project, subject_id, extra)
             subject_info_list.append(subject_info)
 

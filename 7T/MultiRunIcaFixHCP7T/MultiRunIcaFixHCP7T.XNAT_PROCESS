@@ -1,0 +1,258 @@
+#!/bin/bash
+
+g_pipeline_name="MultiRunIcaFixHCP7T"
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	script_name=$(basename "${0}")
+	echo "${script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
+source "${XNAT_PBS_JOBS}/shlib/log.shlib"  # Logging related functions
+source "${XNAT_PBS_JOBS}/shlib/utils.shlib"  # Utility functions
+log_Msg "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
+
+if [ -z "${HCPPIPEDIR}" ]; then
+	log_Err_Abort "HCPPIPEDIR environment variable must be set"
+fi
+
+# Show script usage information
+usage()
+{
+	cat <<EOF
+
+Run the HCP MultiRunICAFIX pipeline for 7T data
+
+EOF
+}
+
+declare -a g_group_array
+declare -a g_concat_name_array
+
+get_options()
+{
+	local arguments=($@)
+	
+	# initialize global output variables
+	unset g_user
+	unset g_password
+	unset g_server
+
+	unset g_project
+	unset g_subject
+	unset g_session
+
+	unset g_working_dir
+	unset g_setup_script
+
+	g_group_count=0
+
+	g_concat_name_count=0
+	
+	# parse arguments
+	local num_args=${#arguments[@]}
+	local argument
+	local index=0
+	
+	while [ ${index} -lt ${num_args} ]; do
+		argument=${arguments[index]}
+
+		case ${argument} in
+			--help)
+				usage
+				exit 1
+				;;
+			--user=*)
+				g_user=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--password=*)
+				g_password=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--server=*)
+				g_server=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--project=*)
+				g_project=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--subject=*)
+				g_subject=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--session=*)
+				g_session=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--working-dir=*)
+				g_working_dir=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--setup-script=*)
+				g_setup_script=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--group=*)
+				# Note: an individual group is an "@" separated list of scan names
+				g_group_array[g_group_count]=${argument#*=}
+				g_group_count=$(( g_group_count + 1 ))
+				index=$(( index + 1 ))
+				;;
+			--concat-name=*)
+				# Note: a concatenation name is the name to assign to the output for a group
+				g_concat_name_array[g_concat_name_count]=${argument#*=}
+				g_concat_name_count=$(( g_concat_name_count + 1 ))
+				index=$(( index + 1 ))
+				;;
+			*)
+				usage
+				log_Err_Abort "unrecognized option ${argument}"
+				;;
+		esac
+
+	done
+	
+	local error_msgs=""
+	
+	# check required parameters
+	if [ -z "${g_user}" ]; then
+		error_msgs+="\n user (--user=) required"
+	else
+		log_Msg "user: ${g_user}"
+	fi
+	
+	if [ -z "${g_password}" ]; then
+		error_msgs+="\n password (--password=) required"
+	else
+		log_Msg "password: ***** password mask *****"
+	fi
+	
+	if [ -z "${g_server}" ]; then
+		error_msgs+="\n server (--server=) required"
+	else
+		log_Msg "server: ${g_server}"
+	fi
+
+	if [ -z "${g_project}" ]; then
+		error_msgs+="\n project (--project=) required"
+	else
+		log_Msg "project: ${g_project}"
+	fi
+
+	if [ -z "${g_subject}" ]; then
+		error_msgs+="\n subject (--subject=) required"
+	else
+		log_Msg "subject: ${g_subject}"
+	fi
+
+	if [ -z "${g_session}" ]; then
+		error_msgs+="\n session (--session=) required"
+	else
+		log_Msg "session: ${g_session}"
+	fi
+
+	if [ -z "${g_working_dir}" ]; then
+		error_msgs+="\n working directory (--working-dir=) required"
+	else
+		log_Msg "working directory: ${g_working_dir}"
+	fi
+
+	if [ -z "${g_setup_script}" ]; then
+		error_msgs+="\n setup script (--setup-script=) required"
+	else
+		log_Msg "setup script: ${g_setup_script}"
+	fi
+
+	if [ ${g_group_count} -ne ${g_concat_name_count} ] ; then
+		error_msgs+="\n number of groups ${g_group_count} must match number of concat names ${g_concat_name_count}"
+	else
+		log_Msg "Number of groups: ${g_group_count}"
+		log_Msg "Number of concatenation names: ${g_concat_name_count}"
+
+		local group_index=0
+		while [ ${group_index} -lt ${g_group_count} ]; do
+			log_Msg "Group Number: ${group_index}"
+			log_Msg "         Group: " ${g_group_array[group_index]}
+			log_Msg "   Concat Name: " ${g_concat_name_array[group_index]}
+			group_index=$(( group_index + 1 ))
+		done
+	fi
+	
+	if [ ! -z "${error_msgs}" ]; then
+		usage
+		log_Err_Abort ${error_msgs}
+	fi
+}
+
+main()
+{
+	show_job_start
+
+	show_platform_info
+
+	get_options "$@"
+
+	create_start_time_file ${g_working_dir} ${g_pipeline_name}
+
+	source_script ${g_setup_script}
+
+	if [ -z "${FSL_FIXDIR}" ]; then
+		log_Err_Abort "FSL_FIXDIR environment variable should be set in ${g_setup_script}"
+	fi
+	
+	source_script ${XNAT_PBS_JOBS}/ToolSetupScripts/epd-python_setup.sh
+
+	local group_index=0
+
+	while [ ${group_index} -lt ${g_group_count} ]; do
+		log_Msg "group_index: ${group_index}"
+		log_Msg "g_group_count: ${g_group_count}"
+		
+		local fMRI_names
+		fMRI_names=${g_group_array[group_index]//@/ }
+		log_Msg "fMRI_names: ${fMRI_names}"
+		
+		local files
+		files=""
+		for fMRI_name in ${fMRI_names} ; do
+			if [ -z "${files}" ]; then
+				files=${g_working_dir}/${g_subject}/MNINonLinear/Results/${fMRI_name}/${fMRI_name}.nii.gz
+			else
+				files=${files}@${g_working_dir}/${g_subject}/MNINonLinear/Results/${fMRI_name}/${fMRI_name}.nii.gz
+			fi
+		done
+
+		log_Msg "files: ${files}"
+
+		local concat_file_path
+		concat_file_path=${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_concat_name_array[group_index]}/${g_concat_name_array[group_index]}.nii.gz
+
+		log_Msg "concat_file_path: ${concat_file_path}"
+
+		# Run the hcp_fix_multi_run script
+		cmd="${HCPPIPEDIR}/ICAFIX/hcp_fix_multi_run"
+		cmd+=" ${files}"
+		cmd+=" 2000"
+		cmd+=" ${concat_file_path}"
+		cmd+=" ${FSL_FIXDIR}/training_files/HCP7T_hp2000.RData"
+		
+		log_Msg "About to issue the following command"
+		log_Msg "${cmd}"
+
+		${cmd}
+		return_code=$?
+		if [ ${return_code} -ne 0 ]; then
+			log_Err_Abort "hcp_fix_multi_run non-zero return code: ${return_code}"
+		fi
+
+		group_index=$(( group_index + 1 ))
+		
+	done
+		
+	log_Msg "Complete"
+}
+
+# Invoke the main function to get things started
+main "$@"

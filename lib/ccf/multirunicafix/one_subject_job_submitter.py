@@ -192,7 +192,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         # create scripts for various stages of processing
         if processing_stage >= one_subject_job_submitter.ProcessingStage.PREPARE_SCRIPTS:
-            self.create_get_data_script()
+            self.create_get_data_job_script()
             self.create_work_script()
             self.create_clean_data_script()
             self.create_put_data_script()

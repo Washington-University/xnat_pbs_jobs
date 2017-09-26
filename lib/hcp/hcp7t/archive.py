@@ -161,6 +161,17 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
     def is_movie_scan_name(self, scan_name):
         return (self.is_task_scan_name(scan_name) and 'MOVIE' in scan_name)
 
+    def available_session_dirs_list(self, project):
+        dir_list = glob.glob(self.project_archive_root(project) + os.sep + '*' + self.TESLA_SPEC)
+        return sorted(dir_list)
+
+    def available_subject_id_list(self, project):
+        session_dir_list = self.available_session_dirs_list(project)
+        subject_id_list = []
+        for directory in session_dir_list:
+            subject_id_list.append(self._get_subject_id_from_session_name(self._get_session_name_from_path(directory)))
+        return subject_id_list
+
     def available_movie_preproc_dirs(self, subject_info):
         """Returns a list of full paths to functionally preprocessed MOVIE task scan resources."""
         dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + '/*' +
@@ -176,6 +187,25 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
+    def available_retinotopy_unproc_dirs(self, subject_info):
+        """
+        Returns a list of full paths to unprocessed retinotopy task scan resources.
+        """
+        dir_list = glob.glob(self.subject_resources_dir_fullpath(subject_info) + os.sep + '*' +
+                             self.TASK_SCAN_MARKER + '*RET*' + self.UNPROC_SUFFIX)
+        return sorted(dir_list)
+
+    def available_retinotopy_unproc_names(self, subject_info):
+        """
+        Returns a list of scan names (not full paths) of available unprocessed
+        retinotopy task scan resources.
+        """
+        dir_list = self.available_retinotopy_unproc_dirs(subject_info)
+        name_list = []
+        for directory in dir_list:
+            name_list.append(self._get_scan_name_from_path(directory))
+        return name_list
+    
     def available_retinotopy_preproc_dirs(self, subject_info):
         """Returns a list of full paths to functionally preprocessed retinotopy task scan
         resources."""
@@ -211,6 +241,11 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
     def DeDriftAndResample_HighRes_processed_dir_name(self, subject_info):
         return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.DEDRIFT_AND_RESAMPLE_HIGHRES_RESOURCE_NAME
 
+    def multirun_icafix_proc_dir_name(self, subject_info):
+        return 'RET_FIX'
+
+    def multirun_icafix_proc_dir_full_path(self, subject_info):
+        return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.multirun_icafix_proc_dir_name(subject_info)
 
 def _simple_interactive_demo():
 

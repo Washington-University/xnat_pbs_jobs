@@ -751,9 +751,6 @@ do_gradient_echo_field_maps_exist()
 }
 
 # Main processing
-#   Carry out the necessary steps to:
-#   - get prerequisite data for the Strucutral Preprocessing pipeline 
-#   - run the scripts
 main()
 {
 	local UNWARPDIR="z"

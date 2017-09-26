@@ -32,12 +32,16 @@ module_logger.setLevel(logging.WARNING)
 
 class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
+    @classmethod
+    def MY_PIPELINE_NAME(cls):
+        return 'StructuralPreprocessing'
+
     def __init__(self, archive, build_home):
         super().__init__(archive, build_home)
-
+    
     @property
     def PIPELINE_NAME(self):
-        return "StructuralPreprocessing"
+        return OneSubjectJobSubmitter.MY_PIPELINE_NAME()
 
     @property
     def WORK_NODE_COUNT(self):
@@ -190,24 +194,27 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     def _get_first_t2w_file_name(self, subject_info):
         return self.session + self.archive.NAME_DELIMITER + self._get_first_t2w_name(subject_info) + '.nii.gz'
 
-    def create_work_script(self):
+    def create_process_data_job_script(self):
         module_logger.debug(debug_utils.get_name())
 
         # copy the .XNAT script to the working directory
-        xnat_script_source_name = self.xnat_pbs_jobs_home + os.sep
-        xnat_script_source_name += self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_PROCESS'
+        processing_script_source_name = self.xnat_pbs_jobs_home
+        processing_script_source_name += os.sep + self.PIPELINE_NAME
+        processing_script_source_name += os.sep + self.PIPELINE_NAME
+        processing_script_source_name += '.XNAT_PROCESS'
 
-        xnat_script_dest_name = self.working_directory_name + os.sep
-        xnat_script_dest_name += self.PIPELINE_NAME + '.XNAT_PROCESS'
+        processing_script_dest_name = self.working_directory_name
+        processing_script_dest_name += os.sep + self.PIPELINE_NAME
+        processing_script_dest_name += '.XNAT_PROCESS'
 
-        shutil.copy(xnat_script_source_name, xnat_script_dest_name)
-        os.chmod(xnat_script_dest_name, stat.S_IRWXU | stat.S_IRWXG)
+        shutil.copy(processing_script_source_name, processing_script_dest_name)
+        os.chmod(processing_script_dest_name, stat.S_IRWXU | stat.S_IRWXG)
 
-        # write the work script (that calls the .XNAT script)
+        # write the process data job script (that calls the .XNAT script)
 
         subject_info = ccf_subject.SubjectInfo(self.project, self.subject, self.classifier)
 
-        script_name = self.work_script_name
+        script_name = self.process_data_job_script_name
 
         with contextlib.suppress(FileNotFoundError):
             os.remove(script_name)
@@ -223,7 +230,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         stdout_line = '#PBS -o ' + self.working_directory_name
         stderr_line = '#PBS -e ' + self.working_directory_name
 
-        script_line    = xnat_script_dest_name
+        script_line    = processing_script_dest_name
         user_line      = '  --user=' + self.username
         password_line  = '  --password=' + self.password
         server_line    = '  --server=' + str_utils.get_server_name(self.server)
@@ -257,7 +264,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         se_phase_pos_line    = '  --se-phase-pos=' + self._get_positive_spin_echo_file_name(subject_info)
         se_phase_neg_line    = '  --se-phase-neg=' + self._get_negative_spin_echo_file_name(subject_info)
 
-        wdir_line = '  --working-dir=' + self.working_directory_name
+        wdir_line  = '  --working-dir=' + self.working_directory_name
         setup_line = '  --setup-script=' + self.setup_file_name
 
         with open(script_name, 'w') as script:
@@ -305,11 +312,14 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         module_logger.debug(debug_utils.get_name())
 
         # copy the .FREESURFER_ASSESSOR script to the working directory
-        freesurfer_assessor_source_name = self.xnat_pbs_jobs_home + os.sep
-        freesurfer_assessor_source_name += self.PIPELINE_NAME + os.sep + self.PIPELINE_NAME + '.XNAT_CREATE_FREESURFER_ASSESSOR'
+        freesurfer_assessor_source_name = self.xnat_pbs_jobs_home
+        freesurfer_assessor_source_name += os.sep + self.PIPELINE_NAME
+        freesurfer_assessor_source_name += os.sep + self.PIPELINE_NAME
+        freesurfer_assessor_source_name += '.XNAT_CREATE_FREESURFER_ASSESSOR'
 
-        freesurfer_assessor_dest_name = self.working_directory_name + os.sep
-        freesurfer_assessor_dest_name += self.PIPELINE_NAME + '.XNAT_CREATE_FREESURFER_ASSESSOR'
+        freesurfer_assessor_dest_name = self.working_directory_name
+        freesurfer_assessor_dest_name += os.sep + self.PIPELINE_NAME
+        freesurfer_assessor_dest_name += '.XNAT_CREATE_FREESURFER_ASSESSOR'
 
         shutil.copy(freesurfer_assessor_source_name, freesurfer_assessor_dest_name)
         os.chmod(freesurfer_assessor_dest_name, stat.S_IRWXU | stat.S_IRWXG)
@@ -387,3 +397,21 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         module_logger.debug(debug_utils.get_name())
         return self.output_resource_suffix
 
+    def mark_running_status(self, stage):
+        module_logger.debug(debug_utils.get_name())
+
+        if stage > ccf_processing_stage.ProcessingStage.PREPARE_SCRIPTS:
+            mark_cmd = self._xnat_pbs_jobs_home
+            mark_cmd += os.sep + self.PIPELINE_NAME 
+            mark_cmd += os.sep + self.PIPELINE_NAME
+            mark_cmd += '.XNAT_MARK_RUNNING_STATUS' 
+            mark_cmd += ' --project=' + self.project
+            mark_cmd += ' --subject=' + self.subject
+            mark_cmd += ' --classifier=' + self.classifier
+            mark_cmd += ' --queued'
+
+            completed_mark_cmd_process = subprocess.run(
+                mark_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            print(completed_mark_cmd_process.stdout)
+            
+            return

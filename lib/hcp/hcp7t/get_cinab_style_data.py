@@ -107,7 +107,7 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_icafix_data(subject_info,  output_study_dir)
 
     def remove_non_subdirs(self, directory):
-        cmd = 'find ' + directory + ' -maxdepth 1 -not -type d -delete'
+        cmd = 'find ' + directory + ' -maxdepth 1 -not -type d -print -delete'
         completed_process = subprocess.run(
             cmd, shell=True, check=True, stdout=subprocess.PIPE,
             universal_newlines=True)
@@ -180,6 +180,8 @@ def main():
     if args.remove_non_subdirs:
         # remove any non-subdirectory data at the output study directory level
         data_retriever.remove_non_subdirs(args.output_study_dir)
+        data_retriever.remove_non_subdirs(args.output_study_dir + os.sep + subject_info.subject_id)
 
+        
 if __name__ == '__main__':
     main()

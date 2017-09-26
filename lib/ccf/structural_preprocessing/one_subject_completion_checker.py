@@ -8,7 +8,8 @@ import sys
 
 # import of local modules
 import ccf.archive as ccf_archive
-import ccf.one_subject_completion_checker
+import ccf.one_subject_completion_checker as one_subject_completion_checker
+import ccf.structural_preprocessing.one_subject_job_submitter as one_subject_job_submitter
 import ccf.subject
 import utils.my_argparse as my_argparse
 
@@ -18,74 +19,27 @@ __copyright__ = "Copyright 2017, The Connectome Coordination Facility"
 __maintainer__ = "Timothy B. Brown"
 
 
-class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectCompletionChecker):
+class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompletionChecker):
 
     def __init__(self):
         super().__init__()
 
+    @property
+    def PIPELINE_NAME(self):
+        return one_subject_job_submitter.OneSubjectJobSubmitter.MY_PIPELINE_NAME()
+    
     def my_resource(self, archive, subject_info):
         return archive.structural_preproc_dir_full_path(subject_info)
 
-    def my_resource_time_stamp(self, archive, subject_info):
-        return os.path.getmtime(self.my_resource(archive, subject_info))
+    def my_prerequisite_dir_full_paths(self, archive, subject_info):
+        return archive.available_structural_unproc_dir_full_paths(subject_info)
     
-    def latest_prereq_resource_time_stamp(self, archive, subject_info):
-        latest_time_stamp = 0
-        struct_unproc_dir_paths = archive.available_structural_unproc_dir_full_paths(subject_info)
-        
-        for full_path in struct_unproc_dir_paths:
-            this_time_stamp = os.path.getmtime(full_path)
-            if this_time_stamp > latest_time_stamp:
-                latest_time_stamp = this_time_stamp
-
-        return latest_time_stamp
-
     def completion_marker_file_name(self):
-        return 'StructuralPreprocessing.XNAT_CHECK.success'
+        return self.PIPELINE_NAME + '.XNAT_CHECK.success'
 
     def starttime_marker_file_name(self):
-        return 'StructuralPreprocessing.starttime'
+        return self.PIPELINE_NAME + '.starttime'
     
-    def does_processed_resource_exist(self, archive, subject_info):
-        fullpath = self.my_resource(archive, subject_info)
-        return os.path.isdir(fullpath)
-
-    def is_processing_marked_complete(self, archive, subject_info):
-
-        # If the processed resource does not exist, then the process is certainly not marked
-        # as complete. The file that marks is as complete would be in that resource.
-        if not self.does_processed_resource_exist(archive, subject_info):
-            return False
-
-        resource_path = self.my_resource(archive, subject_info)
-        completion_marker_file_path = resource_path + os.sep + self.completion_marker_file_name()
-        starttime_marker_file_path = resource_path + os.sep + self.starttime_marker_file_name()
-        
-        # If the completion marker file does not exist, then the processing is certainly not marked
-        # as complete.
-        marker_file_exists = os.path.exists(completion_marker_file_path)
-        if not marker_file_exists:
-            return False
-
-        # If the completion marker file is older than the starttime marker file, then any mark
-        # of completeness is invalid.
-        if not os.path.exists(starttime_marker_file_path):
-            return False
-        
-        if os.path.getmtime(completion_marker_file_path) < os.path.getmtime(starttime_marker_file_path):
-            return False
-        
-        # If the completion marker file does exist, then look at the contents for further
-        # confirmation
-
-        f = open(completion_marker_file_path, "r")
-        lines = f.readlines()
-
-        if lines[-1].strip() != 'Completion Check was successful':
-            return False
-        
-        return True
-
     def list_of_expected_files(self, archive, subject_info):
 
         l = []
@@ -1334,32 +1288,12 @@ class OneSubjectCompletionChecker(ccf.one_subject_completion_checker.OneSubjectC
         # l.append(os.sep.join([subj_dir, 'T2w', 'xfms', 'T2w2_gdc_warp.nii.gz']))
 
         return l
-    
-    def is_processing_complete(self, archive, subject_info, verbose=False, output=sys.stdout, short_circuit=True):
-        # If the processed resource does not exist, then the processing is certainly not complete.
-        if not self.does_processed_resource_exist(archive, subject_info):
-            if verbose:
-                print("resource: " + self.my_resource(archive, subject_info) + " DOES NOT EXIST", file=output)
-            return False
-
-        # If processed resource is not newer than prerequisite resources, then the processing is not complete
-        resource_time_stamp = self.my_resource_time_stamp(archive, subject_info)
-        latest_prereq_time_stamp = self.latest_prereq_resource_time_stamp(archive, subject_info)
-        
-        if resource_time_stamp <= latest_prereq_time_stamp:
-            if verbose:
-                print("resource: " + self.my_resource(archive, subject_info) + " IS NOT NEWER THAN ALL PREREQUISITES", file=output)
-            return False
-        
-        # If processed resource exists and is newer than all the prerequisite resources, then check
-        # to see if all the expected files exist
-        expected_file_list = self.list_of_expected_files(archive, subject_info)
-        return self.do_all_files_exist(expected_file_list, verbose, output, short_circuit)
 
 
 if __name__ == "__main__":
 
-    parser = my_argparse.MyArgumentParser(description="Program to check for completion of Structural Preprocessing.")
+    parser = my_argparse.MyArgumentParser(
+        description="Program to check for completion of Structural Preprocessing.")
 
     # mandatory arguments
     parser.add_argument('-p', '--project', dest='project', required=True, type=str)
@@ -1367,11 +1301,11 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--classifier', dest='classifier', required=True, type=str)
 
     # optional arguments
-    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', required=False,
-                        default=False)
+    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
+                        required=False, default=False)
     parser.add_argument('-o', '--output', dest='output', required=False, type=str)
-    parser.add_argument('-a', '--check-all', dest='check_all', action='store_true', required=False,
-                        default=False)
+    parser.add_argument('-a', '--check-all', dest='check_all', action='store_true',
+                        required=False, default=False)
 
     # parse the command line arguments
     args = parser.parse_args()
