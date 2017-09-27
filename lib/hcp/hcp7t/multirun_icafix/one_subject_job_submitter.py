@@ -125,6 +125,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         script.write(self.get_data_program_path + ' \\' + os.linesep)
         script.write('  --project=' + self.project + ' \\' + os.linesep)
         script.write('  --subject=' + self.subject + ' \\' + os.linesep)
+        script.write('  --ref-project=' + self.structural_reference_project + ' \\' + os.linesep)
         script.write('  --working-dir=' + self.working_directory_name + os.linesep)
 
         script.close()

@@ -15,11 +15,13 @@ import subprocess
 
 # import of local modules
 import hcp.get_cinab_style_data
-import hcp.hcp3t.archive as hcp3t_archive
+#import hcp.hcp3t.archive as hcp3t_archive
 import hcp.hcp3t.subject as hcp3t_subject
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
 import utils.my_argparse as my_argparse
+import hcp.hcp3t.get_cinab_style_data as hcp3t_data_retriever
+
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -36,14 +38,34 @@ log.addHandler(sh)
 
 class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
 
-    def __init__(self, archive):
-        super().__init__(archive)
+    def __init__(self, archive_7T, archive_3T):
+        super().__init__(archive_7T)
+        self._reference_archive = archive_3T
+        self._reference_data_retriever = hcp3t_data_retriever.CinabStyleDataRetriever(self._reference_archive)
 
     def get_unproc_data(self, subject_info, output_study_dir):
 
         self.get_functional_unproc_data(subject_info, output_study_dir)
         self.get_diffusion_unproc_data(subject_info, output_study_dir)
 
+    def get_supplemental_structural_preproc_data(subject_info, output_study_dir):
+        # supplemental structural preprocessed data for HCP 7T subjects
+        # is in the (3T) structural reference archive and project
+
+        reference_3T_subject = hcp3t_subject.Hcp3TSubjectInfo(
+            subject_info.structural_reference_project, subject_info.subject_id, subject_info.extra)
+        self._reference_data_retriever.get_supplemental_structural_preproc_data(
+            reference_3T_subject, output_study_dir)
+        
+    def get_structural_preproc_data(subject_info, output_study_dir):
+        # structural preprocessed data for HCP 7T subjects
+        # is in the (3T) structural reference archive and project
+
+        reference_3T_subject = hcp3t_subject.Hcp3TSubjectInfo(
+            subject_info.structural_reference_project, subject_info.subject_id, subject_info.extra)
+        self._reference_data_retriever.get_structural_preproc_data(
+            reference_3T_subject, output_study_dir)
+        
     def get_preproc_data(self, subject_info, output_study_dir):
 
         if not self.copy:
@@ -51,9 +73,13 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             # chronological order
             self.get_diffusion_preproc_data(subject_info, output_study_dir)
             self.get_functional_preproc_data(subject_info, output_study_dir)
-
+            self.get_supplemental_structural_preproc_data(subject_info, output_study_dir)
+            self.get_structural_preproc_data(subject_info, output_study_dir)
+            
         else:
             # when copying (via rsync), should be done in chronological order
+            self.get_structural_preproc_data(subject_info, output_study_dir)
+            self.get_supplemental_structural_preproc_data(subject_info, output_study_dir)
             self.get_functional_preproc_data(subject_info, output_study_dir)
             self.get_diffusion_preproc_data(subject_info, output_study_dir)
 
@@ -121,6 +147,8 @@ def main():
     parser.add_argument('-p', '--project',     dest='project',            required=True, type=str)
     parser.add_argument('-s', '--subject',     dest='subject',            required=True, type=str)
     parser.add_argument('-d', '--study-dir',   dest='output_study_dir',   required=True, type=str)
+    parser.add_argument('-t', '--structural-reference-project', dest='structural_reference_project',
+                        required=True, type=str)
 
     # optional arguments
     parser.add_argument('-c', '--copy', dest='copy', action='store_true', required=False, default=False)
@@ -146,19 +174,24 @@ def main():
     
     # show arguments
     log.info("Arguments:")
-    log.info("            Project: " + args.project)
-    log.info("            Subject: " + args.subject)
-    log.info("   Output Study Dir: " + args.output_study_dir)
-    log.info("               Copy: " + str(args.copy))
-    log.info("              Phase: " + args.phase)
-    log.info("                Log: " + str(args.log))
-    log.info(" Remove Non-Subdirs: " + str(args.remove_non_subdirs))
+    log.info("                Project: " + args.project)
+    log.info(" Structural Ref Project: " + args.structural_reference_project)
+    log.info("                Subject: " + args.subject)
+    log.info("       Output Study Dir: " + args.output_study_dir)
+    log.info("                   Copy: " + str(args.copy))
+    log.info("                  Phase: " + args.phase)
+    log.info("                    Log: " + str(args.log))
+    log.info("     Remove Non-Subdirs: " + str(args.remove_non_subdirs))
     
-    subject_info = hcp7t_subject.Hcp7TSubjectInfo(project=args.project, subject_id=args.subject)
+    subject_info = hcp7t_subject.Hcp7TSubjectInfo(
+        project=args.project,
+        structural_reference_project=args.structural_reference_project,
+        subject_id=args.subject)
     archive = hcp7t_archive.Hcp7T_Archive()
-
+    reference_archive = hcp3t_archive.Hcp3T_Archive()
+    
     # create and configure CinabStyleDataRetriever
-    data_retriever = CinabStyleDataRetriever(archive)
+    data_retriever = CinabStyleDataRetriever(archive, reference_archive)
     data_retriever.copy = args.copy
     data_retriever.show_log = args.log
 
