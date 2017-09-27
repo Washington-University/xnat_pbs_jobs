@@ -24,10 +24,11 @@ on 7T HCP data.
 Usage: ${g_script_name} PARAMETER...
 
 PARAMETERs are [ ] = optional; < > = user supplied value
-  [--help]             : show this usage information and exit with non-zero return code
-   --subject=<subject> : XNAT subject ID within project (e.g. 100307)
-   --project=<project> : XNAT project (e.g. HCP_1200)
-   --working-dir=<dir> : Working directory in which to place retrieved data 
+  [--help]                     : show this usage information and exit with non-zero return code
+   --subject=<subject>         : XNAT subject ID within project (e.g. 100307)
+   --project=<project>         : XNAT project (e.g. HCP_1200)
+   --ref-project=<ref-project> : XNAT project (e.g. HCP_900) containing structural reference data
+   --working-dir=<dir>         : Working directory in which to place retrieved data 
 
 EOF
 }
@@ -39,6 +40,7 @@ get_options()
 	# initialize global output variables
 	unset g_subject
 	unset g_project
+	unset g_ref_project
 	unset g_working_dir
 
 	# parse arguments
@@ -62,6 +64,10 @@ get_options()
 				;;
 			--project=*)
 				g_project=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--ref-project=*)
+				g_ref_project=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			--working-dir=*)
@@ -92,6 +98,13 @@ get_options()
 		log_Msg "project: ${g_project}"
 	fi
 
+	if [ -z "${g_ref_project}" ]; then
+		log_Err "reference project (--ref-project=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "reference project: ${g_ref_project}"
+	fi
+	
 	if [ -z "${g_working_dir}" ]; then
 		log_Err "working_dir (--working-dir=) required"
 		error_count=$(( error_count + 1 ))
@@ -122,6 +135,7 @@ main()
 	${XNAT_PBS_JOBS}/lib/hcp/hcp7t/get_cinab_style_data.py \
 					--subject=${g_subject} \
 					--project=${g_project} \
+					--structural-reference-project=${g_ref_project} \
 					--study-dir=${g_working_dir}/tmp \
 					--phase="multirunicafix_prereqs" \
 					--remove-non-subdirs \
