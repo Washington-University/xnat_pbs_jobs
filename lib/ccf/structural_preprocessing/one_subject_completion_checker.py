@@ -10,7 +10,7 @@ import sys
 import ccf.archive as ccf_archive
 import ccf.one_subject_completion_checker as one_subject_completion_checker
 import ccf.structural_preprocessing.one_subject_job_submitter as one_subject_job_submitter
-import ccf.subject
+import ccf.subject as ccf_subject
 import utils.my_argparse as my_argparse
 
 # authorship information
@@ -1312,7 +1312,7 @@ if __name__ == "__main__":
 
     # check the specified subject for structural preprocessing completion
     archive = ccf_archive.CcfArchive()
-    subject_info = ccf.subject.SubjectInfo(args.project, args.subject, args.classifier)
+    subject_info = ccf_subject.SubjectInfo(args.project, args.subject, args.classifier)
     completion_checker = OneSubjectCompletionChecker()
 
     if args.output:
