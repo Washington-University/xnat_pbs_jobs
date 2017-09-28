@@ -64,6 +64,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             print("-----")
             print("\tSubmitting " + submitter.PIPELINE_NAME + " jobs for:")
             print("\t                project: " + subject.project)
+            print("\t      reference project: " + subject.structural_reference_project)
             print("\t                subject: " + subject.subject_id)
             print("\t                  extra: " + subject.extra)
             print("\t structural ref project: " + subject.structural_reference_project)
@@ -81,6 +82,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 
             # subject and project information
             submitter.project = subject.project
+            submitter.structural_reference_project = subject.structural_reference_project
             submitter.subject = subject.subject_id
             submitter.session = subject.subject_id + '_7T'
             submitter.classifier = '7T'

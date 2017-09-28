@@ -15,7 +15,7 @@ import subprocess
 
 # import of local modules
 import hcp.get_cinab_style_data
-#import hcp.hcp3t.archive as hcp3t_archive
+import hcp.hcp3t.archive as hcp3t_archive
 import hcp.hcp3t.subject as hcp3t_subject
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
@@ -48,19 +48,17 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
         self.get_functional_unproc_data(subject_info, output_study_dir)
         self.get_diffusion_unproc_data(subject_info, output_study_dir)
 
-    def get_supplemental_structural_preproc_data(subject_info, output_study_dir):
+    def get_supplemental_structural_preproc_data(self, subject_info, output_study_dir):
         # supplemental structural preprocessed data for HCP 7T subjects
         # is in the (3T) structural reference archive and project
-
         reference_3T_subject = hcp3t_subject.Hcp3TSubjectInfo(
             subject_info.structural_reference_project, subject_info.subject_id, subject_info.extra)
         self._reference_data_retriever.get_supplemental_structural_preproc_data(
             reference_3T_subject, output_study_dir)
         
-    def get_structural_preproc_data(subject_info, output_study_dir):
+    def get_structural_preproc_data(self, subject_info, output_study_dir):
         # structural preprocessed data for HCP 7T subjects
         # is in the (3T) structural reference archive and project
-
         reference_3T_subject = hcp3t_subject.Hcp3TSubjectInfo(
             subject_info.structural_reference_project, subject_info.subject_id, subject_info.extra)
         self._reference_data_retriever.get_structural_preproc_data(

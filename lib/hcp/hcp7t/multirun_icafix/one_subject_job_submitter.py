@@ -72,6 +72,14 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         return 1
 
     @property
+    def structural_reference_project(self):
+        return self._structural_reference_project
+
+    @structural_reference_project.setter
+    def structural_reference_project(self, value):
+        self._structural_reference_project = value
+    
+    @property
     def check_data_program_path(self):
         """
         Path to program in the XNAT_PBS_JOBS that performs the actual check of result data.
