@@ -51,8 +51,8 @@ def _write_scan_info(output_file, project, subject_id, classifier, scan,
     scan_line = "\t".join([project, subject_id, classifier, scan,
                            str(prereqs_met), resource, str(exists), resource_date_str,
                            str(complete), str(queued_or_running)])
-    print(subject_line)
-    output_file.write(subject_line + os.linesep)
+    print(scan_line)
+    output_file.write(scan_line + os.linesep)
     
 
 if __name__ == "__main__":

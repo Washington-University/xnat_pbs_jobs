@@ -25,7 +25,8 @@ __maintainer__ = "Timothy B. Brown"
 
 # configure logging and create a module logger
 module_logger = logging.getLogger(file_utils.get_logger_name(__file__))
-module_logger.setLevel(logging.WARNING)  # Note: This can be overridden by file configuration
+# Note: The following can be overridden by file configuration
+module_logger.setLevel(logging.WARNING)
 
 
 class BatchSubmitter(batch_submitter.BatchSubmitter):
@@ -51,7 +52,6 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter = one_subject_job_submitter.OneSubjectJobSubmitter(
                 self._archive, self._archive.build_home)
 
-            #put_server = 'http://db-shadow' + str(self.get_and_inc_shadow_number()) + '.nrg.mir:8080'
             put_server = 'http://intradb-shadow' + str(self.get_and_inc_shadow_number()) + '.nrg.mir:8080'
 
             # get information for the subject from the configuration
