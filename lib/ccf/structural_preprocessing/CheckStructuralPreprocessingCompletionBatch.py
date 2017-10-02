@@ -98,13 +98,12 @@ if __name__ == "__main__":
     running_checker = one_subject_run_status_checker.OneSubjectRunStatusChecker()
     
     for subject in subject_list:
-        subject_id = subject.subject_id
         project = subject.project
-        scan = subject.extra
+        subject_id = subject.subject_id
         classifier = subject.classifier
+        scan = subject.extra
 
         prereqs_met = prereq_checker.are_prereqs_met(archive, subject)
-        
         queued_or_running = running_checker.get_queued_or_running(subject)
         
         if completion_checker.does_processed_resource_exist(archive, subject):

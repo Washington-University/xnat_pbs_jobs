@@ -16,7 +16,6 @@ import ccf.one_subject_job_submitter as one_subject_job_submitter
 import ccf.processing_stage as ccf_processing_stage
 import ccf.subject as ccf_subject
 import utils.debug_utils as debug_utils
-import utils.os_utils as os_utils
 import utils.str_utils as str_utils
 
 # authorship information
@@ -197,20 +196,20 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     def create_process_data_job_script(self):
         module_logger.debug(debug_utils.get_name())
 
-        # copy the .XNAT script to the working directory
-        processing_script_source_name = self.xnat_pbs_jobs_home
-        processing_script_source_name += os.sep + self.PIPELINE_NAME
-        processing_script_source_name += os.sep + self.PIPELINE_NAME
-        processing_script_source_name += '.XNAT_PROCESS'
+        # copy the .XNAT_PROCESS script to the working directory
+        processing_script_source_path = self.xnat_pbs_jobs_home
+        processing_script_source_path += os.sep + self.PIPELINE_NAME
+        processing_script_source_path += os.sep + self.PIPELINE_NAME
+        processing_script_source_path += '.XNAT_PROCESS'
 
-        processing_script_dest_name = self.working_directory_name
-        processing_script_dest_name += os.sep + self.PIPELINE_NAME
-        processing_script_dest_name += '.XNAT_PROCESS'
+        processing_script_dest_path = self.working_directory_name
+        processing_script_dest_path += os.sep + self.PIPELINE_NAME
+        processing_script_dest_path += '.XNAT_PROCESS'
 
-        shutil.copy(processing_script_source_name, processing_script_dest_name)
-        os.chmod(processing_script_dest_name, stat.S_IRWXU | stat.S_IRWXG)
+        shutil.copy(processing_script_source_path, processing_script_dest_path)
+        os.chmod(processing_script_dest_path, stat.S_IRWXU | stat.S_IRWXG)
 
-        # write the process data job script (that calls the .XNAT script)
+        # write the process data job script (that calls the .XNAT_PROCESS script)
 
         subject_info = ccf_subject.SubjectInfo(self.project, self.subject, self.classifier)
 
@@ -230,7 +229,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         stdout_line = '#PBS -o ' + self.working_directory_name
         stderr_line = '#PBS -e ' + self.working_directory_name
 
-        script_line    = processing_script_dest_name
+        script_line    = processing_script_dest_path
         user_line      = '  --user=' + self.username
         password_line  = '  --password=' + self.password
         server_line    = '  --server=' + str_utils.get_server_name(self.server)
@@ -311,18 +310,18 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     def create_freesurfer_assessor_script(self):
         module_logger.debug(debug_utils.get_name())
 
-        # copy the .FREESURFER_ASSESSOR script to the working directory
-        freesurfer_assessor_source_name = self.xnat_pbs_jobs_home
-        freesurfer_assessor_source_name += os.sep + self.PIPELINE_NAME
-        freesurfer_assessor_source_name += os.sep + self.PIPELINE_NAME
-        freesurfer_assessor_source_name += '.XNAT_CREATE_FREESURFER_ASSESSOR'
+        # copy the .XNAT_CREATE_FREESURFER_ASSESSOR script to the working directory
+        freesurfer_assessor_source_path = self.xnat_pbs_jobs_home
+        freesurfer_assessor_source_path += os.sep + self.PIPELINE_NAME
+        freesurfer_assessor_source_path += os.sep + self.PIPELINE_NAME
+        freesurfer_assessor_source_path += '.XNAT_CREATE_FREESURFER_ASSESSOR'
 
-        freesurfer_assessor_dest_name = self.working_directory_name
-        freesurfer_assessor_dest_name += os.sep + self.PIPELINE_NAME
-        freesurfer_assessor_dest_name += '.XNAT_CREATE_FREESURFER_ASSESSOR'
+        freesurfer_assessor_dest_path = self.working_directory_name
+        freesurfer_assessor_dest_path += os.sep + self.PIPELINE_NAME
+        freesurfer_assessor_dest_path += '.XNAT_CREATE_FREESURFER_ASSESSOR'
 
-        shutil.copy(freesurfer_assessor_source_name, freesurfer_assessor_dest_name)
-        os.chmod(freesurfer_assessor_dest_name, stat.S_IRWXU | stat.S_IRWXG)
+        shutil.copy(freesurfer_assessor_source_path, freesurfer_assessor_dest_path)
+        os.chmod(freesurfer_assessor_dest_path, stat.S_IRWXU | stat.S_IRWXG)
 
         # write the freesurfer assessor submission script (that calls the .XNAT_CREATE_FREESURFER_ASSESSOR script)
 
@@ -339,7 +338,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         script.write('#PBS -e ' + self.working_directory_name + os.linesep)
         script.write(os.linesep)
 
-        script_line    = freesurfer_assessor_dest_name
+        script_line    = freesurfer_assessor_dest_path
         user_line      = '  --user='        + self.username
         password_line  = '  --password='    + self.password
         server_line    = '  --server='      + str_utils.get_server_name(self.server)

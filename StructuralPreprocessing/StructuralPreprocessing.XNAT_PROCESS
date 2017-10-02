@@ -8,8 +8,11 @@ if [ -z "${XNAT_PBS_JOBS}" ]; then
 	exit 1
 fi
 
-source "${XNAT_PBS_JOBS}/shlib/log.shlib"  # Logging related functions
-source "${XNAT_PBS_JOBS}/shlib/utils.shlib"  # Utility functions
+# Logging related functions
+source "${XNAT_PBS_JOBS}/shlib/log.shlib"
+
+# Utility functions
+source "${XNAT_PBS_JOBS}/shlib/utils.shlib"
 log_Msg "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
 
 if [ -z "${NRG_PACKAGES}" ]; then
@@ -410,7 +413,7 @@ get_options()
 		log_Err "working directory (--working-dir=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_working_dir: ${g_working_dir}"
+		log_Msg "working directory: ${g_working_dir}"
 	fi
 	
 	if [ -z "${g_setup_script}" ] ; then
