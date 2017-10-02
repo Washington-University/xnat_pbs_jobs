@@ -166,15 +166,13 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             os.remove(script_name)
 
         walltime_limit_str = str(self.walltime_limit_hours) + ':00:00'
-        #mem_limit_str = str(self.vmem_limit_gbs) + 'gb'
-        #mem_limit_str = '64gb'
-        #mem_limit_str = '32gb'
+        mem_limit_str = str(self.mem_limit_gbs) + 'gb'
         vmem_limit_str = str(self.vmem_limit_gbs) + 'gb'
-
+        
         resources_line = '#PBS -l nodes=' + str(self.WORK_NODE_COUNT)
         resources_line += ':ppn=' + str(self.WORK_PPN)
         resources_line += ',walltime=' + walltime_limit_str
-        #resources_line += ',mem=' + mem_limit_str
+        resources_line += ',mem=' + mem_limit_str
         resources_line += ',vmem=' + vmem_limit_str
 
         stdout_line = '#PBS -o ' + self.working_directory_name

@@ -214,6 +214,15 @@ class OneSubjectJobSubmitter(abc.ABC):
         module_logger.debug(debug_utils.get_name() + ": set to " + str(value))
 
     @property
+    def mem_limit_gbs(self):
+        return self._mem_limit_gbs
+
+    @mem_limit_gbs.setter
+    def mem_limit_gbs(self, value):
+        self._mem_limit_gbs = value
+        module_logger.debug(debug_utils.get_name() + ": set to " + str(value))
+        
+    @property
     def output_resource_suffix(self):
         return self._output_resource_suffix
 
@@ -349,12 +358,7 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('  --working-dir="' + self.working_directory_name + '" \\' + os.linesep)
 
         script.write('  --use-http' + ' \\' + os.linesep)
-
-        if self.scan:
-            script.write('  --resource-suffix="' + self.scan + '_' + self.output_resource_suffix + '" \\' + os.linesep)
-        else:
-            script.write('  --resource-suffix="' + self.output_resource_suffix + '" \\' + os.linesep)
-
+        script.write('  --resource-suffix="' + self.output_resource_name + '" \\' + os.linesep)
         script.write('  --reason="' + self.PIPELINE_NAME + '"' + os.linesep)
 
         script.close()
@@ -642,9 +646,14 @@ class OneSubjectJobSubmitter(abc.ABC):
     def create_process_data_job_script(self):
         raise NotImplementedError()
 
-    @abc.abstractmethod
+    @property
     def output_resource_name(self):
-        raise NotImplementedError()
+        if self.scan:
+            name = self.scan + '_' + self.output_resource_suffix
+        else:
+            name = self.output_resource_suffix
+
+        return name
 
     def create_scripts(self, stage):
         module_logger.debug(debug_utils.get_name())

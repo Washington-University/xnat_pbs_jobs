@@ -58,22 +58,24 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             processing_stage_str = config.get_value(subject.subject_id, 'ProcessingStage')
             processing_stage = submitter.processing_stage_from_string(processing_stage_str)
             walltime_limit_hrs = config.get_value(subject.subject_id, 'WalltimeLimitHours')
+            mem_limit_gbs = config.get_value(subject.subject_id, 'MemLimitGbs')
             vmem_limit_gbs = config.get_value(subject.subject_id, 'VmemLimitGbs')
             output_resource_suffix = config.get_value(subject.subject_id, 'OutputResourceSuffix')
 
             print("-----")
-            print("\tSubmitting " + submitter.PIPELINE_NAME + " jobs for:")
-            print("\t                project: " + subject.project)
-            print("\t      reference project: " + subject.structural_reference_project)
-            print("\t                subject: " + subject.subject_id)
-            print("\t                  extra: " + subject.extra)
-            print("\t structural ref project: " + subject.structural_reference_project)
-            print("\t             put_server: " + put_server)
-            print("\t     clean_output_first: " + str(clean_output_first))
-            print("\t       processing_stage: " + str(processing_stage))
-            print("\t     walltime_limit_hrs: " + str(walltime_limit_hrs))
-            print("\t         vmem_limit_gbs: " + str(vmem_limit_gbs))
-            print("\t output_resource_suffix: " + output_resource_suffix)
+            print("\tSubmitting", submitter.PIPELINE_NAME, "jobs for:")
+            print("\t                project:", subject.project)
+            print("\t      reference project:", subject.structural_reference_project)
+            print("\t                subject:", subject.subject_id)
+            print("\t                  extra:", subject.extra)
+            print("\t structural ref project:", subject.structural_reference_project)
+            print("\t             put_server:", put_server)
+            print("\t     clean_output_first:", clean_output_first)
+            print("\t       processing_stage:", processing_stage)
+            print("\t     walltime_limit_hrs:", walltime_limit_hrs)
+            print("\t          mem_limit_gbs:", mem_limit_gbs)
+            print("\t         vmem_limit_gbs:", vmem_limit_gbs)
+            print("\t output_resource_suffix:", output_resource_suffix)
 
             # user and server information
             submitter.username = username
@@ -91,6 +93,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter.clean_output_resource_first = clean_output_first
             submitter.put_server = put_server
             submitter.walltime_limit_hours = walltime_limit_hrs
+            submitter.mem_limit_gbs = mem_limit_gbs
             submitter.vmem_limit_gbs = vmem_limit_gbs
             submitter.output_resource_suffix = output_resource_suffix
 

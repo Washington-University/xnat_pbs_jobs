@@ -393,10 +393,6 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             module_logger.info("freesurfer assessor job not submitted")
             return standard_process_data_jobno, all_process_data_jobs
 
-    def output_resource_name(self):
-        module_logger.debug(debug_utils.get_name())
-        return self.output_resource_suffix
-
     def mark_running_status(self, stage):
         module_logger.debug(debug_utils.get_name())
 
