@@ -4,6 +4,7 @@
 import contextlib
 import logging
 import os
+import shutil
 import stat
 import subprocess
 
@@ -12,6 +13,7 @@ import subprocess
 # import of local modules
 import ccf.one_subject_job_submitter as one_subject_job_submitter
 import ccf.processing_stage as ccf_processing_stage
+import ccf.subject as ccf_subject
 import utils.debug_utils as debug_utils
 
 # authorship information

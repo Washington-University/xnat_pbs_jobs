@@ -1,0 +1,100 @@
+#!/bin/bash
+
+g_pipeline_name="FunctionalPreprocessing"
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	script_name=$(basename "${0}")
+	echo "${script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
+# Logging related functions
+source "${XNAT_PBS_JOBS}/shlib/log.shlib" 
+
+# Utility functions
+source "${XNAT_PBS_JOBS}/shlib/utils.shlib"
+log_Msg "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
+
+# Show script usage information
+usage()
+{
+	cat <<EOF
+
+To Be Written
+
+EOF
+}
+
+# Parse command line options. "Return" the options to use in global variables
+get_options()
+{
+	local arguments=($@)
+
+	# initialize global output variables
+
+	# set default values
+	unset g_working_dir
+
+	# parse arguments
+	local num_args=${#arguments[@]}
+	local argument
+	local index=0
+
+	while [ ${index} -lt ${num_args} ]; do
+		argument=${arguments[index]}
+
+		case ${argument} in
+			--help)
+				usage
+				exit 1
+				;;
+			--working-dir=*)
+				g_working_dir=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			*)
+				usage
+				log_Err_Abort "unrecognized option: ${argument}"
+				;;
+		esac
+	done
+
+	local error_count=0
+
+	# check parameters
+
+
+	if [ -z "${g_working_dir}" ]; then
+		log_Err "working directory (--working-dir=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "working directory: ${g_working_dir}"
+	fi
+
+	
+	if [ ${error_count} -gt 0 ]; then
+		log_Err_Abort "For usage information, use --help"
+	fi
+}
+
+# Main processing
+main()
+{
+	show_job_start
+
+	show_platform_info
+
+	get_options "$@"
+
+	create_start_time_file ${g_working_dir} ${g_pipeline_name}
+	
+
+
+
+
+	log_Msg "Complete"
+}
+
+# Invoke the main function to get things started
+main "$@"
+

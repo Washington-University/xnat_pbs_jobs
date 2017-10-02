@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
 # import of built-in modules
-import getpass
 import logging
 import logging.config
-import os
 
 # import of third-party modules
 
@@ -17,6 +15,7 @@ import ccf.subject as ccf_subject
 import utils.file_utils as file_utils
 import utils.my_configparser as my_configparser
 import utils.os_utils as os_utils
+import utils.user_utils as user_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -52,7 +51,9 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter = one_subject_job_submitter.OneSubjectJobSubmitter(
                 self._archive, self._archive.build_home)
 
-            put_server = 'http://intradb-shadow' + str(self.get_and_inc_shadow_number()) + '.nrg.mir:8080'
+            put_server = 'http://intradb-shadow'
+            put_server += str(self.get_and_inc_shadow_number())
+            put_server += '.nrg.mir:8080'
 
             # get information for the subject from the configuration
             clean_output_first = config.get_bool_value(subject.subject_id, 'CleanOutputFirst')
@@ -64,18 +65,20 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             brain_size = config.get_value(subject.subject_id, 'BrainSize')
 
             print("-----")
-            print("\tSubmitting " + submitter.PIPELINE_NAME + " jobs for:")
-            print("\t               project: " + subject.project)
-            print("\t               subject: " + subject.subject_id)
-            print("\t    session classifier: " + subject.classifier)
-            print("\t            put_server: " + put_server)
-            print("\t    clean_output_first: " + str(clean_output_first))
-            print("\t      processing_stage: " + str(processing_stage))
-            print("\t    walltime_limit_hrs: " + str(walltime_limit_hrs))
-            print("\t        vmem_limit_gbs: " + str(vmem_limit_gbs))
-            print("\toutput_resource_suffix: " + output_resource_suffix)
-            print("\t            brain_size: " + brain_size)
+            print("\tSubmitting", submitter.PIPELINE_NAME, "jobs for:")
+            print("\t               project:", subject.project)
+            print("\t               subject:", subject.subject_id)
+            print("\t    session classifier:", subject.classifier)
+            print("\t            put_server:", put_server)
+            print("\t    clean_output_first:", clean_output_first)
+            print("\t      processing_stage:", processing_stage)
+            print("\t    walltime_limit_hrs:", walltime_limit_hrs)
+            print("\t        vmem_limit_gbs:", vmem_limit_gbs)
+            print("\toutput_resource_suffix:", output_resource_suffix)
+            print("\t            brain_size:", brain_size)
 
+            # configure one subject submitter
+            
             # user and server information
             submitter.username = username
             submitter.password = password
@@ -99,10 +102,11 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitted_job_list = submitter.submit_jobs(processing_stage)
 
             for job in submitted_job_list:
-                print("\tsubmitted jobs: ", str(job))
+                print("\tsubmitted jobs:", job)
 
             print("-----")
 
+            
 def do_submissions(userid, password, subject_list):
 
     # read the configuration file
@@ -123,9 +127,9 @@ if __name__ == '__main__':
         disable_existing_loggers=False)
 
     # get Database credentials
-    userid = input("DB Username: ")
-    password = getpass.getpass("DB Password: ")
-
+    xnat_server = os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER')
+    userid, password = user_utils.get_credentials(xnat_server)
+    
     # get list of subjects to process
     subject_file_name = file_utils.get_subjects_file_name(__file__)
     print("Retrieving subject list from: " + subject_file_name)

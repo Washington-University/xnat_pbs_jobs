@@ -16,7 +16,6 @@ import ccf.one_subject_job_submitter as one_subject_job_submitter
 import ccf.processing_stage as ccf_processing_stage
 import ccf.subject as ccf_subject
 import utils.debug_utils as debug_utils
-#import utils.os_utils as os_utils
 import utils.str_utils as str_utils
 
 # authorship information
