@@ -69,7 +69,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     @property
     def WORK_PPN(self):
-        return 1
+        return 8
 
     @property
     def structural_reference_project(self):
@@ -112,7 +112,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         name += os.sep + self.PIPELINE_NAME
         name += '.XNAT_MARK_RUNNING_STATUS'
         return name
-
+    
     def create_get_data_job_script(self):
         """Create the script to be submitted to perform the get data job"""
         module_logger.debug(debug_utils.get_name())
@@ -196,30 +196,12 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         # add the tesla spec to each element of the group
         group_names = list(map(add_tesla_spec, avail_retinotopy_task_names))
 
-        do_half_and_half = False
+        group_spec = '@'.join(group_names)
+        group_line  = '  --group=' + group_spec
         
-        if do_half_and_half:
-            
-            first_group_spec = '@'.join(group_names[:3])
-            first_group_line = '  --group=' + first_group_spec
-
-            first_concat_spec = '_'.join(list(map(remove_scan_type, avail_retinotopy_task_names[:3])))
-            first_concat_line = '  --concat-name=tfMRI_7T_' + first_concat_spec
-            
-            second_group_spec = '@'.join(group_names[3:])
-            second_group_line = '  --group=' + second_group_spec
-            
-            second_concat_spec = '_'.join(list(map(remove_scan_type, avail_retinotopy_task_names[3:])))
-            second_concat_line = '  --concat-name=tfMRI_7T_' + second_concat_spec
-
-        else:
-            
-            group_spec = '@'.join(group_names)
-            group_line  = '  --group=' + group_spec
-
-            concat_spec = '_'.join(list(map(remove_scan_type, avail_retinotopy_task_names)))
-            concat_line = '  --concat-name=tfMRI_7T_' + concat_spec
-            
+        concat_spec = '_'.join(list(map(remove_scan_type, avail_retinotopy_task_names)))
+        concat_line = '  --concat-name=tfMRI_7T_' + concat_spec
+        
         wdir_line  = '  --working-dir=' + self.working_directory_name
         setup_line = '  --setup-script=' + self.setup_file_name
 
@@ -229,36 +211,20 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             script.write(stderr_line + os.linesep)
             script.write(os.linesep)
 
-            script.write(script_line        + ' \\' + os.linesep)
-            script.write(user_line          + ' \\' + os.linesep)
-            script.write(password_line      + ' \\' + os.linesep)
-            script.write(server_line        + ' \\' + os.linesep)
-            script.write(project_line       + ' \\' + os.linesep)
-            script.write(subject_line       + ' \\' + os.linesep)
-            script.write(session_line       + ' \\' + os.linesep)
-
-            if do_half_and_half:
-
-                script.write(first_group_line   + ' \\' + os.linesep)
-                script.write(first_concat_line  + ' \\' + os.linesep)
-                
-                script.write(second_group_line  + ' \\' + os.linesep)
-                script.write(second_concat_line + ' \\' + os.linesep)
-                
-            else:
-                
-                script.write(group_line  + ' \\' + os.linesep)
-                script.write(concat_line + ' \\' + os.linesep)
-                
-            script.write(wdir_line          + ' \\' + os.linesep)
-            script.write(setup_line         + os.linesep)
+            script.write(script_line   + ' \\' + os.linesep)
+            script.write(user_line     + ' \\' + os.linesep)
+            script.write(password_line + ' \\' + os.linesep)
+            script.write(server_line   + ' \\' + os.linesep)
+            script.write(project_line  + ' \\' + os.linesep)
+            script.write(subject_line  + ' \\' + os.linesep)
+            script.write(session_line  + ' \\' + os.linesep)
+            script.write(group_line    + ' \\' + os.linesep)
+            script.write(concat_line   + ' \\' + os.linesep)
+            script.write(wdir_line     + ' \\' + os.linesep)
+            script.write(setup_line    + os.linesep)
             script.write(os.linesep)
 
             os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
-            
-    def output_resource_name(self):
-        module_logger.debug(debug_utils.get_name())
-        return self.output_resource_suffix
 
     def mark_running_status(self, stage):
         module_logger.debug(debug_utils.get_name())

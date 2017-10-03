@@ -232,6 +232,14 @@ class OneSubjectJobSubmitter(abc.ABC):
         module_logger.debug(debug_utils.get_name() + ": set to " + str(value))
 
     @property
+    def output_resource_name(self):
+        if self.scan:
+            name = self.scan + '_' + self.output_resource_suffix
+        else:
+            name = self.output_resource_suffix
+        return name
+    
+    @property
     def working_directory_name_prefix(self):
         # Since the working directory name prefix contains a timestamp, it is
         # important to only build the working directory name prefix one time.
@@ -356,8 +364,11 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('  --subject="' + self.subject + '" \\' + os.linesep)
         script.write('  --session="' + self.session + '" \\' + os.linesep)
         script.write('  --working-dir="' + self.working_directory_name + '" \\' + os.linesep)
-
         script.write('  --use-http' + ' \\' + os.linesep)
+
+        if self.scan:
+            script.write('  --scan="' + self.scan + '" \\' + os.linesep)
+
         script.write('  --resource-suffix="' + self.output_resource_name + '" \\' + os.linesep)
         script.write('  --reason="' + self.PIPELINE_NAME + '"' + os.linesep)
 
@@ -646,15 +657,6 @@ class OneSubjectJobSubmitter(abc.ABC):
     def create_process_data_job_script(self):
         raise NotImplementedError()
 
-    @property
-    def output_resource_name(self):
-        if self.scan:
-            name = self.scan + '_' + self.output_resource_suffix
-        else:
-            name = self.output_resource_suffix
-
-        return name
-
     def create_scripts(self, stage):
         module_logger.debug(debug_utils.get_name())
 
@@ -749,11 +751,14 @@ class OneSubjectJobSubmitter(abc.ABC):
         os.makedirs(name=self.mark_completion_directory_name)
         
         # determine output resource name
-        module_logger.info("Output Resource Name: " + self.output_resource_name())
+        tbb = self.output_resource_name
+        print("TBB: tbb = ", tbb)
+        
+        module_logger.info("Output Resource Name: " + self.output_resource_name)
 
         # clean output resource if requested
         if self.clean_output_resource_first:
-            module_logger.info("Deleting resource: " + self.output_resource_name() + " for:")
+            module_logger.info("Deleting resource: " + self.output_resource_name + " for:")
             module_logger.info("  project: " + self.project)
             module_logger.info("  subject: " + self.subject)
             module_logger.info("  session: " + self.session)
@@ -762,6 +767,6 @@ class OneSubjectJobSubmitter(abc.ABC):
                 self.username, self.password,
                 str_utils.get_server_name(self.server),
                 self.project, self.subject, self.session,
-                self.output_resource_name())
+                self.output_resource_name)
 
         return self.do_job_submissions(processing_stage)

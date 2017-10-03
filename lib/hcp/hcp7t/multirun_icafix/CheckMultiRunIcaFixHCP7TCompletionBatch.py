@@ -59,7 +59,7 @@ if __name__ == "__main__":
         description="Batch mode checking of completion of MultiRunIcaFixHCP7T Processing")
 
     # optional 
-    # The --bypass-mark option tesll this program to ignore whether the resource
+    # The --bypass-mark option tells this program to ignore whether the resource
     # is marked complete and just go ahead and do a full completion check.
     parser.add_argument('-b', '--bypass-mark', dest='bypass_mark', action='store_true',
                         required=False, default=False)
