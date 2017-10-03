@@ -39,7 +39,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
         for subject in subject_list:
 
             run_status_checker = one_subject_run_status_checker.OneSubjectRunStatusChecker()
-            if not force_submissions and run_status_checker.get_queued_or_running(subject):
+            if not force_submission and run_status_checker.get_queued_or_running(subject):
                 print("-----")
                 print("\t  NOT SUBMITTING JOBS FOR")
                 print("\t                project: " + subject.project)
