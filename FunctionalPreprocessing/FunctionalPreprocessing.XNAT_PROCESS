@@ -20,7 +20,18 @@ usage()
 {
 	cat <<EOF
 
-To Be Written
+Run the HCP Functional Preprocessing pipeline scripts
+
+Usage: FunctionalPreprocessing.XNAT_PROCESS <options>
+
+  Options: [ ] = optional, < > = user-supplied-value
+
+  [--help] : show usage information and exit
+
+
+
+   --setup-script=<script>  : Full path to script to source to set up environment before running
+                              HCP Pipeline Scripts.
 
 EOF
 }
@@ -33,8 +44,17 @@ get_options()
 	# initialize global output variables
 
 	# set default values
+	unset g_user
+	unset g_password
+	unset g_server
+	unset g_project
+	unset g_subject
+	unset g_session
+	unset g_scan
+	unset g_session_classifier
 	unset g_working_dir
-
+	unset g_setup_script
+	
 	# parse arguments
 	local num_args=${#arguments[@]}
 	local argument
@@ -48,8 +68,44 @@ get_options()
 				usage
 				exit 1
 				;;
+			--user=*)
+				g_user=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--password=*)
+				g_password=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--server=*)
+				g_server=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--project=*)
+				g_project=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--subject=*)
+				g_subject=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--session=*)
+				g_session=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--scan=*)
+				g_scan=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--session-classifier=*)
+				g_session_classifier=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
 			--working-dir=*)
 				g_working_dir=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--setup-script=*)
+				g_setup_script=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -63,7 +119,62 @@ get_options()
 
 	# check parameters
 
-
+ 	if [ -z "${g_user}" ]; then
+ 		log_Err "user (--user=) required"
+ 		error_count=$(( error_count + 1 ))
+ 	else
+ 		log_Msg "user: ${g_user}"
+ 	fi
+	
+ 	if [ -z "${g_password}" ]; then
+ 		log_Err "password (--password=) required"
+ 		error_count=$(( error_count + 1 ))
+ 	else
+ 		log_Msg "password: *******"
+ 	fi
+	
+	if [ -z "${g_server}" ]; then
+		log_Err "server (--server=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "server: ${g_server}"
+	fi
+	
+	if [ -z "${g_project}" ]; then
+		log_Err "project (--project=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "project: ${g_project}"
+	fi
+	
+	if [ -z "${g_subject}" ]; then
+		log_Err "subject (--subject=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "subject: ${g_subject}"
+	fi
+	
+	if [ -z "${g_session}" ]; then
+		log_Err "session (--session=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "session: ${g_session}"
+	fi
+	
+	if [ -z "${g_session_classifier}" ]; then
+		log_Err "session classifier (--session-classifier=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "session_classifier: ${g_session_classifier}"
+	fi
+	
+	if [ -z "${g_scan}" ]; then
+		log_Err "scan (--scan=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "scan: ${g_scan}"
+	fi
+	
 	if [ -z "${g_working_dir}" ]; then
 		log_Err "working directory (--working-dir=) required"
 		error_count=$(( error_count + 1 ))
@@ -71,6 +182,12 @@ get_options()
 		log_Msg "working directory: ${g_working_dir}"
 	fi
 
+	if [ -z "${g_setup_script}" ] ; then
+		log_Err "setup script (--setup-script=) required"
+		error_count=$(( error_count + 1 ))
+	else
+		log_Msg "setup script: ${g_setup_script}"
+	fi
 	
 	if [ ${error_count} -gt 0 ]; then
 		log_Err_Abort "For usage information, use --help"
@@ -88,7 +205,12 @@ main()
 
 	create_start_time_file ${g_working_dir} ${g_pipeline_name}
 	
+	source_script ${g_setup_script}
 
+
+
+
+	
 
 
 

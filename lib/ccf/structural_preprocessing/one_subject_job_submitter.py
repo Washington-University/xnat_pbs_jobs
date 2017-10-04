@@ -237,8 +237,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         subject_line   = '  --subject=' + self.subject
         session_line   = '  --session=' + self.session
         session_classifier_line = '  --session-classifier=' + self.classifier
-        fieldmap_type_line      = '  --fieldmap-type=' + self.FIELDMAP_TYPE_SPEC
 
+        fieldmap_type_line      = '  --fieldmap-type=' + self.FIELDMAP_TYPE_SPEC
         first_t1w_directory_name_line = '  --first-t1w-directory-name=' + self._get_first_t1w_name(subject_info)
         first_t1w_resource_name_line  = '  --first-t1w-resource-name=' + self._get_first_t1w_resource_name(subject_info)
         first_t1w_file_name_line      = '  --first-t1w-file-name=' + self._get_first_t1w_file_name(subject_info)
@@ -280,7 +280,6 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             script.write(session_line + ' \\' + os.linesep)
             script.write(session_classifier_line + ' \\' + os.linesep)
             script.write(fieldmap_type_line + ' \\' + os.linesep)
-            #script.write(phase_encoding_dir_line + ' \\' + os.linesep)
             script.write(first_t1w_directory_name_line + ' \\' + os.linesep)
             script.write(first_t1w_resource_name_line + ' \\' + os.linesep)
             script.write(first_t1w_file_name_line + ' \\' + os.linesep)

@@ -54,7 +54,7 @@ Run the HCP Structural Preprocessing pipeline scripts (PreFreeSurferPipeline.sh,
 FreeSurferPipeline.sh, and PostFreeSurferPipeline.sh) in an XNAT-aware and
 XNAT-pipeline-like manner.
 
-Usage: StructuralPreprocessingHCP.XNAT.sh <options>
+Usage: StructuralPreprocessingHCP.XNAT_PROCESS <options>
 
   Options: [ ] = optional, < > = user-supplied-value
 
@@ -364,49 +364,49 @@ get_options()
  		log_Err "user (--user=) required"
  		error_count=$(( error_count + 1 ))
  	else
- 		log_Msg "g_user: ${g_user}"
+ 		log_Msg "user: ${g_user}"
  	fi
 
  	if [ -z "${g_password}" ]; then
  		log_Err "password (--password=) required"
  		error_count=$(( error_count + 1 ))
  	else
- 		log_Msg "g_password: *******"
+ 		log_Msg "password: *******"
  	fi
 
 	if [ -z "${g_server}" ]; then
 		log_Err "server (--server=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_server: ${g_server}"
+		log_Msg "server: ${g_server}"
 	fi
 
 	if [ -z "${g_project}" ]; then
 		log_Err "project (--project=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_project: ${g_project}"
+		log_Msg "project: ${g_project}"
 	fi
 
 	if [ -z "${g_subject}" ]; then
 		log_Err "subject (--subject=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_subject: ${g_subject}"
+		log_Msg "subject: ${g_subject}"
 	fi
 
 	if [ -z "${g_session}" ]; then
 		log_Err "session (--session=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_session: ${g_session}"
+		log_Msg "session: ${g_session}"
 	fi
 
 	if [ -z "${g_session_classifier}" ]; then
 		log_Err "session classifier (--session-classifier=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_session_classifier: ${g_session_classifier}"
+		log_Msg "session_classifier: ${g_session_classifier}"
 	fi
 	
 	if [ -z "${g_working_dir}" ]; then
@@ -420,186 +420,186 @@ get_options()
 		log_Err "setup script (--setup-script=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_setup_script: ${g_setup_script}"
+		log_Msg "setup script: ${g_setup_script}"
 	fi
 	
 	if [ -z "${g_fieldmap_type}" ]; then
 		log_Err "fieldmap type (--fieldmap-type=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_fieldmap_type: ${g_fieldmap_type}"
+		log_Msg "fieldmap type: ${g_fieldmap_type}"
 	fi
 	
  	if [[ ("${g_fieldmap_type}" != "GE") && ("${g_fieldmap_type}" != "SiemensGradientEcho") && ("${g_fieldmap_type}" != "SE") && ("${g_fieldmap_type}" != "SpinEcho") && ("${g_fieldmap_type}" != "NONE") ]] ; then
- 		log_Err "unrecognized g_fieldmap_type: ${g_fieldmap_type}"
+ 		log_Err "unrecognized fieldmap type: ${g_fieldmap_type}"
  		error_count=$(( error_count + 1 ))
  	fi
 
  	if [ ! -z "${g_seed}" ]; then
- 		log_Msg "g_seed: ${g_seed}"
+ 		log_Msg "seed: ${g_seed}"
  	fi
 
 	if [ -z "${g_brainsize}" ]; then
  		log_Err "brainsize (--brainsize=) required"
  	else
- 		log_Msg "g_brainsize: ${g_brainsize}"
+ 		log_Msg "brainsize: ${g_brainsize}"
  	fi
 
  	if [ -z "${g_first_t1w_directory_name}" ]; then
  		log_Err "first T1w directory name (--first-t1w-directory-name=) required"
  		error_count=$(( error_count + 1 ))
  	else
- 		log_Msg "g_first_t1w_directory_name: ${g_first_t1w_directory_name}"
+ 		log_Msg "first T1w directory name: ${g_first_t1w_directory_name}"
  	fi
 	
  	if [ -z "${g_first_t1w_resource_name}" ]; then
  		log_Err "first T1w resource name (--first-t1w-resource-name=) required"
  		error_count=$(( error_count + 1 ))
  	else
- 		log_Msg "g_first_t1w_resource_name: ${g_first_t1w_resource_name}"
+ 		log_Msg "first T1w resource name: ${g_first_t1w_resource_name}"
  	fi
 
  	if [ -z "${g_first_t1w_file_name}" ]; then
  		log_Err "first T1w file name (--first-t1w-file-name=) required"
  		error_count=$(( error_count + 1 ))
 	else
- 		log_Msg "g_first_t1w_file_name: ${g_first_t1w_file_name}"
+ 		log_Msg "first T1w file name: ${g_first_t1w_file_name}"
  	fi
 
  	if [ ! -z "${g_second_t1w_directory_name}" ]; then
- 		log_Msg "g_second_t1w_directory_name: ${g_second_t1w_directory_name}"
+ 		log_Msg "second T1w directory name: ${g_second_t1w_directory_name}"
  	fi
 	
  	if [ ! -z "${g_second_t1w_resource_name}" ]; then
- 		log_Msg "g_second_t1w_resource_name: ${g_second_t1w_resource_name}"
+ 		log_Msg "second T1w resource name: ${g_second_t1w_resource_name}"
  	fi
 
  	if [ ! -z "${g_second_t1w_file_name}" ]; then
- 		log_Msg "g_second_t1w_file_name: ${g_second_t1w_file_name}"
+ 		log_Msg "second T1w file name: ${g_second_t1w_file_name}"
  	fi
 
  	if [ -z "${g_first_t2w_directory_name}" ]; then
  		log_Err "first T2w directory name (--first-t2w-directory-name=) required"
  		error_count=$(( error_count + 1 ))
  	else
- 		log_Msg "g_first_t2w_directory_name: ${g_first_t2w_directory_name}"
+ 		log_Msg "first T2w directory name: ${g_first_t2w_directory_name}"
  	fi
 
  	if [ -z "${g_first_t2w_resource_name}" ]; then
  		log_Err "first T2w resource name (--first-t2w-resource-name=) required"
  		error_count=$(( error_count + 1 ))
  	else
- 		log_Msg "g_first_t2w_resource_name: ${g_first_t2w_resource_name}"
+ 		log_Msg "first T2w resource name: ${g_first_t2w_resource_name}"
  	fi
 
  	if [ -z "${g_first_t2w_file_name}" ]; then
  		log_Err "first T2w file name (--first-t2w-file-name=) required"
  		error_count=$(( error_count + 1 ))
  	else
- 		log_Msg "g_first_t2w_file_name: ${g_first_t2w_file_name}"
+ 		log_Msg "first T2w file name: ${g_first_t2w_file_name}"
  	fi
 
  	if [ ! -z "${g_second_t2w_directory_name}" ]; then
- 		log_Msg "g_second_t2w_directory_name: ${g_first_t2w_directory_name}"
+ 		log_Msg "second T2w directory name: ${g_first_t2w_directory_name}"
  	fi
 	
  	if [ ! -z "${g_second_t2w_resource_name}" ]; then
- 		log_Msg "g_second_t2w_resource_name: ${g_second_t2w_resource_name}"
+ 		log_Msg "second T2w resource name: ${g_second_t2w_resource_name}"
  	fi
 
  	if [ ! -z "${g_second_t2w_file_name}" ]; then
- 		log_Msg "g_second_t2w_file_name: ${g_second_t2w_file_name}"
+ 		log_Msg "second T2w file name: ${g_second_t2w_file_name}"
  	fi
 
  	if [ -z "${g_t1template}" ]; then
  		log_Err "--t1template= required"
  		error_count=$(( error_count + 1 ))
  	else
- 		log_Msg "g_t1template: ${g_t1template}"
+ 		log_Msg "t1template: ${g_t1template}"
  	fi
 
 	if [ -z "${g_t1templatebrain}" ]; then
 		log_Err "--t1templatebrain= required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_t1templatebrain: ${g_t1templatebrain}"
+		log_Msg "t1templatebrain: ${g_t1templatebrain}"
 	fi
 	
 	if [ -z "${g_t1template2mm}" ]; then
 		log_Err "--t1template2mm= required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_t1template2mm: ${g_t1template2mm}"
+		log_Msg "t1template2mm: ${g_t1template2mm}"
 	fi
 	
 	if [ -z "${g_t2template}" ]; then
 		log_Err "MNI T2w template (--t2template=) required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_t2template: ${g_t2template}"
+		log_Msg "t2template: ${g_t2template}"
 	fi
 
 	if [ -z "${g_t2templatebrain}" ]; then
 		log_Err "--t2templatebrain= required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_t2templatebrain: ${g_t2templatebrain}"
+		log_Msg "t2templatebrain: ${g_t2templatebrain}"
 	fi
 	
 	if [ -z "${g_t2template2mm}" ]; then
 		log_Err "--t2template2mm= required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_t2template2mm: ${g_t2template2mm}"
+		log_Msg "t2template2mm: ${g_t2template2mm}"
 	fi
 	
 	if [ -z "${g_templatemask}" ]; then
 		log_Err "--templatemask= required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_templatemask: ${g_templatemask}"
+		log_Msg "templatemask: ${g_templatemask}"
 	fi
 	
 	if [ -z "${g_template2mmmask}" ]; then
 		log_Err "--template2mmmask= required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_template2mmmask: ${g_template2mmmask}"
+		log_Msg "template2mmmask: ${g_template2mmmask}"
 	fi
 
 	if [ -z "${g_fnirtconfig}" ]; then
 		log_Err "--fnirtconfig= required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_fnirtconfig: ${g_fnirtconfig}"
+		log_Msg "fnirtconfig: ${g_fnirtconfig}"
 	fi
 
 	if [ -z "${g_gdcoeffs}" ]; then
 		log_Err "--gdcoeffs= required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_gdcoeffs: ${g_gdcoeffs}"
+		log_Msg "gdcoeffs: ${g_gdcoeffs}"
 	fi
 
 	if [ -z "${g_topupconfig}" ]; then
 		log_Err "--topupconfig= required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_topupconfig: ${g_topupconfig}"
+		log_Msg "topupconfig: ${g_topupconfig}"
 	fi
 
 	if [ -z "${g_se_phase_pos}" ]; then
 		log_Err "--se-phase-pos= required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_se_phase_pos: ${g_se_phase_pos}"
+		log_Msg "se_phase_pos: ${g_se_phase_pos}"
 	fi
 
 	if [ -z "${g_se_phase_neg}" ]; then
 		log_Err "--se-phase-neg= required"
 		error_count=$(( error_count + 1 ))
 	else
-		log_Msg "g_se_phase_neg: ${g_se_phase_neg}"
+		log_Msg "se_phase_neg: ${g_se_phase_neg}"
 	fi
 
  	if [ ${error_count} -gt 0 ]; then

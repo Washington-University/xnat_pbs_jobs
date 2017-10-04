@@ -329,6 +329,10 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('  --project=' + self.project + ' \\' + os.linesep)
         script.write('  --subject=' + self.subject + ' \\' + os.linesep)
         script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
+
+        if self.scan:
+            script.write('  --scan=' + self.scan + ' \\' + os.linesep)
+            
         script.write('  --working-dir=' + self.working_directory_name + os.linesep)
 
         script.close()
@@ -543,6 +547,10 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('  --project=' + self.project + ' \\' + os.linesep)
         script.write('  --subject=' + self.subject + ' \\' + os.linesep)
         script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
+
+        if self.scan:
+            script.write('  --scan=' + self.scan + ' \\' + os.linesep)
+        
         script.write('  --done' + os.linesep)
         script.write(os.linesep)
         script.write("rm -rf " + self.mark_completion_directory_name)
@@ -749,10 +757,6 @@ class OneSubjectJobSubmitter(abc.ABC):
         os.makedirs(name=self.working_directory_name)
         os.makedirs(name=self.check_data_directory_name)
         os.makedirs(name=self.mark_completion_directory_name)
-        
-        # determine output resource name
-        tbb = self.output_resource_name
-        print("TBB: tbb = ", tbb)
         
         module_logger.info("Output Resource Name: " + self.output_resource_name)
 

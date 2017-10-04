@@ -15,6 +15,7 @@ import ccf.one_subject_job_submitter as one_subject_job_submitter
 import ccf.processing_stage as ccf_processing_stage
 import ccf.subject as ccf_subject
 import utils.debug_utils as debug_utils
+import utils.str_utils as str_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -40,6 +41,14 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     def PIPELINE_NAME(self):
         return OneSubjectJobSubmitter.MY_PIPELINE_NAME()
 
+    @property
+    def WORK_NODE_COUNT(self):
+        return 1
+
+    @property
+    def WORK_PPN(self):
+        return 1
+    
     def create_process_data_job_script(self):
         module_logger.debug(debug_utils.get_name())
 
@@ -66,21 +75,52 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         with contextlib.suppress(FileNotFoundError):
             os.remove(script_name)
 
+        walltime_limit_str = str(self.walltime_limit_hours) + ':00:00'
+        vmem_limit_str = str(self.vmem_limit_gbs) + 'gb'
+
+        resources_line = '#PBS -l nodes=' + str(self.WORK_NODE_COUNT)
+        resources_line += ':ppn=' + str(self.WORK_PPN)
+        resources_line += ',walltime=' + walltime_limit_str
+        resources_line += ',vmem=' + vmem_limit_str
+        
+        stdout_line = '#PBS -o ' + self.working_directory_name
+        stderr_line = '#PBS -e ' + self.working_directory_name
+
+        script_line   = processing_script_dest_path
+        user_line     = '  --user=' + self.username
+        password_line = '  --password=' + self.password
+        server_line   = '  --server=' + str_utils.get_server_name(self.server)
+        project_line  = '  --project=' + self.project
+        subject_line  = '  --subject=' + self.subject
+        session_line  = '  --session=' + self.session
+        scan_line     = '  --scan=' + self.scan
+        session_classifier_line = '  --session-classifier=' + self.classifier
 
 
+        wdir_line  = '  --working-dir=' + self.working_directory_name
+        setup_line = '  --setup-script=' + self.setup_file_name
+        
         with open(script_name, 'w') as script:
-            script.write('hello there you fool' + os.linesep)
+            script.write(resources_line + os.linesep)
+            script.write(stdout_line + os.linesep)
+            script.write(stderr_line + os.linesep)
+            script.write(os.linesep)
+            script.write(script_line + ' \\' + os.linesep)
+            script.write(user_line + ' \\' + os.linesep)
+            script.write(password_line + ' \\' + os.linesep)
+            script.write(server_line + ' \\' + os.linesep)
+            script.write(project_line + ' \\' + os.linesep)
+            script.write(subject_line + ' \\' + os.linesep)
+            script.write(session_line + ' \\' + os.linesep)
+            script.write(scan_line + ' \\' + os.linesep)
+            script.write(session_classifier_line + ' \\' + os.linesep)
 
 
-
+            script.write(wdir_line + ' \\' + os.linesep)
+            script.write(setup_line + os.linesep)
             
             os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
             
-
-    def output_resource_name(self):
-        module_logger.debug(debug_utils.get_name())
-        return self.output_resource_suffix
-
     def mark_running_status(self, stage):
         module_logger.debug(debug_utils.get_name())
 

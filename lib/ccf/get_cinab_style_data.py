@@ -472,6 +472,7 @@ def main():
     parser.add_argument('-d', '--study-dir', dest='output_study_dir', required=True, type=str)
 
     # optional arguments
+    parser.add_argument('-a', '--scan', dest='scan', required=False, type=str, default=None)
     parser.add_argument('-c', '--copy', dest='copy', action='store_true',
                         required=False, default=False)
     parser.add_argument('-l', '--log', dest='log', action='store_true',
@@ -519,7 +520,8 @@ def main():
     if args.remove_non_subdirs:
         module_logger.info(" Remove Non-Subdirs: " + str(args.remove_non_subdirs))
 
-    subject_info = ccf_subject.SubjectInfo(args.project, args.subject, args.session_classifier)
+    subject_info = ccf_subject.SubjectInfo(args.project, args.subject, args.session_classifier,
+                                           args.scan)
     archive = ccf_archive.CcfArchive()
 
     data_retriever = DataRetriever(archive)

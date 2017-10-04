@@ -45,7 +45,7 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
                 print("\t            subject:", subject.subject_id)
                 print("\t         classifier:", subject.classifier)
                 print("\t JOBS ARE ALREADY QUEUED OR RUNNING")
-                contineu
+                continue
 
             submitter = one_subject_job_submitter.OneSubjectJobSubmitter(
                 self._archive, self._archive.build_home)
