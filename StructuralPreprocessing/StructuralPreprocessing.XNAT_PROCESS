@@ -769,6 +769,12 @@ main()
 
 	source_script ${g_setup_script}
 
+	if [ -z "${HCPPIPEDIR}" ]; then
+		log_Err_Abort "HCPPIPEDIR environment variable must be set"
+	else
+		log_Msg "HCPPIPEDIR: ${HCPPIPEDIR}"
+	fi
+	
 	source_script ${XNAT_PBS_JOBS}/ToolSetupScripts/epd-python_setup.sh
 
 	# determine what resources exist and get parameters needed

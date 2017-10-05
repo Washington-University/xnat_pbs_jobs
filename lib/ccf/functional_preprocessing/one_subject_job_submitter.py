@@ -86,16 +86,18 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         stdout_line = '#PBS -o ' + self.working_directory_name
         stderr_line = '#PBS -e ' + self.working_directory_name
 
-        script_line   = processing_script_dest_path
-        user_line     = '  --user=' + self.username
-        password_line = '  --password=' + self.password
-        server_line   = '  --server=' + str_utils.get_server_name(self.server)
-        project_line  = '  --project=' + self.project
-        subject_line  = '  --subject=' + self.subject
-        session_line  = '  --session=' + self.session
-        scan_line     = '  --scan=' + self.scan
+        script_line      = processing_script_dest_path
+        user_line        = '  --user=' + self.username
+        password_line    = '  --password=' + self.password
+        server_line      = '  --server=' + str_utils.get_server_name(self.server)
+        project_line     = '  --project=' + self.project
+        subject_line     = '  --subject=' + self.subject
+        session_line     = '  --session=' + self.session
+        scan_line        = '  --scan=' + self.scan
         session_classifier_line = '  --session-classifier=' + self.classifier
-
+        dcmethod_line    = '  --dcmethod=TOPUP'
+        topupconfig_line = ' --topupconfig=b02b0.cnf'
+        gdcoeffs_line    = ' --gdcoeffs=Prisma_3T_coeff_AS82.grad'
 
         wdir_line  = '  --working-dir=' + self.working_directory_name
         setup_line = '  --setup-script=' + self.setup_file_name
@@ -105,17 +107,18 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             script.write(stdout_line + os.linesep)
             script.write(stderr_line + os.linesep)
             script.write(os.linesep)
-            script.write(script_line + ' \\' + os.linesep)
-            script.write(user_line + ' \\' + os.linesep)
-            script.write(password_line + ' \\' + os.linesep)
-            script.write(server_line + ' \\' + os.linesep)
-            script.write(project_line + ' \\' + os.linesep)
-            script.write(subject_line + ' \\' + os.linesep)
-            script.write(session_line + ' \\' + os.linesep)
-            script.write(scan_line + ' \\' + os.linesep)
+            script.write(script_line +      ' \\' + os.linesep)
+            script.write(user_line +        ' \\' + os.linesep)
+            script.write(password_line +    ' \\' + os.linesep)
+            script.write(server_line +      ' \\' + os.linesep)
+            script.write(project_line +     ' \\' + os.linesep)
+            script.write(subject_line +     ' \\' + os.linesep)
+            script.write(session_line +     ' \\' + os.linesep)
+            script.write(scan_line +        ' \\' + os.linesep)
             script.write(session_classifier_line + ' \\' + os.linesep)
-
-
+            script.write(dcmethod_line +    ' \\' + os.linesep)
+            script.write(topupconfig_line + ' \\' + os.linesep)
+            script.write(gdcoeffs_line +    ' \\' + os.linesep)
             script.write(wdir_line + ' \\' + os.linesep)
             script.write(setup_line + os.linesep)
             
