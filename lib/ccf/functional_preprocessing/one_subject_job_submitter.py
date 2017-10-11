@@ -96,8 +96,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         scan_line        = '  --scan=' + self.scan
         session_classifier_line = '  --session-classifier=' + self.classifier
         dcmethod_line    = '  --dcmethod=TOPUP'
-        topupconfig_line = ' --topupconfig=b02b0.cnf'
-        gdcoeffs_line    = ' --gdcoeffs=Prisma_3T_coeff_AS82.grad'
+        topupconfig_line = '  --topupconfig=b02b0.cnf'
+        gdcoeffs_line    = '  --gdcoeffs=Prisma_3T_coeff_AS82.grad'
 
         wdir_line  = '  --working-dir=' + self.working_directory_name
         setup_line = '  --setup-script=' + self.setup_file_name

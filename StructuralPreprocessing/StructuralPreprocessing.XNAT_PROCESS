@@ -960,7 +960,7 @@ main()
 		log_Err_Abort "FreeSurferPipeline.sh non-zero return code: ${return_code}"
 	fi
 	popd
-
+<
 	# Run PostFreeSurferPipeline.sh script
  	PostFreeSurfer_cmd=""
 	PostFreeSurfer_cmd+="${HCPPIPEDIR}/PostFreeSurfer/PostFreeSurferPipeline.sh"

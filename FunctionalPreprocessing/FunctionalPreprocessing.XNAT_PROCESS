@@ -245,6 +245,8 @@ main()
 	else
 		log_Msg "HCPPIPEDIR: ${HCPPIPEDIR}"
 	fi
+
+	source_script ${XNAT_PBS_JOBS}/ToolSetupScripts/epd-python_setup.sh
 	
 	# get names and full paths to files
 	local path_to_files="${g_working_dir}"
@@ -324,6 +326,8 @@ main()
 	else
 		vol_cmd+=" --topupconfig=${HCPPIPEDIR}/global/config/${g_topupconfig}"
 	fi
+
+	vol_cmd+=" --biascorrection=SEBASED"
 	
 	log_Msg "vol_cmd: ${vol_cmd}"
 
@@ -335,12 +339,28 @@ main()
 	fi
 	popd
 
+	# Run the GenericfMRISurfaceProcessingPipeline.sh script
 
+	local surf_cmd=""
+	surf_cmd+="${HCPPIPEDIR}/fMRISurface/GenericfMRISurfaceProcessingPipeline.sh"
+	surf_cmd+=" --path=${g_working_dir}"
+	surf_cmd+=" --subject=${g_subject}"
+	surf_cmd+=" --fmriname=${g_scan}"
+	surf_cmd+=" --lowresmesh=32"
+	surf_cmd+=" --fmrires=2"
+	surf_cmd+=" --smoothingFWHM=2"
+	surf_cmd+=" --grayordinatesres=2"
+	surf_cmd+=" --regname=MSMSulc"
 
+	log_Msg "surf_cmd: ${surf_cmd}"
 
-	
-
-
+	pushd ${g_working_dir}
+	${surf_cmd}
+	return_code=$?
+	if [ ${return_code} -ne 0 ]; then
+		log_Err_Abort "GenericfMRISurfaceProcessingPipeline.sh non-zero return code: ${return_code}"
+	fi
+	popd
 
 	log_Msg "Complete"
 }

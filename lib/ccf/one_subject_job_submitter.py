@@ -372,8 +372,10 @@ class OneSubjectJobSubmitter(abc.ABC):
 
         if self.scan:
             script.write('  --scan="' + self.scan + '" \\' + os.linesep)
-
-        script.write('  --resource-suffix="' + self.output_resource_name + '" \\' + os.linesep)
+            script.write('  --resource-suffix="' + self.output_resource_suffix + '" \\' + os.linesep)
+        else:
+            script.write('  --resource-suffix="' + self.output_resource_name + '" \\' + os.linesep)
+            
         script.write('  --reason="' + self.PIPELINE_NAME + '"' + os.linesep)
 
         script.close()
@@ -501,6 +503,8 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('  --project=' + self.project + ' \\' + os.linesep)
         script.write('  --subject=' + self.subject + ' \\' + os.linesep)
         script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
+        if self.scan:
+            script.write('  --scan=' + self.scan + ' \\' + os.linesep)
         script.write('  --working-dir=' + self.check_data_directory_name + os.linesep)
 
         script.close()
