@@ -121,7 +121,7 @@ if __name__ == "__main__":
                                                                         verbose=args.verbose)
 
             else:
-                file_exist = completion_checking.is_processing_marked_complete(archive, subject)
+                files_exist = completion_checker.is_processing_marked_complete(archive, subject)
                 
         else:
             resource = DNM

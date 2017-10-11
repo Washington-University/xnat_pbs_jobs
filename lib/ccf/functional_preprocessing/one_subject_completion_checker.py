@@ -34,7 +34,8 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
     def my_prerequisite_dir_full_paths(self, archive, subject_info):
         dirs = []
         dirs.append(archive.structural_preproc_dir_full_path(subject_info))
-
+        return dirs
+    
     def completion_marker_file_name(self):
         return self.PIPELINE_NAME + '.XNAT_CHECK.success'
 
@@ -129,9 +130,9 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
         l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', 'GRE_greyroi_s5.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', 'GRE_grey_s5.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', 'GRE.nii.gz']))
-        l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', 'rfMRI_REST1_AP_dropouts.nii.gz']))
-        l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', 'rfMRI_REST1_AP_sebased_bias.nii.gz']))
-        l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', 'rfMRI_REST1_AP_sebased_reference.nii.gz']))
+        l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', scan + '_dropouts.nii.gz']))
+        l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', scan + '_sebased_bias.nii.gz']))
+        l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', scan + '_sebased_reference.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', 'sebased_bias_dil.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', 'sebased_reference_dil.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'DistortionCorrectionAndEPIToT1wReg_FLIRTBBRAndFreeSurferBBRbased', 'ComputeSpinEchoBiasField', 'SE_BCdivGRE_brain.nii.gz']))
@@ -225,7 +226,7 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
         l.append(os.sep.join([root_dir, scan, 'GradientDistortionUnwarp', 'fullWarp_abs.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'GradientDistortionUnwarp', 'log.txt']))
         l.append(os.sep.join([root_dir, scan, 'GradientDistortionUnwarp', 'qa.txt']))
-        l.append(os.sep.join([root_dir, scan, 'GradientDistortionUnwarp', 'rfMRI_REST1_AP_orig_vol1.nii.gz']))
+        l.append(os.sep.join([root_dir, scan, 'GradientDistortionUnwarp', scan + '_orig_vol1.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'GradientDistortionUnwarp', 'trilinear.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'Jacobian_MNI.2.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'Jacobian.nii.gz']))
