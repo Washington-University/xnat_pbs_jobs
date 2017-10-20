@@ -33,13 +33,11 @@ class OneSubjectCompletionChecker(abc.ABC):
     def my_prerequisite_dir_full_paths(self, archive, subject_info):
         pass
 
-    @abc.abstractmethod
     def completion_marker_file_name(self):
-        pass
+        return self.PIPELINE_NAME + '.XNAT_CHECK.success'
 
-    @abc.abstractmethod
     def starttime_marker_file_name(self):
-        pass
+        return self.PIPELINE_NAME + '.starttime'
 
     @abc.abstractmethod
     def list_of_expected_files(self, archive, subject_info):

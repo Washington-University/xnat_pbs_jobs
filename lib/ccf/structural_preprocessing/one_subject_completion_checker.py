@@ -34,12 +34,6 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
     def my_prerequisite_dir_full_paths(self, archive, subject_info):
         return archive.available_structural_unproc_dir_full_paths(subject_info)
     
-    def completion_marker_file_name(self):
-        return self.PIPELINE_NAME + '.XNAT_CHECK.success'
-
-    def starttime_marker_file_name(self):
-        return self.PIPELINE_NAME + '.starttime'
-    
     def list_of_expected_files(self, archive, subject_info):
 
         l = []
@@ -1331,5 +1325,3 @@ if __name__ == "__main__":
     else:
         print("Exiting with 1 code - Completion Check Unsuccessful")
         exit(1)
-
-

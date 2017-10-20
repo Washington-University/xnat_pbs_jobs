@@ -36,12 +36,6 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
         dirs.append(archive.structural_preproc_dir_full_path(subject_info))
         return dirs
     
-    def completion_marker_file_name(self):
-        return self.PIPELINE_NAME + '.XNAT_CHECK.success'
-
-    def starttime_marker_file_name(self):
-        return self.PIPELINE_NAME + '.starttime'
-
     def list_of_expected_files(self, archive, subject_info):
 
         l = []
