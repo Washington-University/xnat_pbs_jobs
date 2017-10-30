@@ -942,7 +942,7 @@ main()
 	FreeSurfer_cmd+=" --subject=${g_subject}"
 	FreeSurfer_cmd+=" --subjectDIR=${g_working_dir}/${g_subject}/T1w"
 	FreeSurfer_cmd+=" --t1=${g_working_dir}/${g_subject}/T1w/T1w_acpc_dc_restore.nii.gz"
-	FreeSurfer_cmd+=" --t1brain=${g_working_dir}/${g_subject}/T1w/T1w_acpc_dc_restore_brain.nii.gz"
+#	FreeSurfer_cmd+=" --t1brain=${g_working_dir}/${g_subject}/T1w/T1w_acpc_dc_restore_brain.nii.gz"
 	FreeSurfer_cmd+=" --t2=${g_working_dir}/${g_subject}/T1w/T2w_acpc_dc_restore.nii.gz"
 
 	if [ ! -z "${g_seed}" ]; then
