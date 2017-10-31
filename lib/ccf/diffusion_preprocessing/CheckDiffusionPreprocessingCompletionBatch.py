@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 
 # import of built-in modules
+import datetime
 import logging
 import os
 
 # import of third-party modules
 
 # import of local modules
-import ccf.subject as ccf_subject
-import utils.file_utils as file_utils
-import utils.my_argparse as my_argparse
 import ccf.archive as ccf_archive
 import ccf.diffusion_preprocessing.one_subject_completion_checker as one_subject_completion_checker
 import ccf.diffusion_preprocessing.one_subject_prereq_checker as one_subject_prereq_checker
 import ccf.diffusion_preprocessing.one_subject_run_status_checker as one_subject_run_status_checker
+import ccf.subject as ccf_subject
+import utils.file_utils as file_utils
+import utils.my_argparse as my_argparse
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -42,10 +43,20 @@ def _write_header(output_file):
     print(header_line)
     output_file.write(header_line + os.linesep)
 
+def _write_subject_info(output_file, project, subject_id, classifier, prereqs_met,
+                        resource, exists, resource_date_str, complete,
+                        queued_or_running):
+    subject_line = "\t".join([project, subject_id, classifier, str(prereqs_met),
+                              resource, str(exists), resource_date_str, str(complete),
+                              str(queued_or_running)])
+    print(subject_line)
+    output_file.write(subject_line + os.linesep)
+
+    
 if __name__ == "__main__":
 
     parser = my_argparse.MyArgumentParser(
-        description="Batch mode checking of completion of diffusion preprocessing")
+        description="Batch mode checking of completion of Diffusion Preprocessing")
 
     # optional arguments
     # The --bypass-mark option tells this program to ignore whether the resource
@@ -73,7 +84,7 @@ if __name__ == "__main__":
     subject_list = ccf_subject.read_subject_info_list(subject_file_name, separator=":")
 
     # open output file
-    output_file = open('StructuralPreprocessing.status', 'w')
+    output_file = open('DiffusionPreprocessing.status', 'w')
 
     _write_header(output_file)
     
@@ -93,4 +104,28 @@ if __name__ == "__main__":
         prereqs_met = prereq_checker.are_prereqs_met(archive, subject)
         queued_or_running = running_checker.get_queued_or_running(subject)
 
-        
+        if completion_checker.does_processed_resource_exist(archive, subject):
+            resource_exists = True
+
+            fullpath = archive.diffusion_preproc_dir_full_path(subject)
+            resource = archive.diffusion_preproc_dir_name(subject)
+
+            timestamp = os.path.getmtime(fullpath)
+            resource_date = datetime.datetime.fromtimestamp(timestamp).strftime(DATE_FORMAT)
+
+            if args.bypass_mark:
+                files_exist = completion_checker.is_processing_complete(archive, subject,
+                                                                        verbose=args.verbose)
+
+            else:
+                files_exist = completion_checker.is_processing_marked_complete(archive, subject)
+            
+        else:
+            resource = DNM
+            resource_exists = False
+            resource_date = NA
+            files_exist = False
+
+        _write_subject_info(output_file, project, subject_id, classifier, prereqs_met,
+                            resource, resource_exists, resource_date,
+                            files_exist, queued_or_running)

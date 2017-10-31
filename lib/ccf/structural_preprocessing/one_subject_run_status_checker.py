@@ -7,6 +7,7 @@ import os
 # import of third-party modules
 
 # import of local modules
+import ccf.one_subject_run_status_checker as one_subject_run_status_checker
 import ccf.structural_preprocessing.one_subject_job_submitter as one_subject_job_submitter
 
 # authorship information
@@ -15,7 +16,7 @@ __copyright__ = "Copyright 2017, The Connectome Coordination Facility"
 __maintainer__ = "Timothy B. Brown"
 
 
-class OneSubjectRunStatusChecker():
+class OneSubjectRunStatusChecker(one_subject_run_status_checker.OneSubjectRunStatusChecker):
 
     def __init__(self):
         super().__init__()
@@ -23,24 +24,6 @@ class OneSubjectRunStatusChecker():
     @property
     def PIPELINE_NAME(self):
         return one_subject_job_submitter.OneSubjectJobSubmitter.MY_PIPELINE_NAME()
-    
-    def _path_to_running_marker_file(self, subject_info):
-
-        running_status_dir = os.getenv('XNAT_PBS_JOBS_RUNNING_STATUS_DIR')
-        if not running_status_dir:
-            raise RuntimeError("Environment variable XNAT_PBS_JOBS_RUNNING_STATUS_DIR must be set")
-        
-        file_name = self.PIPELINE_NAME
-        file_name += '.' + subject_info.subject_id
-        file_name += '_' + subject_info.classifier
-        file_name += '.' + 'RUNNING'
-
-        path = running_status_dir + os.sep + subject_info.project + os.sep + file_name
-
-        return path
-            
-    def get_queued_or_running(self, subject_info):
-        return os.path.exists(self._path_to_running_marker_file(subject_info))
     
     def get_run_status(self, subject_info):
 

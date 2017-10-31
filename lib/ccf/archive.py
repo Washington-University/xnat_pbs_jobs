@@ -342,9 +342,13 @@ class CcfArchive(object):
         """
         Full path to diffusion preproc resource directory
         """
-        path_expr = self.subject_resources_dir_full_path(subject_info)
-        path_expr += os.sep + 'Diffusion' + self.NAME_DELIMITER + self.PREPROC_SUFFIX
+        path_expr = self.subject_resources_dir_full_path(subject_info) + os.sep
+        path_expr += self.diffusion_preproc_dir_name(subject_info)
         return path_expr
+
+    def diffusion_preproc_dir_name(self, subject_info):
+        name = 'Diffusion' + self.NAME_DELIMITER + self.PREPROC_SUFFIX
+        return name
 
     def available_diffusion_preproc_dir_full_paths(self, subject_info):
         """
