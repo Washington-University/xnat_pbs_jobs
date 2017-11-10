@@ -1,1 +1,1 @@
-master
+release/v1.7.0
