@@ -42,7 +42,7 @@ for subject in ${subjects} ; do
 		log_Msg " Using server: ${server}"
 		log_Msg "--------------------------------------------------------------------------------"
 
-		${XNAT_PBS_JOBS}/PostFix/SubmitPostFix.OneSubject.sh \
+		${XNAT_PBS_JOBS}/PostFixHCP/SubmitPostFix.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
 			--server=${server} \

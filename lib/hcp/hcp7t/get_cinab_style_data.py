@@ -130,6 +130,22 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_preproc_data(subject_info, output_study_dir)
             self.get_icafix_data(subject_info,  output_study_dir)
 
+    def get_data_through_multirun_ICAFIX(self, subject_info, output_study_dir):
+
+        if not self.copy:
+            # when creating symbolic links (copy == False), must be done in reverse
+            # chronological order
+            self.get_multirun_icafix_data(subject_info, output_study_dir)
+            self.get_icafix_data(subject_info, output_study_dir)
+            self.get_preproc_data(subject_info, output_study_dir)
+            self.get_unproc_data(subject_info, output_study_dir)
+        else:
+            # when copying (via rsync), should be done in chronological order
+            self.get_unproc_data(subject_info, output_study_dir)
+            self.get_preproc_data(subject_info, output_study_dir)
+            self.get_icafix_data(subject_info, output_study_dir)
+            self.get_multirun_icafix_data(subject_info, output_study_dir)
+            
     def remove_non_subdirs(self, directory):
         cmd = 'find ' + directory + ' -maxdepth 1 -not -type d -print -delete'
         completed_process = subprocess.run(
@@ -158,7 +174,8 @@ def main():
         "FULL", "full",
         "DIFFUSION_PREPROC_VETTING", "diffusion_preproc_vetting",
         "MULTIRUNICAFIX_PREREQS", "multirunicafix_prereqs",
-        "ICAFIX", "icafix"
+        "ICAFIX", "icafix",
+        "MULTIRUNICAFIX", "multirunicafix"
     ]
 
     parser.add_argument('-ph', '--phase', dest='phase', required=False,
@@ -205,9 +222,12 @@ def main():
     elif args.phase == "MULTIRUNICAFIX_PREREQS":
         data_retriever.get_multirunicafix_prereqs(subject_info, args.output_study_dir)
         
-    elif (args.phase == "ICAFIX"):
+    elif args.phase == "ICAFIX":
         data_retriever.get_data_through_ICAFIX(subject_info, args.output_study_dir)
 
+    elif args.phase == "MULTIRUNICAFIX":
+        data_retriever.get_data_through_multirun_ICAFIX(subject_info, args.output_study_dir)
+        
     if args.remove_non_subdirs:
         # remove any non-subdirectory data at the output study directory level
         data_retriever.remove_non_subdirs(args.output_study_dir)

@@ -230,27 +230,109 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Link FIX processed and functionally preprocessed data from DB" ${step_percent}
 
-	preproc_scan=${g_scan%_7T*}${g_scan##*_7T}
-	inform "preproc_scan: ${preproc_scan}"
+	# Is it a single scan or a concatenated scan?
+	# Reduce ${g_scan} to a space separated list of just the scan names
 
-	link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" \
-		"${g_session}" "${preproc_scan}" "${g_working_dir}"
+	# remove any tesla spec from the string
+	tesla_spec="7T"
+	scans=${g_scan//${tesla_spec}/}
+	scans=${scans//__/_}
+	inform "scans: ${scans}"
 
-	link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" \
-		"${g_session}" "${preproc_scan}" "${g_working_dir}"
+	# Does ${scans} now start with tfMRI or rfMRI?
+	if [[ ${scans} == tfMRI_* ]]; then
+		prefix="tfMRI_"
+	elif [[ ${scans} == rfMRI_* ]]; then
+		prefix="rfMRI_"
+	else
+		inform "Do not recognize scan prefix."
+		die 
+	fi
 
-	# # get files that are opened for writing
-	# # Whether they are actually written to or not, if a file is opened in write mode,
-	# # that open will fail due to the read-only nature of the files in the DB archive.
-	filtered_func_data_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_scan}/${g_scan}_hp2000.ica/filtered_func_data.ica"
-	filtered_mask_files="${filtered_func_data_dir}/mask*"
-	echo "filtered_mask_files: ${filtered_mask_files}"
-	rm ${filtered_mask_files}
+	inform "prefix: ${prefix}"
 
-	cp -a --preserve=timestamps \
-	 	${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${preproc_scan}_FIX/${g_scan}/${g_scan}_hp2000.ica/filtered_func_data.ica/mask* \
-		${filtered_func_data_dir}
+	# remove the prefix
+	scans=${scans#${prefix}}
 
+	inform "scans: ${scans}"
+
+	# put spaces after phase encoding descriptors
+	scans=${scans//_AP_/_AP }
+	scans=${scans//_PA_/_PA }
+	scans=${scans//_LR_/_LR }
+	scans=${scans//_RL_/_RL }
+
+	inform "scans: ${scans}"
+	
+	# figure out if the processed scan is a concatenation of several scans
+	if [[ "${scans}" =~ [\ ] ]]; then
+		g_concatenated="TRUE"
+	else
+		g_concatenated="FALSE"
+	fi
+
+	if [ "${g_concatenated}" = "TRUE" ]; then
+		# concatenated
+
+		# get the FIX processed data for the concatenated scan
+		link_hcp_concatenated_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" \
+											"${g_session}" "${g_scan}" "${g_working_dir}"
+
+		# get the functionally preprocessed data for the individual scans that
+		# were concatenated
+		for scan in ${scans} ; do
+			preproc_scan=${prefix}${scan}
+			inform "preproc_scan: ${preproc_scan}"
+
+			link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" \
+									   "${g_session}" "${preproc_scan}" "${g_working_dir}"
+		done
+
+		# get files that are opened for writing
+		# Whether they are actually written to or not, if a file is opened in write mode,
+		# that open will fail due to the read-only nature of the files in the DB archive.
+		filtered_func_data_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_scan}/${g_scan}_hp2000.ica/filtered_func_data.ica"
+		filtered_mask_files="${filtered_func_data_dir}/mask*"
+		echo "filtered_mask_files: ${filtered_mask_files}"
+		rm ${filtered_mask_files}
+
+		cp_cmd="cp -a --preserve=timestamps"
+		cp_cmd+=" ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${g_scan}_FIX/${g_scan}/${g_scan}_hp2000.ica/filtered_func_data.ica/mask*"
+		cp_cmd+=" ${filtered_func_data_dir}"
+		inform "cp_cmd: ${cp_cmd}"
+		${cp_cmd}
+				
+	else
+		# scans is really only one. Not concatenated
+		# preproc_scan=${g_scan%_${tesla_spec}*}${g_scan##*_${tesla_spec}}
+		# inform "preproc_scan: ${preproc_scan}"
+		preproc_scan=${prefix}${scans}
+		inform "preproc_scan: ${preproc_scan}"
+
+		link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" \
+							   "${g_session}" "${preproc_scan}" "${g_working_dir}"
+
+		link_hcp_func_preproc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" \
+								   "${g_session}" "${preproc_scan}" "${g_working_dir}"
+
+		# get files that are opened for writing
+		# Whether they are actually written to or not, if a file is opened in write mode,
+		# that open will fail due to the read-only nature of the files in the DB archive.
+		filtered_func_data_dir="${g_working_dir}/${g_subject}/MNINonLinear/Results/${g_scan}/${g_scan}_hp2000.ica/filtered_func_data.ica"
+		filtered_mask_files="${filtered_func_data_dir}/mask*"
+		echo "filtered_mask_files: ${filtered_mask_files}"
+		rm ${filtered_mask_files}
+
+		cp -a --preserve=timestamps \
+	 	   ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${preproc_scan}_FIX/${g_scan}/${g_scan}_hp2000.ica/filtered_func_data.ica/mask* \
+		   ${filtered_func_data_dir}
+
+	fi
+
+	find ${g_working_dir}/${g_subject} -name "*XNAT_PBS_job*" -delete
+	find ${g_working_dir}/${g_subject} -name "*catalog.xml" -delete
+	find ${g_working_dir}/${g_subject} -name "*starttime" -delete
+		
 	# Step - Create a start_time file
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))

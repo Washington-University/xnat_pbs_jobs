@@ -59,7 +59,7 @@ class PostFixHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
         # submit jobs for listed subjects
         for subject in subject_list:
 
-            put_server = 'http://db-shadow' + str(self._current_shadow_number) + '.nrg.mir:8080'
+            put_server = 'http://db-shadow' + str(self.shadow_number) + '.nrg.mir:8080'
 
             # get information for subject from configuration file
             setup_file = scripts_home + os.sep + config.get_value(subject.subject_id, 'SetUpFile')

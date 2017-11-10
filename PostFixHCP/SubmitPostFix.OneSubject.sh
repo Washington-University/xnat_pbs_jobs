@@ -226,7 +226,7 @@ main()
 			echo "#PBS -m abe" >> ${script_file_to_submit}
 		fi
 		echo "" >> ${script_file_to_submit}
-		echo "${XNAT_PBS_JOBS}/PostFix/PostFix.XNAT.sh \\" >> ${script_file_to_submit}
+		echo "${XNAT_PBS_JOBS}/PostFixHCP/PostFix.XNAT.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}
 		echo "  --password=\"${g_password}\" \\" >> ${script_file_to_submit}
 		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}

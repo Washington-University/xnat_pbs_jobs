@@ -9,8 +9,8 @@ read password
 echo ""
 stty echo
 
-subject="185038"
-node="node164"
+subject="116423"
+node="node157"
 shadow_number=2
 
 project="HCP_Staging"
@@ -27,13 +27,13 @@ echo "--------------------------------------------------------------------------
 
 at now <<EOF
 
-${HOME}/pipeline_tools/xnat_pbs_jobs/PostFix/RunPostFix.OneSubject.sh \
+${HOME}/pipeline_tools/xnat_pbs_jobs/PostFixHCP/RunPostFix.OneSubject.sh \
 	--user=${userid} \
 	--password=${password} \
 	--server=${server} \
 	--project=${project} \
 	--subject=${subject} \
 	--node=${node} \
-	> /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/OneSubjectRuns/${subject}.${node}.stdout \
-	2>/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/OneSubjectRuns/${subject}.${node}.stderr
+	> /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFixHCP/OneSubjectRuns/${subject}.${node}.stdout \
+	2>/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFixHCP/OneSubjectRuns/${subject}.${node}.stderr
 EOF

@@ -271,8 +271,29 @@ class HcpArchive(abc.ABC):
         dir_list = glob.glob(
             self.subject_resources_dir_fullpath(subject_info) + '/*' +
             self.FUNCTIONAL_SCAN_MARKER + '*' + self.FIX_PROCESSED_SUFFIX)
-        return sorted(dir_list)
 
+        return_dir_list = []
+        for path in dir_list:
+            tokens = self._get_scan_name_from_path(path).split('_')
+            if len(tokens) <= 3:
+                return_dir_list.append(path)
+        
+        return sorted(return_dir_list)
+
+    def available_MultiRun_FIX_processed_dir_fullpaths(self, subject_info):
+        """Returns a list of full paths to Multi-Run FIX processed scan resources."""
+        dir_list = glob.glob(
+            self.subject_resources_dir_fullpath(subject_info) + '/*' +
+            self.FUNCTIONAL_SCAN_MARKER + '*' + self.FIX_PROCESSED_SUFFIX)
+
+        return_dir_list = []
+        for path in dir_list:
+            tokens = self._get_scan_name_from_path(path).split('_')
+            if len(tokens) > 3:
+                return_dir_list.append(path)
+                
+        return sorted(return_dir_list)
+    
     def available_task_processed_dir_fullpaths(self, subject_info):
         dir_list = []
         first_dir_list = glob.glob(
@@ -297,6 +318,14 @@ class HcpArchive(abc.ABC):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
+    def available_MultiRun_FIX_processed_names(self, subject_info):
+        """Returns a list of scan names (not full paths) of available Multi-Run FIX processed scans."""
+        dir_list = self.available_MultiRun_FIX_processed_dir_fullpaths(subject_info)
+        name_list = []
+        for directory in dir_list:
+            name_list.append(self._get_scan_name_from_path(directory))
+        return name_list
+    
     def available_hand_reclassification_names(self, subject_info):
         """Returns a list of scan names (not full paths) of available hand reclassifications for scans."""
         dir_list = self.available_hand_reclassification_dir_fullpaths(subject_info)
@@ -463,7 +492,7 @@ class HcpArchive(abc.ABC):
         #       to see if the resource exists. It needs to also do the check to see
         #       if all the appropriate files exist.
         _inform("functionally_preprocessed method of HcpArchive class being called.")
-        _inform("This method should be overriddent in a subclass to do a more ")
+        _inform("This method should be overridden in a subclass to do a more ")
         _inform("appropriate check.")
         return self.does_functional_preproc_exist(subject_info, scan_name)
 
