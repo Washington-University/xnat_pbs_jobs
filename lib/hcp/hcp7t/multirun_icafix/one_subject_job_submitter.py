@@ -69,7 +69,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     @property
     def WORK_PPN(self):
-        return 8
+        #return 8
+        return 1
 
     @property
     def structural_reference_project(self):
