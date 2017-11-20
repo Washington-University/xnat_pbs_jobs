@@ -150,7 +150,7 @@ class CinabStyleDataRetriever(abc.ABC):
 
         for directory in self.archive.available_MultiRun_FIX_processed_dir_fullpaths(subject_info):
 
-            get_from = directory
+            get_from = directory + os.sep + subject_info.subject_id
             put_to = output_study_dir + os.sep + subject_info.subject_id
             self._from_to(get_from, put_to)
 
@@ -237,28 +237,41 @@ class CinabStyleDataRetriever(abc.ABC):
             self.get_unproc_data(subject_info, output_study_dir)
             self.get_diffusion_preproc_data(subject_info, output_study_dir)
 
-    def clean_xnat_specific_files(self, output_study_dir):
-        for root, dirs, files in os.walk(output_study_dir):
-            for filename in files:
-                fullpath = '%s/%s' % (root, filename)
-                xnat_catalog_suffix = 'catalog.xml'
-                cat_loc = fullpath.rfind(xnat_catalog_suffix)
+    def remove_pbs_job_files(self, directory):
+        cmd = 'find ' + directory + ' -name "*XNAT_PBS*_job.sh*" -delete'
+        completed_process = subprocess.run(
+            cmd, shell=True, check=True, stdout=subprocess.PIPE,
+            universal_newlines=True)
 
-                provenance_marker = 'Provenance.xml'
+        cmd = 'find ' + directory + ' -name "*.starttime" -delete'
+        completed_process = subprocess.run(
+            cmd, shell=True, check=True, stdout=subprocess.PIPE,
+            universal_newlines=True)
 
-                if cat_loc == len(fullpath) - len(xnat_catalog_suffix):
-                    # This is an XNAT resource catalog file. It should be removed.
-                    os.remove(fullpath)
+        cmd = 'find ' + directory + ' -name "StructuralHCP.log" -delete'
+        completed_process = subprocess.run(
+            cmd, shell=True, check=True, stdout=subprocess.PIPE,
+            universal_newlines=True)
 
-                elif provenance_marker in fullpath:
-                    # This is a provenance file. It should be removed.
-                    os.remove(fullpath)
+        cmd = 'find ' + directory + ' -name "StructuralHCP.err" -delete'
+        completed_process = subprocess.run(
+            cmd, shell=True, check=True, stdout=subprocess.PIPE,
+            universal_newlines=True)
+        
+        return
 
-    def clean_pbs_job_logs(self, output_study_dir):
-        for root, dirs, files in os.walk(output_study_dir):
-            for filename in files:
-                fullpath = '%s/%s' % (root, filename)
-                pbs_job_marker = 'XNAT_PBS_job'
+    def remove_xnat_catalog_files(self, directory):
+        cmd = 'find ' + directory + ' -name "*_catalog.xml" -delete'
+        completed_process = subprocess.run(
+            cmd, shell=True, check=True, stdout=subprocess.PIPE,
+            universal_newlines=True)
 
-                if pbs_job_marker in fullpath:
-                    os.remove(fullpath)
+        cmd = 'find ' + directory + ' -name "*_Provenance.xml" -delete'
+        completed_process = subprocess.run(
+            cmd, shell=True, check=True, stdout=subprocess.PIPE,
+            universal_newlines=True)
+
+        return
+
+    
+    
