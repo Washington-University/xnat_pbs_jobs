@@ -267,16 +267,12 @@ class ControlPanelWidget(QWidget):
             # ici
             
             resource = self.archive.multirun_icafix_proc_dir_name(subject)
-
-
-
-            
             resource_exists = self.completion_checker.does_processed_resource_exist(self.archive, subject)
 
             if resource_exists:
 
                 # ici
-                resource_fullpath = self.archive.structural_preproc_dir_full_path(subject)
+                resource_fullpath = self.archive.multirun_icafix_proc_dir_full_path(subject)
                 timestamp = os.path.getmtime(resource_fullpath)
                 resource_date = datetime.datetime.fromtimestamp(timestamp).strftime(DATE_FORMAT)
             else:

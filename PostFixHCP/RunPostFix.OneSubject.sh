@@ -190,7 +190,7 @@ main()
 		fi
 
 		touch ${script_file_to_submit}
-		echo "${HOME}/pipeline_tools/xnat_pbs_jobs/PostFix/PostFix.XNAT.sh \\" >> ${script_file_to_submit}
+		echo "${HOME}/pipeline_tools/xnat_pbs_jobs/PostFixHCP/PostFix.XNAT.sh \\" >> ${script_file_to_submit}
 		echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 		echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 		echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}

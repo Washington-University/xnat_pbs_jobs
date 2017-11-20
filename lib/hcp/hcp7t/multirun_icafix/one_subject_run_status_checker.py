@@ -34,10 +34,10 @@ class OneSubjectRunStatusChecker():
         file_name += '.' + subject_info.project
         file_name += '_' + subject_info.subject_id
         file_name += '_' + '7T'
+        file_name += '_' + subject_info.extra
         file_name += '.' + 'RUNNING'
 
         path = running_status_dir + os.sep + subject_info.project + os.sep + file_name
-
         return path
 
     def get_queued_or_running(self, subject_info):

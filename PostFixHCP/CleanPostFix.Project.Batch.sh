@@ -34,7 +34,7 @@ for subject in ${subjects} ; do
 		echo " Using server: ${server}"
 		echo "--------------------------------------------------------------------------------"
 		
-		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFix/CleanPostFix.OneSubject.sh \
+		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/PostFixHCP/CleanPostFix.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
 			--server=${server} \

@@ -27,7 +27,16 @@ Check a created Functional Preprocessing resource for completeness
 Usage: $(basename ${0}) PARAMETER..."
 
 PARAMETERs are [ ] = optional; < > = user supplied value
-  [--help]   : show usage information and exit with non-zero return code
+  [--help]                   : show usage information and exit with non-zero return code
+   --user=<username>         : XNAT DB username
+   --password=<password>     : XNAT DB password
+   --server=<server>         : XNAT server
+   --project=<project>       : XNAT project (e.g. HCP_500)
+   --subject=<subject>       : XNAT subject ID within project (e.g. 100307)
+   --classifier=<classifier> : XNAT session classifier (e.g. 3T, 7T, MR, V1, V2, etc.)
+   --scan=<scan>             : XNAT scan
+   --working-dir=<dir>       : Working directory in which to place retrieved data
+                               and in which to produce results
 
 EOF
 }

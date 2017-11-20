@@ -5,7 +5,7 @@ local_log()
 	local msg="$*"
 	local date_time
 	date_time=$(date)
-	local tool_name="PostFix/SetUpHCPPipeline.sh"
+	local tool_name="PostFixHCP/SetUpHCPPipeline.sh"
 	echo "${date_time} - ${tool_name} - ${msg}" 
 }
 
