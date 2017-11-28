@@ -117,6 +117,37 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         module_logger.debug(debug_utils.get_name())
         return self.scripts_start_name + '.XNAT_CREATE_FREESURFER_ASSESSOR_job.sh'
 
+    def create_get_data_job_script(self):
+        """Create the script to be submitted to perform the get data job"""
+        module_logger.debug(debug_utils.get_name())
+
+        script_name = self.get_data_job_script_name
+
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(script_name)
+
+        script = open(script_name, 'w')
+
+        self._write_bash_header(script)
+        script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4gb' + os.linesep)
+        script.write('#PBS -q HCPput' + os.linesep)
+        script.write('#PBS -o ' + self.working_directory_name + os.linesep)
+        script.write('#PBS -e ' + self.working_directory_name + os.linesep)
+        script.write(os.linesep)
+        script.write(self.get_data_program_path + ' \\' + os.linesep)
+        script.write('  --project=' + self.project + ' \\' + os.linesep)
+        script.write('  --subject=' + self.subject + ' \\' + os.linesep)
+        script.write('  --classifier=' + self.classifier + ' \\' + os.linesep)
+
+        if self.scan:
+            script.write('  --scan=' + self.scan + ' \\' + os.linesep)
+            
+        script.write('  --working-dir=' + self.working_directory_name + ' \\' + os.linesep)
+        script.write('  --delay-seconds=120' + os.linesep)
+        
+        script.close()
+        os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
+
     def _get_positive_spin_echo_path(self, subject_info):
         t1w_resource_paths = self.archive.available_t1w_unproc_dir_full_paths(subject_info)
         if len(t1w_resource_paths) > 0:

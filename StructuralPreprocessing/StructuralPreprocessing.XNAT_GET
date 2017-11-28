@@ -39,7 +39,8 @@ get_options()
 	unset g_subject
 	unset g_classifier
 	unset g_working_dir
-
+	g_delay_seconds=0
+	
 	# parse arguments
 	local num_args=${#arguments[@]}
 	local argument
@@ -67,6 +68,10 @@ get_options()
 				;;
 			--working-dir=*)
 				g_working_dir=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--delay-seconds=*)
+				g_delay_seconds=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -102,6 +107,8 @@ get_options()
 		log_Msg "g_working_dir: ${g_working_dir}"
 	fi
 
+	log_Msg "g_delay_seconds: ${g_delay_seconds}"
+	
 	if [ ! -z "${error_msgs}" ]; then
 		usage
 		log_Err_Abort ${error_msgs}
@@ -116,6 +123,10 @@ main()
 
 	get_options "$@"
 
+	# sleep a little to try to ensure job is not complete before processing job gets submitted
+	log_Msg "Sleeping for ${g_delay_seconds} seconds to allow submittal of processing job before this job completes"
+	sleep ${g_delay_seconds}
+	
 	# Link CinaB-style data
 	log_Msg "Activating Python 3"
 	source activate python3 2>&1
