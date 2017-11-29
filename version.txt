@@ -1,1 +1,1 @@
-freesurfer_v6
+ccf_diffusion_preproc
