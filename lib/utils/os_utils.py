@@ -32,7 +32,7 @@ log.addHandler(sh)
 
 def getenv_required(var_name):
     value = os.getenv(var_name)
-    if value is None:
+    if not value:
         raise ValueError("Environment variable " + var_name + " is required, but is not set!")
     return value
 

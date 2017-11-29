@@ -46,9 +46,9 @@ def _write_header(output_file):
 def _write_subject_info(output_file, project, subject_id, classifier, prereqs_met,
                         resource, exists, resource_date_str, complete,
                         queued_or_running):
-    subject_line = "\t".join([project, subject_id, classifier, str(prereqs_met),
-                              resource, str(exists), resource_date_str, str(complete),
-                              str(queued_or_running)])
+    subject_line = "\t".join([project, subject_id, classifier,
+                              str(prereqs_met), resource, str(exists), resource_date_str,
+                              str(complete), str(queued_or_running)])
     print(subject_line)
     output_file.write(subject_line + os.linesep)
 

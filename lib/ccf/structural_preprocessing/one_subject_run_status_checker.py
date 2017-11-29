@@ -17,10 +17,8 @@ __maintainer__ = "Timothy B. Brown"
 
 
 class OneSubjectRunStatusChecker(one_subject_run_status_checker.OneSubjectRunStatusChecker):
-
-    def __init__(self):
-        super().__init__()
-        
+    """Determine run status of CCF Structural Preprocessing."""
+    
     @property
     def PIPELINE_NAME(self):
         return one_subject_job_submitter.OneSubjectJobSubmitter.MY_PIPELINE_NAME()
