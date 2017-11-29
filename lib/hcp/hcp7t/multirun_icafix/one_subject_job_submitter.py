@@ -69,7 +69,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     @property
     def WORK_PPN(self):
-        return 8
+        #return 8
+        return 1
 
     @property
     def structural_reference_project(self):
@@ -238,6 +239,10 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             mark_cmd += ' --project=' + self.project
             mark_cmd += ' --subject=' + self.subject
             mark_cmd += ' --classifier=' + '7T'
+
+            if self.scan:
+                mark_cmd += ' --scan=' + self.scan
+            
             mark_cmd += ' --queued'
 
             completed_mark_cmd_process = subprocess.run(

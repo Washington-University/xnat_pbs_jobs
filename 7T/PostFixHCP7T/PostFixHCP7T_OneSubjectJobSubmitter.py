@@ -104,6 +104,7 @@ class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJo
                     inform("Only submitting jobs for incomplete scans - skipping " + scan_name)
                     continue
 
+            inform("scan_name: " + scan_name)
             long_scan_name = self.archive.functional_scan_long_name(scan_name)
             output_resource_name = self.archive.PostFix_processed_resource_name(scan_name)
 
@@ -140,7 +141,7 @@ class PostFixHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJo
 
             # get XNAT Session ID (a.k.a. the experiment ID, e.g. ConnectomeDB_E1234)
             xnat_session_id = xnat_access.get_session_id(
-                server=os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER',
+                server=os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER'),
                 username=username,
                 password=password,
                 project=project,

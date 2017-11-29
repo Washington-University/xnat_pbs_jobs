@@ -102,6 +102,7 @@ class OneSubjectCompletionChecker(abc.ABC):
         
     def is_processing_complete(self, archive, subject_info,
                                verbose=False, output=sys.stdout, short_circuit=True):
+
         # If the processed resource does not exist, then the processing is certainly not complete.
         if not self.does_processed_resource_exist(archive, subject_info):
             if verbose:
@@ -118,7 +119,7 @@ class OneSubjectCompletionChecker(abc.ABC):
             if verbose:
                 print("resource: " + self.my_resource(archive, subject_info) + " IS NOT NEWER THAN ALL PREREQUISITES", file=output)
             return False
-        
+
         # If processed resource exists and is newer than all the prerequisite resources, then check
         # to see if all the expected files exist
         expected_file_list = self.list_of_expected_files(archive, subject_info)

@@ -51,7 +51,6 @@ def _write_subject_info(subject, subject_results_dict, afile):
 if __name__ == "__main__":
 
     # Get list of subjects to check
-    # subject_file_name = subject_files_dir + os.sep + 'CheckPostFixProcessingHCP7T.python.subjects'
     subject_file_name = file_utils.get_subjects_file_name(__file__)
 
     _inform("Retrieving subject list from: " + subject_file_name)
@@ -67,10 +66,11 @@ if __name__ == "__main__":
     ica_fix_scans_list.append('tfMRI_MOVIE2_PA')
     ica_fix_scans_list.append('tfMRI_MOVIE3_PA')
     ica_fix_scans_list.append('tfMRI_MOVIE4_AP')
+    ica_fix_scans_list.append('tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA')
 
     # open complete and incomplete files for writing
-    complete_file = open('HCP_Staging_7T.complete.status', 'w')
-    incomplete_file = open('HCP_Staging_7T.incomplete.status', 'w')
+    complete_file = open('PostFix.complete.status', 'w')
+    incomplete_file = open('PostFix.incomplete.status', 'w')
 
     # Create archive
     archive = hcp7t_archive.Hcp7T_Archive()

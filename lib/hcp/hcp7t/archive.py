@@ -213,6 +213,9 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
                              self.TASK_SCAN_MARKER + '*RET*' + self.PREPROC_SUFFIX)
         return sorted(dir_list)
 
+    def available_retinotopy_preproc_dir_full_paths(self, subject_info):
+        return self.available_retinotopy_preproc_dirs(subject_info)
+    
     def available_retinotopy_preproc_names(self, subject_info):
         """Returns a list of scan names (not full paths) of available functionally
         preprocessed retinotopy task scan resources."""
@@ -227,12 +230,37 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
 
         This 'long form' is used in some processing contexts as the fMRIName.
 
-        :Example:
+        For a concatenated functional scan (not one actual scan, but a 
+        scan created by concatenating several actual scans), then
+        the long form is equal to the standard/short form.
+
+        For now, we are "detecting" a concatenated functional scan based
+        on the number of "_"-separated tokens in the functional_scan_name.
+        If it is greater than 3 (e.g. tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA),
+        then we assume that this is a concatenated scan name. Otherwise, 
+        (e.g. ffMRI_REST3_PA) we assume that it is NOT a concatenated scan
+        name.
+
+        :Examples:
 
         functional_scan_long_name('rfMRI_REST3_PA') returns 'rfMRI_REST3_7T_PA'
+
+        functional_scan_long_name('tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA') 
+          simply returns the input name.
+
         """
-        (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
-        return prefix + self.NAME_DELIMITER + base_name + self.NAME_DELIMITER + self.TESLA_SPEC + self.NAME_DELIMITER + pe_dir
+        #_inform("functional_scan_name: " + functional_scan_name)
+
+        split_name = functional_scan_name.split(self.NAME_DELIMITER)
+
+        if len(split_name) > 3:
+            long_scan_name = functional_scan_name
+        else:
+            (prefix, base_name, pe_dir) = split_name
+            long_scan_name = prefix + self.NAME_DELIMITER + base_name + self.NAME_DELIMITER + self.TESLA_SPEC + self.NAME_DELIMITER + pe_dir
+            
+        #_inform("long_scan_name: " + long_scan_name)
+        return long_scan_name
 
     def available_DeDriftAndResample_HighRes_processed_dirs(self, subject_info):
         dir_list = glob.glob(self.DeDriftAndResample_HighRes_processed_dir_name(subject_info))
@@ -242,8 +270,8 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.DEDRIFT_AND_RESAMPLE_HIGHRES_RESOURCE_NAME
 
     def multirun_icafix_proc_dir_name(self, subject_info):
-        return 'RET_FIX'
-
+        return subject_info.extra + '_FIX'
+    
     def multirun_icafix_proc_dir_full_path(self, subject_info):
         return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.multirun_icafix_proc_dir_name(subject_info)
 
@@ -261,7 +289,8 @@ def _simple_interactive_demo():
     _inform("archive.TESLA_SPEC: " + archive.TESLA_SPEC)
     _inform("archive.build_home: " + archive.build_home)
 
-    subject_info = hcp7t_subject.Hcp7TSubjectInfo('HCP_Staging_7T', 'HCP_500', '102311')
+    #subject_info = hcp7t_subject.Hcp7TSubjectInfo('HCP_Staging_7T', 'HCP_500', '102311')
+    subject_info = hcp7t_subject.Hcp7TSubjectInfo('HCP_1200', 'HCP_900', '100610')
     _inform("created subject_info: " + str(subject_info))
     _inform("archive.session_name(subject_info): " + archive.session_name(subject_info))
     _inform("archive.session_dir_fullpath(subject_info): " + archive.session_dir_fullpath(subject_info))
@@ -315,10 +344,20 @@ def _simple_interactive_demo():
         _inform(name)
 
     _inform("")
+    _inform("Available Multi-Run FIX processed dirs: ")
+    for directory in archive.available_MultiRun_FIX_processed_dir_fullpaths(subject_info):
+        _inform(directory)
+
+    _inform("")
+    _inform("Available Multi-Run FIX processed scan names: ")
+    for name in archive.available_MultiRun_FIX_processed_names(subject_info):
+        _inform(name)
+
+    _inform("")
     _inform("Are the following functional scans FIX processed")
     for name in archive.available_functional_unproc_names(subject_info):
         _inform('scan name: ' + name + ' ' + '\tFIX processed: ' +
-                str(archive.FIX_processed(subject_info, name)))
+                str(archive.FIX_processing_complete(subject_info, name)))
 
     _inform("")
     _inform("Available resting state preproc dirs: ")

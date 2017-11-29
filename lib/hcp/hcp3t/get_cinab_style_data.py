@@ -284,11 +284,9 @@ def main():
     if (args.phase.upper() == "FULL"):
         module_logger.debug("phase = FULL")
         data_retriever.get_full_data(subject_info, args.output_study_dir)
-        # data_retriever.clean_xnat_specific_files(args.output_study_dir)
 
     elif (args.phase.upper() == "DIFFUSION_PREPROC_VETTING"):
         data_retriever.get_diffusion_preproc_vetting_data(subject_info, args.output_study_dir)
-        # data_retriever.clean_xnat_specific_files(args.output_study_dir)
 
     elif (args.phase.upper() == "STRUCT_PREPROC"):
         data_retriever.get_data_through_STRUCT_PREPROC(subject_info, args.output_study_dir)

@@ -431,7 +431,7 @@ main()
 	update_xnat_workflow ${current_step} "Run PostFix.sh script" ${step_percent}
 	
 	# Source setup script to setup environment for running the script
-	source ${XNAT_PBS_JOBS}/PostFix/SetUpHCPPipeline.sh
+	source ${XNAT_PBS_JOBS}/PostFixHCP/SetUpHCPPipeline.sh
 	
 	# Run PostFix.sh script
 	${HCPPIPEDIR}/PostFix/PostFix.sh \

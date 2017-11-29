@@ -130,12 +130,47 @@ class CinabStyleDataRetriever(hcp.get_cinab_style_data.CinabStyleDataRetriever):
             self.get_preproc_data(subject_info, output_study_dir)
             self.get_icafix_data(subject_info,  output_study_dir)
 
+    def get_data_through_multirun_ICAFIX(self, subject_info, output_study_dir):
+
+        if not self.copy:
+            # when creating symbolic links (copy == False), must be done in reverse
+            # chronological order
+            self.get_multirun_icafix_data(subject_info, output_study_dir)
+            self.get_icafix_data(subject_info, output_study_dir)
+            self.get_preproc_data(subject_info, output_study_dir)
+            self.get_unproc_data(subject_info, output_study_dir)
+        else:
+            # when copying (via rsync), should be done in chronological order
+            self.get_unproc_data(subject_info, output_study_dir)
+            self.get_preproc_data(subject_info, output_study_dir)
+            self.get_icafix_data(subject_info, output_study_dir)
+            self.get_multirun_icafix_data(subject_info, output_study_dir)
+
+    def get_data_through_PostFix(self, subject_info, output_study_dir):
+
+        if not self.copy:
+            # when creating symbolic links (copy == False), must be done in reverse
+            # chronological order
+            self.get_postfix_data(subject_info, output_study_dir)
+            self.get_multirun_icafix_data(subject_info, output_study_dir)
+            self.get_icafix_data(subject_info, output_study_dir)
+            self.get_preproc_data(subject_info, output_study_dir)
+            self.get_unproc_data(subject_info, output_study_dir)
+        else:
+            # when copying (via rsync), should be done in chronological order
+            self.get_unproc_data(subject_info, output_study_dir)
+            self.get_preproc_data(subject_info, output_study_dir)
+            self.get_icafix_data(subject_info, output_study_dir)
+            self.get_multirun_icafix_data(subject_info, output_study_dir)
+            self.get_postfix_data(subject_info, output_study_dir)
+            
     def remove_non_subdirs(self, directory):
         cmd = 'find ' + directory + ' -maxdepth 1 -not -type d -print -delete'
         completed_process = subprocess.run(
             cmd, shell=True, check=True, stdout=subprocess.PIPE,
             universal_newlines=True)
         return
+    
 
 def main():
     # create a parser object for getting the command line arguments
@@ -153,12 +188,16 @@ def main():
     parser.add_argument('-l', '--log', dest='log', action='store_true', required=False, default=False)
     parser.add_argument('-r', '--remove-non-subdirs', dest='remove_non_subdirs', action='store_true',
                         required=False, default=False)
+    parser.add_argument('-j', '--remove-job-and-catalog-files', dest='remove_job_and_catalog_files',
+                        action='store_true', required=False, default=False)
     
     phase_choices = [
         "FULL", "full",
         "DIFFUSION_PREPROC_VETTING", "diffusion_preproc_vetting",
         "MULTIRUNICAFIX_PREREQS", "multirunicafix_prereqs",
-        "ICAFIX", "icafix"
+        "ICAFIX", "icafix",
+        "MULTIRUNICAFIX", "multirunicafix",
+        "POSTFIX", "postfix"
     ]
 
     parser.add_argument('-ph', '--phase', dest='phase', required=False,
@@ -166,9 +205,6 @@ def main():
 
     # parse the command line arguments
     args = parser.parse_args()
-
-    # convert phase argument to uppercase
-    args.phase = args.phase.upper()
     
     # show arguments
     log.info("Arguments:")
@@ -194,25 +230,36 @@ def main():
     data_retriever.show_log = args.log
 
     # retrieve data based on phase requested
+
+    args.phase = args.phase.upper()
+    
     if args.phase == "FULL":
         data_retriever.get_full_data(subject_info, args.output_study_dir)
-        data_retriever.clean_xnat_specific_files(args.output_study_dir)
 
     elif args.phase == "DIFFUSION_PREPROC_VETTING":
         data_retriever.get_diffusion_preproc_vetting_data(subject_info, args.output_study_dir)
-        data_retriever.clean_xnat_specific_files(args.output_study_dir)
 
     elif args.phase == "MULTIRUNICAFIX_PREREQS":
         data_retriever.get_multirunicafix_prereqs(subject_info, args.output_study_dir)
         
-    elif (args.phase == "ICAFIX"):
+    elif args.phase == "ICAFIX":
         data_retriever.get_data_through_ICAFIX(subject_info, args.output_study_dir)
+
+    elif args.phase == "MULTIRUNICAFIX":
+        data_retriever.get_data_through_multirun_ICAFIX(subject_info, args.output_study_dir)
+
+    elif args.phase == "POSTFIX":
+        data_retriever.get_data_through_PostFix(subject_info, args.output_study_dir)
 
     if args.remove_non_subdirs:
         # remove any non-subdirectory data at the output study directory level
         data_retriever.remove_non_subdirs(args.output_study_dir)
         data_retriever.remove_non_subdirs(args.output_study_dir + os.sep + subject_info.subject_id)
 
+    if args.remove_job_and_catalog_files:
+        # remove any PBS job files and XNAT catalog files
+        data_retriever.remove_pbs_job_files(args.output_study_dir)
+        data_retriever.remove_xnat_catalog_files(args.output_study_dir)
         
 if __name__ == '__main__':
     main()

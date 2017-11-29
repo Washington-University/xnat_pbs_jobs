@@ -29,6 +29,7 @@ PARAMETERs are [ ] = optional; < > = user supplied value
    --project=<project>       : XNAT project (e.g. HCP_500)
    --subject=<subject>       : XNAT subject ID within project (e.g. 100307)
    --classifier=<classifier> : XNAT session classifier (e.g. 3T, 7T, MR, V1, V2, etc.)
+   --scan=<scan>             : scan within session 
   {
     one of the following must be specified
 
@@ -52,6 +53,7 @@ get_options()
 	unset g_project
 	unset g_subject
 	unset g_classifier
+	unset g_scan
 	unset g_running
 	
 	# parse arguments
@@ -77,6 +79,10 @@ get_options()
 				;;
 			--classifier=*)
 				g_classifier=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--scan=*)
+				g_scan=${argument#*=}
 				index=$(( index + 1 ))
 				;;
 			--submitted)
@@ -132,6 +138,12 @@ get_options()
 		log_Msg "classifier: ${g_classifier}"
 	fi
 
+	if [ -z "${g_scan}" ]; then
+		log_Err "scan (--scan=) required"
+	else
+		log_Msg "scan: ${g_scan}"
+	fi
+	
 	if [ -z "${g_running}" ]; then
 		log_Err "running status must be specified"
 	else
@@ -152,7 +164,7 @@ main()
 	get_options "$@"
 
 	local directory=${XNAT_PBS_JOBS_RUNNING_STATUS_DIR}/${g_project}
-	local file="MultiRunIcaFixHCP7T.${g_project}_${g_subject}_${g_classifier}.RUNNING"
+	local file="MultiRunIcaFixHCP7T.${g_project}_${g_subject}_${g_classifier}_${g_scan}.RUNNING"
 	local path=${directory}/${file}
 	
 	if [ "${g_running}" = "TRUE" ]; then

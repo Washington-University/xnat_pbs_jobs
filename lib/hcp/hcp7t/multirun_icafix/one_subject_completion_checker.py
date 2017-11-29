@@ -43,10 +43,127 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
 
         l = []
 
-        subj_dir = os.sep.join([self.my_resource(archive, subject_info), subject_info.subject_id])
+        scan = subject_info.extra
 
+        available_retinotopy_scans = archive.available_retinotopy_preproc_names(subject_info)
 
-        # ...
+        retinotopy_scan_dirs = []
+        for ret_scan in available_retinotopy_scans:
+            scan_type, task_type, phase_encoding_dir = ret_scan.split('_')
+            retinotopy_scan_dirs.append('_'.join([scan_type, task_type, '7T', phase_encoding_dir]))
+
+        root_dir = os.sep.join([self.my_resource(archive, subject_info), subject_info.subject_id])
+
+        l.append(os.sep.join([root_dir, 'MNINonLinear']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results']))
+
+        for ret_scan in retinotopy_scan_dirs:
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan]))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, 'Movement_Regressors_demean.txt']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_Atlas_demean.dtseries.nii']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_Atlas_hp2000_clean.dtseries.nii']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_Atlas_hp2000.dtseries.nii']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_demean.nii.gz']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_hp2000_clean.nii.gz']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_hp2000.nii.gz']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_hp2000.ica']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_hp2000.ica', 'filtered_func_data.nii.gz']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_hp2000.ica', 'mc']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_hp2000.ica', 'mc', 'prefiltered_func_data_mcf_conf_hp.nii.gz']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_hp2000.ica', 'mc', 'prefiltered_func_data_mcf_conf.nii.gz']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_hp2000.ica', 'mc', 'prefiltered_func_data_mcf.par']))
+            
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan]))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, 'Movement_Regressors_demean.txt']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_Atlas_demean.dtseries.nii']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_Atlas.dtseries.nii']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_Atlas_hp2000_clean.dtseries.nii']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_Atlas_hp2000.dtseries.nii']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_Atlas_mean.dscalar.nii']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_demean.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000_clean.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_SBRef.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'Atlas.dtseries.nii']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix4melview_HCP7T_hp2000_thr10.txt']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'mask.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'mean_func.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'eigenvalues_percent']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'log.txt']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'mask.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'mean.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_dewhite']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_FTdewhite']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_FTmix']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_IC.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_ICstats']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_mix']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_oIC.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_pcaD']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_pcaE']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_pca.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_PPCA']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_Tmodes']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_unmix']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'melodic_white']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'Noise__inv.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'report']))
+        # ... not checking all files in the report subdirectory
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'filtered_func_data.ica', 'stats']))
+        # ... not checking all files in the stats subdirectory
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'edge1.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'edge2.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'edge3.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'edge4.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'edge5.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'fastsg_mixeltype.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'fastsg_pve_0.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'fastsg_pve_1.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'fastsg_pve_2.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'fastsg_pveseg.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'fastsg_seg.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'features.csv']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'features_info.csv']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'features.mat']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'highres2std.mat']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'hr2exf.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'hr2exfTMP.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'hr2exfTMP.txt']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'logMatlab.txt']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'maske1.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'maske2.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'maske3.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'maske4.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'maske5.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc0dil2.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc0dil.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc0.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc1dil2.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc1dil.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc1.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc2dil2.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc2dil.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc2.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc3dil2.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc3dil.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std1mm2exfunc3.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std2exfunc.mat']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'std2highres.mat']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'fix', 'subcort.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'mc']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'mc', 'prefiltered_func_data_mcf_conf_hp.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'mc', 'prefiltered_func_data_mcf_conf.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'reg']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'reg', 'example_func.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'reg', 'highres2example_func.mat']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'reg', 'veinbrainmask.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'reg', 'veins_exf.nii.gz']))
+        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_hp2000.ica', 'reg', 'veins.nii.gz']))
         
         return l
 
@@ -59,7 +176,9 @@ if __name__ == "__main__":
     # mandatory arguments
     parser.add_argument('-p', '--project', dest='project', required=True, type=str)
     parser.add_argument('-s', '--subject', dest='subject', required=True, type=str)
-
+    parser.add_argument('-c', '--classifier', dest='classifier', required=True, type=str)
+    parser.add_argument('-n', '--scan', dest='scan', required=True, type=str)
+    
     # optional arguments
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
                         required=False, default=False)
@@ -72,7 +191,8 @@ if __name__ == "__main__":
 
     # check the specified subject for processing completion
     archive = hcp7t_archive.Hcp7T_Archive()
-    subject_info = hcp7t_subject.SubjectInfo(project=args.project, subject_id=args.subject)
+    subject_info = hcp7t_subject.Hcp7TSubjectInfo(
+        project=args.project, subject_id=args.subject, extra=args.scan)
     completion_checker = OneSubjectCompletionChecker()
 
     if args.output:
