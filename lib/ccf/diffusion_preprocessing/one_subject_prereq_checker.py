@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""ccf/diffusion_preprocessing/one_subject_prereq_checker
+
+Checks prerequisites for running CCF Diffusion Preprocessing pipeline
+"""
 
 # import of built-in modules
 
@@ -14,9 +18,6 @@ __maintainer__ = "Timothy B. Brown"
 
 
 class OneSubjectPrereqChecker(ccf.one_subject_prereq_checker.OneSubjectPrereqChecker):
-
-    def __init__(self):
-        super().__init__()
 
     def are_prereqs_met(self, archive, subject_info, verbose=False):
 
