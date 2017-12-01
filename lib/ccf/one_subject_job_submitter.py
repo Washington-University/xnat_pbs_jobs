@@ -684,10 +684,28 @@ class OneSubjectJobSubmitter(abc.ABC):
         else:
             module_logger.info("Scripts not created")
 
-    @abc.abstractmethod
     def mark_running_status(self, stage):
-        raise NotImplementedError()
+        """Mark that the processing for this pipeline is currently queued/running."""
+        module_logger.debug(debug_utils.get_name())
 
+        if stage > ccf_processing_stage.ProcessingStage.PREPARE_SCRIPTS:
+            mark_cmd = self._xnat_pbs_jobs_home
+            mark_cmd += os.sep + self.PIPELINE_NAME 
+            mark_cmd += os.sep + self.PIPELINE_NAME
+            mark_cmd += '.XNAT_MARK_RUNNING_STATUS' 
+            mark_cmd += ' --project=' + self.project
+            mark_cmd += ' --subject=' + self.subject
+            mark_cmd += ' --classifier=' + self.classifier
+            if self.scan:
+                mark_cmd += ' --scan=' + self.scan
+            mark_cmd += ' --queued'
+
+            completed_mark_cmd_process = subprocess.run(
+                mark_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            print(completed_mark_cmd_process.stdout)
+            
+            return
+        
     def do_job_submissions(self, processing_stage):
         submitted_jobs_list = []
         prior = None
