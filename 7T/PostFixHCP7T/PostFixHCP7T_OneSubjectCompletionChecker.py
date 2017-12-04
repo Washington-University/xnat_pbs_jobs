@@ -61,8 +61,10 @@ class PostFixHCP7T_OneSubjectCompletionChecker:
                               archive.functional_scan_long_name(scan_name) + '_ICA_Classification_singlescreen.scene')
         file_name_list.append(results_scan_dir + os.sep + 'ReclassifyAsNoise.txt')
         file_name_list.append(results_scan_dir + os.sep + 'ReclassifyAsSignal.txt')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                              '_Atlas_hp2000.dtseries.nii')
+
+        if scan_name != 'tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA':
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_hp2000.dtseries.nii')
 
         # files in ica_dir
         ica_dir = results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_hp2000.ica'
