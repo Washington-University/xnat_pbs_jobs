@@ -301,16 +301,22 @@ main()
 
 	inform "Found the following FIX Processed resting state scans: ${fix_processed_resting_state_scan_names}"
 
-	popd > /dev/nul
+	popd > /dev/null
 
 	# Fix processed Task scans
 	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES > /dev/null
 
 	fix_processed_task_scan_names=""
 	task_scan_dirs=`ls -d tfMRI_*_FIX`
+
 	for task_scan_dir in ${task_scan_dirs} ; do
 		scan_name=${task_scan_dir%%_FIX} # take the _FIX off the end
-		fix_processed_task_scan_names+="${scan_name} "
+		if [[ ${scan_name} == tfMRI_7T* ]] ; then
+			inform "Not adding ${scan_name} to fix_processed_task_scan_names"
+		else
+			inform "Adding ${scan_name} to fix_processed_task_scan_names"
+			fix_processed_task_scan_names+="${scan_name} "
+		fi
 	done
 	fix_processed_task_scan_names=${fix_processed_task_scan_names% } # remove trailing space
 
@@ -360,6 +366,28 @@ main()
 
 	popd > /dev/null
 
+	# Multi-run ICAFIX processing scans
+	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES > /dev/null
+
+	multirun_fix_processed_scan_names=""
+	multirun_fix_processed_scan_dirs=`ls -d tfMRI_7T_*_FIX`
+	for multirun_fix_processed_scan_dir in ${multirun_fix_processed_scan_dirs} ; do
+		scan_name=${multirun_fix_processed_scan_dir%%_FIX} # take _FIX off the end
+		multirun_fix_processed_scan_names+="${scan_name} "
+	done
+	multirun_fix_processed_scan_names=${multirun_fix_processed_scan_names% } # remove trailing space
+
+	if [ -z "${multirun_fix_processed_scan_names}" ]; then
+		multirun_fix_processed_scan_names="NONE"
+	fi
+
+	inform "Found the following multi-run ICAFIX processed scans: ${multirun_fix_processed_scan_names}"
+
+	popd > /dev/null
+
+	# ici
+	exit 1
+	
 	# VERY IMPORTANT NOTE:
 	#
 	# Since ConnectomeDB resources contain overlapping files (e.g. the functionally preprocessed
@@ -409,7 +437,18 @@ main()
 	link_hcp_msm_all_registration_data "${DATABASE_ARCHIVE_ROOT}" "${g_structural_reference_project}" "${g_subject}" \
 		"${g_structural_reference_session}" "${g_working_dir}"
 
- 	# Step - Link FIX processed data from DB
+
+
+	# Link Multirun ICAFIX processed data from DB
+
+
+	# ici
+
+
+
+
+
+	# Step - Link FIX processed data from DB
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
@@ -421,6 +460,15 @@ main()
 		fi
 	done
 
+
+
+
+
+
+
+
+
+	
  	# Step - Link functionally preprocessed data from DB
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
@@ -601,6 +649,12 @@ main()
 		done
 	fi
 
+	if [ "${multirun_fix_processed_scan_names}" != "NONE" ] ; then
+		for scan_name in ${multirun_fix_processed_scan_names} ; do
+			rfMRINames+="${scan_name}"
+		done
+	fi
+	
 	rfMRINames=${rfMRINames% } # remove trailing space
 
 	if [ -z "${rfMRINames}" ]; then
