@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	echo "$(basename ${0}): ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
+source activate python3 2>/dev/null
+${XNAT_PBS_JOBS}/7T/DeDriftAndResampleHCP7T/CheckDeDriftAndResampleHCP7TCompletionBatch.py $@
+source deactivate 2>/dev/null

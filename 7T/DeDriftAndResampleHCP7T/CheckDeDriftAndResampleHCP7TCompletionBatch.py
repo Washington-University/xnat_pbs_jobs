@@ -20,7 +20,7 @@ __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
 
-_PROJECT = 'HCP_Staging_7T'
+_PROJECT = 'HCP_1200'
 
 
 def _inform(msg):
@@ -52,6 +52,13 @@ def _write_subject_info(subject, subject_results_dict, afile):
     print("")
 
 
+def should_check(subject, scan, archive):
+    if scan == 'tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA':
+        return True
+    else:
+        return archive.does_functional_unproc_exist(subject, scan)
+    
+
 if __name__ == "__main__":
 
     # Get list of subjects to check
@@ -75,6 +82,7 @@ if __name__ == "__main__":
     dedrift_scan_names_list.append('tfMRI_RETCON_PA')
     dedrift_scan_names_list.append('tfMRI_RETCW_PA')
     dedrift_scan_names_list.append('tfMRI_RETEXP_AP')
+    dedrift_scan_names_list.append('tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA')
 
     # open complete and incomplete files for writing
     complete_file = open(_PROJECT + '.complete.status', 'w')
@@ -95,8 +103,8 @@ if __name__ == "__main__":
 
             scan_results_dict = dict()
 
-            # does the unprocessed resource for this scan exist?
-            if archive.does_functional_unproc_exist(subject, scan_name):
+            # Should we check for the MSMAllDeDrift resource
+            if should_check(subject, scan_name, archive):
 
                 # does the DeDriftAndResample resource exist?
                 if completion_checker.does_processed_resource_exist(archive, subject):

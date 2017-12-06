@@ -21,7 +21,7 @@ import utils.os_utils as os_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
-__copyright__ = "Copyright 2016, The Human Connectome Project"
+__copyright__ = "Copyright 2016-2017, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
 
@@ -63,7 +63,7 @@ class DeDriftAndResampleHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
         # submit jobs for listed subjects
         for subject in subject_list:
 
-            put_server = 'http://db-shadow' + str(self._current_shadow_number) + '.nrg.mir:8080'
+            put_server = 'http://db-shadow' + str(self.shadow_number) + '.nrg.mir:8080'
 
             # get information for subject from configuration file
             setup_file = scripts_home + os.sep + config.get_value(subject.subject_id, 'SetUpFile')
