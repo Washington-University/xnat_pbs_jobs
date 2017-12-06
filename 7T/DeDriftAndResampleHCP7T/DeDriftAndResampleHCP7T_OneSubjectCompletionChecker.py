@@ -97,7 +97,7 @@ class DeDriftAndResampleHCP7T_OneSubjectCompletionChecker:
 def _simple_interactive_demo():
 
     hcp7t_subject_info = hcp7t_subject.Hcp7TSubjectInfo(
-        'HCP_Staging_7T', 'HCP_500', '102311')
+        'HCP_1200', 'HCP_500', '102311')
     archive = hcp7t_archive.Hcp7T_Archive()
 
     completion_checker = DeDriftAndResampleHCP7T_OneSubjectCompletionChecker()

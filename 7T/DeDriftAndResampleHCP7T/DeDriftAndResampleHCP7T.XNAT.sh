@@ -231,7 +231,7 @@ main()
 	inform "----- Platform Information: End -----"
 
 	# Set up step counters
-	total_steps=14
+	total_steps=15
 	current_step=0
 
 	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
@@ -385,9 +385,6 @@ main()
 
 	popd > /dev/null
 
-	# ici
-	exit 1
-	
 	# VERY IMPORTANT NOTE:
 	#
 	# Since ConnectomeDB resources contain overlapping files (e.g. the functionally preprocessed
@@ -437,17 +434,19 @@ main()
 	link_hcp_msm_all_registration_data "${DATABASE_ARCHIVE_ROOT}" "${g_structural_reference_project}" "${g_subject}" \
 		"${g_structural_reference_session}" "${g_working_dir}"
 
-
-
-	# Link Multirun ICAFIX processed data from DB
-
-
-	# ici
-
-
-
-
-
+	# Step - Link Multirun ICAFIX processed data from DB
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+						 ${current_step} "Link Multirun ICAFIX processed data from DB" ${step_percent}
+	
+	for scan_name in ${multirun_fix_processed_scan_names} ; do
+		resource_dir=${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX
+		if [ -d ${resource_dir} ]; then
+			link_hcp_concatenated_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
+		fi
+	done
+	
 	# Step - Link FIX processed data from DB
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
@@ -460,15 +459,6 @@ main()
 		fi
 	done
 
-
-
-
-
-
-
-
-
-	
  	# Step - Link functionally preprocessed data from DB
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
@@ -570,6 +560,38 @@ main()
 				rm --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
 			fi
 
+		fi
+	done
+
+	for scan_name in ${multirun_fix_processed_scan_names} ; do
+		resource_dir=${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX
+		if [ -d ${resource_dir} ] ; then
+
+			echo "scan_name: ${scan_name}"
+			
+			working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica
+			echo "working_ica_dir: ${working_ica_dir}"
+			
+			if [ -e "${working_ica_dir}/Atlas.dtseries.nii" ] ; then
+				rm --verbose ${working_ica_dir}/Atlas.dtseries.nii
+			fi
+		
+			if [ -e "${working_ica_dir}/Atlas.nii.gz" ] ; then
+				rm --verbose ${working_ica_dir}/Atlas.nii.gz
+			fi
+			
+			if [ -e "${working_ica_dir}/filtered_func_data.nii.gz" ] ; then
+				rm --verbose ${working_ica_dir}/filtered_func_data.nii.gz
+			fi
+			
+			if [ -d "${working_ica_dir}/mc" ] ; then
+				rm --recursive --verbose ${working_ica_dir}/mc
+			fi
+			
+			if [ -e "${working_ica_dir}/Atlas_hp_preclean.dtseries.nii" ] ; then
+				rm --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
+			fi
+			
 		fi
 	done
 
@@ -710,33 +732,6 @@ main()
 		die 
 	fi
 
-	# Run DeDriftAndResamplePipeline.sh script a second time
-
-	# LowResMeshes="59" # Delimit with @ e.g. 32@59, multiple resolutions not currently supported for fMRI data
-
-	# d_cmd=""
-	# d_cmd+="${HCPPIPEDIR}/DeDriftAndResample/DeDriftAndResamplePipeline.sh "
-	# d_cmd+="  --path=${g_working_dir} "
-	# d_cmd+="  --subject=${g_subject} "
-	# d_cmd+="  --high-res-mesh=${HighResMesh} "
-	# d_cmd+="  --low-res-meshes=${LowResMeshes} "
-	# d_cmd+="  --registration-name=${RegName} "
-	# d_cmd+="  --dedrift-reg-files=${DeDriftRegFiles} "
-	# d_cmd+="  --concat-reg-name=${ConcatRegName} "
-	# d_cmd+="  --maps=${Maps} "
-	# d_cmd+="  --myelin-maps=${MyelinMaps} "
-	# d_cmd+="  --rfmri-names=${rfMRINames} "
-	# d_cmd+="  --tfmri-names=${tfMRINames} "
-	# d_cmd+="  --smoothing-fwhm=${SmoothingFWHM} "
-	# d_cmd+="  --highpass=${HighPass}"
-
-	# inform "d_cmd: ${d_cmd}"
-
-	# ${d_cmd}
-	# if [ $? -ne 0 ]; then
-	# 	die 
-	# fi
-
 	# Step - Show any newly created or modified files
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))	
@@ -745,15 +740,21 @@ main()
 	
 	echo "Newly created/modified files:"
 	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
+
+
+	echo "ICI"
+	echo "Need to uncomment code to remove not newly created or modified files"
+	echo "ICI"
 	
-	# Step - Remove any files that are not newly created or modified
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Remove files not newly created or modified" ${step_percent}
+	# TODO - uncomment to get only modified files left
+	# # Step - Remove any files that are not newly created or modified
+	# current_step=$(( current_step + 1 ))
+	# step_percent=$(( (current_step * 100) / total_steps ))
+	# xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+	# 	${current_step} "Remove files not newly created or modified" ${step_percent}
 	
-	echo "The following files are being removed"
-	find ${g_working_dir} -not -newer ${start_time_file} -print -delete 
+	# echo "The following files are being removed"
+	# find ${g_working_dir} -not -newer ${start_time_file} -print -delete 
 
 	# Step - Complete Workflow
 	current_step=$(( current_step + 1 ))
@@ -763,3 +764,4 @@ main()
 
 # Invoke the main function to get things started
 main $@
+exit 1
