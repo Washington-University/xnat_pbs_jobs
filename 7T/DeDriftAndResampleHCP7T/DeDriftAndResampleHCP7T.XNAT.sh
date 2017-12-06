@@ -764,4 +764,8 @@ main()
 
 # Invoke the main function to get things started
 main $@
+echo "ICI"
+echo "Exiting with status code 1. This is just to prevent DB push. Take this code out."
+echo "ICI"
 exit 1
+
