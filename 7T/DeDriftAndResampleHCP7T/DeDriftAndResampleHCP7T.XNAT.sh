@@ -755,6 +755,7 @@ main()
 	dedrift_cmd+=" --tfmri-names=${tfMRINames}"
 	dedrift_cmd+=" --smoothing-fwhm=${SmoothingFWHM}"
 	dedrift_cmd+=" --highpass=${HighPass}"
+	dedrift_cmd+=" --matlab-run-mode=0" # Use compiled MATLAB
 
 	inform "dedrift_cmd: ${dedrift_cmd}"
 
@@ -783,7 +784,7 @@ main()
 	reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_name}"
 	reapply_fix_multirun_cmd+=" --high-pass=${HighPass}"
 	reapply_fix_multirun_cmd+=" --reg-name=${ConcatRegName}"
-	reapply_fix_multirun_cmd+=" --matlab-run-mode=0"
+	reapply_fix_multirun_cmd+=" --matlab-run-mode=0" # Use compiled MATLAB
 	
 	inform "reapply_fix_multirun_cmd: ${reapply_fix_multirun_cmd}"
 
