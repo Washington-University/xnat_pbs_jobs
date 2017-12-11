@@ -341,8 +341,15 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
                               self.structural_reference_session + '" \\' + os.linesep)
             work_script.write('  --working-dir="' + working_directory_name + '" \\' + os.linesep)
             work_script.write('  --workflow-id="' + workflow_id + '" \\' + os.linesep)
-            work_script.write('  --setup-script=' + self.setup_script + os.linesep)
 
+
+            # ICI
+            work_script.write('  --keep-all' + ' \\' + os.linesep)
+            work_script.write('  --prevent-push' + ' \\' + os.linesep)
+
+
+            work_script.write('  --setup-script=' + self.setup_script + os.linesep)
+            
             work_script.close()
             os.chmod(work_script_name, stat.S_IRWXU | stat.S_IRWXG)
 

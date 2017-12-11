@@ -62,7 +62,12 @@ get_options()
 	unset g_working_dir
 	unset g_workflow_id
 	unset g_setup_script
-
+	unset g_keep_all
+	unset g_prevent_push
+	
+	g_keep_all="FALSE"
+	g_prevent_push="FALSE"
+	
 	# parse arguments
 	local num_args=${#arguments[@]}
 	local argument
@@ -118,6 +123,14 @@ get_options()
 				;;
 			--setup-script=*)
 				g_setup_script=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--keep-all)
+				g_keep_all="TRUE"
+				index=$(( index + 1 ))
+				;;
+			--prevent-push)
+				g_prevent_push="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -209,6 +222,16 @@ get_options()
 		inform "g_setup_script: ${g_setup_script}"
 	fi
 
+	if [ -z "${g_keep_all}" ]; then
+		g_keep_all="FALSE"
+	fi
+	inform "g_keep_all: ${g_keep_all}"
+
+	if [ -z "${g_prevent_push}" ]; then
+		g_prevent_push="FALSE"
+	fi
+	inform "g_prevent_push: ${g_prevent_push}"
+	
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
 		exit 1
@@ -806,20 +829,19 @@ main()
 	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
 
 
-	echo "ICI"
-	echo "Need to uncomment code to remove not newly created or modified files"
-	echo "ICI"
+	if [ "${g_keep_all}" != "TRUE" ]; then
 	
-	# TODO - uncomment to get only modified files left
-	# # Step - Remove any files that are not newly created or modified
-	# current_step=$(( current_step + 1 ))
-	# step_percent=$(( (current_step * 100) / total_steps ))
-	# xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-	# 	${current_step} "Remove files not newly created or modified" ${step_percent}
-	
-	# echo "The following files are being removed"
-	# find ${g_working_dir} -not -newer ${start_time_file} -print -delete 
+		# Step - Remove any files that are not newly created or modified
+		current_step=$(( current_step + 1 ))
+		step_percent=$(( (current_step * 100) / total_steps ))
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Remove files not newly created or modified" ${step_percent}
+		
+		echo "The following files are being removed"
+		find ${g_working_dir} -not -newer ${start_time_file} -print -delete 
 
+	fi
+	
 	# Step - Complete Workflow
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
@@ -828,8 +850,9 @@ main()
 
 # Invoke the main function to get things started
 main $@
-echo "ICI"
-echo "Exiting with status code 1. This is just to prevent DB push. Take this code out."
-echo "ICI"
-exit 1
+
+if [ "${g_prevent_push}" = "TRUE" ]; then
+	inform "Exiting with status code 1 to prevent DB push."
+	exit 1
+fi
 
