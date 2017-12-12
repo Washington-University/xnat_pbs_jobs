@@ -3,14 +3,14 @@ echo "----- Begin: StructuralPreprocessing.SetUp.sh -----"
 echo ""
 
 echo "Setting up FSL"
-export FSLDIR=/export/HCP/fsl-5.0.10-custom-20170526
+export FSLDIR=/export/HCP/fsl-5.0.10-custom-20171103
 source ${FSLDIR}/etc/fslconf/fsl.sh
 echo "Set up to use FSL at ${FSLDIR}"
 echo ""
 
 echo "Setting up FreeSurfer"
 export FSL_DIR="${FSLDIR}"
-export FREESURFER_HOME=/act/freesurfer-5.3.0-HCP
+export FREESURFER_HOME=/export/HCP/freesurfer-6.0-custom-20171120
 source ${FREESURFER_HOME}/SetUpFreeSurfer.sh
 # modify LD_LIBRARY_PATH to allow access to libnetcdf.so.6 and libhdf5_hl.so.6
 # the mris_make_surfaces binary in the v5.3.0-HCP version of FreeSurfer needs these
