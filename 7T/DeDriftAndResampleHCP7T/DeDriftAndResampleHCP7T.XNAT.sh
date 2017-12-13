@@ -423,6 +423,9 @@ main()
 	concatenated_retinotopy_scan_name="tfMRI_7T_${concatenated_retinotopy_scan_name}"
 
 	inform "Concatenated retinotopy scan name: ${concatenated_retinotopy_scan_name}"
+
+	concatenated_retinotopy_scan_file_name="${g_working_dir}/${g_subject}/MNINonLinear/Results/${concatenated_retinotopy_scan_name}/${concatenated_retinotopy_scan_name}.nii.gz"
+	inform "concatenated retinotopy scan file name: ${concatenated_retionotopy_scan_file_name}"
 	
 	popd > /dev/null
 
@@ -797,14 +800,15 @@ main()
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Show newly created or modified files" ${step_percent}
+		${current_step} "Call ReApplyFixPipelineMultiRun.sh" ${step_percent}
 
 	reapply_fix_multirun_cmd=""
 	reapply_fix_multirun_cmd+="${HCPPIPEDIR}/ReApplyFixMultiRun/ReApplyFixPipelineMultiRun.sh"
 	reapply_fix_multirun_cmd+=" --path=${g_working_dir}"
 	reapply_fix_multirun_cmd+=" --subject=${g_subject}"
 	reapply_fix_multirun_cmd+=" --fmri-names=${retinotopy_scan_files// /@}"
-	reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_name}"
+#	reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_name}"
+	reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_file_name}"
 	reapply_fix_multirun_cmd+=" --high-pass=${HighPass}"
 	reapply_fix_multirun_cmd+=" --reg-name=${ConcatRegName}"
 	reapply_fix_multirun_cmd+=" --matlab-run-mode=0" # Use compiled MATLAB
