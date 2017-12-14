@@ -62,6 +62,11 @@ get_options()
 	unset g_working_dir
 	unset g_workflow_id
 	unset g_setup_script
+	unset g_keep_all
+	unset g_prevent_push
+	
+	g_keep_all="FALSE"
+	g_prevent_push="FALSE"
 
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -118,6 +123,14 @@ get_options()
 				;;
 			--setup-script=*)
 				g_setup_script=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--keep-all)
+				g_keep_all="TRUE"
+				index=$(( index + 1 ))
+				;;
+			--prevent-push)
+				g_prevent_push="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -209,6 +222,16 @@ get_options()
 		inform "g_setup_script: ${g_setup_script}"
 	fi
 
+	if [ -z "${g_keep_all}" ]; then
+		g_keep_all="FALSE"
+	fi
+	inform "g_keep_all: ${g_keep_all}"
+
+	if [ -z "${g_prevent_push}" ]; then
+		g_prevent_push="FALSE"
+	fi
+	inform "g_prevent_push: ${g_prevent_push}"
+	
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
 		exit 1
@@ -364,6 +387,43 @@ main()
 
 	inform "Found the following retinotopy scans: ${retinotopy_scan_names}"
 
+	sorted_retinotopy_scan_names=""
+	for rscan in tfMRI_RETCCW_AP tfMRI_RETCW_PA tfMRI_RETEXP_AP tfMRI_RETCON_PA tfMRI_RETBAR1_AP tfMRI_RETBAR2_PA ; do
+		if [[ ${retinotopy_scan_names} == *${rscan}* ]] ; then
+			inform "${rscan} is in ${retinotopy_scan_names}"
+			sorted_retinotopy_scan_names+="${rscan} "
+		else
+			inform "${rscan} is NOT in ${retinotopy_scan_names}"
+		fi
+	done
+	sorted_retinotopy_scan_names=${sorted_retinotopy_scan_names% } # remove trailing space
+
+	if [ -z "${sorted_retinotopy_scan_names}" ]; then
+		sorted_retinotopy_scan_names="NONE"
+	fi
+
+	inform "Sorted retinotopy scans: ${sorted_retinotopy_scan_names}"
+
+	retinotopy_scan_files=""
+	for rscan_name in ${sorted_retinotopy_scan_names} ; do
+		prefix=${rscan_name%%_*}
+		scan=${rscan_name#${prefix}_}
+		scan=${scan%%_*}
+		pe_dir=${rscan_name##*_}
+		long_scan_name="${prefix}_${scan}_7T_${pe_dir}"
+		
+		retinotopy_scan_files+="${g_working_dir}/${g_subject}/MNINonLinear/Results/${long_scan_name}/${long_scan_name}.nii.gz "
+	done
+	retinotopy_scan_files=${retinotopy_scan_files% } # remove trailing space
+
+	inform "Retinotopy scan files: ${retinotopy_scan_files}"
+	
+	concatenated_retinotopy_scan_name=${sorted_retinotopy_scan_names//tfMRI_/}
+	concatenated_retinotopy_scan_name=${concatenated_retinotopy_scan_name// /_}
+	concatenated_retinotopy_scan_name="tfMRI_7T_${concatenated_retinotopy_scan_name}"
+
+	inform "Concatenated retinotopy scan name: ${concatenated_retinotopy_scan_name}"
+	
 	popd > /dev/null
 
 	# Multi-run ICAFIX processing scans
@@ -681,12 +741,6 @@ main()
 		done
 	fi
 
-	if [ "${multirun_fix_processed_scan_names}" != "NONE" ] ; then
-		for scan_name in ${multirun_fix_processed_scan_names} ; do
-			rfMRINames+="${scan_name}"
-		done
-	fi
-	
 	rfMRINames=${rfMRINames% } # remove trailing space
 
 	if [ -z "${rfMRINames}" ]; then
@@ -722,28 +776,32 @@ main()
 	InRegName="_1.6mm"
 
 	# Run DeDriftAndResamplePipeline.sh script
-	d_cmd=""
-	d_cmd+="${HCPPIPEDIR}/DeDriftAndResample/DeDriftAndResamplePipeline.sh "
-	d_cmd+="  --path=${g_working_dir} "
-	d_cmd+="  --subject=${g_subject} "
-	d_cmd+="  --high-res-mesh=${HighResMesh} "
-	d_cmd+="  --low-res-meshes=${LowResMeshes} "
-	d_cmd+="  --registration-name=${RegName} "
-	d_cmd+="  --dedrift-reg-files=${DeDriftRegFiles} "
-	d_cmd+="  --concat-reg-name=${ConcatRegName} "
-	d_cmd+="  --maps=${Maps} "
-	d_cmd+="  --myelin-maps=${MyelinMaps} "
-	d_cmd+="  --rfmri-names=${rfMRINames} "
-	d_cmd+="  --tfmri-names=${tfMRINames} "
-	d_cmd+="  --smoothing-fwhm=${SmoothingFWHM} "
-	d_cmd+="  --highpass=${HighPass}"
-	d_cmd+="  --myelin-target-file=${MyelinTargetFile}"
-	d_cmd+="  --input-reg-name=${InRegName}"
+	dedrift_cmd=""
+	dedrift_cmd+="${HCPPIPEDIR}/DeDriftAndResample/DeDriftAndResamplePipeline.sh "
+	dedrift_cmd+="  --path=${g_working_dir} "
+	dedrift_cmd+="  --subject=${g_subject} "
+	dedrift_cmd+="  --high-res-mesh=${HighResMesh} "
+	dedrift_cmd+="  --low-res-meshes=${LowResMeshes} "
+	dedrift_cmd+="  --registration-name=${RegName} "
+	dedrift_cmd+="  --dedrift-reg-files=${DeDriftRegFiles} "
+	dedrift_cmd+="  --concat-reg-name=${ConcatRegName} "
+	dedrift_cmd+="  --maps=${Maps} "
+	dedrift_cmd+="  --myelin-maps=${MyelinMaps} "
+	dedrift_cmd+="  --rfmri-names=${rfMRINames} "
+	dedrift_cmd+="  --tfmri-names=${tfMRINames} "
+	dedrift_cmd+="  --smoothing-fwhm=${SmoothingFWHM} "
+	dedrift_cmd+="  --highpass=${HighPass}"
+	dedrift_cmd+="  --myelin-target-file=${MyelinTargetFile}"
+	dedrift_cmd+="  --input-reg-name=${InRegName}"
+	dedrift_cmd+="  --matlab-run-mode=0" # Use compiled MATLAB
 
-	inform "d_cmd: ${d_cmd}"
+	inform "dedrift_cmd: ${dedrift_cmd}"
 
-	${d_cmd}
-	if [ $? -ne 0 ]; then
+	${dedrift_cmd}
+	return_code=$?
+	if [ ${return_code} -ne 0 ]; then
+		inform "Non-zero return code: ${return_code}"
+		inform "ABORTING"
 		die 
 	fi
 
@@ -756,19 +814,19 @@ main()
 	echo "Newly created/modified files:"
 	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
 
-	echo "ICI"
-	echo "Need to uncomment code to remove not newly created or modified files"
-	echo "ICI"
 
-	# TODO - uncomment to get only modified files left
-	# # Step - Remove any files that are not newly created or modified
-	# current_step=$(( current_step + 1 ))
-	# step_percent=$(( (current_step * 100) / total_steps ))
-	# xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-	# 	${current_step} "Remove files not newly created or modified" ${step_percent}
+	if [ "${g_keep_all}" != "TRUE" ]; then
+
+		# Step - Remove any files that are not newly created or modified
+		current_step=$(( current_step + 1 ))
+		step_percent=$(( (current_step * 100) / total_steps ))
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Remove files not newly created or modified" ${step_percent}
 	
-	# echo "The following files are being removed"
-	# find ${g_working_dir} -not -newer ${start_time_file} -print -delete 
+		echo "The following files are being removed"
+		find ${g_working_dir} -not -newer ${start_time_file} -print -delete 
+
+	fi
 
 	# Step - Complete Workflow
 	current_step=$(( current_step + 1 ))
@@ -778,7 +836,9 @@ main()
 
 # Invoke the main function to get things started
 main $@
-echo "ICI"
-echo "Exiting with status code 1. This is just to prevent DB push. Take this code out."
-echo "ICI"
-exit 1
+
+if [ "${g_prevent_push}" = "TRUE" ]; then
+	inform "Exiting with status code 1 to prevent DB push."
+	exit 1
+fi
+
