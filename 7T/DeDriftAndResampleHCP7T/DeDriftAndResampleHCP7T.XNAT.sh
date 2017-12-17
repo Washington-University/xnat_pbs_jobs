@@ -62,7 +62,12 @@ get_options()
 	unset g_working_dir
 	unset g_workflow_id
 	unset g_setup_script
-
+	unset g_keep_all
+	unset g_prevent_push
+	
+	g_keep_all="FALSE"
+	g_prevent_push="FALSE"
+	
 	# parse arguments
 	local num_args=${#arguments[@]}
 	local argument
@@ -118,6 +123,14 @@ get_options()
 				;;
 			--setup-script=*)
 				g_setup_script=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--keep-all)
+				g_keep_all="TRUE"
+				index=$(( index + 1 ))
+				;;
+			--prevent-push)
+				g_prevent_push="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -209,6 +222,16 @@ get_options()
 		inform "g_setup_script: ${g_setup_script}"
 	fi
 
+	if [ -z "${g_keep_all}" ]; then
+		g_keep_all="FALSE"
+	fi
+	inform "g_keep_all: ${g_keep_all}"
+
+	if [ -z "${g_prevent_push}" ]; then
+		g_prevent_push="FALSE"
+	fi
+	inform "g_prevent_push: ${g_prevent_push}"
+	
 	if [ ${error_count} -gt 0 ]; then
 		echo "For usage information, use --help"
 		exit 1
@@ -231,7 +254,7 @@ main()
 	inform "----- Platform Information: End -----"
 
 	# Set up step counters
-	total_steps=14
+	total_steps=16
 	current_step=0
 
 	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
@@ -301,16 +324,22 @@ main()
 
 	inform "Found the following FIX Processed resting state scans: ${fix_processed_resting_state_scan_names}"
 
-	popd > /dev/nul
+	popd > /dev/null
 
 	# Fix processed Task scans
 	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES > /dev/null
 
 	fix_processed_task_scan_names=""
 	task_scan_dirs=`ls -d tfMRI_*_FIX`
+
 	for task_scan_dir in ${task_scan_dirs} ; do
 		scan_name=${task_scan_dir%%_FIX} # take the _FIX off the end
-		fix_processed_task_scan_names+="${scan_name} "
+		if [[ ${scan_name} == tfMRI_7T* ]] ; then
+			inform "Not adding ${scan_name} to fix_processed_task_scan_names"
+		else
+			inform "Adding ${scan_name} to fix_processed_task_scan_names"
+			fix_processed_task_scan_names+="${scan_name} "
+		fi
 	done
 	fix_processed_task_scan_names=${fix_processed_task_scan_names% } # remove trailing space
 
@@ -357,6 +386,65 @@ main()
 	fi
 
 	inform "Found the following retinotopy scans: ${retinotopy_scan_names}"
+
+	sorted_retinotopy_scan_names=""
+	for rscan in tfMRI_RETCCW_AP tfMRI_RETCW_PA tfMRI_RETEXP_AP tfMRI_RETCON_PA tfMRI_RETBAR1_AP tfMRI_RETBAR2_PA ; do
+		if [[ ${retinotopy_scan_names} == *${rscan}* ]] ; then
+			inform "${rscan} is in ${retinotopy_scan_names}"
+			sorted_retinotopy_scan_names+="${rscan} "
+		else
+			inform "${rscan} is NOT in ${retinotopy_scan_names}"
+		fi
+	done
+	sorted_retinotopy_scan_names=${sorted_retinotopy_scan_names% } # remove trailing space
+
+	if [ -z "${sorted_retinotopy_scan_names}" ]; then
+		sorted_retinotopy_scan_names="NONE"
+	fi
+
+	inform "Sorted retinotopy scans: ${sorted_retinotopy_scan_names}"
+
+	retinotopy_scan_files=""
+	for rscan_name in ${sorted_retinotopy_scan_names} ; do
+		prefix=${rscan_name%%_*}
+		scan=${rscan_name#${prefix}_}
+		scan=${scan%%_*}
+		pe_dir=${rscan_name##*_}
+		long_scan_name="${prefix}_${scan}_7T_${pe_dir}"
+		
+		retinotopy_scan_files+="${g_working_dir}/${g_subject}/MNINonLinear/Results/${long_scan_name}/${long_scan_name}.nii.gz "
+	done
+	retinotopy_scan_files=${retinotopy_scan_files% } # remove trailing space
+
+	inform "Retinotopy scan files: ${retinotopy_scan_files}"
+	
+	concatenated_retinotopy_scan_name=${sorted_retinotopy_scan_names//tfMRI_/}
+	concatenated_retinotopy_scan_name=${concatenated_retinotopy_scan_name// /_}
+	concatenated_retinotopy_scan_name="tfMRI_7T_${concatenated_retinotopy_scan_name}"
+
+	inform "Concatenated retinotopy scan name: ${concatenated_retinotopy_scan_name}"
+
+	concatenated_retinotopy_scan_file_name="${g_working_dir}/${g_subject}/MNINonLinear/Results/${concatenated_retinotopy_scan_name}/${concatenated_retinotopy_scan_name}.nii.gz"
+	inform "concatenated retinotopy scan file name: ${concatenated_retionotopy_scan_file_name}"
+	
+	popd > /dev/null
+
+	# Multi-run ICAFIX processing scans
+	pushd ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES > /dev/null
+
+	multirun_fix_processed_scan_names=""
+	multirun_fix_processed_scan_dirs=`ls -d tfMRI_7T_*_FIX`
+	for multirun_fix_processed_scan_dir in ${multirun_fix_processed_scan_dirs} ; do
+		scan_name=${multirun_fix_processed_scan_dir%%_FIX} # take _FIX off the end
+		multirun_fix_processed_scan_names+="${scan_name} "
+	done
+	multirun_fix_processed_scan_names=${multirun_fix_processed_scan_names% } # remove trailing space
+
+	if [ -z "${multirun_fix_processed_scan_names}" ]; then
+		multirun_fix_processed_scan_names="NONE"
+	fi
+
+	inform "Found the following multi-run ICAFIX processed scans: ${multirun_fix_processed_scan_names}"
 
 	popd > /dev/null
 
@@ -409,7 +497,20 @@ main()
 	link_hcp_msm_all_registration_data "${DATABASE_ARCHIVE_ROOT}" "${g_structural_reference_project}" "${g_subject}" \
 		"${g_structural_reference_session}" "${g_working_dir}"
 
- 	# Step - Link FIX processed data from DB
+	# Step - Link Multirun ICAFIX processed data from DB
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+						 ${current_step} "Link Multirun ICAFIX processed data from DB" ${step_percent}
+	
+	for scan_name in ${multirun_fix_processed_scan_names} ; do
+		resource_dir=${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX
+		if [ -d ${resource_dir} ]; then
+			link_hcp_concatenated_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
+		fi
+	done
+	
+	# Step - Link FIX processed data from DB
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
@@ -525,6 +626,46 @@ main()
 		fi
 	done
 
+	for scan_name in ${multirun_fix_processed_scan_names} ; do
+		resource_dir=${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX
+		if [ -d ${resource_dir} ] ; then
+
+			echo "scan_name: ${scan_name}"
+			
+			working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica
+			echo "working_ica_dir: ${working_ica_dir}"
+			
+			if [ -e "${working_ica_dir}/Atlas.dtseries.nii" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/Atlas.dtseries.nii ${working_ica_dir}/Atlas.dtseris.nii.NOLINK
+				rm --verbose ${working_ica_dir}/Atlas.dtseries.nii
+				mv ${working_ica_dir}/Atlas.dtseries.nii.NOLINK ${working_ica_dir}/Atlas.dtseries.nii
+			fi
+		
+			if [ -e "${working_ica_dir}/Atlas.nii.gz" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/Atlas.nii.gz ${working_ica_dir}/Atlas.nii.gz.NOLINK
+				rm --verbose ${working_ica_dir}/Atlas.nii.gz
+				mv ${working_ica_dir}/Atlas.nii.gz.NOLINK ${working_ica_dir}/Atlas.nii.gz
+			fi
+			
+			if [ -e "${working_ica_dir}/filtered_func_data.nii.gz" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/filtered_func_data.nii.gz ${working_ica_dir}/filtered_func_data.nii.gz.NOLINK
+				rm --verbose ${working_ica_dir}/filtered_func_data.nii.gz
+				mv ${working_ica_dir}/filtered_func_data.nii.gz.NOLINK ${working_ica_dir}/filtered_func_data.nii.gz
+			fi
+			
+			#if [ -d "${working_ica_dir}/mc" ] ; then
+			#	rm --recursive --verbose ${working_ica_dir}/mc
+			#fi
+			
+			if [ -e "${working_ica_dir}/Atlas_hp_preclean.dtseries.nii" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii.NOLINK
+				rm --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
+				mv  ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii.NOLINK  ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
+			fi
+			
+		fi
+	done
+
 	# Step - Create a start_time file
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
@@ -633,74 +774,86 @@ main()
 	tfMRINames=`echo "$tfMRINames" | sed s/" "/"@"/g`
 
 	# Run DeDriftAndResamplePipeline.sh script
-	d_cmd=""
-	d_cmd+="${HCPPIPEDIR}/DeDriftAndResample/DeDriftAndResamplePipeline.sh "
-	d_cmd+="  --path=${g_working_dir} "
-	d_cmd+="  --subject=${g_subject} "
-	d_cmd+="  --high-res-mesh=${HighResMesh} "
-	d_cmd+="  --low-res-meshes=${LowResMeshes} "
-	d_cmd+="  --registration-name=${RegName} "
-	d_cmd+="  --dedrift-reg-files=${DeDriftRegFiles} "
-	d_cmd+="  --concat-reg-name=${ConcatRegName} "
-	d_cmd+="  --maps=${Maps} "
-	d_cmd+="  --myelin-maps=${MyelinMaps} "
-	d_cmd+="  --rfmri-names=${rfMRINames} "
-	d_cmd+="  --tfmri-names=${tfMRINames} "
-	d_cmd+="  --smoothing-fwhm=${SmoothingFWHM} "
-	d_cmd+="  --highpass=${HighPass}"
+	dedrift_cmd=""
+	dedrift_cmd+="${HCPPIPEDIR}/DeDriftAndResample/DeDriftAndResamplePipeline.sh"
+	dedrift_cmd+=" --path=${g_working_dir}"
+	dedrift_cmd+=" --subject=${g_subject}"
+	dedrift_cmd+=" --high-res-mesh=${HighResMesh}"
+	dedrift_cmd+=" --low-res-meshes=${LowResMeshes}"
+	dedrift_cmd+=" --registration-name=${RegName}"
+	dedrift_cmd+=" --dedrift-reg-files=${DeDriftRegFiles}"
+	dedrift_cmd+=" --concat-reg-name=${ConcatRegName}"
+	dedrift_cmd+=" --maps=${Maps}"
+	dedrift_cmd+=" --myelin-maps=${MyelinMaps}"
+	dedrift_cmd+=" --rfmri-names=${rfMRINames}"
+	dedrift_cmd+=" --tfmri-names=${tfMRINames}"
+	dedrift_cmd+=" --smoothing-fwhm=${SmoothingFWHM}"
+	dedrift_cmd+=" --highpass=${HighPass}"
+	dedrift_cmd+=" --matlab-run-mode=0" # Use compiled MATLAB
 
-	inform "d_cmd: ${d_cmd}"
+	inform "dedrift_cmd: ${dedrift_cmd}"
 
-	${d_cmd}
-	if [ $? -ne 0 ]; then
+	${dedrift_cmd}
+	return_code=$?
+	if [ ${return_code} -ne 0 ]; then
+		inform "Non-zero return code: ${return_code}"
+		inform "ABORTING"
 		die 
 	fi
 
-	# Run DeDriftAndResamplePipeline.sh script a second time
+	# Step - Call ReApplyFixPipelineMultiRun.sh to handle the ReApplyFix functionality
+	#        on the multi-run concatenated scans
+	#        Note that for the non-concatenated scans, ReApplyFixPipeline.sh is already called
+	#        within DeDriftAndResamplePipeline.sh
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Call ReApplyFixPipelineMultiRun.sh" ${step_percent}
 
-	# LowResMeshes="59" # Delimit with @ e.g. 32@59, multiple resolutions not currently supported for fMRI data
+	reapply_fix_multirun_cmd=""
+	reapply_fix_multirun_cmd+="${HCPPIPEDIR}/ReApplyFixMultiRun/ReApplyFixPipelineMultiRun.sh"
+	reapply_fix_multirun_cmd+=" --path=${g_working_dir}"
+	reapply_fix_multirun_cmd+=" --subject=${g_subject}"
+	reapply_fix_multirun_cmd+=" --fmri-names=${retinotopy_scan_files// /@}"
+#	reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_name}"
+	reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_file_name}"
+	reapply_fix_multirun_cmd+=" --high-pass=${HighPass}"
+	reapply_fix_multirun_cmd+=" --reg-name=${ConcatRegName}"
+	reapply_fix_multirun_cmd+=" --matlab-run-mode=0" # Use compiled MATLAB
+	
+	inform "reapply_fix_multirun_cmd: ${reapply_fix_multirun_cmd}"
 
-	# d_cmd=""
-	# d_cmd+="${HCPPIPEDIR}/DeDriftAndResample/DeDriftAndResamplePipeline.sh "
-	# d_cmd+="  --path=${g_working_dir} "
-	# d_cmd+="  --subject=${g_subject} "
-	# d_cmd+="  --high-res-mesh=${HighResMesh} "
-	# d_cmd+="  --low-res-meshes=${LowResMeshes} "
-	# d_cmd+="  --registration-name=${RegName} "
-	# d_cmd+="  --dedrift-reg-files=${DeDriftRegFiles} "
-	# d_cmd+="  --concat-reg-name=${ConcatRegName} "
-	# d_cmd+="  --maps=${Maps} "
-	# d_cmd+="  --myelin-maps=${MyelinMaps} "
-	# d_cmd+="  --rfmri-names=${rfMRINames} "
-	# d_cmd+="  --tfmri-names=${tfMRINames} "
-	# d_cmd+="  --smoothing-fwhm=${SmoothingFWHM} "
-	# d_cmd+="  --highpass=${HighPass}"
-
-	# inform "d_cmd: ${d_cmd}"
-
-	# ${d_cmd}
-	# if [ $? -ne 0 ]; then
-	# 	die 
-	# fi
+	${reapply_fix_multirun_cmd}
+	return_code=$?
+	if [ ${return_code} -ne 0 ]; then
+		inform "Non-zero return code: ${return_code}"
+		inform "ABORTING"
+		die 
+	fi
 
 	# Step - Show any newly created or modified files
 	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))	
+	step_percent=$(( (current_step * 100) / total_steps ))
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Show newly created or modified files" ${step_percent}
 	
 	echo "Newly created/modified files:"
 	find ${g_working_dir}/${g_subject} -type f -newer ${start_time_file}
-	
-	# Step - Remove any files that are not newly created or modified
-	current_step=$(( current_step + 1 ))
-	step_percent=$(( (current_step * 100) / total_steps ))
-	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Remove files not newly created or modified" ${step_percent}
-	
-	echo "The following files are being removed"
-	find ${g_working_dir} -not -newer ${start_time_file} -print -delete 
 
+
+	if [ "${g_keep_all}" != "TRUE" ]; then
+	
+		# Step - Remove any files that are not newly created or modified
+		current_step=$(( current_step + 1 ))
+		step_percent=$(( (current_step * 100) / total_steps ))
+		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+							 ${current_step} "Remove files not newly created or modified" ${step_percent}
+		
+		echo "The following files are being removed"
+		find ${g_working_dir} -not -newer ${start_time_file} -print -delete 
+
+	fi
+	
 	# Step - Complete Workflow
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
@@ -709,3 +862,9 @@ main()
 
 # Invoke the main function to get things started
 main $@
+
+if [ "${g_prevent_push}" = "TRUE" ]; then
+	inform "Exiting with status code 1 to prevent DB push."
+	exit 1
+fi
+

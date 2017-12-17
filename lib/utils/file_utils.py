@@ -157,8 +157,8 @@ def make_link_into_copy(full_path, verbose=False, output=sys.stdout):
             linked_to = os.path.dirname(full_path) + os.sep + linked_to
 
         if verbose:
-            print("Making: '" + full_path + "' a copy of '" + linked_to +
-                  "' instead of a symbolic link", file=output)
+            print("  Making............: '", full_path, file=output)
+            print("  A copy of.........: '", linked_to, file=output)
         
         os.remove(full_path)
         shutil.copy2(linked_to, full_path)

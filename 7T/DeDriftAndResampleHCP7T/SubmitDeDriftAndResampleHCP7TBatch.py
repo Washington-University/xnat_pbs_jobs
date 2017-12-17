@@ -21,7 +21,7 @@ import utils.os_utils as os_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
-__copyright__ = "Copyright 2016, The Human Connectome Project"
+__copyright__ = "Copyright 2016-2017, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
 
@@ -63,14 +63,15 @@ class DeDriftAndResampleHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
         # submit jobs for listed subjects
         for subject in subject_list:
 
-            put_server = 'http://db-shadow' + str(self._current_shadow_number) + '.nrg.mir:8080'
+            put_server = 'http://db-shadow' + str(self.shadow_number) + '.nrg.mir:8080'
 
             # get information for subject from configuration file
             setup_file = scripts_home + os.sep + config.get_value(subject.subject_id, 'SetUpFile')
             clean_output_first = config.get_bool_value(subject.subject_id, 'CleanOutputFirst')
             wall_time_limit = config.get_int_value(subject.subject_id, 'WalltimeLimit')
             vmem_limit = config.get_int_value(subject.subject_id, 'VmemLimit')
-
+            mem_limit = config.get_int_value(subject.subject_id, 'MemLimit')
+            
             _inform("")
             _inform("--------------------------------------------------------------------------------")
             _inform(" Submitting DeDriftAndResampleHCP7T jobs for: ")
@@ -82,6 +83,7 @@ class DeDriftAndResampleHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
             _inform(" clean_output_first: " + str(clean_output_first))
             _inform("    wall_time_limit: " + str(wall_time_limit))
             _inform("         vmem_limit: " + str(vmem_limit))
+            _inform("          mem_limit: " + str(mem_limit))
             _inform("--------------------------------------------------------------------------------")
 
             _debug("Create and configure an appropriate 'one subject submitter'")
@@ -102,7 +104,8 @@ class DeDriftAndResampleHcp7TBatchSubmitter(batch_submitter.BatchSubmitter):
             one_subject_submitter.setup_script = setup_file
             one_subject_submitter.walltime_limit_hours = wall_time_limit
             one_subject_submitter.vmem_limit_gbs = vmem_limit
-
+            one_subject_submitter.mem_limit_gbs = mem_limit
+            
             _debug("Use the 'one subject submitter' to submit the jobs for the current subject")
             one_subject_submitter.submit_jobs()
 
