@@ -636,23 +636,31 @@ main()
 			echo "working_ica_dir: ${working_ica_dir}"
 			
 			if [ -e "${working_ica_dir}/Atlas.dtseries.nii" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/Atlas.dtseries.nii ${working_ica_dir}/Atlas.dtseris.nii.NOLINK
 				rm --verbose ${working_ica_dir}/Atlas.dtseries.nii
+				mv ${working_ica_dir}/Atlas.dtseries.nii.NOLINK ${working_ica_dir}/Atlas.dtseries.nii
 			fi
 		
 			if [ -e "${working_ica_dir}/Atlas.nii.gz" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/Atlas.nii.gz ${working_ica_dir}/Atlas.nii.gz.NOLINK
 				rm --verbose ${working_ica_dir}/Atlas.nii.gz
+				mv ${working_ica_dir}/Atlas.nii.gz.NOLINK ${working_ica_dir}/Atlas.nii.gz
 			fi
 			
 			if [ -e "${working_ica_dir}/filtered_func_data.nii.gz" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/filtered_func_data.nii.gz ${working_ica_dir}/filtered_func_data.nii.gz.NOLINK
 				rm --verbose ${working_ica_dir}/filtered_func_data.nii.gz
+				mv ${working_ica_dir}/filtered_func_data.nii.gz.NOLINK ${working_ica_dir}/filtered_func_data.nii.gz
 			fi
 			
-			if [ -d "${working_ica_dir}/mc" ] ; then
-				rm --recursive --verbose ${working_ica_dir}/mc
-			fi
+			#if [ -d "${working_ica_dir}/mc" ] ; then
+			#	rm --recursive --verbose ${working_ica_dir}/mc
+			#fi
 			
 			if [ -e "${working_ica_dir}/Atlas_hp_preclean.dtseries.nii" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii.NOLINK
 				rm --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
+				mv  ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii.NOLINK  ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
 			fi
 			
 		fi
