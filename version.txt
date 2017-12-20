@@ -1,1 +1,1 @@
-check_dedrift_completion
+hires_dedrift_and_resample_7T
