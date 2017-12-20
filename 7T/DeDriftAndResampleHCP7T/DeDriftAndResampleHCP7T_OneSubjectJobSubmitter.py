@@ -245,9 +245,6 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
         _debug("submit_jobs")
 
         if self.validate_parameters():
-            # subject_info = hcp7t_subject.Hcp7TSubjectInfo(self.project,
-            #                                               self.structural_reference_project,
-            #                                               self.subject)
 
             # make sure working directories don't have the same name based on the same
             # start time by sleeping a few seconds

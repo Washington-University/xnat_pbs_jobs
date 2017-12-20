@@ -815,7 +815,6 @@ main()
 	reapply_fix_multirun_cmd+=" --path=${g_working_dir}"
 	reapply_fix_multirun_cmd+=" --subject=${g_subject}"
 	reapply_fix_multirun_cmd+=" --fmri-names=${retinotopy_scan_files// /@}"
-#	reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_name}"
 	reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_file_name}"
 	reapply_fix_multirun_cmd+=" --high-pass=${HighPass}"
 	reapply_fix_multirun_cmd+=" --reg-name=${ConcatRegName}"

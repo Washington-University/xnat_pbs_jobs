@@ -71,6 +71,7 @@ class DeDriftAndResampleHcp7T_HighResBatchSubmitter(batch_submitter.BatchSubmitt
             clean_output_first = config.get_bool_value(subject.subject_id, 'CleanOutputFirst')
             wall_time_limit = config.get_int_value(subject.subject_id, 'WalltimeLimit')
             vmem_limit = config.get_int_value(subject.subject_id, 'VmemLimit')
+            mem_limit = config.get_int_value(subject.subject_id, 'MemLimit')
 
             _inform("")
             _inform("--------------------------------------------------------------------------------")
@@ -83,11 +84,11 @@ class DeDriftAndResampleHcp7T_HighResBatchSubmitter(batch_submitter.BatchSubmitt
             _inform(" clean_output_first: " + str(clean_output_first))
             _inform("    wall_time_limit: " + str(wall_time_limit))
             _inform("         vmem_limit: " + str(vmem_limit))
+            _inform("          mem_limit: " + str(mem_limit))
             _inform("--------------------------------------------------------------------------------")
 
             _debug("Create and configure an appropriate 'one subject submitter'")
-            one_subject_submitter = \
-                DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter.DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(
+            one_subject_submitter = DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter.DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(
                 self._archive, self._archive.build_home)
             _debug("one_subject_submitter: " + str(one_subject_submitter))
 
@@ -104,6 +105,7 @@ class DeDriftAndResampleHcp7T_HighResBatchSubmitter(batch_submitter.BatchSubmitt
             one_subject_submitter.setup_script = setup_file
             one_subject_submitter.walltime_limit_hours = wall_time_limit
             one_subject_submitter.vmem_limit_gbs = vmem_limit
+            one_subject_submitter.mem_limit_gbs = mem_limit
 
             _debug("Use the 'one subject submitter' to submit the jobs for the current subject")
             one_subject_submitter.submit_jobs()
@@ -125,8 +127,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Get Connectome DB credentials
-    userid = input("DB Username: ")
-    password = getpass.getpass("DB Password: ")
+    userid = input("Connectome DB Username: ")
+    password = getpass.getpass("Connectome DB Password: ")
 
     # Get list of subjects to process
     subject_file_name = file_utils.get_subjects_file_name(__file__)

@@ -254,7 +254,7 @@ main()
 	inform "----- Platform Information: End -----"
 
 	# Set up step counters
-	total_steps=16
+	total_steps=17
 	current_step=0
 
 	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
@@ -423,6 +423,9 @@ main()
 	concatenated_retinotopy_scan_name="tfMRI_7T_${concatenated_retinotopy_scan_name}"
 
 	inform "Concatenated retinotopy scan name: ${concatenated_retinotopy_scan_name}"
+
+	concatenated_retinotopy_scan_file_name="${g_working_dir}/${g_subject}/MNINonLinear/Results/${concatenated_retinotopy_scan_name}/${concatenated_retinotopy_scan_name}.nii.gz"
+	inform "concatenated retinotopy scan file name: ${concatenated_retionotopy_scan_file_name}"
 	
 	popd > /dev/null
 
@@ -641,25 +644,33 @@ main()
 			
 			working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica
 			echo "working_ica_dir: ${working_ica_dir}"
-			
+
 			if [ -e "${working_ica_dir}/Atlas.dtseries.nii" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/Atlas.dtseries.nii ${working_ica_dir}/Atlas.dtseris.nii.NOLINK
 				rm --verbose ${working_ica_dir}/Atlas.dtseries.nii
+				mv ${working_ica_dir}/Atlas.dtseries.nii.NOLINK ${working_ica_dir}/Atlas.dtseries.nii
 			fi
 		
 			if [ -e "${working_ica_dir}/Atlas.nii.gz" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/Atlas.nii.gz ${working_ica_dir}/Atlas.nii.gz.NOLINK
 				rm --verbose ${working_ica_dir}/Atlas.nii.gz
+				mv ${working_ica_dir}/Atlas.nii.gz.NOLINK ${working_ica_dir}/Atlas.nii.gz
 			fi
 			
 			if [ -e "${working_ica_dir}/filtered_func_data.nii.gz" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/filtered_func_data.nii.gz ${working_ica_dir}/filtered_func_data.nii.gz.NOLINK
 				rm --verbose ${working_ica_dir}/filtered_func_data.nii.gz
+				mv ${working_ica_dir}/filtered_func_data.nii.gz.NOLINK ${working_ica_dir}/filtered_func_data.nii.gz
 			fi
 			
-			if [ -d "${working_ica_dir}/mc" ] ; then
-				rm --recursive --verbose ${working_ica_dir}/mc
-			fi
+			# if [ -d "${working_ica_dir}/mc" ] ; then
+			# 	rm --recursive --verbose ${working_ica_dir}/mc
+			# fi
 			
 			if [ -e "${working_ica_dir}/Atlas_hp_preclean.dtseries.nii" ] ; then
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii.NOLINK
 				rm --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
+				mv  ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii.NOLINK  ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
 			fi
 			
 		fi
@@ -798,6 +809,35 @@ main()
 	inform "dedrift_cmd: ${dedrift_cmd}"
 
 	${dedrift_cmd}
+	return_code=$?
+	if [ ${return_code} -ne 0 ]; then
+		inform "Non-zero return code: ${return_code}"
+		inform "ABORTING"
+		die 
+	fi
+
+	# Step - Call ReApplyFixPipelineMultiRun.sh to handle the ReApplyFix functionality
+	#        on the multi-run concatenated scans
+	#        Note that for the non-concatenated scans, ReApplyFixPipeline.sh is already called
+	#        within DeDriftAndResamplePipeline.sh
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Call ReApplyFixPipelineMultiRun.sh" ${step_percent}
+
+	reapply_fix_multirun_cmd=""
+	reapply_fix_multirun_cmd+="${HCPPIPEDIR}/ReApplyFixMultiRun/ReApplyFixPipelineMultiRun.sh"
+	reapply_fix_multirun_cmd+=" --path=${g_working_dir}"
+	reapply_fix_multirun_cmd+=" --subject=${g_subject}"
+	reapply_fix_multirun_cmd+=" --fmri-names=${retinotopy_scan_files// /@}"
+	reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_file_name}"
+	reapply_fix_multirun_cmd+=" --high-pass=${HighPass}"
+	reapply_fix_multirun_cmd+=" --reg-name=${ConcatRegName}"
+	reapply_fix_multirun_cmd+=" --matlab-run-mode=0" # Use compiled MATLAB
+	
+	inform "reapply_fix_multirun_cmd: ${reapply_fix_multirun_cmd}"
+
+	${reapply_fix_multirun_cmd}
 	return_code=$?
 	if [ ${return_code} -ne 0 ]; then
 		inform "Non-zero return code: ${return_code}"
