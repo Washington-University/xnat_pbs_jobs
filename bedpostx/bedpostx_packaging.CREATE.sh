@@ -191,15 +191,11 @@ main()
 	# Create the checksum file if requested
 	if [ "${g_create_checksum}" = "YES" ]; then
 		echo "Create MD5 Checksum"
-		md5sum ${package_file_fullpath} > ${checksum_file_fullpath}
-		chmod u=rw,g=rw,o=r ${checksum_file_fullpath}
+		md5sum ${package_file_name} > ${checksum_file_name}
+		chmod u=rw,g=rw,o=r ${checksum_file_name}
 	fi
 
 	popd
-
-
-
-
 
 	inform "Job complete on `hostname` at `date`"
 }

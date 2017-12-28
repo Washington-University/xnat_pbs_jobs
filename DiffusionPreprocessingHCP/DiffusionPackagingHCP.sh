@@ -143,9 +143,13 @@ main()
 
 	inform "Creating checksum file"
 	checksum_file_name=${package_file_name}.md5
+	short_package_file_name=${g_subject}_3T_Diffusion_preproc.zip
+	short_checksum_file_name=${short_package_file_name}.md5
 
-	md5sum ${package_file_name} > ${checksum_file_name}
-	chmod u=rw,g=rw,o=r ${checksum_file_name}
+	pushd ${g_working_dir}
+	md5sum ${short_package_file_name} > ${short_checksum_file_name}
+	chmod u=rw,g=rw,o=r ${short_checksum_file_name}
+	popd
 
 	inform "Moving package and checksum to destination"
 	destination_dir=${g_destination_root}/${g_subject}/preproc
