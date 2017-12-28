@@ -225,21 +225,26 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
+    def is_concatenated_scan_name(self, functional_scan_name):
+        """
+        We are "detecting" a concatenated functional scan based on the number
+        of "_"-separated tokens in the functional_scan_name.
+        If it is greater than 3 (e.g. tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA),
+        then we assume that this is a concatenated scan name. Otherwise,
+        (e.g. rfMRI_REST3_PA) we assume that it is NOT a concatenated scan 
+        name.
+        """
+        split_name = functional_scan_name.split(self.NAME_DELIMITER)
+
+        if len(split_name) > 3:
+            return True
+        else:
+            return False
+        
     def functional_scan_long_name(self, functional_scan_name):
         """Returns the 'long form' of the specified functional scan name.
 
         This 'long form' is used in some processing contexts as the fMRIName.
-
-        For a concatenated functional scan (not one actual scan, but a 
-        scan created by concatenating several actual scans), then
-        the long form is equal to the standard/short form.
-
-        For now, we are "detecting" a concatenated functional scan based
-        on the number of "_"-separated tokens in the functional_scan_name.
-        If it is greater than 3 (e.g. tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA),
-        then we assume that this is a concatenated scan name. Otherwise, 
-        (e.g. ffMRI_REST3_PA) we assume that it is NOT a concatenated scan
-        name.
 
         :Examples:
 
@@ -249,17 +254,13 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
           simply returns the input name.
 
         """
-        #_inform("functional_scan_name: " + functional_scan_name)
 
-        split_name = functional_scan_name.split(self.NAME_DELIMITER)
-
-        if len(split_name) > 3:
+        if self.is_concatenated_scan_name(functional_scan_name):
             long_scan_name = functional_scan_name
         else:
-            (prefix, base_name, pe_dir) = split_name
+            (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
             long_scan_name = prefix + self.NAME_DELIMITER + base_name + self.NAME_DELIMITER + self.TESLA_SPEC + self.NAME_DELIMITER + pe_dir
             
-        #_inform("long_scan_name: " + long_scan_name)
         return long_scan_name
 
     def available_DeDriftAndResample_HighRes_processed_dirs(self, subject_info):

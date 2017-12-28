@@ -48,23 +48,81 @@ class DeDriftAndResampleHCP7T_OneSubjectCompletionChecker:
 
         # Build list of expected files
         results_dir = archive.DeDriftAndResample_processed_dir_name(hcp7t_subject_info)
-        results_scan_dir = results_dir + os.sep
-        results_scan_dir += 'MNINonLinear' + os.sep + 'Results' + os.sep + archive.functional_scan_long_name(scan_name)
+        mni_nonlinear_dir = results_dir + os.sep + 'MNINonLinear'
+        fsaverage_dir = mni_nonlinear_dir + os.sep + 'fsaverage_LR32k'
+        native_dir = mni_nonlinear_dir + os.sep + 'Native'
+        results_scan_dir = mni_nonlinear_dir + os.sep + 'Results' + os.sep + archive.functional_scan_long_name(scan_name)
 
         file_name_list = []
 
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                              '_Atlas_MSMAll.dtseries.nii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                              '_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                              '_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                              '_s2_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
-        file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                              '_s2_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
+        # mni_nonlinear_dir
+        
+        for map in ['ArealDistortion', 'corrThickness', 'curvature', 'EdgeDistortion', 'MyelinMap_BC', 'SmoothedMyelinMap_BC', 'SphericalDistortion', 'sulc', 'thickness']:
+            file_name_list.append(mni_nonlinear_dir + os.sep + hcp7t_subject_info.subject_id + '.' + map + '_MSMAll.164k_fs_LR.dscalar.nii')
 
-        if archive.is_resting_state_scan_name(scan_name) or archive.is_movie_scan_name(scan_name):
+        for surface in ['inflated', 'midthickness', 'pial', 'very_inflated', 'white']:
+            for side in ['L', 'R']:
+                file_name_list.append(mni_nonlinear_dir + os.sep + hcp7t_subject_info.subject_id + '.' + side + '.' + surface + '_MSMAll.164k_fs_LR.surf.gii')
+            
+        file_name_list.append(mni_nonlinear_dir + os.sep + hcp7t_subject_info.subject_id + '.MSMAll.164k_fs_LR.wb.spec')
+
+        # fsaverage_dir
+        
+        for map in ['ArealDistortion', 'BiasField', 'corrThickness', 'curvature', 'EdgeDistortion', 'MyelinMap_BC', 'MyelinMap', 'SmoothedMyelinMap_BC', 'SphericalDistortion', 'sulc', 'thickness' ]:
+            file_name_list.append(fsaverage_dir + os.sep + hcp7t_subject_info.subject_id + '.' + map + '_MSMAll.32k_fs_LR.dscalar.nii')
+
+        for surface in ['inflated', 'midthickness', 'pial', 'very_inflated', 'white']:
+            for side in ['L', 'R']:
+                file_name_list.append(fsaverage_dir + os.sep + hcp7t_subject_info.subject_id + '.' + side + '.' + surface + '_MSMAll.32k_fs_LR.surf.gii')
+
+        file_name_list.append(fsaverage_dir + os.sep + hcp7t_subject_info.subject_id + '.MSMAll.32k_fs_LR.wb.spec')
+
+        # native_dir
+        
+        for map in ['ArealDistortion', 'BiasField', 'EdgeDistortion', 'MyelinMap_BC', 'SmoothedMyelinMap_BC']:
+            file_name_list.append(native_dir + os.sep + hcp7t_subject_info.subject_id + '.' + map + '_MSMAll.native.dscalar.nii')
+
+        for shape in ['ArealDistortion', 'EdgeDistortion']:
+            for side in ['L', 'R']:
+                file_name_list.append(native_dir + os.sep + hcp7t_subject_info.subject_id + '.' + side + '.' + shape + '_MSMAll.native.shape.gii')
+            
+        for surface in ['sphere']:
+            for side in ['L', 'R']:
+                file_name_list.append(native_dir + os.sep + hcp7t_subject_info.subject_id + '.' + side + '.' + surface + '.MSMAll.native.surf.gii')
+        
+        file_name_list.append(native_dir + os.sep + hcp7t_subject_info.subject_id + '.native.wb.spec')
+                              
+        # results_scan_dir
+        if archive.is_concatenated_scan_name(scan_name):
+            
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_MSMAll_demean.dtseries.nii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_MSMAll.dtseries.nii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_MSMAll_hp2000_clean.dtseries.nii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_MSMAll_hp2000.dtseries.nii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_MSMAll_mean.dscalar.nii')
+
+            ica_dir = results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_hp2000.ica'
+
+            file_name_list.append(ica_dir + os.sep + 'Atlas.dtseries.nii')
+
+        elif archive.is_resting_state_scan_name(scan_name) or archive.is_movie_scan_name(scan_name):
+                        
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_MSMAll.dtseries.nii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_s2_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_s2_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
+
             file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
                                   '_Atlas_MSMAll_hp2000_clean.dtseries.nii')
 
@@ -80,6 +138,25 @@ class DeDriftAndResampleHCP7T_OneSubjectCompletionChecker:
             file_name_list.append(mc_dir + os.sep + 'prefiltered_func_data_mcf_conf.nii.gz')
             file_name_list.append(mc_dir + os.sep + 'prefiltered_func_data_mcf.par')
 
+        else:
+
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_MSMAll_demean.dtseries.nii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_MSMAll.dtseries.nii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_MSMAll_hp2000_clean.dtseries.nii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_Atlas_MSMAll_hp2000.dtseries.nii')            
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_s2_MSMAll.L.atlasroi.32k_fs_LR.func.gii')
+            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                  '_s2_MSMAll.R.atlasroi.32k_fs_LR.func.gii')
+            
         # Now check to see if expected files actually exist
         for file_name in file_name_list:
             if verbose:
