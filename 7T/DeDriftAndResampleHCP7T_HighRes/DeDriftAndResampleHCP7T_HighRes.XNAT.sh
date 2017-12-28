@@ -406,13 +406,15 @@ main()
 
 	retinotopy_scan_files=""
 	for rscan_name in ${sorted_retinotopy_scan_names} ; do
-		prefix=${rscan_name%%_*}
-		scan=${rscan_name#${prefix}_}
-		scan=${scan%%_*}
-		pe_dir=${rscan_name##*_}
-		long_scan_name="${prefix}_${scan}_7T_${pe_dir}"
+		if [ "${rscan_name}" != "NONE" ]; then
+			prefix=${rscan_name%%_*}
+			scan=${rscan_name#${prefix}_}
+			scan=${scan%%_*}
+			pe_dir=${rscan_name##*_}
+			long_scan_name="${prefix}_${scan}_7T_${pe_dir}"
 		
-		retinotopy_scan_files+="${g_working_dir}/${g_subject}/MNINonLinear/Results/${long_scan_name}/${long_scan_name}.nii.gz "
+			retinotopy_scan_files+="${g_working_dir}/${g_subject}/MNINonLinear/Results/${long_scan_name}/${long_scan_name}.nii.gz "
+		fi
 	done
 	retinotopy_scan_files=${retinotopy_scan_files% } # remove trailing space
 
@@ -527,8 +529,10 @@ main()
 		${current_step} "Link FIX processed data from DB" ${step_percent}
 
 	for scan_name in ${fix_processed_resting_state_scan_names} ${fix_processed_task_scan_names} ; do
-		if [ -d ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX ]; then
-			link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
+		if [ "${scan_name}" != "NONE" ]; then
+			if [ -d ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX ]; then
+				link_hcp_fix_proc_data "${DATABASE_ARCHIVE_ROOT}" "${g_project}" "${g_subject}" "${g_session}" "${scan_name}" "${g_working_dir}"
+			fi
 		fi
 	done
 
@@ -595,44 +599,46 @@ main()
 
 	local HighPass="2000" 
 	for scan_name in ${fix_processed_resting_state_scan_names} ${fix_processed_task_scan_names} ; do
-		if [ -d ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX ] ; then
+		if [ "${scan_name}" != "NONE" ]; then
+			if [ -d ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX ] ; then
 
-			#working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica
+				#working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica
 
-			echo "scan_name: ${scan_name}"
+				echo "scan_name: ${scan_name}"
 
-			scan_without_pe_dir=${scan_name%_*}
-			echo "scan_without_pe_dir: ${scan_without_pe_dir}"
+				scan_without_pe_dir=${scan_name%_*}
+				echo "scan_without_pe_dir: ${scan_without_pe_dir}"
 
-			pe_dir=${scan_name##*_}
-			echo "pe_dir: ${pe_dir}"
+				pe_dir=${scan_name##*_}
+				echo "pe_dir: ${pe_dir}"
 
-			long_scan_name=${scan_without_pe_dir}_7T_${pe_dir}
-			echo "long_scan_name: ${long_scan_name}"
+				long_scan_name=${scan_without_pe_dir}_7T_${pe_dir}
+				echo "long_scan_name: ${long_scan_name}"
+	
+				working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${long_scan_name}/${long_scan_name}_hp${HighPass}.ica
+				echo "working_ica_dir: ${working_ica_dir}"
 
-			working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${long_scan_name}/${long_scan_name}_hp${HighPass}.ica
-			echo "working_ica_dir: ${working_ica_dir}"
-
-			if [ -e "${working_ica_dir}/Atlas.dtseries.nii" ] ; then
-				rm --verbose ${working_ica_dir}/Atlas.dtseries.nii
-			fi
-		
-			if [ -e "${working_ica_dir}/Atlas.nii.gz" ] ; then
-				rm --verbose ${working_ica_dir}/Atlas.nii.gz
-			fi
+				if [ -e "${working_ica_dir}/Atlas.dtseries.nii" ] ; then
+					rm --verbose ${working_ica_dir}/Atlas.dtseries.nii
+				fi
 			
-			if [ -e "${working_ica_dir}/filtered_func_data.nii.gz" ] ; then
-				rm --verbose ${working_ica_dir}/filtered_func_data.nii.gz
-			fi
+				if [ -e "${working_ica_dir}/Atlas.nii.gz" ] ; then
+					rm --verbose ${working_ica_dir}/Atlas.nii.gz
+				fi
+				
+				if [ -e "${working_ica_dir}/filtered_func_data.nii.gz" ] ; then
+					rm --verbose ${working_ica_dir}/filtered_func_data.nii.gz
+				fi
 			
-			if [ -d "${working_ica_dir}/mc" ] ; then
-				rm --recursive --verbose ${working_ica_dir}/mc
-			fi
+				if [ -d "${working_ica_dir}/mc" ] ; then
+					rm --recursive --verbose ${working_ica_dir}/mc
+				fi
 			
-			if [ -e "${working_ica_dir}/Atlas_hp_preclean.dtseries.nii" ] ; then
-				rm --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
-			fi
+				if [ -e "${working_ica_dir}/Atlas_hp_preclean.dtseries.nii" ] ; then
+					rm --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
+				fi
 
+			fi
 		fi
 	done
 
@@ -825,24 +831,30 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Call ReApplyFixPipelineMultiRun.sh" ${step_percent}
 
-	reapply_fix_multirun_cmd=""
-	reapply_fix_multirun_cmd+="${HCPPIPEDIR}/ReApplyFixMultiRun/ReApplyFixPipelineMultiRun.sh"
-	reapply_fix_multirun_cmd+=" --path=${g_working_dir}"
-	reapply_fix_multirun_cmd+=" --subject=${g_subject}"
-	reapply_fix_multirun_cmd+=" --fmri-names=${retinotopy_scan_files// /@}"
-	reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_file_name}"
-	reapply_fix_multirun_cmd+=" --high-pass=${HighPass}"
-	reapply_fix_multirun_cmd+=" --reg-name=${ConcatRegName}"
-	reapply_fix_multirun_cmd+=" --matlab-run-mode=0" # Use compiled MATLAB
+	if [ "${sorted_retinotopy_scan_names}" != "NONE" ]; then
+		reapply_fix_multirun_cmd=""
+		reapply_fix_multirun_cmd+="${HCPPIPEDIR}/ReApplyFixMultiRun/ReApplyFixPipelineMultiRun.sh"
+		reapply_fix_multirun_cmd+=" --path=${g_working_dir}"
+		reapply_fix_multirun_cmd+=" --subject=${g_subject}"
+		reapply_fix_multirun_cmd+=" --fmri-names=${retinotopy_scan_files// /@}"
+		reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_file_name}"
+		reapply_fix_multirun_cmd+=" --high-pass=${HighPass}"
+		reapply_fix_multirun_cmd+=" --reg-name=${ConcatRegName}"
+		reapply_fix_multirun_cmd+=" --matlab-run-mode=0" # Use compiled MATLAB
 	
-	inform "reapply_fix_multirun_cmd: ${reapply_fix_multirun_cmd}"
+		inform "reapply_fix_multirun_cmd: ${reapply_fix_multirun_cmd}"
 
-	${reapply_fix_multirun_cmd}
-	return_code=$?
-	if [ ${return_code} -ne 0 ]; then
-		inform "Non-zero return code: ${return_code}"
-		inform "ABORTING"
-		die 
+		${reapply_fix_multirun_cmd}
+		return_code=$?
+		if [ ${return_code} -ne 0 ]; then
+			inform "Non-zero return code: ${return_code}"
+			inform "ABORTING"
+			die 
+		fi
+		
+	else
+		inform "NOT running ReApplyFixPipelineMultiRun.sh because there are no retinotopy scans"
+
 	fi
 
 	# Step - Show any newly created or modified files
