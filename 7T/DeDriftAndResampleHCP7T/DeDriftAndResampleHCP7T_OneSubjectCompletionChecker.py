@@ -93,23 +93,26 @@ class DeDriftAndResampleHCP7T_OneSubjectCompletionChecker:
         file_name_list.append(native_dir + os.sep + hcp7t_subject_info.subject_id + '.native.wb.spec')
                               
         # results_scan_dir
+        retinotopy_scans_count = len(archive.available_retinotopy_unproc_dirs(hcp7t_subject_info))
+        
         if archive.is_concatenated_scan_name(scan_name):
+            if retinotopy_scans_count == 6:
             
-            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                                  '_Atlas_MSMAll_demean.dtseries.nii')
-            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                                  '_Atlas_MSMAll.dtseries.nii')
-            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                                  '_Atlas_MSMAll_hp2000_clean.dtseries.nii')
-            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                                  '_Atlas_MSMAll_hp2000.dtseries.nii')
-            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                                  '_Atlas_MSMAll_mean.dscalar.nii')
+                file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                      '_Atlas_MSMAll_demean.dtseries.nii')
+                file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                      '_Atlas_MSMAll.dtseries.nii')
+                file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                      '_Atlas_MSMAll_hp2000_clean.dtseries.nii')
+                file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                                      '_Atlas_MSMAll_hp2000.dtseries.nii')
+                file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
+                '_Atlas_MSMAll_mean.dscalar.nii')
+                
+                ica_dir = results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_hp2000.ica'
 
-            ica_dir = results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_hp2000.ica'
-
-            file_name_list.append(ica_dir + os.sep + 'Atlas.dtseries.nii')
-
+                file_name_list.append(ica_dir + os.sep + 'Atlas.dtseries.nii')
+                
         elif archive.is_resting_state_scan_name(scan_name) or archive.is_movie_scan_name(scan_name):
                         
             file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +

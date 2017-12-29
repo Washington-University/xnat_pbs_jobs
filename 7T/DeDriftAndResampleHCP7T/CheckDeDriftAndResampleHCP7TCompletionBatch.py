@@ -54,7 +54,8 @@ def _write_subject_info(subject, subject_results_dict, afile):
 
 def should_check(subject, scan, archive):
     if scan == 'tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA':
-        return True
+        retinotopy_scan_count = len(archive.available_retinotopy_unproc_dirs(subject))
+        return retinotopy_scan_count == 6
     else:
         return archive.does_functional_unproc_exist(subject, scan)
     
