@@ -642,7 +642,7 @@ main()
 			echo "working_ica_dir: ${working_ica_dir}"
 			
 			if [ -e "${working_ica_dir}/Atlas.dtseries.nii" ] ; then
-				cp -a --preserve=timestamps --verbose ${working_ica_dir}/Atlas.dtseries.nii ${working_ica_dir}/Atlas.dtseris.nii.NOLINK
+				cp -a --preserve=timestamps --verbose ${working_ica_dir}/Atlas.dtseries.nii ${working_ica_dir}/Atlas.dtseries.nii.NOLINK
 				rm --verbose ${working_ica_dir}/Atlas.dtseries.nii
 				mv ${working_ica_dir}/Atlas.dtseries.nii.NOLINK ${working_ica_dir}/Atlas.dtseries.nii
 			fi
