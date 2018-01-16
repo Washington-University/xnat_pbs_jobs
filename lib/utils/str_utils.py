@@ -4,7 +4,7 @@
 
 # import of built-in modules
 import os
-import urllib
+import urllib.parse
 
 # import of third party modules
 # None

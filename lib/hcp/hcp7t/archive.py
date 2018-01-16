@@ -59,7 +59,39 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         """Constructs an Hcp7T_Archive object for direct access to an HCP 7T project data archive."""
         super().__init__()
 
-    def FIX_processing_complete(self, hcp7t_subject_info, scan_name):
+    def FIX_processing_repaired(self, hcp7t_subject_info, scan_name):
+        
+        if not self.FIX_processing_complete(hcp7t_subject_info, scan_name, check_for_highres_clean_dtseries=False):
+            # The FIX processing isn't even complete. So the repairs= can not be complete.
+            return False
+
+        else:
+            highres_clean_atlas_name = self.results_scan_dir(hcp7t_subject_info, scan_name) + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_1.6mm_hp2000_clean.dtseries.nii'
+            if not os.path.isfile(highres_clean_atlas_name):
+                # The highres clean atlas file doesn't exist. So the repair can not be complete.
+                _inform("FILE DOES NOT EXIST: " + highres_clean_atlas_name)
+                return False
+
+            # If we get here, the highres clean atlas file does exist. Now check how big it is.
+            file_size_in_bytes = os.path.getsize(highres_clean_atlas_name)
+            _inform("file_size_in_bytes: " + str(file_size_in_bytes))
+
+            min_size = 500 * 1000 * 1000
+            _inform("min_size: " + str(min_size))
+            
+            if file_size_in_bytes < min_size:
+                # It's too small to be the repaired version
+                return False
+
+        # If we get here, we've passed all the tests and the repair is done.
+        return True
+
+    def results_scan_dir(self, hcp7t_subject_info, scan_name):
+        ret_value = self.subject_resources_dir_fullpath(hcp7t_subject_info) + os.sep + self.FIX_processed_resource_name(scan_name)
+        ret_value += os.sep + self.functional_scan_long_name(scan_name)
+        return ret_value
+            
+    def FIX_processing_complete(self, hcp7t_subject_info, scan_name, check_for_highres_clean_dtseries=True):
         """Returns True if the specified scan has completed FIX processing for the specified subject."""
 
         # If the output resource does not exist, then the processing has not been done.
@@ -75,8 +107,10 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
 
         file_name_list = []
 
-        file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_MSMSulc.59k_hp2000_clean.dtseries.nii')
-        #file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_1.6mm_hp2000_clean.dtseries.nii')
+        if check_for_highres_clean_dtseries:
+            file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_MSMSulc.59k_hp2000_clean.dtseries.nii')
+            #file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_1.6mm_hp2000_clean.dtseries.nii')
+
         file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_hp2000_clean.dtseries.nii')
         file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000_clean.nii.gz')
         file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000.nii.gz')
