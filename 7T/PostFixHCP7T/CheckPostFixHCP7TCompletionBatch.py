@@ -6,7 +6,6 @@ import os
 import sys
 
 # import of third party modules
-# None
 
 # import of local modules
 import PostFixHCP7T_OneSubjectCompletionChecker

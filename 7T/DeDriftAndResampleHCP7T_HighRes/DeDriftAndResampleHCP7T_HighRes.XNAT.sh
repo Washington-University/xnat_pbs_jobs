@@ -851,6 +851,13 @@ main()
 			inform "ABORTING"
 			die 
 		fi
+
+
+
+		inform "ABORTING just because I want to"
+		die
+		
+
 		
 	else
 		inform "NOT running ReApplyFixPipelineMultiRun.sh because there are no retinotopy scans"
