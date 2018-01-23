@@ -254,7 +254,7 @@ main()
 	inform "----- Platform Information: End -----"
 
 	# Set up step counters
-	total_steps=17
+	total_steps=18
 	current_step=0
 
 	xnat_workflow_show ${g_server} ${g_user} ${g_password} ${g_workflow_id}
@@ -597,49 +597,50 @@ main()
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 		${current_step} "Remove files that are re-created by ReApplyFixPipeline" ${step_percent}
 
-	local HighPass="2000" 
-	for scan_name in ${fix_processed_resting_state_scan_names} ${fix_processed_task_scan_names} ; do
+	local HighPass="2000"
+
+	for scan_name in ${fix_processed_resting_state_scan_names} ${fix_processed_task_scan_names} ${sorted_retinotopy_scan_names} ; do
 		if [ "${scan_name}" != "NONE" ]; then
-			if [ -d ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX ] ; then
+			#if [ -d ${DATABASE_ARCHIVE_ROOT}/${g_project}/arc001/${g_session}/RESOURCES/${scan_name}_FIX ] ; then
 
-				#working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica
+			#working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${scan_name}/${scan_name}_hp${HighPass}.ica
 
-				echo "scan_name: ${scan_name}"
+			echo "scan_name: ${scan_name}"
 
-				scan_without_pe_dir=${scan_name%_*}
-				echo "scan_without_pe_dir: ${scan_without_pe_dir}"
-
-				pe_dir=${scan_name##*_}
-				echo "pe_dir: ${pe_dir}"
-
-				long_scan_name=${scan_without_pe_dir}_7T_${pe_dir}
-				echo "long_scan_name: ${long_scan_name}"
-	
-				working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${long_scan_name}/${long_scan_name}_hp${HighPass}.ica
-				echo "working_ica_dir: ${working_ica_dir}"
-
-				if [ -e "${working_ica_dir}/Atlas.dtseries.nii" ] ; then
-					rm --verbose ${working_ica_dir}/Atlas.dtseries.nii
-				fi
+			scan_without_pe_dir=${scan_name%_*}
+			echo "scan_without_pe_dir: ${scan_without_pe_dir}"
 			
-				if [ -e "${working_ica_dir}/Atlas.nii.gz" ] ; then
-					rm --verbose ${working_ica_dir}/Atlas.nii.gz
-				fi
-				
-				if [ -e "${working_ica_dir}/filtered_func_data.nii.gz" ] ; then
-					rm --verbose ${working_ica_dir}/filtered_func_data.nii.gz
-				fi
+			pe_dir=${scan_name##*_}
+			echo "pe_dir: ${pe_dir}"
 			
-				if [ -d "${working_ica_dir}/mc" ] ; then
-					rm --recursive --verbose ${working_ica_dir}/mc
-				fi
+			long_scan_name=${scan_without_pe_dir}_7T_${pe_dir}
+			echo "long_scan_name: ${long_scan_name}"
 			
-				if [ -e "${working_ica_dir}/Atlas_hp_preclean.dtseries.nii" ] ; then
-					rm --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
-				fi
-
+			working_ica_dir=${g_working_dir}/${g_subject}/MNINonLinear/Results/${long_scan_name}/${long_scan_name}_hp${HighPass}.ica
+			echo "working_ica_dir: ${working_ica_dir}"
+			
+			if [ -e "${working_ica_dir}/Atlas.dtseries.nii" ] ; then
+				rm -f --verbose ${working_ica_dir}/Atlas.dtseries.nii
 			fi
+			
+			if [ -e "${working_ica_dir}/Atlas.nii.gz" ] ; then
+				rm -f --verbose ${working_ica_dir}/Atlas.nii.gz
+			fi
+			
+			if [ -e "${working_ica_dir}/filtered_func_data.nii.gz" ] ; then
+				rm -f --verbose ${working_ica_dir}/filtered_func_data.nii.gz
+			fi
+			
+			if [ -d "${working_ica_dir}/mc" ] ; then
+				rm -f --recursive --verbose ${working_ica_dir}/mc
+			fi
+			
+			if [ -e "${working_ica_dir}/Atlas_hp_preclean.dtseries.nii" ] ; then
+				rm -f --verbose ${working_ica_dir}/Atlas_hp_preclean.dtseries.nii
+			fi
+			
 		fi
+	#fi
 	done
 
 	for scan_name in ${multirun_fix_processed_scan_names} ; do
@@ -823,13 +824,13 @@ main()
 	fi
 
 	# Step - Call ReApplyFixPipelineMultiRun.sh to handle the ReApplyFix functionality
-	#        on the multi-run concatenated scans
+	#        on the multi-run concatenated scans for 1.6mm_MSMAll case
 	#        Note that for the non-concatenated scans, ReApplyFixPipeline.sh is already called
 	#        within DeDriftAndResamplePipeline.sh
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))
 	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
-		${current_step} "Call ReApplyFixPipelineMultiRun.sh" ${step_percent}
+		${current_step} "Call ReApplyFixPipelineMultiRun.sh for 1.6mm_MSMAll" ${step_percent}
 
 	if [ "${sorted_retinotopy_scan_names}" != "NONE" ]; then
 		reapply_fix_multirun_cmd=""
@@ -852,18 +853,46 @@ main()
 			die 
 		fi
 
-
-
-		inform "ABORTING just because I want to"
-		die
-		
-
-		
 	else
-		inform "NOT running ReApplyFixPipelineMultiRun.sh because there are no retinotopy scans"
-
+		inform "NOT running ReApplyFixPipelineMultiRun.sh for ${ConcatRegName} because there are no retinotopy scans"
+		
 	fi
 
+	# Step - Call ReApplyFixPipelineMultiRun.sh to handle the ReApplyFix functionality
+	#        on the multi-run concatenated scans for 1.6mm case (MSMSulc)
+	#        Note that for the non-concatenated scans, ReApplyFixPipeline.sh is already called
+	#        within DeDriftAndResamplePipeline.sh
+	current_step=$(( current_step + 1 ))
+	step_percent=$(( (current_step * 100) / total_steps ))
+	xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
+		${current_step} "Call ReApplyFixPipelineMultiRun.sh for 1.6mm" ${step_percent}
+
+	if [ "${sorted_retinotopy_scan_names}" != "NONE" ]; then
+		reapply_fix_multirun_cmd=""
+		reapply_fix_multirun_cmd+="${HCPPIPEDIR}/ReApplyFixMultiRun/ReApplyFixPipelineMultiRun.sh"
+		reapply_fix_multirun_cmd+=" --path=${g_working_dir}"
+		reapply_fix_multirun_cmd+=" --subject=${g_subject}"
+		reapply_fix_multirun_cmd+=" --fmri-names=${retinotopy_scan_files// /@}"
+		reapply_fix_multirun_cmd+=" --concat-fmri-name=${concatenated_retinotopy_scan_file_name}"
+		reapply_fix_multirun_cmd+=" --high-pass=${HighPass}"
+		reapply_fix_multirun_cmd+=" --reg-name=1.6mm"
+		reapply_fix_multirun_cmd+=" --matlab-run-mode=0" # Use compiled MATLAB
+	
+		inform "reapply_fix_multirun_cmd: ${reapply_fix_multirun_cmd}"
+
+		${reapply_fix_multirun_cmd}
+		return_code=$?
+		if [ ${return_code} -ne 0 ]; then
+			inform "Non-zero return code: ${return_code}"
+			inform "ABORTING"
+			die 
+		fi
+
+	else
+		inform "NOT running ReApplyFixPipelineMultiRun.sh for 1.6mm because there are no retinotopy scans"
+
+	fi
+	
 	# Step - Show any newly created or modified files
 	current_step=$(( current_step + 1 ))
 	step_percent=$(( (current_step * 100) / total_steps ))	
