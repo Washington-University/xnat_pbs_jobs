@@ -50,9 +50,9 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     def WORK_PPN(self):
         return 1
 
-    @property
-    def FIELDMAP_TYPE_SPEC(self):
-        return "SE"  # Spin Echo Field Maps
+    # @property
+    # def FIELDMAP_TYPE_SPEC(self):
+    #     return "SE"  # Spin Echo Field Maps
 
     # @property
     # def PHASE_ENCODING_DIR_SPEC(self):
@@ -148,15 +148,47 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         script.close()
         os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
 
-    def _get_positive_spin_echo_path(self, subject_info):
+
+    def _get_first_t1w_resource_fullpath(self, subject_info):
         t1w_resource_paths = self.archive.available_t1w_unproc_dir_full_paths(subject_info)
         if len(t1w_resource_paths) > 0:
-            first_t1w_resource_path = t1w_resource_paths[0]
+            return t1w_resource_paths[0]
         else:
             raise RuntimeError("Session has no T1w resources")
+        
+    def _has_spin_echo_field_maps(self, subject_info):
+        first_t1w_resource_path = self._get_first_t1w_resource_fullpath(subject_info)
+        path_expr = first_t1w_resource_path + os.sep + '*SpinEchoFieldMap*' + '.nii.gz'
+        spin_echo_file_list = glob.glob(path_expr)
+        return len(spin_echo_file_list) > 0
 
+    def _get_fmap_phase_file_name(self, subject_info):
+        first_t1w_resource_path = self._get_first_t1w_resource_fullpath(subject_info)
+        path_expr = first_t1w_resource_path + os.sep + '*FieldMap_Phase*' + '.nii.gz'
+        fmap_phase_list = glob.glob(path_expr)
+
+        if len(fmap_phase_list) > 0:
+            fmap_phase_file = fmap_phase_list[0]
+        else:
+            raise RuntimeError("First T1w has no Phase FieldMap: " + path_expr)
+        
+        return fmap_phase_file
+    
+    def _get_fmap_mag_file_name(self, subject_info):
+        first_t1w_resource_path = self._get_first_t1w_resource_fullpath(subject_info)
+        path_expr = first_t1w_resource_path + os.sep + '*FieldMap_Magnitude*' + '.nii.gz'
+        fmap_mag_list = glob.glob(path_expr)
+
+        if len(fmap_mag_list) > 0:
+            fmap_mag_file = fmap_mag_list[0]
+        else:
+            raise RuntimeError("First T1w has no Magnitude FieldMap: " + path_expr)
+
+        return fmap_mag_file
+        
+    def _get_positive_spin_echo_path(self, subject_info):
+        first_t1w_resource_path = self._get_first_t1w_resource_fullpath(subject_info)
         path_expr = first_t1w_resource_path + os.sep + '*SpinEchoFieldMap*' + self.PAAP_POSITIVE_DIR + '.nii.gz'
-
         positive_spin_echo_file_list = glob.glob(path_expr)
 
         if len(positive_spin_echo_file_list) > 0:
@@ -172,14 +204,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         return basename
 
     def _get_negative_spin_echo_path(self, subject_info):
-        t1w_resource_paths = self.archive.available_t1w_unproc_dir_full_paths(subject_info)
-        if len(t1w_resource_paths) > 0:
-            first_t1w_resource_path = t1w_resource_paths[0]
-        else:
-            raise RuntimeError("Session has no T1w resources")
-
+        first_t1w_resource_path = self._get_first_t1w_resource_fullpath(subject_info)
         path_expr = first_t1w_resource_path + os.sep + '*SpinEchoFieldMap*' + self.PAAP_NEGATIVE_DIR + '.nii.gz'
-
         negative_spin_echo_file_list = glob.glob(path_expr)
 
         if len(negative_spin_echo_file_list) > 0:
@@ -269,7 +295,13 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         session_line   = '  --session=' + self.session
         session_classifier_line = '  --session-classifier=' + self.classifier
 
-        fieldmap_type_line      = '  --fieldmap-type=' + self.FIELDMAP_TYPE_SPEC
+        if self._has_spin_echo_field_maps(subject_info):
+            fieldmap_type_line = '  --fieldmap-type=' + 'SpinEcho'
+        else:
+            fieldmap_type_line = '  --fieldmap-type=' + 'SiemensGradientEcho' 
+
+
+            
         first_t1w_directory_name_line = '  --first-t1w-directory-name=' + self._get_first_t1w_name(subject_info)
         first_t1w_resource_name_line  = '  --first-t1w-resource-name=' + self._get_first_t1w_resource_name(subject_info)
         first_t1w_file_name_line      = '  --first-t1w-file-name=' + self._get_first_t1w_file_name(subject_info)
@@ -291,9 +323,17 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         gdcoeffs_line        = '  --gdcoeffs=' + self.GDCOEFFS_FILE_NAME
         topupconfig_line     = '  --topupconfig=' + self.TOPUP_CONFIG_FILE_NAME
 
-        se_phase_pos_line    = '  --se-phase-pos=' + self._get_positive_spin_echo_file_name(subject_info)
-        se_phase_neg_line    = '  --se-phase-neg=' + self._get_negative_spin_echo_file_name(subject_info)
-
+        if self._has_spin_echo_field_maps(subject_info):
+            se_phase_pos_line = '  --se-phase-pos=' + self._get_positive_spin_echo_file_name(subject_info)
+            se_phase_neg_line = '  --se-phase-neg=' + self._get_negative_spin_echo_file_name(subject_info)
+            mag_line = None
+            phase_line = None
+        else:
+            se_phase_pos_line = None
+            se_phase_neg_line = None
+            mag_line   = '  --fmapmag=' + self._get_fmap_mag_file_name(subject_info)
+            phase_line = '  --fmapphase=' + self._get_fmap_phase_file_name(subject_info)
+            
         wdir_line  = '  --working-dir=' + self.working_directory_name
         setup_line = '  --setup-script=' + self.setup_file_name
 
@@ -329,9 +369,12 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             script.write(fnirtconfig_line + ' \\' + os.linesep)
             script.write(gdcoeffs_line + ' \\' + os.linesep)
             script.write(topupconfig_line + ' \\' + os.linesep)
-            script.write(se_phase_pos_line + ' \\' + os.linesep)
-            script.write(se_phase_neg_line + ' \\' + os.linesep)
 
+            if (se_phase_pos_line): script.write(se_phase_pos_line + ' \\' + os.linesep)
+            if (se_phase_neg_line): script.write(se_phase_neg_line + ' \\' + os.linesep)
+            if (mag_line): script.write(mag_line + ' \\' + os.linesep)
+            if (phase_line): script.write(phase_line + ' \\' + os.linesep)
+            
             script.write(wdir_line + ' \\' + os.linesep)
             script.write(setup_line + os.linesep)
 

@@ -1,1 +1,1 @@
-dedrift_and_resample_7T_highres
+freesurfer_v6
