@@ -195,6 +195,12 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
     def is_movie_scan_name(self, scan_name):
         return (self.is_task_scan_name(scan_name) and 'MOVIE' in scan_name)
 
+    def is_retinotopy_scan_name(self, scan_name):
+        if self.is_task_scan_name(scan_name):
+            if ('tfMRI_RETCCW' in scan_name) or ('tfMRI_RETCW' in scan_name) or ('tfMRI_RETEXP' in scan_name) or ('tfMRI_RETCON' in scan_name) or ('tfMRI_RETBAR1' in scan_name) or ('tfMRI_RETBAR2' in scan_name):
+                return True
+        return False
+    
     def available_session_dirs_list(self, project):
         dir_list = glob.glob(self.project_archive_root(project) + os.sep + '*' + self.TESLA_SPEC)
         return sorted(dir_list)

@@ -26,8 +26,13 @@ __maintainer__ = "Timothy B. Brown"
 
 
 # configure logging and create a module logger
-logging.config.fileConfig(file_utils.get_logging_config_file_name(__file__))
-logger = logging.getLogger(file_utils.get_logger_name(__file__))
+logging_config_file_name=file_utils.get_logging_config_file_name(__file__)
+print(os.path.basename(__file__)+":", "Getting logging configuration from:", logging_config_file_name)
+logging.config.fileConfig(logging_config_file_name)
+
+logger_name=file_utils.get_logger_name(__file__)
+print(os.path.basename(__file__)+":", "logger name:", logger_name)
+logger = logging.getLogger(logger_name)
 
 
 class BatchSubmitter(batch_submitter.BatchSubmitter):
@@ -108,7 +113,7 @@ if __name__ == "__main__":
     # Get list of subjects to process
     subject_file_name = file_utils.get_subjects_file_name(__file__)
     logger.info("Retrieving subject list from: " + subject_file_name)
-    subject_list = hcp7t_subject.read_subject_info_list(subject_file_name, separator="\t")
+    subject_list = hcp7t_subject.read_subject_info_list(subject_file_name, separator=":")
 
     # Process the subjects in the list
     batch_submitter = BatchSubmitter()
