@@ -21,8 +21,13 @@ __copyright__ = "Copyright 2016, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
 # configure logging and create module logger
-logging.config.fileConfig(file_utils.get_logging_config_file_name(__file__))
-logger = logging.getLogger(file_utils.get_logger_name(__file__))
+logging_config_file_name=file_utils.get_logging_config_file_name(__file__)
+print(os.path.basename(__file__)+":", "Getting logging configuration from:", logging_config_file_name)
+logging.config.fileConfig(logging_config_file_name)
+
+logger_name=file_utils.get_logger_name(__file__)
+print(os.path.basename(__file__)+":", "logger name:", logger_name)
+logger = logging.getLogger(logger_name)
 
 DNM = "---" # Does Not Matter
 NA = "N/A" # Not Available
@@ -63,7 +68,7 @@ if __name__ == "__main__":
     # get list of subjects to check
     subject_file_name = file_utils.get_subjects_file_name(__file__)
     logger.info("Retrieving subject list from: " + subject_file_name)
-    subject_list = hcp7t_subject.read_subject_info_list(subject_file_name, separator="\t")
+    subject_list = hcp7t_subject.read_subject_info_list(subject_file_name, separator=":")
 
     # create list of scans to check
     scans_to_check_list = []

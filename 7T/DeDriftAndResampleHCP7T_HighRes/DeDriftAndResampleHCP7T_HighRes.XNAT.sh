@@ -911,8 +911,12 @@ main()
 		xnat_workflow_update ${g_server} ${g_user} ${g_password} ${g_workflow_id} \
 							 ${current_step} "Remove files not newly created or modified" ${step_percent}
 	
-		echo "The following files are being removed"
+		inform "The following files are being removed"
 		find ${g_working_dir} -not -newer ${start_time_file} -print -delete 
+
+	else
+
+		inform "Not removing files that are not new because --keep-all option was specified."
 
 	fi
 

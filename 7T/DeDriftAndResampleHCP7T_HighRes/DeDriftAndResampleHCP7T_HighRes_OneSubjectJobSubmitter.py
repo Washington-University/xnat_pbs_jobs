@@ -339,9 +339,8 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(one_subject_job_sub
             work_script.write('  --working-dir="' + working_directory_name + '" \\' + os.linesep)
             work_script.write('  --workflow-id="' + workflow_id + '" \\' + os.linesep)
 
-            # ICI
-            work_script.write('  --keep-all' + ' \\' + os.linesep)
-            work_script.write('  --prevent-push' + ' \\' + os.linesep)
+            # work_script.write('  --keep-all' + ' \\' + os.linesep)
+            # work_script.write('  --prevent-push' + ' \\' + os.linesep)
 
             work_script.write('  --setup-script=' + self.setup_script + os.linesep)
 

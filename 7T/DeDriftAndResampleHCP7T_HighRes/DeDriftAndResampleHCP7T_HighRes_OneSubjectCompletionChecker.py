@@ -101,6 +101,22 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectCompletionChecker:
         file_name_list.append(prefix + '.sulc_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
         file_name_list.append(prefix + '.thickness_1.6mm_MSMAll.59k_fs_LR.dscalar.nii')
 
+        native_dir = os.sep.join([mni_non_linear_dir, 'Native'])
+
+        prefix = native_dir + os.sep + hcp7t_subject_info.subject_id
+        file_name_list.append(prefix + '.ArealDistortion_1.6mm_MSMAll.native.dscalar.nii')
+        file_name_list.append(prefix + '.BiasField_1.6mm_MSMAll.native.dscalar.nii')
+        file_name_list.append(prefix + '.EdgeDistortion_1.6mm_MSMAll.native.dscalar.nii')
+        file_name_list.append(prefix + '.L.ArealDistortion_1.6mm_MSMAll.native.shape.gii')
+        file_name_list.append(prefix + '.L.EdgeDistortion_1.6mm_MSMAll.native.shape.gii')
+        file_name_list.append(prefix + '.L.sphere.1.6mm_MSMAll.native.surf.gii')
+        file_name_list.append(prefix + '.MyelinMap_BC_1.6mm_MSMAll.native.dscalar.nii')
+        file_name_list.append(prefix + '.native.wb.spec')
+        file_name_list.append(prefix + '.R.ArealDistortion_1.6mm_MSMAll.native.shape.gii')
+        file_name_list.append(prefix + '.R.EdgeDistortion_1.6mm_MSMAll.native.shape.gii')
+        file_name_list.append(prefix + '.R.sphere.1.6mm_MSMAll.native.surf.gii')
+        file_name_list.append(prefix + '.SmoothedMyelinMap_BC_1.6mm_MSMAll.native.dscalar.nii')
+
         results_scan_dir = os.sep.join([results_dir,
                                         'MNINonLinear',
                                         'Results',
@@ -108,18 +124,19 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectCompletionChecker:
 
         prefix = results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name)
         file_name_list.append(prefix + '_Atlas_1.6mm_MSMAll.dtseries.nii')
-        file_name_list.append(prefix + '_1.6mm_MSMAll.L.atlasroi.59k_fs_LR.func.gii')
-        file_name_list.append(prefix + '_1.6mm_MSMAll.R.atlasroi.59k_fs_LR.func.gii')
-        file_name_list.append(prefix + '_s1.60_1.6mm_MSMAll.L.atlasroi.59k_fs_LR.func.gii')
-        file_name_list.append(prefix + '_s1.60_1.6mm_MSMAll.R.atlasroi.59k_fs_LR.func.gii')
 
+        if archive.is_resting_state_scan_name(scan_name) or archive.is_movie_scan_name(scan_name) or archive.is_retinotopy_scan_name(scan_name):
+            file_name_list.append(prefix + '_1.6mm_MSMAll.L.atlasroi.59k_fs_LR.func.gii')
+            file_name_list.append(prefix + '_1.6mm_MSMAll.R.atlasroi.59k_fs_LR.func.gii')
+            file_name_list.append(prefix + '_s1.60_1.6mm_MSMAll.L.atlasroi.59k_fs_LR.func.gii')
+            file_name_list.append(prefix + '_s1.60_1.6mm_MSMAll.R.atlasroi.59k_fs_LR.func.gii')
+
+        file_name_list.append(prefix + '_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii')
+            
         if archive.is_resting_state_scan_name(scan_name) or archive.is_movie_scan_name(scan_name):
-            file_name_list.append(results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) +
-                                  '_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii')
 
             ica_dir = results_scan_dir + os.sep + archive.functional_scan_long_name(scan_name) + '_hp2000.ica'
 
-            file_name_list.append(ica_dir + os.sep + 'Atlas.dtseries.nii')
             file_name_list.append(ica_dir + os.sep + 'Atlas_hp_preclean.dtseries.nii')
             file_name_list.append(ica_dir + os.sep + 'Atlas.nii.gz')
 
@@ -129,6 +146,44 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectCompletionChecker:
             file_name_list.append(mc_dir + os.sep + 'prefiltered_func_data_mcf_conf.nii.gz')
             file_name_list.append(mc_dir + os.sep + 'prefiltered_func_data_mcf.par')
 
+
+        if (not archive.is_resting_state_scan_name(scan_name)) and (not archive.is_movie_scan_name(scan_name)):
+            file_name_list.append(prefix + '_Atlas_1.6mm_demean.dtseries.nii')
+            file_name_list.append(prefix + '_Atlas_1.6mm_hp2000_clean.dtseries.nii')
+            file_name_list.append(prefix + '_Atlas_1.6mm_hp2000.dtseries.nii')
+            file_name_list.append(prefix + '_Atlas_1.6mm_MSMAll_demean.dtseries.nii')
+            file_name_list.append(prefix + '_Atlas_1.6mm_MSMAll_hp2000.dtseries.nii')
+
+        if (not archive.is_resting_state_scan_name(scan_name)) and (not archive.is_movie_scan_name(scan_name)) and (not archive.is_retinotopy_scan_name(scan_name)):
+            file_name_list.append(prefix + '_Atlas_1.6mm.dtseries.nii')
+            file_name_list.append(prefix + '_Atlas_1.6mm_mean.dscalar.nii')
+            file_name_list.append(prefix + '_Atlas_1.6mm_MSMAll_mean.dscalar.nii')
+
+
+        t1w_dir = archive.DeDriftAndResample_HighRes_processed_dir_name(hcp7t_subject_info) + os.sep + 'T1w'
+        t1w_fsave_dir = t1w_dir + os.sep + 'fsaverage_LR59k'
+        t1w_native_dir = t1w_dir + os.sep + 'Native'
+
+        prefix = t1w_fsave_dir + os.sep + hcp7t_subject_info.subject_id
+        file_name_list.append(prefix + '.1.6mm_MSMAll.59k_fs_LR.wb.spec')
+        file_name_list.append(prefix + '.L.inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.midthickness_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.midthickness_1.6mm_MSMAll_va.59k_fs_LR.shape.gii')
+        file_name_list.append(prefix + '.L.pial_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.very_inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.L.white_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.midthickness_1.6mm_MSMAll_va.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.midthickness_1.6mm_MSMAll_va_norm.59k_fs_LR.dscalar.nii')
+        file_name_list.append(prefix + '.R.inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.midthickness_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.midthickness_1.6mm_MSMAll_va.59k_fs_LR.shape.gii')
+        file_name_list.append(prefix + '.R.pial_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.very_inflated_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+        file_name_list.append(prefix + '.R.white_1.6mm_MSMAll.59k_fs_LR.surf.gii')
+            
+        prefix = t1w_native_dir + os.sep + hcp7t_subject_info.subject_id
+        file_name_list.append(prefix + '.native.wb.spec')
+            
         # Now check to see if expected files actually exist
         for file_name in file_name_list:
             if verbose:
@@ -174,17 +229,22 @@ def _simple_interactive_demo():
     scan_name_list.append('tfMRI_RETCON_PA')
     scan_name_list.append('tfMRI_RETCW_PA')
     scan_name_list.append('tfMRI_RETEXP_AP')
+    scan_name_list.append('tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA')
 
     for scan_name in scan_name_list:
         _inform("scan_name: " + scan_name)
         processing_complete = completion_checker.is_processing_complete(archive, hcp7t_subject_info, scan_name)
         _inform("processing_complete: " + str(processing_complete))
 
-    hcp7t_subject_info = hcp7t_subject.Hcp7TSubjectInfo(
-        'HCP_Staging_7T', 'HCP_900', '181636')
+    # hcp7t_subject_info = hcp7t_subject.Hcp7TSubjectInfo(
+    #     'HCP_Staging_7T', 'HCP_900', '181636')
 
+    hcp7t_subject_info = hcp7t_subject.Hcp7TSubjectInfo(
+        'HCP_1200', 'HCP_900', '100610')
+
+    
     _inform("")
-    _inform("Checking subject: 181636")
+    _inform("Checking subject: " + hcp7t_subject_info.subject_id)
     _inform("")
     _inform("hcp7t_subject_info: " + str(hcp7t_subject_info))
 
