@@ -59,7 +59,39 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
         """Constructs an Hcp7T_Archive object for direct access to an HCP 7T project data archive."""
         super().__init__()
 
-    def FIX_processing_complete(self, hcp7t_subject_info, scan_name):
+    def FIX_processing_repaired(self, hcp7t_subject_info, scan_name):
+        
+        if not self.FIX_processing_complete(hcp7t_subject_info, scan_name, check_for_highres_clean_dtseries=False):
+            # The FIX processing isn't even complete. So the repairs= can not be complete.
+            return False
+
+        else:
+            highres_clean_atlas_name = self.results_scan_dir(hcp7t_subject_info, scan_name) + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_1.6mm_hp2000_clean.dtseries.nii'
+            if not os.path.isfile(highres_clean_atlas_name):
+                # The highres clean atlas file doesn't exist. So the repair can not be complete.
+                _inform("FILE DOES NOT EXIST: " + highres_clean_atlas_name)
+                return False
+
+            # If we get here, the highres clean atlas file does exist. Now check how big it is.
+            file_size_in_bytes = os.path.getsize(highres_clean_atlas_name)
+            #_inform("file_size_in_bytes: " + str(file_size_in_bytes))
+
+            min_size = 500 * 1000 * 1000
+            #_inform("min_size: " + str(min_size))
+            
+            if file_size_in_bytes < min_size:
+                # It's too small to be the repaired version
+                return False
+
+        # If we get here, we've passed all the tests and the repair is done.
+        return True
+
+    def results_scan_dir(self, hcp7t_subject_info, scan_name):
+        ret_value = self.subject_resources_dir_fullpath(hcp7t_subject_info) + os.sep + self.FIX_processed_resource_name(scan_name)
+        ret_value += os.sep + self.functional_scan_long_name(scan_name)
+        return ret_value
+            
+    def FIX_processing_complete(self, hcp7t_subject_info, scan_name, check_for_highres_clean_dtseries=True):
         """Returns True if the specified scan has completed FIX processing for the specified subject."""
 
         # If the output resource does not exist, then the processing has not been done.
@@ -75,8 +107,10 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
 
         file_name_list = []
 
-        file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_MSMSulc.59k_hp2000_clean.dtseries.nii')
-        #file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_1.6mm_hp2000_clean.dtseries.nii')
+        if check_for_highres_clean_dtseries:
+            file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_MSMSulc.59k_hp2000_clean.dtseries.nii')
+            #file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_1.6mm_hp2000_clean.dtseries.nii')
+
         file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_Atlas_hp2000_clean.dtseries.nii')
         file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000_clean.nii.gz')
         file_name_list.append(results_scan_dir + os.sep + self.functional_scan_long_name(scan_name) + '_hp2000.nii.gz')
@@ -161,6 +195,12 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
     def is_movie_scan_name(self, scan_name):
         return (self.is_task_scan_name(scan_name) and 'MOVIE' in scan_name)
 
+    def is_retinotopy_scan_name(self, scan_name):
+        if self.is_task_scan_name(scan_name):
+            if ('tfMRI_RETCCW' in scan_name) or ('tfMRI_RETCW' in scan_name) or ('tfMRI_RETEXP' in scan_name) or ('tfMRI_RETCON' in scan_name) or ('tfMRI_RETBAR1' in scan_name) or ('tfMRI_RETBAR2' in scan_name):
+                return True
+        return False
+    
     def available_session_dirs_list(self, project):
         dir_list = glob.glob(self.project_archive_root(project) + os.sep + '*' + self.TESLA_SPEC)
         return sorted(dir_list)
@@ -225,21 +265,26 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
             name_list.append(self._get_scan_name_from_path(directory))
         return name_list
 
+    def is_concatenated_scan_name(self, functional_scan_name):
+        """
+        We are "detecting" a concatenated functional scan based on the number
+        of "_"-separated tokens in the functional_scan_name.
+        If it is greater than 3 (e.g. tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA),
+        then we assume that this is a concatenated scan name. Otherwise,
+        (e.g. rfMRI_REST3_PA) we assume that it is NOT a concatenated scan 
+        name.
+        """
+        split_name = functional_scan_name.split(self.NAME_DELIMITER)
+
+        if len(split_name) > 3:
+            return True
+        else:
+            return False
+        
     def functional_scan_long_name(self, functional_scan_name):
         """Returns the 'long form' of the specified functional scan name.
 
         This 'long form' is used in some processing contexts as the fMRIName.
-
-        For a concatenated functional scan (not one actual scan, but a 
-        scan created by concatenating several actual scans), then
-        the long form is equal to the standard/short form.
-
-        For now, we are "detecting" a concatenated functional scan based
-        on the number of "_"-separated tokens in the functional_scan_name.
-        If it is greater than 3 (e.g. tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA),
-        then we assume that this is a concatenated scan name. Otherwise, 
-        (e.g. ffMRI_REST3_PA) we assume that it is NOT a concatenated scan
-        name.
 
         :Examples:
 
@@ -249,17 +294,13 @@ class Hcp7T_Archive(hcp_archive.HcpArchive):
           simply returns the input name.
 
         """
-        #_inform("functional_scan_name: " + functional_scan_name)
 
-        split_name = functional_scan_name.split(self.NAME_DELIMITER)
-
-        if len(split_name) > 3:
+        if self.is_concatenated_scan_name(functional_scan_name):
             long_scan_name = functional_scan_name
         else:
-            (prefix, base_name, pe_dir) = split_name
+            (prefix, base_name, pe_dir) = functional_scan_name.split(self.NAME_DELIMITER)
             long_scan_name = prefix + self.NAME_DELIMITER + base_name + self.NAME_DELIMITER + self.TESLA_SPEC + self.NAME_DELIMITER + pe_dir
             
-        #_inform("long_scan_name: " + long_scan_name)
         return long_scan_name
 
     def available_DeDriftAndResample_HighRes_processed_dirs(self, subject_info):

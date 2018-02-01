@@ -62,7 +62,8 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
         self._setup_script = None
         self._walltime_limit_hours = None
         self._vmem_limit_gbs = None
-
+        self._mem_limit_gbs = None
+        
     @property
     def PIPELINE_NAME(self):
         return 'DeDriftAndResampleHCP7T'
@@ -171,6 +172,14 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
     def vmem_limit_gbs(self, vmem_limit_gbs):
         self._vmem_limit_gbs = vmem_limit_gbs
 
+    @property
+    def mem_limit_gbs(self):
+        return self._mem_limit_gbs
+
+    @mem_limit_gbs.setter
+    def mem_limit_gbs(self, mem_limit_gbs):
+        self._mem_limit_gbs = mem_limit_gbs
+        
     def validate_parameters(self):
         valid_configuration = True
 
@@ -226,15 +235,16 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
             valid_configuration = False
             _inform("Before submitting jobs: vmem_limit_gbs must be set")
 
+        if self.mem_limit_gbs is None:
+            valid_configuration = False
+            _inform("Before submitting jobs: mem_limit_gbs must be set")
+            
         return valid_configuration
 
     def submit_jobs(self):
         _debug("submit_jobs")
 
         if self.validate_parameters():
-            # subject_info = hcp7t_subject.Hcp7TSubjectInfo(self.project,
-            #                                               self.structural_reference_project,
-            #                                               self.subject)
 
             # make sure working directories don't have the same name based on the same
             # start time by sleeping a few seconds
@@ -307,8 +317,9 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
             nodes_spec = 'nodes=1:ppn=1'
             walltime_spec = 'walltime=' + str(self.walltime_limit_hours) + ':00:00'
             vmem_spec = 'vmem=' + str(self.vmem_limit_gbs) + 'gb'
+            mem_spec = 'mem=' + str(self.mem_limit_gbs) + 'gb'
 
-            work_script.write('#PBS -l ' + nodes_spec + ',' + walltime_spec + ',' + vmem_spec + os.linesep)
+            work_script.write('#PBS -l ' + nodes_spec + ',' + walltime_spec + ',' + vmem_spec + ',' + mem_spec + os.linesep)
             # work_script.write('#PBS -q HCPput' + os.linesep)
             work_script.write('#PBS -o ' + working_directory_name + os.linesep)
             work_script.write('#PBS -e ' + working_directory_name + os.linesep)
@@ -327,8 +338,12 @@ class DeDriftAndResampleHCP7T_OneSubjectJobSubmitter(one_subject_job_submitter.O
                               self.structural_reference_session + '" \\' + os.linesep)
             work_script.write('  --working-dir="' + working_directory_name + '" \\' + os.linesep)
             work_script.write('  --workflow-id="' + workflow_id + '" \\' + os.linesep)
-            work_script.write('  --setup-script=' + self.setup_script + os.linesep)
 
+            # work_script.write('  --keep-all' + ' \\' + os.linesep)
+            # work_script.write('  --prevent-push' + ' \\' + os.linesep)
+
+            work_script.write('  --setup-script=' + self.setup_script + os.linesep)
+            
             work_script.close()
             os.chmod(work_script_name, stat.S_IRWXU | stat.S_IRWXG)
 

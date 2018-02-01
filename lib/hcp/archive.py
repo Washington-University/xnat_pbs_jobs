@@ -539,6 +539,9 @@ class HcpArchive(abc.ABC):
         scan name."""
         return scan_name in self.available_FIX_processed_names(subject_info)
 
+    def FIX_processed_dir_fullpath(self, subject_info, scan_name):
+        return self.subject_resources_dir_fullpath(subject_info) + os.sep + self.FIX_processed_resource_name(scan_name)
+    
     def does_hand_reclassification_exist(self, subject_info, scan_name):
         """Returns True if there is a hand reclassification resource available for the specified
         scan name."""

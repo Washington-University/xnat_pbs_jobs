@@ -6,11 +6,14 @@
 import datetime
 import os
 import shutil
+import subprocess
 import sys
 
 # import of third-party modules
 
 # import of local modules
+import utils.os_utils as os_utils
+import utils.str_utils as str_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -144,6 +147,18 @@ def getmtime_str(path, date_format=DEFAULT_DATE_FORMAT):
     return date.strftime(date_format)
 
 
+def make_all_links_into_copies_ext(full_path):
+
+    xnat_pbs_jobs = os_utils.getenv_required('XNAT_PBS_JOBS')
+    command_str = xnat_pbs_jobs + os.sep + 'lib' + os.sep + 'utils' + os.sep + 'make_symlinks_into_copies.sh' + ' ' + full_path
+
+    completed_subprocess = subprocess.run(command_str, shell=True, check=True, stdout=subprocess.PIPE,
+                                          universal_newlines=True)
+    output = str_utils.remove_ending_new_lines(completed_subprocess.stdout)
+    
+    print(output)
+
+
 def make_link_into_copy(full_path, verbose=False, output=sys.stdout):
     """
     If the specified full_path is a symbolic link, copy the file it 
@@ -157,13 +172,13 @@ def make_link_into_copy(full_path, verbose=False, output=sys.stdout):
             linked_to = os.path.dirname(full_path) + os.sep + linked_to
 
         if verbose:
-            print("Making: '" + full_path + "' a copy of '" + linked_to +
-                  "' instead of a symbolic link", file=output)
+            print("  Making............: '", full_path, file=output)
+            print("  A copy of.........: '", linked_to, file=output)
         
         os.remove(full_path)
         shutil.copy2(linked_to, full_path)
 
-
+    
 def make_all_links_into_copies(full_path, verbose=False, output=sys.stdout):
     """
     If the specified full_path is not a directory and the specified full_path
@@ -248,3 +263,6 @@ if __name__ == '__main__':
     x = 1309265515
     print("x = " + str(x) + '\thuman readable bytes = ' + human_readable_byte_size(x))
     print("x = " + str(x) + '\thuman readable bytes = ' + human_readable_byte_size(x, 1000.0))
+
+    make_all_links_into_copies_ext('.' + os.sep + 'tmp')
+    

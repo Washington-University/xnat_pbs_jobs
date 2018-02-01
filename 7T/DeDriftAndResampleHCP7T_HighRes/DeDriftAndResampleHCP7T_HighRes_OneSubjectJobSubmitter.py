@@ -62,6 +62,7 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(one_subject_job_sub
         self._setup_script = None
         self._walltime_limit_hours = None
         self._vmem_limit_gbs = None
+        self._mem_limit_gbs = None
 
     @property
     def PIPELINE_NAME(self):
@@ -171,6 +172,14 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(one_subject_job_sub
     def vmem_limit_gbs(self, vmem_limit_gbs):
         self._vmem_limit_gbs = vmem_limit_gbs
 
+    @property
+    def mem_limit_gbs(self):
+        return self._mem_limit_gbs
+
+    @mem_limit_gbs.setter
+    def mem_limit_gbs(self, mem_limit_gbs):
+        self._mem_limit_gbs = mem_limit_gbs
+        
     def validate_parameters(self):
         valid_configuration = True
 
@@ -226,6 +235,10 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(one_subject_job_sub
             valid_configuration = False
             _inform("Before submitting jobs: vmem_limit_gbs must be set")
 
+        if self.mem_limit_gbs is None:
+            valid_configuration = False
+            _inform("Before submitting jobs: mem_limit_gbs must be set")
+            
         return valid_configuration
 
     def submit_jobs(self):
@@ -304,8 +317,10 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(one_subject_job_sub
             nodes_spec = 'nodes=1:ppn=1'
             walltime_spec = 'walltime=' + str(self.walltime_limit_hours) + ':00:00'
             vmem_spec = 'vmem=' + str(self.vmem_limit_gbs) + 'gb'
+            mem_spec = 'mem=' + str(self.mem_limit_gbs) + 'gb'
 
-            work_script.write('#PBS -l ' + nodes_spec + ',' + walltime_spec + ',' + vmem_spec + os.linesep)
+            work_script.write('#PBS -l ' + nodes_spec + ',' + walltime_spec + ',' + vmem_spec + ',' + mem_spec + os.linesep)
+            # work_script.write('#PBS -q HCPput' + os.linesep)
             work_script.write('#PBS -o ' + working_directory_name + os.linesep)
             work_script.write('#PBS -e ' + working_directory_name + os.linesep)
             work_script.write(os.linesep)
@@ -323,6 +338,10 @@ class DeDriftAndResampleHCP7T_HighRes_OneSubjectJobSubmitter(one_subject_job_sub
                               self.structural_reference_session + '" \\' + os.linesep)
             work_script.write('  --working-dir="' + working_directory_name + '" \\' + os.linesep)
             work_script.write('  --workflow-id="' + workflow_id + '" \\' + os.linesep)
+
+            # work_script.write('  --keep-all' + ' \\' + os.linesep)
+            # work_script.write('  --prevent-push' + ' \\' + os.linesep)
+
             work_script.write('  --setup-script=' + self.setup_script + os.linesep)
 
             work_script.close()

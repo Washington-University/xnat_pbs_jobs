@@ -655,9 +655,15 @@ get_parameters_for_first_t1w_scan()
 	# sample_spacing value in XNAT DB is in nanoseconds, but needs to be specified in seconds
 	local first_t1w_file
 	first_t1w_file="${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t1w_directory_name}/${g_first_t1w_file_name}"
-	g_first_t1w_sample_spacing=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${first_t1w_file} -k ReadoutSampleSpacing)
+
+	# g_first_t1w_sample_spacing=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${first_t1w_file} -k ReadoutSampleSpacing)
+	# sample_spacing_in_secs=`echo "${g_first_t1w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
+
+	g_first_t1w_sample_spacing=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${first_t1w_file} -k DwellTime)
+	log_Msg "g_first_t1w_sample_spacing: ${g_first_t1w_sample_spacing}"
+	sample_spacing_in_secs=`echo "${g_first_t1w_sample_spacing}" | awk '{printf "%.9f", $1}'`
+	log_Msg "sample_spacing_in_secs: ${sample_spacing_in_secs}"
 	
-	sample_spacing_in_secs=`echo "${g_first_t1w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
 	g_first_t1w_sample_spacing=${sample_spacing_in_secs}
 	log_Msg "g_first_t1w_sample_spacing: ${g_first_t1w_sample_spacing}"
 
@@ -666,7 +672,7 @@ get_parameters_for_first_t1w_scan()
 		# I'd like to be getting this value the same way as above and below, using the get_json_meta_data application.
 		# However, I don't have any example Siemens Gradient Echo field maps (in particular the magnitude field map)
 		# that have their meta-data in parallel JSON files. So I don't have a way of knowing what the key is
-		# (like ReadoutSampleSpacing above, and EffectiveEchoSpacing below) that I should use to the this needed
+		# (like DwellTime above, and EffectiveEchoSpacing below) that I should use to the this needed
 		# scan meta data.
 
 		# Here is how it is done using the get_scan_data bash function (which you will find in older versions of this script)
@@ -721,9 +727,15 @@ get_parameters_for_first_t2w_scan()
 	# sample_spacing value in XNAT DB is in nanoseconds, but needs to be specified in seconds
 	local first_t2w_file
 	first_t2w_file="${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t2w_directory_name}/${g_first_t2w_file_name}"
-	g_first_t2w_sample_spacing=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${first_t2w_file} -k ReadoutSampleSpacing)
+	
+	# g_first_t2w_sample_spacing=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${first_t2w_file} -k ReadoutSampleSpacing)
+	# sample_spacing_in_secs=`echo "${g_first_t2w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
 
-	sample_spacing_in_secs=`echo "${g_first_t2w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
+	g_first_t2w_sample_spacing=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${first_t2w_file} -k DwellTime)
+	log_Msg "g_first_t2w_sample_spacing: ${g_first_t2w_sample_spacing}"
+	sample_spacing_in_secs=`echo "${g_first_t2w_sample_spacing}" | awk '{printf "%.9f", $1}'`
+	log_Msg "sample_spacing_in_secs: ${sample_spacing_in_secs}"
+	
 	g_first_t2w_sample_spacing=${sample_spacing_in_secs}
 	log_Msg "g_first_t2w_sample_spacing: ${g_first_t2w_sample_spacing}"
 }

@@ -8,7 +8,7 @@ import sys
 # import of third party modules
 
 # import of local modules
-import SubmitIcaFixProcessingHCP7TOneSubject
+import SubmitRepairIcaFixProcessingHCP7TOneSubject
 import hcp.batch_submitter as batch_submitter
 import hcp.hcp7t.archive as hcp7t_archive
 import hcp.hcp7t.subject as hcp7t_subject
@@ -18,7 +18,7 @@ import utils.os_utils as os_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
-__copyright__ = "Copyright 2016-2018, The Human Connectome Project"
+__copyright__ = "Copyright 2018, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
 
@@ -26,11 +26,11 @@ def _inform(msg):
     print(os.path.basename(__file__) + ": " + msg)
 
 
-class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
+class RepairIcaFixProcessing7TBatchSubmitter(batch_submitter.BatchSubmitter):
 
     def __init__(self):
         super().__init__(hcp7t_archive.Hcp7T_Archive())
-        self._one_subject_submitter = SubmitIcaFixProcessingHCP7TOneSubject.IcaFix7TOneSubjectJobSubmitter(
+        self._one_subject_submitter = SubmitRepairIcaFixProcessingHCP7TOneSubject.RepairIcaFixProcessing7TOneSubjectJobSubmitter(
             self._archive, self._archive.build_home)
 
         self._current_shadow_number = 2
@@ -39,7 +39,7 @@ class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
         self._current_shadow_number += 1
         if self._current_shadow_number > 8:
             self._current_shadow_number = 2
-        
+
     def submit_jobs(self, subject_list):
         # read configuration file
         config_file_name = file_utils.get_config_file_name(__file__)
@@ -56,36 +56,23 @@ class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
 
             put_server = 'http://db-shadow' + str(self._current_shadow_number) + '.nrg.mir:8080'
 
-            # get information for subject from configuration file
             setup_file = scripts_home + os.sep + config.get_value(subject.subject_id, 'SetUpFile')
 
-            if config.get_value(subject.subject_id, 'CleanOutputFirst') == 'True':
-                clean_output_first = True
-            else:
-                clean_output_first = False
-            
             wall_time_limit = int(config.get_value(subject.subject_id, 'WalltimeLimit'))
             mem_limit = int(config.get_value(subject.subject_id, 'MemLimit'))
             vmem_limit = int(config.get_value(subject.subject_id, 'VmemLimit'))
 
-            if config.get_value(subject.subject_id, 'SkipXnatWorkflow') == 'True':
-                skip_xnat_workflow = True
-            else:
-                skip_xnat_workflow = False
-            
             scan = subject.extra
 
             _inform("")
             _inform("--------------------------------------------------------------------------------")
-            _inform(" Submitting IcaFixProcessingHCP7T jobs for: ")
+            _inform(" Submitting RepairIcaFixProcessingHCP7T jobs for: ")
             _inform("            project: " + subject.project )
             _inform("         refproject: " + subject.structural_reference_project )
             _inform("            subject: " + subject.subject_id )
             _inform("               scan: " + scan )
             _inform("         put_server: " + put_server )
             _inform("         setup_file: " + setup_file )
-            _inform(" clean_output_first: " + str(clean_output_first) )
-            _inform(" skip XNAT workflow: " + str(skip_xnat_workflow) )
             _inform("    wall_time_limit: " + str(wall_time_limit) )
             _inform("          mem_limit: " + str(mem_limit) )
             _inform("         vmem_limit: " + str(vmem_limit) )
@@ -111,14 +98,12 @@ class IcaFix7TBatchSubmitter(batch_submitter.BatchSubmitter):
                 userid, password, 'https://' + os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER'),
                 subject.project, subject.subject_id, subject.subject_id + '_7T',
                 subject.structural_reference_project, subject.subject_id + '_3T',
-                put_server, clean_output_first, setup_file, 
+                put_server, setup_file, 
                 incomplete_only, scan_spec, 
-                wall_time_limit, mem_limit, vmem_limit,
-                skip_xnat_workflow)
+                wall_time_limit, mem_limit, vmem_limit)
             
             self.increment_shadow_number()
-
-
+                
 if __name__ == "__main__":
 
     scripts_home = os_utils.getenv_required('SCRIPTS_HOME')
@@ -134,5 +119,5 @@ if __name__ == "__main__":
     subject_list = hcp7t_subject.read_subject_info_list(subject_file_name)
 
     # Process subjects in list
-    submitter = IcaFix7TBatchSubmitter()
+    submitter = RepairIcaFixProcessing7TBatchSubmitter()
     submitter.submit_jobs(subject_list)

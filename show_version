@@ -1,0 +1,14 @@
+#!/bin/bash
+
+this_tools_dir=$(dirname "${BASH_SOURCE[0]}")
+if [ "${this_tools_dir}" != "." ] ; then
+   echo "XNAT_PBS_JOBS directory: ${this_tools_dir}"
+fi
+   
+version_file="${this_tools_dir}/version.txt"
+deployment_file="${this_tools_dir}/deployment.txt"
+
+cat ${version_file}
+if [ -e "${deployment_file}" ] ; then
+	cat ${deployment_file}
+fi
