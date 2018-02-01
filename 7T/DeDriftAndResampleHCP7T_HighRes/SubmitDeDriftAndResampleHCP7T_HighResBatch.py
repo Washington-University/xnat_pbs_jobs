@@ -7,6 +7,7 @@ DeDriftAndResampleHCP7T_HighRes processing jobs for the HCP 7T project."""
 import getpass
 import os
 import sys
+import time
 
 # import of third party modules
 # None
@@ -112,6 +113,8 @@ class DeDriftAndResampleHcp7T_HighResBatchSubmitter(batch_submitter.BatchSubmitt
 
             self.increment_shadow_number()
 
+            time.sleep(60)
+            
 
 if __name__ == "__main__":
 
