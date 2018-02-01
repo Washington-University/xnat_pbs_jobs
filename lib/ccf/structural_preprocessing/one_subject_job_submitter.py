@@ -105,7 +105,11 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         return "T1_2_MNI152_2mm.cnf"
 
     @property
-    def GDCOEFFS_FILE_NAME(self):
+    def CONNECTOME_GDCOEFFS_FILE_NAME(self):
+        return "coeff_SC72C_Skyra.grad"
+    
+    @property
+    def PRISMA_3T_GDCOEFFS_FILE_NAME(self):
         return "Prisma_3T_coeff_AS82.grad"
 
     @property
@@ -162,19 +166,24 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         spin_echo_file_list = glob.glob(path_expr)
         return len(spin_echo_file_list) > 0
 
-    def _get_fmap_phase_file_name(self, subject_info):
+    def _get_fmap_phase_file_path(self, subject_info):
         first_t1w_resource_path = self._get_first_t1w_resource_fullpath(subject_info)
         path_expr = first_t1w_resource_path + os.sep + '*FieldMap_Phase*' + '.nii.gz'
         fmap_phase_list = glob.glob(path_expr)
-
+        
         if len(fmap_phase_list) > 0:
             fmap_phase_file = fmap_phase_list[0]
         else:
             raise RuntimeError("First T1w has no Phase FieldMap: " + path_expr)
-        
+
         return fmap_phase_file
+
+    def _get_fmap_phase_file_name(self, subject_info):
+        full_path = self._get_fmap_phase_file_path(subject_info)
+        basename = os.path.basename(full_path)
+        return basename
     
-    def _get_fmap_mag_file_name(self, subject_info):
+    def _get_fmap_mag_file_path(self, subject_info):
         first_t1w_resource_path = self._get_first_t1w_resource_fullpath(subject_info)
         path_expr = first_t1w_resource_path + os.sep + '*FieldMap_Magnitude*' + '.nii.gz'
         fmap_mag_list = glob.glob(path_expr)
@@ -186,6 +195,11 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         return fmap_mag_file
         
+    def _get_fmap_mag_file_name(self, subject_info):
+        full_path = self._get_fmap_mag_file_path(subject_info)
+        basename = os.path.basename(full_path)
+        return basename
+
     def _get_positive_spin_echo_path(self, subject_info):
         first_t1w_resource_path = self._get_first_t1w_resource_fullpath(subject_info)
         path_expr = first_t1w_resource_path + os.sep + '*SpinEchoFieldMap*' + self.PAAP_POSITIVE_DIR + '.nii.gz'
@@ -299,8 +313,6 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             fieldmap_type_line = '  --fieldmap-type=' + 'SpinEcho'
         else:
             fieldmap_type_line = '  --fieldmap-type=' + 'SiemensGradientEcho' 
-
-
             
         first_t1w_directory_name_line = '  --first-t1w-directory-name=' + self._get_first_t1w_name(subject_info)
         first_t1w_resource_name_line  = '  --first-t1w-resource-name=' + self._get_first_t1w_resource_name(subject_info)
@@ -320,7 +332,14 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         template2mmmask_line = '  --template2mmmask=' + self.TEMPLATE_2MM_MASK_NAME
 
         fnirtconfig_line     = '  --fnirtconfig=' + self.FNIRT_CONFIG_FILE_NAME
-        gdcoeffs_line        = '  --gdcoeffs=' + self.GDCOEFFS_FILE_NAME
+
+
+        if subject_info.project == 'HCP_1200':
+            gdcoeffs_line = '  --gdcoeffs=' + self.CONNECTOME_GDCOEFFS_FILE_NAME
+        else:
+            gdcoeffs_line = '  --gdcoeffs=' + self.PRISMA_3T_GDCOEFFS_FILE_NAME
+
+
         topupconfig_line     = '  --topupconfig=' + self.TOPUP_CONFIG_FILE_NAME
 
         if self._has_spin_echo_field_maps(subject_info):
