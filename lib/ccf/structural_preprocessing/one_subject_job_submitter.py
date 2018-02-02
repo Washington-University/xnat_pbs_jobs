@@ -345,13 +345,13 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         if self._has_spin_echo_field_maps(subject_info):
             se_phase_pos_line = '  --se-phase-pos=' + self._get_positive_spin_echo_file_name(subject_info)
             se_phase_neg_line = '  --se-phase-neg=' + self._get_negative_spin_echo_file_name(subject_info)
-            mag_line = None
-            phase_line = None
+            # mag_line = None
+            # phase_line = None
         else:
             se_phase_pos_line = None
             se_phase_neg_line = None
-            mag_line   = '  --fmapmag=' + self._get_fmap_mag_file_name(subject_info)
-            phase_line = '  --fmapphase=' + self._get_fmap_phase_file_name(subject_info)
+            # mag_line   = '  --fmapmag=' + self._get_fmap_mag_file_name(subject_info)
+            # phase_line = '  --fmapphase=' + self._get_fmap_phase_file_name(subject_info)
             
         wdir_line  = '  --working-dir=' + self.working_directory_name
         setup_line = '  --setup-script=' + self.setup_file_name
@@ -391,8 +391,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
             if (se_phase_pos_line): script.write(se_phase_pos_line + ' \\' + os.linesep)
             if (se_phase_neg_line): script.write(se_phase_neg_line + ' \\' + os.linesep)
-            if (mag_line): script.write(mag_line + ' \\' + os.linesep)
-            if (phase_line): script.write(phase_line + ' \\' + os.linesep)
+            # if (mag_line): script.write(mag_line + ' \\' + os.linesep)
+            # if (phase_line): script.write(phase_line + ' \\' + os.linesep)
             
             script.write(wdir_line + ' \\' + os.linesep)
             script.write(setup_line + os.linesep)
