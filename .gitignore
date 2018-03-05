@@ -37,3 +37,6 @@ correct_task_analysis_packages/logs/*
 
 ## Ignore subject list input files
 #*.subjects
+
+# Ignore generated documentation files (odt, docx, etc.)
+generated/*

@@ -2,7 +2,7 @@
 
 inform() 
 {
-	echo "Create2mmFixPackage.sh: ${1}"
+	echo "CreateVolumeFixPackage.sh: ${1}"
 }
 
 # home directory for these XNAT PBS job scripts
@@ -29,7 +29,7 @@ get_options()
 	unset g_output_dir
 	unset g_create_checksum
 	unset g_create_contentlist
-	
+
 	g_script_name=`basename ${0}`
 
 	# parse arguments
@@ -40,61 +40,61 @@ get_options()
 	while [ ${index} -lt ${numArgs} ]; do
 		argument=${arguments[index]}
 
-		case ${argument} in
-			--archive-root=*)
+        case ${argument} in
+            --archive-root=*)
 				g_archive_root=${argument/*=/""}
-				;;
-			--tmp-dir=*)
-				g_tmp_dir=${argument/*=/""}
-				;;
-			--subject=*)
-				g_subject=${argument/*=/""}
-				;;
-			--three-t-project=*)
+                ;;
+            --tmp-dir=*)
+                g_tmp_dir=${argument/*=/""}
+                ;;
+            --subject=*)
+            	g_subject=${argument/*=/""}
+                ;;
+            --three-t-project=*)
 				g_three_t_project=${argument/*=/""}
-				;;
-			--seven-t-project=*)
+                ;;
+            --seven-t-project=*)
 				g_seven_t_project=${argument/*=/""}
-				;;
-			--release-notes-template-file=*)
-				g_release_notes_template_file=${argument/*=/""}
-				;;
-			--output-dir=*)
-				g_output_dir=${argument/*=/""}
-				;;
-			--create-checksum)
-				g_create_checksum="YES"
-				;;
+                ;;
+            --release-notes-template-file=*)
+                g_release_notes_template_file=${argument/*=/""}
+                ;;
+            --output-dir=*)
+                g_output_dir=${argument/*=/""}
+                ;;
+            --create-checksum)
+                g_create_checksum="YES"
+                ;;
 			--create-contentlist)
 				g_create_contentlist="YES"
 				;;
-			*)
-				inform "Unrecognized Option: ${argument}"
-				exit 1
-				;;
-		esac
+            *)
+                inform "Unrecognized Option: ${argument}"
+                exit 1
+                ;;
+        esac
 
-		index=$(( index + 1 ))
-		
+        index=$(( index + 1 ))
+
 	done
 
-	local error_count=0
-	
-	# check required parameters
+    local error_count=0
+    
+    # check required parameters
 
-	if [ -z "${g_archive_root}" ]; then
-		inform "ERROR: --archive-root= required"
-		error_count=$(( error_count + 1 ))
-	else
-		inform "archive root: ${g_archive_root}"
-	fi
+    if [ -z "${g_archive_root}" ]; then
+        inform "ERROR: --archive-root= required"
+        error_count=$(( error_count + 1 ))
+    else
+        inform "archive root: ${g_archive_root}"
+    fi
 
-	if [ -z "${g_subject}" ]; then
-		inform "ERROR: --subject= required"
-		error_count=$(( error_count + 1 ))
-	else
-		inform "subject: ${g_subject}"
-	fi
+    if [ -z "${g_subject}" ]; then
+        inform "ERROR: --subject= required"
+        error_count=$(( error_count + 1 ))
+    else
+        inform "subject: ${g_subject}"
+    fi
 
 	if [ -z "${g_three_t_project}" ]; then
 		inform "ERROR: --three-t-project= required"
@@ -110,41 +110,41 @@ get_options()
 		inform "7T project: ${g_seven_t_project}"
 	fi
 
-	if [ -z "${g_tmp_dir}" ]; then
-		inform "ERROR: --tmp-dir= required"
-		error_count=$(( error_count + 1 ))
-	else
-		inform "tmp dir: ${g_tmp_dir}"
-	fi
+    if [ -z "${g_tmp_dir}" ]; then
+        inform "ERROR: --tmp-dir= required"
+        error_count=$(( error_count + 1 ))
+    else
+        inform "tmp dir: ${g_tmp_dir}"
+    fi
 
-	if [ -z "${g_release_notes_template_file}" ]; then
-		inform "ERROR: --release-notes-template-file= required"
-		error_count=$(( error_count + 1 ))
-	else
-		inform "release notes template file: ${g_release_notes_template_file}"
-	fi
+    if [ -z "${g_release_notes_template_file}" ]; then
+        inform "ERROR: --release-notes-template-file= required"
+        error_count=$(( error_count + 1 ))
+    else
+        inform "release notes template file: ${g_release_notes_template_file}"
+    fi
 
-	if [ -z "${g_output_dir}" ]; then
-		inform "ERROR: --output-dir= required"
-		error_count=$(( error_count + 1 ))
-	else
-		inform "output dir: ${g_output_dir}"
-	fi
+    if [ -z "${g_output_dir}" ]; then
+        inform "ERROR: --output-dir= required"
+        error_count=$(( error_count + 1 ))
+    else
+        inform "output dir: ${g_output_dir}"
+    fi
 
-	if [ -z "${g_create_checksum}" ]; then
-		g_create_checksum="NO"
-	fi
-	inform "create checksum: ${g_create_checksum}"
+    if [ -z "${g_create_checksum}" ]; then
+        g_create_checksum="NO"
+    fi
+    inform "create checksum: ${g_create_checksum}"
 
 	if [ -z "${g_create_contentlist}" ]; then
 		g_create_contentlist="NO"
 	fi
 	inform "create contentlist: ${g_create_contentlist}"
 	
-	if [ ${error_count} -gt 0 ]; then
-		inform "ERRORS DETECTED: EXITING"
-		exit 1
-	fi
+    if [ ${error_count} -gt 0 ]; then
+        inform "ERRORS DETECTED: EXITING"
+        exit 1
+    fi
 }
 
 main()
@@ -174,15 +174,15 @@ main()
 					--subject="${g_subject}" \
 					--three-t-project="${g_three_t_project}" \
 					--seven-t-project="${g_seven_t_project}"
-
-	mv ${script_tmp_dir}/${g_subject} ${script_tmp_dir}/${g_subject}_full
 	
-	for modality in MOVIE REST RET ; do 
+	mv ${script_tmp_dir}/${g_subject} ${script_tmp_dir}/${g_subject}_full
+
+	for modality in REST MOVIE RET ; do
 
 		rm -rf ${script_tmp_dir}/${g_subject}
 
 		mkdir -p ${script_tmp_dir}/${g_subject}
-		
+
 		file_list=""
 
 		if [ "${modality}" = "RET" ]; then
@@ -196,25 +196,13 @@ main()
 			retinotopy_scans+=" RETBAR2_7T_PA "
 
 			for retinotopy_scan in ${retinotopy_scans} ; do
-				file_list+=" MNINonLinear/Results/tfMRI_${retinotopy_scan}/tfMRI_${retinotopy_scan}_Atlas_hp2000_clean.dtseries.nii "
-				file_list+=" MNINonLinear/Results/tfMRI_${retinotopy_scan}/tfMRI_${retinotopy_scan}_Atlas_MSMAll_hp2000_clean.dtseries.nii "
-
-				fix_readme_file=${script_tmp_dir}/${g_subject}_full/MNINonLinear/Results/tfMRI_${retinotopy_scan}/tfMRI_${retinotopy_scan}_Atlas_hp2000_clean.README.txt
-				
-				touch ${fix_readme_file}
-				echo "tfMRI_${retinotopy_scan}_Atlas_hp2000_clean.dtseries.nii was generated by applying \"multi-run FIX\" ('hcp_fix_multi_run')" >> ${fix_readme_file}
-				echo "across the following individual runs:" >> ${fix_readme_file}
-				for rscan in ${retinotopy_scans} ; do
-					echo "  ${rscan}" >> ${fix_readme_file}
-				done
-
-				file_list+=" MNINonLinear/Results/tfMRI_${retinotopy_scan}/tfMRI_${retinotopy_scan}_Atlas_hp2000_clean.README.txt "
+				file_list+=" MNINonLinear/Results/tfMRI_${retinotopy_scan}/tfMRI_${retinotopy_scan}_hp2000_clean.nii.gz "
 			done
-
+			
 		else
-					
-			fix_scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*${modality}*_FIX`
-			for scan_dir in ${fix_scan_dirs} ; do
+		
+			scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*${modality}*_FIX`
+			for scan_dir in ${scan_dirs} ; do
 				short_scan_dir=${scan_dir##*/}
 				scan=${short_scan_dir%_FIX}
 				
@@ -238,48 +226,18 @@ main()
 				long_name=${prefix}_${scan}_7T_${pe_dir}
 				inform "long_name: ${long_name}"
 				
-				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_hp2000_clean.dtseries.nii "
-				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_hp2000_clean_vn.dscalar.nii "
-				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_MSMAll_hp2000_clean.dtseries.nii "
-
+				fMRIName=${long_name}
+				
+				file_list+=" MNINonLinear/Results/${fMRIName}/${fMRIName}_hp2000_clean.nii.gz "
+				
 			done
-			
-			# rss_dirs=`ls -1d ${g_subject_7T_resources_dir}/*${modality}*_RSS`
-			# for rss_dir in ${rss_dirs} ; do
-			# 	short_rss_dir=${rss_dir##*/}
-			# 	scan=${short_rss_dir%_RSS}
-				
-			# 	parsing_str=${rss_dir##*/}
-				
-			# 	prefix=${parsing_str%%_*}
-			# 	parsing_str=${parsing_str#*_}
-			# 	inform "prefix: ${prefix}"
-				
-			# 	scan=${parsing_str%%_*}
-			# 	parsing_str=${parsing_str#*_}
-			# 	inform "scan: ${scan}"
-				
-			# 	pe_dir=${parsing_str%%_*}
-			# 	parsing_str=${parsing_str#*_}
-			# 	inform "pe_dir: ${pe_dir}"
-				
-			# 	short_name=${prefix}_${scan}_${pe_dir}
-			# 	inform "short_name: ${short_name}"
-				
-			# 	long_name=${prefix}_${scan}_7T_${pe_dir}
-			# 	inform "long_name: ${long_name}"
-				
-			# 	file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_hp2000_clean_vn.dscalar.nii "
-			# 	#file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_hp2000_clean_bias.dscalar.nii "
-			# done
 
 		fi
-			
+		
 		inform ""
 		inform "Copying listed files to directory for zipping"
 		inform ""
 		for file in ${file_list} ; do
-			inform "file: ${file}"
 			to_dir=${script_tmp_dir}/${g_subject}/${file}
 			to_dir=${to_dir%/*}
 			inform "to_dir: ${to_dir}"
@@ -294,12 +252,12 @@ main()
 				inform "ERROR: FILE ${from_file} DOES NOT EXIST!"
 				exit 1
 			fi
-		done # All listed files copied loop
-		
+		done
+
 		inform ""
 		inform " Create Release Notes"
 		inform ""
-		release_notes_file=${script_tmp_dir}/${g_subject}/release-notes/${g_subject}_7T_${modality}_2mm_fix.txt
+		release_notes_file=${script_tmp_dir}/${g_subject}/release-notes/${g_subject}_7T_${modality}_Volume_fix.txt
 
 		mkdir -p ${script_tmp_dir}/${g_subject}/release-notes
 		touch ${release_notes_file}
@@ -307,15 +265,15 @@ main()
 		echo "" >> ${release_notes_file}
 		cat ${g_release_notes_template_file} >> ${release_notes_file}
 		echo "" >> ${release_notes_file}
-
+		
 		inform ""
 		inform " Create Package"
 		inform ""
 		
 		new_package_dir="${g_output_dir}/${g_subject}/fix"
-		new_package_name="${g_subject}_7T_${modality}_2mm_fix.zip"
+		new_package_name="${g_subject}_7T_${modality}_Volume_fix.zip"
 		new_package_path="${new_package_dir}/${new_package_name}"
-		
+
 		# start with a clean slate
 		rm -rf ${new_package_path}
 		rm -rf ${new_package_path}.md5

@@ -1,13 +1,12 @@
 #!/bin/bash
 
-packages_root="/HCP/hcpdb/packages/prerelease/zip/HCP_Staging_7T"
+name="CreateStructuralPreprocPackage"
+
 archive_root="/HCP/hcpdb/archive"
 packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
-
-output_dir="/HCP/hcpdb/packages/prerelease/zip/HCP_Staging_7T"
-
-scripts_to_submit_dir="${HOME}/pipeline_tools/xnat_pbs_jobs/7T/CreateStructuralPreprocPackage/scripts_to_submit"
-log_dir="${HOME}/pipeline_tools/xnat_pbs_jobs/7T/CreateStructuralPreprocPackage/logs"
+output_dir="/HCP/hcpdb/packages/prerelease/zip/HCP_1200"
+scripts_to_submit_dir="${XNAT_PBS_JOBS_BUILD_DIR}/package_scripts_to_submit/${name}"
+log_dir="${XNAT_PBS_JOBS_LOG_DIR}/package_logs/${name}"
 
 # ----------
 subject_file_name="CreateStructuralPreprocPackage.subjects"
@@ -59,6 +58,7 @@ for subject_spec in ${subjects} ; do
 		echo "  --release-notes-template-file=${HOME}/pipeline_tools/xnat_pbs_jobs/7T/CreateStructuralPreprocPackage/ReleaseNotes.txt \\" >> ${script_file_to_submit}
 		echo "  --output-dir=${output_dir} \\" >> ${script_file_to_submit}
 		echo "  --create-checksum \\" >> ${script_file_to_submit}
+		echo "  --create-contentlist " >> ${script_file_to_submit}
 
 		submit_cmd="qsub ${script_file_to_submit}"
 		echo "submit_cmd: ${submit_cmd}"

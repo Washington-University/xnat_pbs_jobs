@@ -17,6 +17,7 @@ import time
 # import of third party modules
 
 # import of local modules
+import hcp.hcp7t.resting_state_stats.one_subject_completion_checker as one_subject_completion_checker
 import hcp.hcp7t.subject as hcp7t_subject
 import hcp.one_subject_job_submitter as one_subject_job_submitter
 import utils.delete_resource as delete_resource
@@ -29,7 +30,7 @@ import xnat.xnat_access as xnat_access
 
 # authorship information
 __author__ = "Timothy B. Brown"
-__copyright__ = "Copyright 2016, The Human Connectome Project"
+__copyright__ = "Copyright 2016-2018, The Human Connectome Project"
 __maintainer__ = "Timothy B. Brown"
 
 # create a module logger
@@ -45,6 +46,13 @@ class ProcessingStage(ordered_enum.OrderedEnum):
     PUT_DATA = 4
         
 
+
+def is_complete(archive, hcp7t_subject_info, scan_name):
+
+    completion_checker = one_subject_completion_checker.OneSubjectCompletionChecker()
+    return completion_checker.is_processing_complete(archive, hcp7t_subject_info, scan_name)
+    
+    
 class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     def __init__(self, hcp7t_archive, build_home):
@@ -414,8 +422,17 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             scans_to_process = list(scans_to_process_set)
             scans_to_process.sort()
             logger.debug("scans_to_process: " + str(scans_to_process))
-            
+
+            incomplete_scans_to_process = list()
             for scan in scans_to_process:
+                if (not is_complete(self.archive, subject_info, scan)) :
+                    incomplete_scans_to_process.append(scan)
+
+            logger.debug("incomplete_scans_to_process: " + str(incomplete_scans_to_process))
+            print("incomplete_scans_to_process:", incomplete_scans_to_process)
+            
+            # for scan in scans_to_process:
+            for scan in incomplete_scans_to_process:
 
                 logger.info("")
                 logger.info("--------------------------------------------------")
