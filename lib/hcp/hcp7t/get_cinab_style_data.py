@@ -30,7 +30,7 @@ __maintainer__ = "Timothy B. Brown"
 
 # create and configure a module logger
 log = logging.getLogger(__file__)
-log.setLevel(logging.INFO)
+log.setLevel(logging.WARNING)
 sh = logging.StreamHandler(sys.stdout)
 sh.setFormatter(logging.Formatter('%(name)s: %(message)s'))
 log.addHandler(sh)
