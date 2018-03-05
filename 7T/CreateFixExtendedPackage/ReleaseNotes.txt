@@ -11,5 +11,25 @@ http://www.humanconnectome.org/citations.
 As a reminder, users of these datasets must comply with the Data Use Terms that 
 were agreed upon when receiving these data.
 
-This data was processed using the HCP Pipeline Scripts
-https://github.com/Washington-University/Pipelines
+These data were produced as part of the corrected 7T processing that was carried
+out because of an issue with the previously released 7T preprocessed fMRI data.
+See https://data-archive.nimh.nih.gov/ccf/news/2017/07/major-issue-with-preprocessed-7t-fmri-data.html
+for information about the issue.
+
+In order to maintain backward compatibility with previous processing, as much
+of this processing as possible was carried out using the same versions of the
+HCP Pipeline Scripts (https://github.com/Washington-University/Pipelines) as
+were used for the previous release. However, some additional processing was
+done which required newer releases of the scripts.
+
+The specific releases of the HCP Pipeline Scripts used for various phases of
+the processing of this data were:
+
+* Supplemental Structural Preprocessing ...... v3.15.0
+* Functional Preprocessing ................... v3.15.0
+* ICA FIX Processing ......................... v3.16.1
+* Multi-Run ICA FIX Processing (retinotopy) .. v3.23.0
+* PostFix Processing ......................... v3.16.1
+* DeDriftAndResample (MSMAll) ................ v3.24.0
+* DeDriftAndResample High Res (MSMAll) ....... v3.25.0
+* Resting State Stats ........................ v3.21.0

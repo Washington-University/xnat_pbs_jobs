@@ -6,6 +6,16 @@ inform()
 	echo "${g_script_name}: ${1}"
 }
 
+# home directory for these XNAT PBS job scripts
+if [ -z "${XNAT_PBS_JOBS}" ] ; then
+	inform "XNAT_PBS_JOBS environment variable must be set!"
+	exit 1
+else
+	inform "XNAT_PBS_JOBS: ${XNAT_PBS_JOBS}"
+fi
+
+source ${XNAT_PBS_JOBS}/GetHcpDataUtils/GetHcpDataUtils.sh
+
 get_options()
 {
 	local arguments=($@)
@@ -14,12 +24,12 @@ get_options()
 	unset g_archive_root
 	unset g_tmp_dir
 	unset g_subject
+	unset g_three_t_project
 	unset g_seven_t_project
 	unset g_release_notes_template_file
 	unset g_output_dir
 	unset g_create_checksum
-
-	unset g_xnat_pbs_jobs
+	unset g_create_contentlist
 
 	# parse arguments
 	local index=0
@@ -32,37 +42,39 @@ get_options()
 		case ${argument} in
 			--archive-root=*)
 				g_archive_root=${argument/*=/""}
-				index=$(( index + 1 ))
 				;;
 			--tmp-dir=*)
 				g_tmp_dir=${argument/*=/""}
-				index=$(( index + 1 ))
 				;;
 			--subject=*)
 				g_subject=${argument/*=/""}
-				index=$(( index + 1 ))
 				;;
+            --three-t-project=*)
+				g_three_t_project=${argument/*=/""}
+                ;;
 			--seven-t-project=*)
 				g_seven_t_project=${argument/*=/""}
-				index=$(( index + 1 ))
 				;;
 			--release-notes-template-file=*)
 				g_release_notes_template_file=${argument/*=/""}
-				index=$(( index + 1 ))
 				;;
 			--output-dir=*)
 				g_output_dir=${argument/*=/""}
-				index=$(( index + 1 ))
 				;;
 			--create-checksum)
 				g_create_checksum="YES"
-				index=$(( index + 1 ))
+				;;
+			--create-contentlist)
+				g_create_contentlist="YES"
 				;;
 			*)
 				inform "Unrecognized Option: ${argument}"
 				exit 1
 				;;
 		esac
+		
+		index=$(( index + 1 ))
+
 	done
 
 	local error_count=0
@@ -90,6 +102,13 @@ get_options()
 		inform "subject: ${g_subject}"
 	fi
 	
+	if [ -z "${g_three_t_project}" ]; then
+		inform "ERROR: --three-t-project= required"
+		error_count=$(( error_count + 1 ))
+	else
+		inform "3T project: ${g_three_t_project}"
+	fi
+
 	if [ -z "${g_seven_t_project}" ]; then
 		inform "ERROR: --seven-t-project= required"
 		error_count=$(( error_count + 1 ))
@@ -117,15 +136,10 @@ get_options()
 	fi
 	inform "create checksum: ${g_create_checksum}"
 
-	# set option values from environment variables
-
-	if [ -z "${XNAT_PBS_JOBS}" ]; then
-		inform "ERROR: XNAT_PBS_JOBS environment variable must be set"
-		error_count=$(( error_count + 1 ))
-	else
-		g_xnat_pbs_jobs="${XNAT_PBS_JOBS}"
-		inform "XNAT_PBS_JOBS: ${g_xnat_pbs_jobs}"
+	if [ -z "${g_create_contentlist}" ]; then
+		g_create_contentlist="NO"
 	fi
+	inform "create contentlist: ${g_create_contentlist}"
 	
 	if [ ${error_count} -gt 0 ]; then
 		inform "Option errors detected: EXITING"
@@ -133,214 +147,205 @@ get_options()
 	fi
 }
 
-clean_db_archive_artifacts()
-{
-	pushd ${g_script_tmp_dir}
-	find . -name "*job.sh*" -delete
-	find . -name "*catalog.xml" -delete
-	find . -name "*Provenance.xml" -delete
-	find . -name "*matlab.log" -delete
-	find . -name "StructuralHCP.err" -delete
-	find . -name "StructuralHCP.log" -delete
-	find . -name "*.starttime" -delete
-	popd
-}
-
-get_data_from_resources()
-{
-	local scan_dirs
-	local scan_dir
-	local short_scan_dir
-	local scan
-	
-	# DeDriftAndResample HighRes
-	link_hcp_resampled_and_dedrifted_highres_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${g_script_tmp_dir}"
-
-	# DeDriftAndResample
-	link_hcp_resampled_and_dedrifted_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${g_script_tmp_dir}"
-
-	# Resting State Stats data
-	scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*_RSS`
-	for scan_dir in ${scan_dirs} ; do
-		short_scan_dir=${scan_dir##*/}
-		inform "Getting Resting State Stats data from: ${short_scan_dir}"
-		scan=${short_scan_dir%_RSS}
-		link_hcp_7T_resting_state_stats_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${scan}" "${g_script_tmp_dir}"
-	done
-
-	# PostFix data
-	scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*_PostFix`
-	for scan_dir in ${scan_dirs} ; do
-		short_scan_dir=${scan_dir##*/}
-		inform "Getting ICA+FIX data from: ${short_scan_dir}"
-		scan=${short_scan_dir%_PostFix}
-
-		link_hcp_postfix_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${scan}" "${g_script_tmp_dir}"
-	done
-
-	# FIX processed data
-	scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*_FIX`
-	for scan_dir in ${scan_dirs} ; do
-		short_scan_dir=${scan_dir##*/}
-		inform "Getting ICA+FIX data from: ${short_scan_dir}"
-		scan=${short_scan_dir%_FIX}
-		link_hcp_fix_proc_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${scan}" "${g_script_tmp_dir}" 
-	done
-
-	# Functional preproc
-	scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*fMRI*preproc`
-	for scan_dir in ${scan_dirs} ; do
-		short_scan_dir=${scan_dir##*/}
-		inform "Getting Functionally Preprocessed data from: ${short_scan_dir}"
-		scan=${short_scan_dir%_preproc}
-		link_hcp_func_preproc_data "${g_archive_root}" "${g_seven_t_project}" "${g_subject}" "${g_subject}_7T" "${scan}" "${g_script_tmp_dir}"
-	done
-
-	clean_db_archive_artifacts
-}
-
-
 main()
 {
 	# get options 
 	get_options $@
 
-	# source function libraries
-	source ${g_xnat_pbs_jobs}/GetHcpDataUtils/GetHcpDataUtils.sh
-
 	# determine name of and create temporary directory for this script's work
 	local short_script_name=${g_script_name%.sh}
 	local secs_since_epoch=`date +%s%3N`
-	g_script_tmp_dir="${g_tmp_dir}/${g_subject}-${short_script_name}-${secs_since_epoch}"
-	inform "Creating ${g_script_tmp_dir}"
-	mkdir -p ${g_script_tmp_dir}
+	script_tmp_dir="${g_tmp_dir}/${g_subject}-${short_script_name}-${secs_since_epoch}"
+	inform "Creating ${script_tmp_dir}"
+	mkdir -p ${script_tmp_dir}
+
+	# determine subject's 3T resources directory
+	g_subject_3T_resources_dir="${g_archive_root}/${g_three_t_project}/arc001/${g_subject}_3T/RESOURCES"
 
 	# determine the subject's 7T resources directory
 	g_subject_7T_resources_dir="${g_archive_root}/${g_seven_t_project}/arc001/${g_subject}_7T/RESOURCES"
-	inform "Subject's 7T Resources Directory: ${g_subject_7T_resources_dir}"
 
 	# start with a clean temporary directory for this subject
-	rm -rf ${g_script_tmp_dir}/${g_subject}
+	rm -rf ${script_tmp_dir}/${g_subject}
 
-	# get data from database resources
-	get_data_from_resources
+	# build a standard CinaB style data directory
+	${XNAT_PBS_JOBS}/7T/PackageUtils/build_standard_structure.sh \
+					--archive-root="${g_archive_root}" \
+					--dest-dir="${script_tmp_dir}" \
+					--subject="${g_subject}" \
+					--three-t-project="${g_three_t_project}" \
+					--seven-t-project="${g_seven_t_project}"
 
 	# move all retrieved data to "full" directory
 	inform ""
 	inform "Move all retrieved data to _full directory"
 	inform ""
-	local full_directory_path=${g_script_tmp_dir}/${g_subject}_full
-	mv ${g_script_tmp_dir}/${g_subject} ${full_directory_path}
+	local full_directory_path=${script_tmp_dir}/${g_subject}_full
+	mv ${script_tmp_dir}/${g_subject} ${full_directory_path}
 
 	# For each modality generate a fixextended package
 
-	for modality in REST MOVIE ; do
+	for modality in MOVIE REST RET ; do
 
 		inform ""
 		inform "Generate fixextended package for modality: ${modality}"
 		inform ""
-		rm -rf ${g_script_tmp_dir}/${g_subject}
-		mkdir -p ${g_script_tmp_dir}/${g_subject}
+		rm -rf ${script_tmp_dir}/${g_subject}
+		mkdir -p ${script_tmp_dir}/${g_subject}
 		
 		file_list=""
-		
-		local fix_scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*${modality}*_FIX`
-		for scan_dir in ${fix_scan_dirs} ; do
-			inform ""
-			inform "Working on scan_dir: ${scan_dir}"
-			inform ""
-			
-			short_scan_dir=${scan_dir##*/}
-			scan=${short_scan_dir%_FIX}
-			
-			parsing_str=${scan_dir##*/}
-			
-			prefix=${parsing_str%%_*}
-			parsing_str=${parsing_str#*_}
-			inform "prefix: ${prefix}"
-			
-			scan=${parsing_str%%_*}
-			parsing_str=${parsing_str#*_}
-			inform "scan: ${scan}"
-			
-			pe_dir=${parsing_str%%_*}
-			parsing_str=${parsing_str#*_}
-			inform "pe_dir: ${pe_dir}"
-			
-			short_name=${prefix}_${scan}_${pe_dir}
-			inform "short_name: ${short_name}"
-			
-			long_name=${prefix}_${scan}_7T_${pe_dir}
-			inform "long_name: ${long_name}"
-			
-			# Include in package: some specific files
-			file_list+=" MNINonLinear/Results/${long_name}/${g_subject}_${long_name}_ICA_Classification_dualscreen.scene"
-			file_list+=" MNINonLinear/Results/${long_name}/${g_subject}_${long_name}_ICA_Classification_singlescreen.scene"
-			file_list+=" MNINonLinear/Results/${long_name}/ReclassifyAsNoise.txt "
-			file_list+=" MNINonLinear/Results/${long_name}/ReclassifyAsSignal.txt "
-			#file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_hp2000_clean.dtseries.nii "
-			#file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_1.6mm_hp2000_clean.dtseries.nii "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_stats.dscalar.nii "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_stats.txt "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_CSF.txt "
-			#file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000_clean.nii.gz " # Already in the _Volume_fix package
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_WM.txt "
-			
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/Noise.txt "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/Signal.txt "
-			#file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/Atlas_hp_preclean.dtseries.nii "			
 
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/eigenvalues_percent "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/log.txt "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_FTmix "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_FTmix.sdseries.nii "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_IC.nii.gz "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_ICstats "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_mix "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_mix.sdseries.nii "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_oIC.dscalar.nii "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_oIC.nii.gz "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_oIC_vol.dscalar.nii "
-			file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_Tmodes "
-			
-			# Include in package: entire MNINonLinear/Results/${long_name}/RestingStateStats directory
-			pushd ${full_directory_path}/MNINonLinear/Results/${long_name}
-			rss_files=`ls -1 RestingStateStats`
-			for rss_file in ${rss_files} ; do
-				file_list+=" MNINonLinear/Results/${long_name}/RestingStateStats/${rss_file} "
-			done
-			popd
+		if [ "${modality}" = "RET" ]; then
 
-			# Include in package: entire MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/report directory
-			pushd ${full_directory_path}/MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica
-			report_files=`ls -1 report`
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/${g_subject}_tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_ICA_Classification_dualscreen.scene "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/${g_subject}_tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_ICA_Classification_singlescreen.scene "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/Movement_Regressors_demean.txt "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/ReclassifyAsNoise.txt "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/ReclassifyAsSignal.txt "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas_1.6mm.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas_1.6mm_hp2000_clean.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas_1.6mm_hp2000.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas_1.6mm_MSMAll.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas_1.6mm_MSMAll_hp2000.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas_hp2000_clean.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas_hp2000.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas_MSMAll.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas_MSMAll_hp2000_clean.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_Atlas_MSMAll_hp2000.dtseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000_clean.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/eigenvalues_percent "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/log.txt "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/melodic_FTmix "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/melodic_FTmix.sdseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/melodic_IC.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/melodic_ICstats "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/melodic_mix "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/melodic_mix.sdseries.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/melodic_oIC.dscalar.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/melodic_oIC.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/melodic_oIC_vol.dscalar.nii "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/melodic_Tmodes "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/mc/prefiltered_func_data_mcf_conf_hp.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/mc/prefiltered_func_data_mcf_conf.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/Noise.txt "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/Signal.txt "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_SBRef.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_RETBAR1_7T_AP/tfMRI_RETBAR1_7T_AP_hp2000_clean.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_RETBAR2_7T_PA/tfMRI_RETBAR2_7T_PA_hp2000_clean.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_RETCCW_7T_AP/tfMRI_RETCCW_7T_AP_hp2000_clean.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_RETCON_7T_PA/tfMRI_RETCON_7T_PA_hp2000_clean.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_RETCW_7T_PA/tfMRI_RETCW_7T_PA_hp2000_clean.nii.gz "
+			file_list+=" MNINonLinear/Results/tfMRI_RETEXP_7T_AP/tfMRI_RETEXP_7T_AP_hp2000_clean.nii.gz "
+			file_list+=" MNINonLinear/ROIs/CSFReg.1.60.nii.gz "
+			file_list+=" MNINonLinear/ROIs/WMReg.1.60.nii.gz "
+
+			pushd ${full_directory_path}/MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica
+			report_files=$(ls -1 report)
 			for report_file in ${report_files} ; do
-				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/report/${report_file} "
+				file_list+=" MNINonLinear/Results/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA/tfMRI_7T_RETCCW_AP_RETCW_PA_RETEXP_AP_RETCON_PA_RETBAR1_AP_RETBAR2_PA_hp2000.ica/filtered_func_data.ica/report/${report_file} "
 			done
 			popd
 
-			# Include in package: entire MNINonLinear/ROIs directory 
-			pushd ${full_directory_path}/MNINonLinear
-			roi_files=`ls -1 ROIs`
-			for roi_file in ${roi_files} ; do
-				file_list+=" MNINonLinear/ROIs/${roi_file} "
+		else  # MOVIE or REST
+		
+			local fix_scan_dirs=`ls -1d ${g_subject_7T_resources_dir}/*${modality}*_FIX`
+			for scan_dir in ${fix_scan_dirs} ; do
+				inform ""
+				inform "Working on scan_dir: ${scan_dir}"
+				inform ""
+			
+				short_scan_dir=${scan_dir##*/}
+				scan=${short_scan_dir%_FIX}
+				
+				parsing_str=${scan_dir##*/}
+				
+				prefix=${parsing_str%%_*}
+				parsing_str=${parsing_str#*_}
+				inform "prefix: ${prefix}"
+				
+				scan=${parsing_str%%_*}
+				parsing_str=${parsing_str#*_}
+				inform "scan: ${scan}"
+				
+				pe_dir=${parsing_str%%_*}
+				parsing_str=${parsing_str#*_}
+				inform "pe_dir: ${pe_dir}"
+				
+				short_name=${prefix}_${scan}_${pe_dir}
+				inform "short_name: ${short_name}"
+				
+				long_name=${prefix}_${scan}_7T_${pe_dir}
+				inform "long_name: ${long_name}"
+				
+				# Include in package: some specific files
+
+				file_list+=" MNINonLinear/Results/${long_name}/${g_subject}_${long_name}_ICA_Classification_dualscreen.scene "
+				file_list+=" MNINonLinear/Results/${long_name}/${g_subject}_${long_name}_ICA_Classification_singlescreen.scene "
+				file_list+=" MNINonLinear/Results/${long_name}/ReclassifyAsNoise.txt "
+				file_list+=" MNINonLinear/Results/${long_name}/ReclassifyAsSignal.txt "
+
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_stats.dscalar.nii "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_Atlas_stats.txt "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_CSF.txt "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000_clean.nii.gz "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/eigenvalues_percent "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/log.txt "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_FTmix "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_FTmix.sdseries.nii "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_IC.nii.gz "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_ICstats "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_mix "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_mix.sdseries.nii "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_oIC.dscalar.nii "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_oIC.nii.gz "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_oIC_vol.dscalar.nii "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/melodic_Tmodes "
+
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/Noise.txt "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/Signal.txt "
+				file_list+=" MNINonLinear/Results/${long_name}/${long_name}_WM.txt "
+
+				# Include in package: entire MNINonLinear/Results/${long_name}/RestingStateStats directory
+				pushd ${full_directory_path}/MNINonLinear/Results/${long_name}
+				rss_files=`ls -1 RestingStateStats`
+				for rss_file in ${rss_files} ; do
+					file_list+=" MNINonLinear/Results/${long_name}/RestingStateStats/${rss_file} "
+				done
+				popd
+
+				# Include in package: entire MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/report directory
+				pushd ${full_directory_path}/MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica
+				report_files=`ls -1 report`
+				for report_file in ${report_files} ; do
+					file_list+=" MNINonLinear/Results/${long_name}/${long_name}_hp2000.ica/filtered_func_data.ica/report/${report_file} "
+				done
+				popd
+								
 			done
-			popd
 
-		done # FIX scan dirs loop
+			file_list+=" MNINonLinear/ROIs/CSFReg.1.60.nii.gz "
+			file_list+=" MNINonLinear/ROIs/WMReg.1.60.nii.gz "
 
+		fi
+		
 		# copy all the listed files over to the directory that will be zipped
 		inform ""
 		inform "Copying listed files to directory for zipping"
 		inform ""
 		for file in ${file_list} ; do
-			to_dir=${g_script_tmp_dir}/${g_subject}/${file}
+			to_dir=${script_tmp_dir}/${g_subject}/${file}
 			to_dir=${to_dir%/*}
 			mkdir -p ${to_dir}
 			
-			from_file=${g_script_tmp_dir}/${g_subject}_full/${file} 
+			from_file=${script_tmp_dir}/${g_subject}_full/${file} 
+			to_file=${script_tmp_dir}/${g_subject}/${file}
+			inform "from_file = ${from_file}"
+			inform "  to_file = ${to_file}"
 			if [ -e "${from_file}" ] ; then
-				to_file=${g_script_tmp_dir}/${g_subject}/${file}
 				#cp -aLv --recursive ${from_file} ${to_file}
 				cp -aL --recursive ${from_file} ${to_file}
 			else
@@ -353,9 +358,9 @@ main()
 		inform ""
 		inform "Create Release Notes"
 		inform ""
-		release_notes_file=${g_script_tmp_dir}/${g_subject}/release-notes/release-notes.txt
+		release_notes_file=${script_tmp_dir}/${g_subject}/release-notes/${g_subject}_7T_${modality}_fixextended.txt
 		
-		mkdir -p ${g_script_tmp_dir}/${g_subject}/release-notes
+		mkdir -p ${script_tmp_dir}/${g_subject}/release-notes
 		touch ${release_notes_file}
 		echo `date` >> ${release_notes_file}
 		echo "" >> ${release_notes_file}
@@ -376,7 +381,7 @@ main()
 		mkdir -p ${new_package_dir}
 		
 		# go create the zip file
-		pushd ${g_script_tmp_dir}
+		pushd ${script_tmp_dir}
 		#zip_cmd="zip -r ${new_package_path} ${g_subject}"
 		zip_cmd="zip -rq ${new_package_path} ${g_subject}"
 		inform "zip_cmd: ${zip_cmd}"
@@ -387,14 +392,16 @@ main()
 		
 		# create a checksum file if requested
 		if [ "${g_create_checksum}" = "YES" ]; then
-			inform ""
-			inform " Create MD5 Checksum "
-			inform ""
-			
-			pushd ${new_package_dir}
-			md5sum ${new_package_name} > ${new_package_name}.md5
-			chmod u=rw,g=rw,o=r ${new_package_name}.md5
-			popd
+			${XNAT_PBS_JOBS}/PackageUtils/create_checksum.sh \
+							--package-dir="${new_package_dir}" \
+							--package-name="${new_package_name}"
+		fi
+
+		# create contentlist file if requested
+		if [ "${g_create_contentlist}" = "YES" ]; then
+			${XNAT_PBS_JOBS}/PackageUtils/build_content_list.sh \
+							--package-dir="${new_package_dir}" \
+							--package-name="${new_package_name}"
 		fi
 		
 		popd
@@ -405,7 +412,7 @@ main()
 	inform " Remove temporary directory "
 	inform ""
 
-	rm -rf ${g_script_tmp_dir}
+	rm -rf ${script_tmp_dir}
 }
 
 #

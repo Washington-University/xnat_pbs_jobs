@@ -9,8 +9,8 @@ inform()
 g_script_name="Submit_CreateFixExtendedPackage.Batch.sh"
 g_name=${g_script_name%.*}
 g_subject_file_name="${g_name}.subjects"
-g_log_dir="${XNAT_PBS_JOBS}/7T/CreateFixExtendedPackage/logs"
-g_scripts_to_submit_dir="${XNAT_PBS_JOBS}/7T/CreateFixExtendedPackage/scripts_to_submit"
+g_log_dir="${XNAT_PBS_JOBS_LOG_DIR}/package_logs/CreateFixExtendedPackage"
+g_scripts_to_submit_dir="${XNAT_PBS_JOBS_BUILD_DIR}/package_scripts_to_submit/CreateFixExtendedPackage"
 g_archive_root="/HCP/hcpdb/archive"
 g_packages_tmp="/HCP/hcpdb/build_ssd/chpc/BUILD/packages/temp"
 
@@ -64,10 +64,12 @@ for subject_spec in ${g_subjects} ; do
 		echo "  --archive-root=${g_archive_root} \\" >> ${script_file_to_submit}
 		echo "  --tmp-dir=${g_packages_tmp} \\" >> ${script_file_to_submit}
 		echo "  --subject=${subject} \\" >> ${script_file_to_submit}
+		echo "  --three-t-project=${refproject} \\" >> ${script_file_to_submit}
 		echo "  --seven-t-project=${project} \\" >> ${script_file_to_submit}
 		echo "  --release-notes-template-file=${XNAT_PBS_JOBS}/7T/CreateFixExtendedPackage/ReleaseNotes.txt \\" >> ${script_file_to_submit}
 		echo "  --output-dir=${g_output_dir} \\" >> ${script_file_to_submit}
-		echo "  --create-checksum" >> ${script_file_to_submit}
+		echo "  --create-checksum \\" >> ${script_file_to_submit}
+		echo "  --create-contentlist " >> ${script_file_to_submit}
 		echo "" >> ${script_file_to_submit}
 
 		submit_cmd="qsub ${script_file_to_submit}"

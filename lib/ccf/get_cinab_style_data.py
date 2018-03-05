@@ -30,6 +30,9 @@ __maintainer__ = "Timothy B. Brown"
 # create a module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.WARNING)  # Note: This can be overridden by log file configuration
+sh = logging.StreamHandler(sys.stdout)
+sh.setFormatter(logging.Formatter('%(name)s: %(message)s'))
+module_logger.addHandler(sh)
 
 
 class DataRetriever(object):
