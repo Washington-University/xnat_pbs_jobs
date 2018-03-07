@@ -317,7 +317,7 @@ for subject in ${subjects} ; do
 
 	for fix_extended_package in ${fix_extended_packages} ; do 
 
-		package_file=${PACKAGES_ROOT_DIR}/${subject}/fix/${subject}_${fix_extended_package}
+		package_file=${PACKAGES_ROOT_DIR}/${subject}/fixextended/${subject}_${fix_extended_package}
 		md5_file=${package_file}.md5
 		
 		get_size ${package_file} package_file_size
@@ -373,7 +373,7 @@ for package in ${all_packages} ; do
 			
 		elif [[ ${fix_extended_packages} = *${package}* ]]; then
 
-			package_file=${PACKAGES_ROOT_DIR}/${subject}/fix/${subject}_${package}
+			package_file=${PACKAGES_ROOT_DIR}/${subject}/fixextended/${subject}_${package}
 			md5_file=${package_file}.md5
 			
 			get_size ${package_file} package_file_size
