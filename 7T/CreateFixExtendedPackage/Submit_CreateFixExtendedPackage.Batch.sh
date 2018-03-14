@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+if [ "${1}" = "run" ]; then
+	run="TRUE"
+fi
+
 inform()
 {
 	echo "${g_script_name}: ${1}"
@@ -56,7 +60,7 @@ for subject_spec in ${g_subjects} ; do
 
 		touch ${script_file_to_submit}
 		echo "#PBS -l nodes=1:ppn=1,walltime=08:00:00,vmem=4000mb" >> ${script_file_to_submit}
-		echo "#PBS -q HCPput" >> ${script_file_to_submit}
+		#echo "#PBS -q HCPput" >> ${script_file_to_submit}
 		echo "#PBS -o ${g_log_dir}" >> ${script_file_to_submit}
         echo "#PBS -e ${g_log_dir}" >> ${script_file_to_submit}
 		echo ""
@@ -69,15 +73,23 @@ for subject_spec in ${g_subjects} ; do
 		echo "  --release-notes-template-file=${XNAT_PBS_JOBS}/7T/CreateFixExtendedPackage/ReleaseNotes.txt \\" >> ${script_file_to_submit}
 		echo "  --output-dir=${g_output_dir} \\" >> ${script_file_to_submit}
 		echo "  --create-checksum \\" >> ${script_file_to_submit}
-		echo "  --create-contentlist " >> ${script_file_to_submit}
+		echo "  --create-contentlist \\" >> ${script_file_to_submit}
+		echo "  --dont-overwrite \\" >> ${script_file_to_submit}
+		echo "  --ignore-missing-files " >> ${script_file_to_submit}
 		echo "" >> ${script_file_to_submit}
 
-		submit_cmd="qsub ${script_file_to_submit}"
-		inform "submit_cmd: ${submit_cmd}"
+		chmod +x ${script_file_to_submit}
 
-		processing_job_no=`${submit_cmd}`
-		inform "processing_job_no: ${processing_job_no}"
-
+		if [ "${run}" = "TRUE" ]; then
+			${script_file_to_submit}
+		else
+			submit_cmd="qsub ${script_file_to_submit}"
+			inform "submit_cmd: ${submit_cmd}"
+			
+			processing_job_no=`${submit_cmd}`
+			inform "processing_job_no: ${processing_job_no}"
+		fi
+		
 	fi
 
 done 

@@ -1,0 +1,62 @@
+#!/bin/bash
+
+inform()
+{
+	echo "$(date): try_mkdir: ${1}"
+}
+
+error()
+{
+	inform "ERROR: ${1}"
+}
+
+abort()
+{
+	inform "ABORTING: ${1}"
+	exit 1
+}
+
+get_options()
+{
+	if [ -z "${1}" ]; then
+		abort "The path to the directory to make must be specified as the first parameter"
+	fi
+	g_dir_to_make=${1}
+
+	if [ -z "${2}" ]; then
+		g_max_tries=5
+	else
+		g_max_tries=${2}
+	fi
+
+	inform "Directory to make: ${g_dir_to_make}"
+	inform "Maximum # of tries: ${g_max_tries}"
+}
+
+main()
+{
+	get_options $@
+
+	local try_count=0
+	local retcode
+
+	while [ ${try_count} -lt ${g_max_tries} ]; do
+		try_count=$(( try_count + 1 ))
+		inform "Try #: ${try_count}"
+		mkdir -p ${g_dir_to_make}
+		retcode=$?
+		if [ ${retcode} -eq 0 ]; then
+			break
+		fi
+		sleep $(( $RANDOM % 60 ))
+	done
+
+	if [ ${retcode} -ne 0 ]; then
+		abort "Unable to create directory ${g_dir_to_make}"
+	fi
+
+	inform "Successfully created: ${g_dir_to_make}"
+}
+
+# Invoke the main function to get things started
+main $@
