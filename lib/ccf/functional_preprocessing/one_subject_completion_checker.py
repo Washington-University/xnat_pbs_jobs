@@ -55,18 +55,30 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, 'Movement_RelativeRMS_mean.txt']))
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, 'Movement_RelativeRMS.txt']))
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_Atlas.dtseries.nii']))
-        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_AtlasSubcortical_s2.nii.gz']))
+
+        # On or about 01 Apr 2018, the HCP Pipeline Scripts were modified to clean out this file
+        # l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_AtlasSubcortical_s2.nii.gz']))
+
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_dropouts.nii.gz']))
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_Jacobian.nii.gz']))
-        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '.L.atlasroi.32k_fs_LR.func.gii']))
+
+        # On or about 01 Apr 2018, the HCP Pipeline Scripts were modified to clean out this file
+        # l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '.L.atlasroi.32k_fs_LR.func.gii']))
+
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '.L.native.func.gii']))
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '.nii.gz']))
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_PhaseOne_gdc_dc.nii.gz']))
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_PhaseTwo_gdc_dc.nii.gz']))
-        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '.R.atlasroi.32k_fs_LR.func.gii']))
+
+        # On or about 01 Apr 2018, the HCP Pipeline Scripts were modified to clean out this file
+        # l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '.R.atlasroi.32k_fs_LR.func.gii']))
+
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '.R.native.func.gii']))
-        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_s2.atlasroi.L.32k_fs_LR.func.gii']))
-        l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_s2.atlasroi.R.32k_fs_LR.func.gii']))
+
+        # On or about 01 Apr 2018, the HCP Pipeline Scripts were modified to clean out these 2 files
+        # l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_s2.atlasroi.L.32k_fs_LR.func.gii']))
+        # l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_s2.atlasroi.R.32k_fs_LR.func.gii']))
+
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_SBRef.nii.gz']))
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_sebased_bias.nii.gz']))
         l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', scan, scan + '_sebased_reference.nii.gz']))
@@ -229,8 +241,12 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
         l.append(os.sep.join([root_dir, scan, 'MotionCorrection', scan + '_mc.ecclog']))
         l.append(os.sep.join([root_dir, scan, 'MotionCorrection', scan + '_mc_mask.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'MotionCorrection', scan + '_mc.par']))
-        l.append(os.sep.join([root_dir, scan, 'MotionMatrices']))
-        # ... not checking all MAT files ... don't know how many there will be
+
+        # Not checking all MotionMatrices/MAT* files because we don't know how many there will be.
+        # On or about 01 Apr 2018, the HCP Pipeline Scripts were modified to clean out these MAT* 
+        # files anyhow.
+        # l.append(os.sep.join([root_dir, scan, 'MotionMatrices']))
+
         l.append(os.sep.join([root_dir, scan, 'Movement_AbsoluteRMS_mean.txt']))
         l.append(os.sep.join([root_dir, scan, 'Movement_AbsoluteRMS.txt']))
         l.append(os.sep.join([root_dir, scan, 'Movement_Regressors_dt.txt']))
@@ -243,10 +259,17 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
         l.append(os.sep.join([root_dir, scan, 'OneStepResampling', 'gdc_dc_jacobian.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'OneStepResampling', 'gdc_dc_warp.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'OneStepResampling', 'log.txt']))
-        l.append(os.sep.join([root_dir, scan, 'OneStepResampling', 'postvols']))
-        # ... not checking all vol files ... don't know how many there will be
-        l.append(os.sep.join([root_dir, scan, 'OneStepResampling', 'prevols']))
-        # ... not checking all vol files ... don't know how many there will be
+
+        # Not checking all postvols/* files because we don't know how many there will be.
+        # On or about 01 Apr 2018, the HCP Pipeline Scripts were modified to clean out these files
+        # anyhow.
+        # l.append(os.sep.join([root_dir, scan, 'OneStepResampling', 'postvols']))
+
+        # Not checking all prevols/* files because we don't know how many there will be.
+        # ON or about 01 Apr 2018, the HCP Pipeline Scripts were modified to clean out these files
+        # anyhow.
+        # l.append(os.sep.join([root_dir, scan, 'OneStepResampling', 'prevols']))
+
         l.append(os.sep.join([root_dir, scan, 'OneStepResampling', 'qa.txt']))
         l.append(os.sep.join([root_dir, scan, 'OneStepResampling', 'Scout_gdc_MNI_warp.nii.gz']))
         l.append(os.sep.join([root_dir, scan, 'OneStepResampling', 'T1w_restore.2.nii.gz']))
