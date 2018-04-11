@@ -68,8 +68,7 @@ Usage: StructuralPreprocessingHCP.XNAT_PROCESS <options>
    --working-dir=<dir>      : Working directory in which to place retrieved data
                               and in which to produce results
    --setup-script=<script>  : Full path to script to source to set up environment before running
-                              HCP Pipeline Scripts. If unspecified the default value of:
-                              ${DEFAULT_SETUP_SCRIPT} is used.
+                              HCP Pipeline Scripts. 
    --first-t1w-directory-name=<directory-name>
                             : TBW
    --first-t1w-resource-name=<resource-name>

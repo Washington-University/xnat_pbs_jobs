@@ -62,6 +62,7 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
             l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, 'Movement_Regressors_demean.txt']))
             l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_Atlas_demean.dtseries.nii']))
             l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_Atlas_hp2000_clean.dtseries.nii']))
+            l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_Atlas_hp2000_clean.README.txt']))
             l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_Atlas_hp2000.dtseries.nii']))
             l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_demean.nii.gz']))
             l.append(os.sep.join([root_dir, 'MNINonLinear', 'Results', ret_scan, ret_scan + '_hp2000_clean.nii.gz']))

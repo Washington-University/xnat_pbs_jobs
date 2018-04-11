@@ -118,13 +118,26 @@ get_options()
 clean_db_archive_artifacts()
 {
 	pushd ${g_dest_dir}
-	find . -name "*job.sh*" -delete
-	find . -name "*catalog.xml" -delete
-	find . -name "*Provenance.xml" -delete
-	find . -name "*matlab.log" -delete
-	find . -name "StructuralHCP.err" -delete
-	find . -name "StructuralHCP.log" -delete
-	find . -name "*.starttime" -delete
+	inform "Removing previous job logs"
+	find . -maxdepth 3 -name "*job.sh*" -print -delete
+	
+	inform "Removing catalog.xml files"
+	find . -maxdepth 3 -name "*catalog.xml" -print -delete
+
+	inform "Removing Provenance.xml files"
+	find . -maxdepth 3 -name "*Provenance.xml" -print -delete
+
+	inform "Removing matlab.log files"
+	find . -maxdepth 3 -name "*matlab.log" -print -delete
+
+	inform "Removing StructuralHCP.err files"
+	find . -maxdepth 3 -name "StructuralHCP.err" -print -delete
+
+	inform "Removing StructuralHCP.log files"
+	find . -maxdepth 3 -name "StructuralHCP.log" -print -delete
+
+	inform "Removing starttime files"
+	find . -maxdepth 3 -name "*.starttime" -print -delete
 	popd
 }
 

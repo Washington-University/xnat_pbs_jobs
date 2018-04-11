@@ -53,7 +53,7 @@ for subject_spec in ${subjects} ; do
 
 			touch ${script_file_to_submit}
 			echo "#PBS -l nodes=1:ppn=1,walltime=08:00:00,vmem=4000mb" >> ${script_file_to_submit}
-			echo "#PBS -q HCPput" >> ${script_file_to_submit}
+			#echo "#PBS -q HCPput" >> ${script_file_to_submit}
 			echo "#PBS -o ${log_dir}" >> ${script_file_to_submit}
 			echo "#PBS -e ${log_dir}" >> ${script_file_to_submit}
 
@@ -67,7 +67,11 @@ for subject_spec in ${subjects} ; do
 			echo "  --release-notes-template-file=${HOME}/pipeline_tools/xnat_pbs_jobs/7T/${name}/ReleaseNotes.txt \\" >> ${script_file_to_submit}
 			echo "  --output-dir=${output_dir} \\" >> ${script_file_to_submit}
 			echo "  --create-checksum \\" >> ${script_file_to_submit}
-			echo "  --create-contentlist " >> ${script_file_to_submit}
+			echo "  --create-contentlist \\" >> ${script_file_to_submit}
+			echo "  --dont-overwrite \\" >> ${script_file_to_submit}
+			echo "  --ignore-missing-files " >> ${script_file_to_submit}
+
+			chmod +x ${script_file_to_submit}
 
 			submit_cmd="qsub ${script_file_to_submit}"
 			echo "submit_cmd: ${submit_cmd}"

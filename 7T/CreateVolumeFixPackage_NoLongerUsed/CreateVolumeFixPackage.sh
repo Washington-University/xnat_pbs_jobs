@@ -156,8 +156,11 @@ main()
 	short_script_name=${g_script_name%.sh}
 	secs_since_epoch=`date +%s%3N`
 	script_tmp_dir="${g_tmp_dir}/${g_subject}.${short_script_name}.${secs_since_epoch}"
-	mkdir -p ${script_tmp_dir}
-
+	${XNAT_PBS_JOBS}/shlib/try_mkdir ${script_tmp_dir}
+	if [ $? -ne 0 ]; then
+		exit 1
+	fi
+		
 	# determine subject's 3T resources directory
 	g_subject_3T_resources_dir="${g_archive_root}/${g_three_t_project}/arc001/${g_subject}_3T/RESOURCES"
 
@@ -247,7 +250,8 @@ main()
 			inform "from_file = ${from_file}"
 			inform "  to_file = ${to_file}"
 			if [ -e "${from_file}" ]; then
-				cp -aLv ${from_file} ${to_file}
+				# cp -aLv ${from_file} ${to_file}
+				ln -s ${from_file} ${to_file}
 			else
 				inform "ERROR: FILE ${from_file} DOES NOT EXIST!"
 				exit 1

@@ -30,7 +30,9 @@ get_options()
 	unset g_output_dir
 	unset g_create_checksum
 	unset g_create_contentlist
-
+	unset g_overwrite
+	unset g_ignore_missing_files
+	
 	# parse arguments
 	local index=0
 	local numArgs=${#arguments[@]}
@@ -66,6 +68,15 @@ get_options()
 				;;
 			--create-contentlist)
 				g_create_contentlist="YES"
+				;;
+			--dont-overwrite)
+				g_overwrite="NO"
+				;;
+			--overwrite)
+				g_overwrite="YES"
+				;;
+			--ignore-missing-files)
+				g_ignore_missing_files="YES"
 				;;
 			*)
 				inform "Unrecognized Option: ${argument}"
@@ -140,6 +151,16 @@ get_options()
 		g_create_contentlist="NO"
 	fi
 	inform "create contentlist: ${g_create_contentlist}"
+
+	if [ -z "${g_overwrite}" ]; then
+		g_overwrite="YES"
+	fi
+	inform "overwrite: ${g_overwrite}"
+
+	if [ -z "${g_ignore_missing_files}" ]; then
+		g_ignore_missing_files="NO"
+	fi
+	inform "ignore missing files: ${g_ignore_missing_files}"
 	
 	if [ ${error_count} -gt 0 ]; then
 		inform "Option errors detected: EXITING"
@@ -157,8 +178,11 @@ main()
 	local secs_since_epoch=`date +%s%3N`
 	script_tmp_dir="${g_tmp_dir}/${g_subject}-${short_script_name}-${secs_since_epoch}"
 	inform "Creating ${script_tmp_dir}"
-	mkdir -p ${script_tmp_dir}
-
+	${XNAT_PBS_JOBS}/shlib/try_mkdir ${script_tmp_dir}
+	if [ $? -ne 0 ]; then
+		exit 1
+	fi
+	
 	# determine subject's 3T resources directory
 	g_subject_3T_resources_dir="${g_archive_root}/${g_three_t_project}/arc001/${g_subject}_3T/RESOURCES"
 
@@ -187,6 +211,22 @@ main()
 
 	for modality in MOVIE REST RET ; do
 
+		inform ""
+		inform " Determine Package Name and Path"
+		inform ""
+		new_package_dir="${g_output_dir}/${g_subject}/fixextended"
+		new_package_name="${g_subject}_7T_${modality}_fixextended.zip"
+		new_package_path="${new_package_dir}/${new_package_name}"
+
+		if [ -e "${new_package_path}" ] ; then
+			if [ "${g_overwrite}" = "NO" ]; then
+				inform "Package: ${new_package_path} exists and I've been told not to overwrite."
+				inform "So, I'm moving on without creating that package."
+				continue
+			fi
+		fi
+
+		# if we get here, then we want to create the package
 		inform ""
 		inform "Generate fixextended package for modality: ${modality}"
 		inform ""
@@ -346,11 +386,17 @@ main()
 			inform "from_file = ${from_file}"
 			inform "  to_file = ${to_file}"
 			if [ -e "${from_file}" ] ; then
-				#cp -aLv --recursive ${from_file} ${to_file}
-				cp -aL --recursive ${from_file} ${to_file}
+				# cp -aLv --recursive ${from_file} ${to_file}
+				# cp -aL --recursive ${from_file} ${to_file}
+				ln -s ${from_file} ${to_file}
 			else
-				inform "ERROR: FILE ${from_file} DOES NOT EXIST!"
-				exit 1
+				inform "FILE ${from_file} DOES NOT EXIST!"
+				if [ "${g_ignore_missing_files}" = "YES" ]; then
+					inform "Ignoring missing file as instructed"
+				else
+					inform "ABORTING BECAUSE OF MISSING FILE"
+					exit 1
+				fi
 			fi
 		done # All listed files copied loop
 		
@@ -368,9 +414,6 @@ main()
 		echo "" >> ${release_notes_file}
 		
 		# create the package		
-		new_package_dir="${g_output_dir}/${g_subject}/fixextended"
-		new_package_name="${g_subject}_7T_${modality}_fixextended.zip"
-		new_package_path="${new_package_dir}/${new_package_name}"
 		inform ""
 		inform "Create Package: ${new_package_path}"
 		inform ""
