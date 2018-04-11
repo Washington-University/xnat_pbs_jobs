@@ -15,18 +15,8 @@ else
 	exit 1
 fi
 
-# home directory for these XNAT PBS job scripts
-if [ "${COMPUTE}" = "CHPC" ]; then
-	XNAT_PBS_JOBS_HOME=/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs
-elif [ "${COMPUTE}" = "NRG" ]; then
-	XNAT_PBS_JOBS_HOME=/home/NRG/tbrown01/projects/xnat_pbs_jobs
-else
-	echo "GetHcpDataUtils.sh: ERROR - Unable to set XNAT_PBS_JOBS_HOME value based on COMPUTE: ${COMPUTE}"
-	exit 1
-fi
-
 # Database Resource names and suffixes
-source ${XNAT_PBS_JOBS_HOME}/GetHcpDataUtils/ResourceNamesAndSuffixes.sh
+source ${XNAT_PBS_JOBS}/GetHcpDataUtils/ResourceNamesAndSuffixes.sh
 
 link_hcp_struct_unproc_data()
 {

@@ -1,8 +1,25 @@
 #!/bin/bash
 
+SCRIPT_NAME=`basename ${0}`
+
+inform()
+{
+	msg=${1}
+	echo "${SCRIPT_NAME}: ${msg}"
+}
+
 if [ -z "${XNAT_PBS_JOBS}" ]; then
-	script_name=$(basename "${0}")
-	echo "${script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	inform "Environment variable XNAT_PBS_JOBS must be set!"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS_MIN_SHADOW}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS_MIN_SHADOW must be set!"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS_MAX_SHADOW}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS_MAX_SHADOW must be set!"
 	exit 1
 fi
 
@@ -26,8 +43,8 @@ log_Msg "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
 
-start_shadow_number=1
-max_shadow_number=8
+start_shadow_number=${XNAT_PBS_JOBS_MIN_SHADOW}
+max_shadow_number=${XNAT_PBS_JOBS_MAX_SHADOW}
 
 shadow_number=$(shuf -i ${start_shadow_number}-${max_shadow_number} -n 1)
 
@@ -42,7 +59,7 @@ for subject in ${subjects} ; do
 		log_Msg " Using server: ${server}"
 		log_Msg "--------------------------------------------------------------------------------"
 		
-		/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/MSMAllRegistration/SubmitMSMAllRegistration.OneSubject.sh \
+		${XNAT_PBS_JOBS}/MSMAllRegistration/SubmitMSMAllRegistration.OneSubject.sh \
 			--user=${userid} \
 			--password=${password} \
 			--server=${server} \

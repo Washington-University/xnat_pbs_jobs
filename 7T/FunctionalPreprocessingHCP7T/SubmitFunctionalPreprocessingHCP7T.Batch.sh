@@ -8,6 +8,21 @@ inform()
 	echo "${SCRIPT_NAME}: ${msg}"
 }
 
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS must be set!"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS_MIN_SHADOW}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS_MIN_SHADOW must be set!"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS_MAX_SHADOW}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS_MAX_SHADOW must be set!"
+	exit 1
+fi
+
 printf "Connectome DB Username: "
 read userid
 
@@ -35,8 +50,8 @@ inform "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
 
-start_shadow_number=1
-max_shadow_number=8
+start_shadow_number=${XNAT_PBS_JOBS_MIN_SHADOW}
+max_shadow_number=${XNAT_PBS_JOBS_MAX_SHADOW}
 
 shadow_number=`shuf -i ${start_shadow_number}-${max_shadow_number} -n 1`
 
@@ -78,7 +93,7 @@ for subject_spec in ${subjects} ; do
 
 		if [ "${scan}" = "all" ] ; then
 
-			${HOME}/pipeline_tools/xnat_pbs_jobs/7T/FunctionalPreprocessingHCP7T/SubmitFunctionalPreprocessingHCP7T.OneSubject.sh \
+			${XNAT_PBS_JOBS}/7T/FunctionalPreprocessingHCP7T/SubmitFunctionalPreprocessingHCP7T.OneSubject.sh \
 				--user=${userid} \
 				--password=${password} \
 				--put-server=${server} \
@@ -94,7 +109,7 @@ for subject_spec in ${subjects} ; do
 
 		elif [ "${scan}" = "incomplete" ] ; then
 
-			${HOME}/pipeline_tools/xnat_pbs_jobs/7T/FunctionalPreprocessingHCP7T/SubmitFunctionalPreprocessingHCP7T.OneSubject.sh \
+			${XNAT_PBS_JOBS}/7T/FunctionalPreprocessingHCP7T/SubmitFunctionalPreprocessingHCP7T.OneSubject.sh \
 				--user=${userid} \
 				--password=${password} \
 				--put-server=${server} \
@@ -111,7 +126,7 @@ for subject_spec in ${subjects} ; do
 
 		else
 
-			${HOME}/pipeline_tools/xnat_pbs_jobs/7T/FunctionalPreprocessingHCP7T/SubmitFunctionalPreprocessingHCP7T.OneSubject.sh \
+			${XNAT_PBS_JOBS}/7T/FunctionalPreprocessingHCP7T/SubmitFunctionalPreprocessingHCP7T.OneSubject.sh \
 				--user=${userid} \
 				--password=${password} \
 				--put-server=${server} \

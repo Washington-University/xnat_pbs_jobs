@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	echo "ERROR: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
 # home directory for XNAT pipeline engine installation
 XNAT_PIPELINE_HOME=${HOME}/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
@@ -228,7 +233,7 @@ main()
 	echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 	echo ""
-	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/StructuralPreprocessingHCP.XNAT.sh \\" >> ${script_file_to_submit}
+	echo "${XNAT_PBS_JOBS}/StructuralPreprocessingHCP/StructuralPreprocessingHCP.XNAT.sh \\" >> ${script_file_to_submit}
 	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 	echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 	echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
@@ -273,7 +278,7 @@ main()
  	echo "#PBS -e ${XNAT_PBS_JOBS_LOG_DIR}" >> ${put_script_file_to_submit}
 
  	echo ""
- 	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
+ 	echo "${XNAT_PBS_JOBS}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
  	echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
  	echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
  	echo "  --server=\"${g_server}\" \\" >> ${put_script_file_to_submit}

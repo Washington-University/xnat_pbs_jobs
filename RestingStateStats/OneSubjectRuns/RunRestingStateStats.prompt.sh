@@ -1,5 +1,28 @@
 #!/bin/bash
 
+SCRIPT_NAME=`basename ${0}`
+
+inform()
+{
+	msg=${1}
+	echo "${SCRIPT_NAME}: ${msg}"
+}
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS must be set!"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS_MIN_SHADOW}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS_MIN_SHADOW must be set!"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS_MAX_SHADOW}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS_MAX_SHADOW must be set!"
+	exit 1
+fi
+
 printf "Connectome DB Username: "
 read userid
 
@@ -24,11 +47,9 @@ if [ -z "${delay}" ]; then
 	delay=0
 fi
 
-#shadow_number=2
-min_shadow_number=1
-max_shadow_number=8
-#shadow_number=`shuf -i ${min_shadow_number}-${max_shadow_number} -n 1`
-shadow_number=2
+start_shadow_number=${XNAT_PBS_JOBS_MIN_SHADOW}
+max_shadow_number=${XNAT_PBS_JOBS_MAX_SHADOW}
+shadow_number=`shuf -i ${min_shadow_number}-${max_shadow_number} -n 1`
 
 project="HCP_Staging"
 server="db-shadow${shadow_number}.nrg.mir:8080"
@@ -44,7 +65,7 @@ echo "--------------------------------------------------------------------------
 
 at now + ${delay} minutes <<EOF
 
-/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/RestingStateStats/RunRestingStateStats.OneSubject.sh \
+${XNAT_PBS_JOBS}/RestingStateStats/RunRestingStateStats.OneSubject.sh \
 	--user=${userid} \
 	--password=${password} \
 	--server=${server} \

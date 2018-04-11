@@ -50,3 +50,11 @@ source_script()
 		log_Err_Abort "Specified script to be sourced: ${script_to_source} DOES NOT EXIST"
 	fi
 }
+
+log_execution_info()
+{
+	local filename=${1}
+	echo "PBS_JOBID: ${PBS_JOBID}" > ${filename}
+	echo "PBS execution node: $(hostname)" >> ${filename}
+}
+

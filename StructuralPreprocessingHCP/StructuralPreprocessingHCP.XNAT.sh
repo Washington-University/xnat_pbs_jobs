@@ -42,8 +42,13 @@
 
 echo "Job started on `hostname` at `date`"
 
+if [ -z "${SCRIPTS_HOME}" ]; then
+	echo "ERROR: SCRIPTS_HOME environment variable must be set!"
+	exit 1
+fi
+
 # home directory for scripts to be sourced to setup the environment
-SETUP_SCRIPTS_HOME=${HOME}/SCRIPTS
+SETUP_SCRIPTS_HOME=${SCRIPTS_HOME}
 echo "SETUP_SCRIPTS_HOME: ${SETUP_SCRIPTS_HOME}"
 
 # home directory for pipeline tools
@@ -51,7 +56,7 @@ PIPELINE_TOOLS_HOME=${HOME}/pipeline_tools
 echo "PIPELINE_TOOLS_HOME: ${PIPELINE_TOOLS_HOME}"
 
 # home directory for XNAT related utilities
-XNAT_UTILS_HOME=${PIPELINE_TOOLS_HOME}/xnat_utilities
+XNAT_UTILS_HOME=/export/HCP/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
 # home directory for these XNAT PBS job scripts
@@ -59,7 +64,7 @@ XNAT_PBS_JOBS_HOME=${PIPELINE_TOOLS_HOME}/xnat_pbs_jobs
 echo "XNAT_PBS_JOBS_HOME: ${XNAT_PBS_JOBS_HOME}"
 
 # home directory for XNAT pipeline engine installation
-XNAT_PIPELINE_HOME=/home/HCPpipeline/pipeline
+XNAT_PIPELINE_HOME=/export/HCP/pipeline
 
 # root directory of the XNAT database archive
 DATABASE_ARCHIVE_ROOT="/HCP/hcpdb/archive"
@@ -566,6 +571,13 @@ get_parameters_for_second_t2w_scan()
 	fi
 }
 
+log_exec_info()
+{
+	local pbs_exec_info_file_name=${g_working_dir}/StructuralPreprocessingHCP.XNAT.execinfo
+	echo "PBS_JOBID: ${PBS_JOBID}" > ${pbs_exec_info_file_name}
+	echo "PBS execution node: $(hostname)" >> ${pbs_exec_info_file_name}
+}
+
 # Main processing
 #   Carry out the necessary steps to:
 #   - get prerequisite data for the Strucutral Preprocessing pipeline 
@@ -573,6 +585,8 @@ get_parameters_for_second_t2w_scan()
 main()
 {
 	get_options $@
+
+	log_exec_info
 
 	echo "----- Platform Information: Begin -----"
 	uname -a

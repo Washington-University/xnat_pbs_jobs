@@ -13,6 +13,7 @@ import random
 # import of third-party modules
 
 # import of local modules
+import utils.os_utils as os_utils
 
 # authorship information
 __author__ = "Timothy B. Brown"
@@ -33,12 +34,16 @@ class BatchSubmitter(abc.ABC):
     @property
     def MIN_SHADOW_NUMBER(self):
         """Minimum shadow server number."""
-        return 1
+        # return 1
+        min_shadow_str=os_utils.getenv_required("XNAT_PBS_JOBS_MIN_SHADOW")
+        return int(min_shadow_str)
 
     @property
     def MAX_SHADOW_NUMBER(self):
         """Maximum shadow server number."""
-        return 2
+        # return 2
+        max_shadow_str=os_utils.getenv_required("XNAT_PBS_JOBS_MAX_SHADOW")
+        return int(max_shadow_str)
 
     @property
     def BAD_SHADOW_LIST(self):
@@ -46,8 +51,8 @@ class BatchSubmitter(abc.ABC):
         List of shadow numbers in the MIN_SHADOW_NUMBER to MAX_SHADOW_NUMBER range that are
         currently unusable.
 
-        NB: If this list contains all number from MIN_SHADOW_NUMBER to MAX_SHADOW_NUMBER, then
-        the get_and_inc_shadow_number method will go into infinte recursion. So...DON"T DO THAT!
+        NB: If this list contains all numbers from MIN_SHADOW_NUMBER to MAX_SHADOW_NUMBER, then
+        the get_and_inc_shadow_number method will go into infinte recursion. So...DO NOT DO THAT!
         """
         bad_shadow_list = list()
         return bad_shadow_list
