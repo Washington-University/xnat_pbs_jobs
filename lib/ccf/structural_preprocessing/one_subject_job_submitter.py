@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""ccf.structural_preprocessing.one_subject_job_submitter
+
+Submit jobs for running CCF Structural Preprocessing pipeline on one subject.
+
+"""
 
 # import of built-in modules
 import contextlib
@@ -118,7 +123,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         return self.scripts_start_name + '.XNAT_CREATE_FREESURFER_ASSESSOR_job.sh'
 
     def create_get_data_job_script(self):
-        """Create the script to be submitted to perform the get data job"""
+        """Create the script to be submitted to perform the retrieval of the data for processing."""
         module_logger.debug(debug_utils.get_name())
 
         script_name = self.get_data_job_script_name
@@ -422,21 +427,3 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             module_logger.info("freesurfer assessor job not submitted")
             return standard_process_data_jobno, all_process_data_jobs
 
-    def mark_running_status(self, stage):
-        module_logger.debug(debug_utils.get_name())
-
-        if stage > ccf_processing_stage.ProcessingStage.PREPARE_SCRIPTS:
-            mark_cmd = self._xnat_pbs_jobs_home
-            mark_cmd += os.sep + self.PIPELINE_NAME 
-            mark_cmd += os.sep + self.PIPELINE_NAME
-            mark_cmd += '.XNAT_MARK_RUNNING_STATUS' 
-            mark_cmd += ' --project=' + self.project
-            mark_cmd += ' --subject=' + self.subject
-            mark_cmd += ' --classifier=' + self.classifier
-            mark_cmd += ' --queued'
-
-            completed_mark_cmd_process = subprocess.run(
-                mark_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
-            print(completed_mark_cmd_process.stdout)
-            
-            return

@@ -80,6 +80,37 @@ class BatchSubmitter(abc.ABC):
         else:
             return current
 
+    def check_already_queued(self, subject, run_status_checker):
+        """Check whether jobs are already queued and report.
+
+        Note:
+            In addition to checking the running status, this method also
+            reports information to the user if jobs are already queued
+            or running.
+
+        Args:
+            subject: CCF subject to check
+            run_status_checker: (OneSubjectRunStatusChecker) 
+        
+        Returns:
+            True if jobs are already queued or running for the specified subject
+            False otherwise
+
+        """
+
+        if run_status_checker.get_queued_or_running(subject):
+            print("-----")
+            print("\t NOT SUBMITTING JOBS FOR")
+            print("\t               project: " + subject.project)
+            print("\t               subject: " + subject.subject_id)
+            print("\t    session classifier: " + subject.classifier)
+            print("\t JOBS ARE ALREADY QUEUED OR RUNNING")
+            
+            return True
+        
+        else:
+            return False
+        
     @abc.abstractmethod
     def submit_jobs(self, subject_list):
         """

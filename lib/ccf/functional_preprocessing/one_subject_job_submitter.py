@@ -124,23 +124,3 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             
             os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
             
-    def mark_running_status(self, stage):
-        module_logger.debug(debug_utils.get_name())
-
-        if stage > ccf_processing_stage.ProcessingStage.PREPARE_SCRIPTS:
-            mark_cmd = self._xnat_pbs_jobs_home
-            mark_cmd += os.sep + self.PIPELINE_NAME
-            mark_cmd += os.sep + self.PIPELINE_NAME
-            mark_cmd += '.XNAT_MARK_RUNNING_STATUS'
-            mark_cmd += ' --project=' + self.project
-            mark_cmd += ' --subject=' + self.subject
-            mark_cmd += ' --classifier=' + self.classifier
-            mark_cmd += ' --scan=' + self.scan
-            mark_cmd += ' --queued'
-
-            completed_mark_cmd_process = subprocess.run(
-                mark_cmd, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
-            print(completed_mark_cmd_process.stdout)
-
-            return
-        

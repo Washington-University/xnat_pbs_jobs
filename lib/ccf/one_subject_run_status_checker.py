@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
+"""ccf.one_subject_run_status_checker.
 
-"""
-ccf/one_subject_run_status_checker.py: Abstract base class for an object
-that checks to see if a pipeline run is currently submitted or running
-for one subject.
+This module contains the abstract base class for an object that checks to see if
+a pipeline run is currently submitted or running for one subject.
+
 """
 
 # import of built-in modules
@@ -61,6 +61,7 @@ class OneSubjectRunStatusChecker(abc.ABC):
     importantly, can be very time consuming to run.  Thus it is acceptable for a
     subclass of this abstract class to either not implement the get_run_status
     method or implement it such that it returns some string such as 'IDONTKNOW'.
+
     """
 
     def __init__(self):

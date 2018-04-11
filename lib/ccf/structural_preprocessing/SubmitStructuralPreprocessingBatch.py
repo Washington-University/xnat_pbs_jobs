@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""ccf.structural_preprocessing.SubmitStructuralPreprocessingBatch.
+
+This module contains the class with the responsibility to submit
+structural preprocessing jobs for a batch of subjects.
+
+"""
 
 # import of built-in modules
 import logging
@@ -29,28 +35,35 @@ module_logger.setLevel(logging.WARNING)
 
 
 class BatchSubmitter(batch_submitter.BatchSubmitter):
-
+    """Submitter of structural preprocessing jobs for a batch of subjects."""
+    
     def __init__(self):
         super().__init__(ccf_archive.CcfArchive())
 
     def submit_jobs(self, username, password, subject_list, config):
+        """Submit structural preprocessing jobs for the listed subjects.
+        
+        Args:
+            username (str): XNAT database username
+            password (str): XNAT database password
+            subject_list (sequence) CCF subjects
+            config: (MyConfigParser) for retrieving processing configuration
+                attributes
 
+        """
+
+        # create status checker and job submitter for one subject
+        run_status_checker = one_subject_run_status_checker.OneSubjectRunStatusChecker()
+        
+        submitter = one_subject_job_submitter.OneSubjectJobSubmitter(
+            self._archive, self._archive.build_home)
+        
         # submit jobs for the listed subjects
         for subject in subject_list:
 
-            run_status_checker = one_subject_run_status_checker.OneSubjectRunStatusChecker()
-            if run_status_checker.get_queued_or_running(subject):
-                print("-----")
-                print("\t NOT SUBMITTING JOBS FOR")
-                print("\t               project: " + subject.project)
-                print("\t               subject: " + subject.subject_id)
-                print("\t    session classifier: " + subject.classifier)
-                print("\t JOBS ARE ALREADY QUEUED OR RUNNING")
+            if self.check_already_queued(subject, run_status_checker):
                 continue
             
-            submitter = one_subject_job_submitter.OneSubjectJobSubmitter(
-                self._archive, self._archive.build_home)
-
             put_server = 'http://intradb-shadow'
             put_server += str(self.get_and_inc_shadow_number())
             put_server += '.nrg.mir:8080'
@@ -108,6 +121,14 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 
             
 def do_submissions(userid, password, subject_list):
+    """Do the submission of jobs for a specified list of subjects.
+
+    Args:
+        userid (str): XNAT database userid/username
+        password (str): XNAT database password
+        subject_list (sequence): CCF subjects for which to submit jobs
+
+    """
 
     # read the configuration file
     config_file_name = file_utils.get_config_file_name(__file__)
@@ -122,9 +143,9 @@ def do_submissions(userid, password, subject_list):
             
 if __name__ == '__main__':
 
-    logging.config.fileConfig(
-        file_utils.get_logging_config_file_name(__file__),
-        disable_existing_loggers=False)
+    logging_config_file_name = file_utils.get_logging_config_file_name(__file__)
+    print("Getting logging configuration from: " + logging_config_file_name)
+    logging.config.fileConfig(logging_config_file_name, disable_existing_loggers=False)
 
     # get Database credentials
     xnat_server = os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER')
