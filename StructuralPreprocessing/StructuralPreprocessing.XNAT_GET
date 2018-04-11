@@ -131,7 +131,15 @@ main()
 	log_Msg "Activating Python 3"
 	source activate python3 2>&1
 
+	log_Msg "Making tmp directory for data retrieval: ${g_working_dir}/tmp"
 	mkdir -p ${g_working_dir}/tmp
+	log_Msg "Made tmp directory: ${g_working_dir}/tmp"
+	ls -ld ${g_working_dir}/tmp
+
+	log_Msg "---------------------------------"
+	log_Msg "Contents of tmp directory follow:"
+	log_Msg "---------------------------------"
+	ls ${g_working_dir}/tmp
 	
 	log_Msg "Getting CinaB-Style data"
 	${XNAT_PBS_JOBS}/lib/ccf/get_cinab_style_data.py \
@@ -141,8 +149,18 @@ main()
 		--study-dir=${g_working_dir}/tmp \
 		--phase=struct_preproc_prereqs \
 		--remove-non-subdirs
+	log_Msg "Got CinaB-Style data"
+
+	log_Msg "---------------------------------"
+	log_Msg "Contents of tmp directory follow:"
+	log_Msg "---------------------------------"
+	ls ${g_working_dir}/tmp
+
 	
+	log_Msg "Moving files"
 	mv ${g_working_dir}/tmp/* ${g_working_dir}
+
+	log_Msg "Removing tmp dir"
 	rmdir ${g_working_dir}/tmp
 	
 	log_Msg "Complete"

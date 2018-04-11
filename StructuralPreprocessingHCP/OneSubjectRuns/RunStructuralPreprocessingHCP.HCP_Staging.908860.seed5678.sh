@@ -11,7 +11,7 @@ stty echo
 
 seed=5678
 subject="908860"
-shadow_number=8
+shadow_number=3
 node="node016"
 
 project="HCP_Staging"
