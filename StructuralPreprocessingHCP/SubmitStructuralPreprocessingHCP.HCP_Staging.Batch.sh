@@ -1,7 +1,30 @@
 #!/bin/bash
 
+SCRIPT_NAME=`basename ${0}`
+
+inform()
+{
+	msg=${1}
+	echo "${SCRIPT_NAME}: ${msg}"
+}
+
 if [ -z "${SUBJECT_FILES_DIR}" ]; then
-	echo "Environment variable SUBJECT_FILES_DIR must be set!"
+	inform "Environment variable SUBJECT_FILES_DIR must be set!"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS must be set!"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS_MIN_SHADOW}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS_MIN_SHADOW must be set!"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS_MAX_SHADOW}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS_MAX_SHADOW must be set!"
 	exit 1
 fi
 
@@ -20,14 +43,24 @@ echo "generator seed will be used."
 printf "Random Number Generator Seed []: "
 read seed
 
-project="HCP_Staging"
+DEFAULT_PROJECT=HCP_Staging
+
+echo "If you do not specify a project, then the default project: ${DEFAULT_PROJECT}"
+echo "will be used."
+printf "project: "
+read project
+
+if [ -z "${project}" ]; then
+	project=${DEFAULT_PROJECT}
+fi
+
 subject_file_name="${SUBJECT_FILES_DIR}/${project}.StructuralPreprocessingHCP.subjects"
 echo "Retrieving subject list from: ${subject_file_name}"
 subject_list_from_file=( $( cat ${subject_file_name} ) )
 subjects="`echo "${subject_list_from_file[@]}"`"
 
-start_shadow_number=1
-max_shadow_number=8
+start_shadow_number=${XNAT_PBS_JOBS_MIN_SHADOW}
+max_shadow_number=${XNAT_PBS_JOBS_MAX_SHADOW}
 
 shadow_number=${start_shadow_number}
 

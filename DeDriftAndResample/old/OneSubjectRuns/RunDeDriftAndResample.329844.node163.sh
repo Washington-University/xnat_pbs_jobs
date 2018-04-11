@@ -1,5 +1,23 @@
 #!/bin/bash
 
+SCRIPT_NAME=`basename ${0}`
+
+inform()
+{
+	msg=${1}
+	echo "${SCRIPT_NAME}: ${msg}"
+}
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS must be set!"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS_MAX_SHADOW}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS_MAX_SHADOW must be set!"
+	exit 1
+fi
+
 printf "Connectome DB Username: "
 read userid
 
@@ -11,7 +29,7 @@ stty echo
 
 subject="329844"
 node="node163"
-shadow_number=8
+shadow_number=${XNAT_PBS_JOBS_MAX_SHADOW}
 
 project="HCP_Staging"
 server="db-shadow${shadow_number}.nrg.mir:8080"
@@ -27,7 +45,7 @@ echo "--------------------------------------------------------------------------
 
 at now <<EOF
 
-${HOME}/pipeline_tools/xnat_pbs_jobs/DeDriftAndResample/RunDeDriftAndResample.OneSubject.sh \
+${XNAT_PBS_JOBS}/DeDriftAndResample/RunDeDriftAndResample.OneSubject.sh \
 	--user=${userid} \
 	--password=${password} \
 	--server=${server} \

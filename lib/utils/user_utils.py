@@ -22,19 +22,19 @@ def should_proceed():
     return proceed == 'y' or proceed == 'yes'
 
 
-def get_credentials_from_security_file(system_id):
+def get_credentials_from_credentials_file(system_id):
 
     home_dir = os.getenv('HOME')
     if not home_dir:
         return (None, None)
 
-    security_file_name = home_dir + os.sep + '.' + system_id + '.security_file'
+    credentials_file_name = home_dir + os.sep + '.' + system_id + '.credentials'
 
-    if not os.path.isfile(security_file_name):
+    if not os.path.isfile(credentials_file_name):
         return (None, None)
     
     config = my_configparser.MyConfigParser()
-    config.read(security_file_name)
+    config.read(credentials_file_name)
 
     username = config.get_value(system_id, 'Username')
     password = config.get_value(system_id, 'Password')
@@ -43,7 +43,7 @@ def get_credentials_from_security_file(system_id):
 
 def get_credentials(system_id):
 
-    userid, password = get_credentials_from_security_file(system_id)
+    userid, password = get_credentials_from_credentials_file(system_id)
 
     if userid:
         return (userid, password)

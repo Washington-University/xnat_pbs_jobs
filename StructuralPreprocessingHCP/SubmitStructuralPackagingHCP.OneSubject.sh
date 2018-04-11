@@ -1,5 +1,18 @@
 #!/bin/bash
 
+SCRIPT_NAME=`basename ${0}`
+
+inform()
+{
+	msg=${1}
+	echo "${SCRIPT_NAME}: ${msg}"
+}
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS must be set!"
+	exit 1
+fi
+
 # main build directory
 BUILD_HOME="/HCP/hcpdb/build_ssd/chpc/BUILD"
 echo "BUILD_HOME: ${BUILD_HOME}"
@@ -106,7 +119,7 @@ main()
 	echo "#PBS -o ${XNAT_PBS_JOBS_LOG_DIR}" >> ${script_file_to_submit}
 	echo "#PBS -e ${XNAT_PBS_JOBS_LOG_DIR}" >> ${script_file_to_submit}
 	echo "" >> ${script_file_to_submit}
-	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/StructuralPackagingHCP.sh \\" >> ${script_file_to_submit}
+	echo "${XNAT_PBS_JOBS}/StructuralPreprocessingHCP/StructuralPackagingHCP.sh \\" >> ${script_file_to_submit}
 	echo "  --user=\"${g_user}\" \\" >> ${script_file_to_submit}
 	echo "  --password=\"${g_password}\" \\" >> ${script_file_to_submit}
 	echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}

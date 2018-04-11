@@ -3,12 +3,25 @@
 # This pipeline's name 
 PIPELINE_NAME="StructuralPreprocessingHCP"
 
+SCRIPT_NAME=`basename ${0}`
+
+inform()
+{
+	msg=${1}
+	echo "${SCRIPT_NAME}: ${msg}"
+}
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS must be set!"
+	exit 1
+fi
+
 # home directory for XNAT pipeline engine installation
-XNAT_PIPELINE_HOME=${HOME}/pipeline
+XNAT_PIPELINE_HOME=/export/HCP/pipeline
 echo "XNAT_PIPELINE_HOME: ${XNAT_PIPELINE_HOME}"
 
 # home directory for XNAT utilities
-XNAT_UTILS_HOME=${HOME}/pipeline_tools/xnat_utilities
+XNAT_UTILS_HOME=/export/HCP/xnat_utilities
 echo "XNAT_UTILS_HOME: ${XNAT_UTILS_HOME}"
 
 # main build directory
@@ -154,6 +167,11 @@ get_options()
 main()
 {
 	get_options $@
+	
+	if [ -z ${SCRIPTS_HOME} ]; then
+		echo "Environment variable SCRIPTS_HOME must be set!"
+		exit 1
+	fi
 
 	# Get token user id and password
 	echo "Setting up to run Python"
@@ -228,7 +246,7 @@ main()
 	echo "#PBS -o ${working_directory_name}" >> ${script_file_to_submit}
 	echo "#PBS -e ${working_directory_name}" >> ${script_file_to_submit}
 	echo "" >> ${script_file_to_submit}
-	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/StructuralPreprocessingHCP/StructuralPreprocessingHCP.XNAT.sh \\" >> ${script_file_to_submit}
+	echo "${XNAT_PBS_JOBS}/StructuralPreprocessingHCP/StructuralPreprocessingHCP.XNAT.sh \\" >> ${script_file_to_submit}
 	echo "  --user=\"${token_username}\" \\" >> ${script_file_to_submit}
 	echo "  --password=\"${token_password}\" \\" >> ${script_file_to_submit}
 	echo "  --server=\"${g_server}\" \\" >> ${script_file_to_submit}
@@ -272,7 +290,7 @@ main()
  	echo "#PBS -o ${XNAT_PBS_JOBS_LOG_DIR}" >> ${put_script_file_to_submit}
  	echo "#PBS -e ${XNAT_PBS_JOBS_LOG_DIR}" >> ${put_script_file_to_submit}
  	echo "" >> ${put_script_file_to_submit}
- 	echo "/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
+ 	echo "${XNAT_PBS_JOBS}/WorkingDirPut/XNAT_working_dir_put.sh \\" >> ${put_script_file_to_submit}
  	echo "  --user=\"${token_username}\" \\" >> ${put_script_file_to_submit}
  	echo "  --password=\"${token_password}\" \\" >> ${put_script_file_to_submit}
 	echo "  --server=\"${g_put_server}\" \\" >> ${put_script_file_to_submit}

@@ -68,8 +68,7 @@ Usage: StructuralPreprocessingHCP.XNAT_PROCESS <options>
    --working-dir=<dir>      : Working directory in which to place retrieved data
                               and in which to produce results
    --setup-script=<script>  : Full path to script to source to set up environment before running
-                              HCP Pipeline Scripts. If unspecified the default value of:
-                              ${DEFAULT_SETUP_SCRIPT} is used.
+                              HCP Pipeline Scripts. 
    --first-t1w-directory-name=<directory-name>
                             : TBW
    --first-t1w-resource-name=<resource-name>
@@ -646,6 +645,8 @@ does_first_t1w_scan_exist()
 	echo ${does_it_exist}
 }
 
+UNPROC_SUFFIX="_unproc"
+
 get_parameters_for_first_t1w_scan() 
 {
 	g_first_t1w_sample_spacing=""
@@ -661,12 +662,24 @@ get_parameters_for_first_t1w_scan()
 
 	g_first_t1w_sample_spacing=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${first_t1w_file} -k DwellTime)
 	log_Msg "g_first_t1w_sample_spacing: ${g_first_t1w_sample_spacing}"
-	sample_spacing_in_secs=`echo "${g_first_t1w_sample_spacing}" | awk '{printf "%.9f", $1}'`
-	log_Msg "sample_spacing_in_secs: ${sample_spacing_in_secs}"
-	
-	g_first_t1w_sample_spacing=${sample_spacing_in_secs}
-	log_Msg "g_first_t1w_sample_spacing: ${g_first_t1w_sample_spacing}"
 
+	if [ -z "${g_first_t1w_sample_spacing}" ] ; then
+		log_Msg "We WERE NOT able to get the first t1w sample spacing value from a sidecar JSON file"
+		g_first_t1w_sample_spacing=`get_scan_data "${FIRST_T1W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${FIRST_T1W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}" "parameters/readoutSampleSpacing"`
+		sample_spacing_in_secs=`echo "${g_first_t1w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
+		g_first_t1w_sample_spacing=${sample_spacing_in_secs}
+		echo "g_first_t1w_sample_spacing: ${g_first_t1w_sample_spacing}"
+
+	else
+		log_Msg "We WERE able to get the first t1w sample spacing value from a sidecar JSON file"
+		sample_spacing_in_secs=`echo "${g_first_t1w_sample_spacing}" | awk '{printf "%.9f", $1}'`
+		log_Msg "sample_spacing_in_secs: ${sample_spacing_in_secs}"
+	
+		g_first_t1w_sample_spacing=${sample_spacing_in_secs}
+		log_Msg "g_first_t1w_sample_spacing: ${g_first_t1w_sample_spacing}"
+		
+	fi
+	
 	if [[ ("${g_fieldmap_type}" = "GE") || ("${g_fieldmap_type}" = "SiemensGradientEcho") ]] ; then
 
 		# I'd like to be getting this value the same way as above and below, using the get_json_meta_data application.
@@ -675,18 +688,15 @@ get_parameters_for_first_t1w_scan()
 		# (like DwellTime above, and EffectiveEchoSpacing below) that I should use to the this needed
 		# scan meta data.
 
-		# Here is how it is done using the get_scan_data bash function (which you will find in older versions of this script)
-		#g_first_t1w_deltaTE=`get_scan_data "${g_first_t1w_resource_name}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
-		#log_Msg "g_first_t1w_deltaTE: ${g_first_t1w_deltaTE}"
+		# Here is how it is done using the get_scan_data bash function 
+		g_first_t1w_deltaTE=`get_scan_data "${g_first_t1w_resource_name}" "${g_session}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}" "parameters/deltaTE"`
+		log_Msg "g_first_t1w_deltaTE: ${g_first_t1w_deltaTE}"
 		
 		# Here is how it should be done using the get_json_meta_data.sh script. Except the I_DONT_KNOW will have to be changed to the actual key.
 		#local mag_fieldmap_name
 		#mag_fieldmap_name="${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${FIRST_T1W_FILE_NAME_BASE}/${g_subject}_${g_session_classifier}_${MAG_FIELDMAP_NAME}${COMPRESSED_NIFTI_EXTENSION}"
 		#g_first_t1w_deltaTE=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${mag_fieldmap_name} -k I_DONT_KNOW)
 		#log_Msg "g_first_t1w_deltaTE: ${g_first_t1w_deltaTE}"
-
-		# For now I'm going to abort with an error message indicating that this is not supported in this script.
-		log_Err_Abort "Field Map Type SiemensGradientEcho is not supported by this script yet. See the comments in the script just prior to this abort operation."
 
 
 	elif [[ ("${g_fieldmap_type}" = "SE") || ("${g_fieldmap_type}" = "SpinEcho") ]] ; then
@@ -733,11 +743,25 @@ get_parameters_for_first_t2w_scan()
 
 	g_first_t2w_sample_spacing=$(${XNAT_PBS_JOBS}/lib/utils/get_json_meta_data.sh -f ${first_t2w_file} -k DwellTime)
 	log_Msg "g_first_t2w_sample_spacing: ${g_first_t2w_sample_spacing}"
-	sample_spacing_in_secs=`echo "${g_first_t2w_sample_spacing}" | awk '{printf "%.9f", $1}'`
-	log_Msg "sample_spacing_in_secs: ${sample_spacing_in_secs}"
+
+	if [ -z "${g_first_t2w_sample_spacing}" ] ; then
+		log_Msg "We WERE NOT able to get the first t2w sample spacing value from a sidecar JSON file"
+
+		g_first_t2w_sample_spacing=`get_scan_data "${FIRST_T2W_FILE_NAME_BASE}${UNPROC_SUFFIX}" "${g_session}_${FIRST_T2W_FILE_NAME_BASE}${COMPRESSED_NIFTI_EXTENSION}" "parameters/readoutSampleSpacing"`
+		sample_spacing_in_secs=`echo "${g_first_t2w_sample_spacing} 1000000000.0" | awk '{printf "%.9f", $1/$2}'`
+		g_first_t2w_sample_spacing=${sample_spacing_in_secs}
+		echo "g_first_t2w_sample_spacing: ${g_first_t2w_sample_spacing}"
+		
+	else
+		log_Msg "We WERE able to get the first t2w sample spacing value from a sidecar JSON file"
 	
-	g_first_t2w_sample_spacing=${sample_spacing_in_secs}
-	log_Msg "g_first_t2w_sample_spacing: ${g_first_t2w_sample_spacing}"
+		sample_spacing_in_secs=`echo "${g_first_t2w_sample_spacing}" | awk '{printf "%.9f", $1}'`
+		log_Msg "sample_spacing_in_secs: ${sample_spacing_in_secs}"
+	
+		g_first_t2w_sample_spacing=${sample_spacing_in_secs}
+		log_Msg "g_first_t2w_sample_spacing: ${g_first_t2w_sample_spacing}"
+
+	fi
 }
 
 does_second_t2w_scan_exist()
@@ -765,6 +789,16 @@ do_gradient_echo_field_maps_exist()
 	fi
 }
 
+get_scan_data() 
+{
+	local resource_name="${1}"
+	local file_name="${2}"
+	local item_name="${3}"
+
+	local result=`${XNAT_UTILS_HOME}/xnat_scan_info -s "${XNAT_PBS_JOBS_XNAT_SERVER}" -u ${g_user} -p ${g_password} -pr ${g_project} -su ${g_subject} -se ${g_session} -r "${resource_name}" get_data -f "${file_name}" -i "${item_name}"`
+	echo ${result}
+}
+
 # Main processing
 main()
 {
@@ -776,6 +810,8 @@ main()
 	show_platform_info
 	
 	get_options "$@"
+
+	log_execution_info ${g_working_dir}/$(basename "${0}").execinfo
 
 	create_start_time_file ${g_working_dir} ${g_pipeline_name}
 

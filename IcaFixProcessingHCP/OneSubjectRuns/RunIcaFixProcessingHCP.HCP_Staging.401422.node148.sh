@@ -1,8 +1,27 @@
 #!/bin/bash
 
+SCRIPT_NAME=`basename ${0}`
+
+inform()
+{
+	msg=${1}
+	echo "${SCRIPT_NAME}: ${msg}"
+}
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS must be set!"
+	exit 1
+fi
+
+if [ -z "${XNAT_PBS_JOBS_MAX_SHADOW}" ]; then
+	inform "Environment variable XNAT_PBS_JOBS_MAX_SHADOW must be set!"
+	exit 1
+fi
+
+
 subject="401422"
 node="node148"
-shadow_number=8
+shadow_number=${XNAT_PBS_JOBS_MAX_SHADOW}
 
 printf "Connectome DB Username: "
 read userid
@@ -26,13 +45,13 @@ echo "--------------------------------------------------------------------------
 
 at now <<EOF
 
-/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/IcaFixProcessingHCP/RunIcaFixProcessingHCP.OneSubject.sh \
+${XNAT_PBS_JOBS}/IcaFixProcessingHCP/RunIcaFixProcessingHCP.OneSubject.sh \
 	--user=${userid} \
 	--password=${password} \
 	--server=${server} \
 	--project=${project} \
 	--subject=${subject} \
 	--node=${node} \
-	> /home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/IcaFixProcessingHCP/OneSubjectRuns/${subject}.${node}.stdout \
-	2>/home/HCPpipeline/pipeline_tools/xnat_pbs_jobs/IcaFixProcessingHCP/OneSubjectRuns/${subject}.${node}.stderr
+	> ${XNAT_PBS_JOBS}/IcaFixProcessingHCP/OneSubjectRuns/${subject}.${node}.stdout \
+	2>${XNAT_PBS_JOBS}/IcaFixProcessingHCP/OneSubjectRuns/${subject}.${node}.stderr
 EOF
