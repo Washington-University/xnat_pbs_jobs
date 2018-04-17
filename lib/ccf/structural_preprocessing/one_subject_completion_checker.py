@@ -977,8 +977,9 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
         l.append(os.sep.join([subj_dir, 'T1w', subject_info.subject_id, 'tess1mm', 'surf']))
         l.append(os.sep.join([subj_dir, 'T1w', subject_info.subject_id, 'tess1mm', 'surf', 'lh.orig.nofix']))
         l.append(os.sep.join([subj_dir, 'T1w', subject_info.subject_id, 'tess1mm', 'surf', 'rh.orig.nofix']))
-        l.append(os.sep.join([subj_dir, 'T1w', subject_info.subject_id, 'tess1mm', 'tess1mm.Y2018.M04.D13.H16.M04.lh.log']))
-        l.append(os.sep.join([subj_dir, 'T1w', subject_info.subject_id, 'tess1mm', 'tess1mm.Y2018.M04.D13.H16.M05.rh.log']))
+        # These file names are specific to the time that the tess1mm script was run
+        # l.append(os.sep.join([subj_dir, 'T1w', subject_info.subject_id, 'tess1mm', 'tess1mm.Y2018.M04.D13.H16.M04.lh.log']))
+        # l.append(os.sep.join([subj_dir, 'T1w', subject_info.subject_id, 'tess1mm', 'tess1mm.Y2018.M04.D13.H16.M05.rh.log']))
         l.append(os.sep.join([subj_dir, 'T1w', subject_info.subject_id, 'tmp']))
         l.append(os.sep.join([subj_dir, 'T1w', subject_info.subject_id, 'touch']))
         l.append(os.sep.join([subj_dir, 'T1w', subject_info.subject_id, 'touch', 'aparc.a2009s2aseg.touch']))
