@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 g_script_name=$(basename "${0}")
 
 if [ -z "${XNAT_PBS_JOBS}" ] ; then
@@ -197,6 +196,11 @@ main()
     get_session_id_cmd="python ${XNAT_PBS_JOBS_PIPELINE_ENGINE}/catalog/ToolsHCP/resources/scripts/sessionid.py --server=${XNAT_PBS_JOBS_XNAT_SERVER} --username=${g_user} --password=${g_password} --project=${g_project} --subject=${g_subject} --session=${g_session}"
     #inform "get_session_id_cmd: ${get_session_id_cmd}"
     sessionID=$(${get_session_id_cmd})
+
+	if [[ ${sessionID} == *Cannot\ get\ response\ from\ request* ]]; then
+		inform "Cannot get session ID. Did you use the correct password?"
+		exit
+	fi
     inform "XNAT session ID: ${sessionID}"
 
     resource_url=""
