@@ -59,6 +59,15 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     #   return "PA" # Posterior-to-Anterior and Anterior to Posterior
 
     @property
+    def use_prescan_normalized(self):
+        return self._use_prescan_normalized
+
+    @use_prescan_normalized.setter
+    def use_prescan_normalized(self, value):
+        self._use_prescan_normalized = value
+        module_logger.debug(debug_utils.get_name() + ": set to " + str(self._use_prescan_normalized))
+    
+    @property
     def brain_size(self):
         return self._brain_size
 
@@ -243,11 +252,30 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         return first_t1w_name
 
+    def _get_first_t1w_norm_name(self, subject_info):
+        non_norm_name = self._get_first_t1w_name(subject_info)
+        vNav_loc = non_norm_name.find('vNav')
+        norm_name = non_norm_name[:vNav_loc] + 'vNav' + '_Norm' + non_norm_name[vNav_loc+4:]
+        return norm_name
+    
+    def _get_first_t1w_directory_name(self, subject_info):
+        first_t1w_name = self._get_first_t1w_name(subject_info)
+
+        if self.use_prescan_normalized:
+            first_t1w_directory_name = first_t1w_name + os.sep + 'OTHER_FILES'
+        else:
+            first_t1w_directory_name = first_t1w_name
+
+        return first_t1w_directory_name
+    
     def _get_first_t1w_resource_name(self, subject_info):
         return self._get_first_t1w_name(subject_info) + self.archive.NAME_DELIMITER + self.archive.UNPROC_SUFFIX
-
+    
     def _get_first_t1w_file_name(self, subject_info):
-        return self.session + self.archive.NAME_DELIMITER + self._get_first_t1w_name(subject_info) + '.nii.gz'
+        if self.use_prescan_normalized:
+            return self.session + self.archive.NAME_DELIMITER + self._get_first_t1w_norm_name(subject_info) + '.nii.gz'
+        else:
+            return self.session + self.archive.NAME_DELIMITER + self._get_first_t1w_name(subject_info) + '.nii.gz'
 
     def _get_first_t2w_name(self, subject_info):
         t2w_unproc_names = self.archive.available_t2w_unproc_names(subject_info)
@@ -255,14 +283,33 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             first_t2w_name = t2w_unproc_names[0]
         else:
             raise RuntimeError("Session has no available T2w scans")
-
+        
         return first_t2w_name
 
+    def _get_first_t2w_norm_name(self, subject_info):
+        non_norm_name = self._get_first_t2w_name(subject_info)
+        vNav_loc = non_norm_name.find('vNav')
+        norm_name = non_norm_name[:vNav_loc] + 'vNav' + '_Norm' + non_norm_name[vNav_loc+4:]
+        return norm_name
+    
+    def _get_first_t2w_directory_name(self, subject_info):
+        first_t2w_name = self._get_first_t2w_name(subject_info)
+
+        if self.use_prescan_normalized:
+            first_t2w_directory_name = first_t2w_name + os.sep + 'OTHER_FILES'
+        else:
+            first_t2w_directory_name = first_t2w_name
+
+        return first_t2w_directory_name
+    
     def _get_first_t2w_resource_name(self, subject_info):
         return self._get_first_t2w_name(subject_info) + self.archive.NAME_DELIMITER + self.archive.UNPROC_SUFFIX
 
     def _get_first_t2w_file_name(self, subject_info):
-        return self.session + self.archive.NAME_DELIMITER + self._get_first_t2w_name(subject_info) + '.nii.gz'
+        if self.use_prescan_normalized:
+            return self.sessiong + self.archive.NAME_DELIMITER + self._get_first_t2w_norm_name(subject_info) + '.nii.gz'
+        else:
+            return self.session + self.archive.NAME_DELIMITER + self._get_first_t2w_name(subject_info) + '.nii.gz'
 
     def create_process_data_job_script(self):
         module_logger.debug(debug_utils.get_name())
@@ -314,12 +361,14 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         else:
             fieldmap_type_line = '  --fieldmap-type=' + 'SiemensGradientEcho' 
             
-        first_t1w_directory_name_line = '  --first-t1w-directory-name=' + self._get_first_t1w_name(subject_info)
+        first_t1w_directory_name_line = '  --first-t1w-directory-name=' + self._get_first_t1w_directory_name(subject_info)
         first_t1w_resource_name_line  = '  --first-t1w-resource-name=' + self._get_first_t1w_resource_name(subject_info)
         first_t1w_file_name_line      = '  --first-t1w-file-name=' + self._get_first_t1w_file_name(subject_info)
-        first_t2w_directory_name_line = '  --first-t2w-directory-name=' + self._get_first_t2w_name(subject_info)
+        
+        first_t2w_directory_name_line = '  --first-t2w-directory-name=' + self._get_first_t2w_directory_name(subject_info)
         first_t2w_resource_name_line  = '  --first-t2w-resource-name=' + self._get_first_t2w_resource_name(subject_info)
         first_t2w_file_name_line      = '  --first-t2w-file-name=' + self._get_first_t2w_file_name(subject_info)
+        
         brain_size_line               = '  --brainsize=' + str(self.brain_size)
 
         t1template_line      = '  --t1template=' + self.T1W_TEMPLATE_NAME

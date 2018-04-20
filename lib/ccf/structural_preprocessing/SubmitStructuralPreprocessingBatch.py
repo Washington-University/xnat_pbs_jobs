@@ -63,7 +63,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             vmem_limit_gbs = config.get_value(subject.subject_id, 'VmemLimitGbs')
             output_resource_suffix = config.get_value(subject.subject_id, 'OutputResourceSuffix')
             brain_size = config.get_value(subject.subject_id, 'BrainSize')
-
+            use_prescan_normalized = config.get_bool_value(subject.subject_id, 'UsePrescanNormalized')
+            
             print("-----")
             print("\tSubmitting", submitter.PIPELINE_NAME, "jobs for:")
             print("\t               project:", subject.project)
@@ -76,7 +77,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             print("\t        vmem_limit_gbs:", vmem_limit_gbs)
             print("\toutput_resource_suffix:", output_resource_suffix)
             print("\t            brain_size:", brain_size)
-
+            print("\tuse_prescan_normalized:", use_prescan_normalized)
+            
             # configure one subject submitter
             
             # user and server information
@@ -90,7 +92,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter.session = subject.subject_id + '_' + subject.classifier
             submitter.classifier = subject.classifier
             submitter.brain_size = brain_size
-
+            submitter.use_prescan_normalized = use_prescan_normalized
+            
             # job parameters
             submitter.clean_output_resource_first = clean_output_first
             submitter.put_server = put_server
