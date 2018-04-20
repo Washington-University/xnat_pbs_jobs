@@ -307,7 +307,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     def _get_first_t2w_file_name(self, subject_info):
         if self.use_prescan_normalized:
-            return self.sessiong + self.archive.NAME_DELIMITER + self._get_first_t2w_norm_name(subject_info) + '.nii.gz'
+            return self.session + self.archive.NAME_DELIMITER + self._get_first_t2w_norm_name(subject_info) + '.nii.gz'
         else:
             return self.session + self.archive.NAME_DELIMITER + self._get_first_t2w_name(subject_info) + '.nii.gz'
 
