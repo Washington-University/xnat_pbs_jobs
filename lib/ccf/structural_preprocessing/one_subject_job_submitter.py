@@ -156,6 +156,10 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             script.write('  --scan=' + self.scan + ' \\' + os.linesep)
             
         script.write('  --working-dir=' + self.working_directory_name + ' \\' + os.linesep)
+
+        if self.use_prescan_normalized:
+            script.write('  --use-prescan-normalized' + ' \\' + os.linesep)
+        
         script.write('  --delay-seconds=120' + os.linesep)
         
         script.close()
@@ -260,13 +264,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     
     def _get_first_t1w_directory_name(self, subject_info):
         first_t1w_name = self._get_first_t1w_name(subject_info)
-
-        if self.use_prescan_normalized:
-            first_t1w_directory_name = first_t1w_name + os.sep + 'OTHER_FILES'
-        else:
-            first_t1w_directory_name = first_t1w_name
-
-        return first_t1w_directory_name
+        return first_t1w_name
     
     def _get_first_t1w_resource_name(self, subject_info):
         return self._get_first_t1w_name(subject_info) + self.archive.NAME_DELIMITER + self.archive.UNPROC_SUFFIX
@@ -294,13 +292,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     
     def _get_first_t2w_directory_name(self, subject_info):
         first_t2w_name = self._get_first_t2w_name(subject_info)
-
-        if self.use_prescan_normalized:
-            first_t2w_directory_name = first_t2w_name + os.sep + 'OTHER_FILES'
-        else:
-            first_t2w_directory_name = first_t2w_name
-
-        return first_t2w_directory_name
+        return first_t2w_name
     
     def _get_first_t2w_resource_name(self, subject_info):
         return self._get_first_t2w_name(subject_info) + self.archive.NAME_DELIMITER + self.archive.UNPROC_SUFFIX

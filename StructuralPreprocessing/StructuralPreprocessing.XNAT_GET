@@ -26,6 +26,7 @@ PARAMETERs are [ ] = optional; < > = user supplied value
    --classifier=<classifier> : XNAT session classifier (e.g. 3T, 7T, MR, V1, V2, etc.)
    --working-dir=<dir>       : Working directory in which to place retrieved data
                                and in which to produce results
+   --use-prescan-normalized  : Use the prescan normalized versions of the T1w and T2w scans
 
 EOF
 }
@@ -39,6 +40,7 @@ get_options()
 	unset g_subject
 	unset g_classifier
 	unset g_working_dir
+	g_use_prescan_normalized="FALSE"
 	g_delay_seconds=0
 	
 	# parse arguments
@@ -72,6 +74,10 @@ get_options()
 				;;
 			--delay-seconds=*)
 				g_delay_seconds=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--use-prescan-normalized)
+				g_use_prescan_normalized="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -108,6 +114,8 @@ get_options()
 	fi
 
 	log_Msg "g_delay_seconds: ${g_delay_seconds}"
+
+	log_Msg "g_use_prescan_normalized: ${g_use_prescan_normalized}"
 	
 	if [ ! -z "${error_msgs}" ]; then
 		usage
@@ -162,6 +170,34 @@ main()
 
 	log_Msg "Removing tmp dir"
 	rmdir ${g_working_dir}/tmp
+
+	if [ "${g_used_prescan_normalized}" = "TRUE" ]; then
+		log_Msg "Setting up symlinks to enable use of prescan normalized scans"
+
+		pushd ${g_working_dir}/${g_subject}/unprocessed/${g_classifier}
+
+		t1dirs=$(ls -d T1w*)
+		for t1dir in ${t1dirs} ; do
+			pushd ${t1dir}
+			other_files=$(ls OTHER_FILES)
+			for other_file in ${other_files} ; do
+				ln -s OTHER_FILES/${other_file}
+			done
+			popd
+		done
+
+		t2dirs=$(ls -d T2w*)
+		for t2dir in ${t2dirs} ; do
+			pushd ${t2dir}
+			other_files=$(ls OTHER_FILES)
+			for other_file in ${other_files} ; do
+				ln -s OTHER_FILES/${other_file}
+			done
+			popd
+		done
+
+		popd
+	fi
 	
 	log_Msg "Complete"
 }
