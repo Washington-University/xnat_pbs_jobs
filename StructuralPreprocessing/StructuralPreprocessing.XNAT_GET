@@ -171,7 +171,7 @@ main()
 	log_Msg "Removing tmp dir"
 	rmdir ${g_working_dir}/tmp
 
-	if [ "${g_used_prescan_normalized}" = "TRUE" ]; then
+	if [ "${g_use_prescan_normalized}" = "TRUE" ]; then
 		log_Msg "Setting up symlinks to enable use of prescan normalized scans"
 
 		pushd ${g_working_dir}/${g_subject}/unprocessed/${g_classifier}
