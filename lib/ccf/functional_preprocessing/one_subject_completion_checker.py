@@ -278,8 +278,12 @@ class OneSubjectCompletionChecker(one_subject_completion_checker.OneSubjectCompl
         l.append(os.sep.join([root_dir, scan, scan + '_gdc_warp.nii.gz']))
         l.append(os.sep.join([root_dir, scan, scan + '_mc.nii.gz']))
         l.append(os.sep.join([root_dir, scan, scan + '_nonlin_mask.nii.gz']))
-        l.append(os.sep.join([root_dir, scan, scan + '_nonlin.nii.gz']))
-        l.append(os.sep.join([root_dir, scan, scan + '_nonlin_norm.nii.gz']))
+
+        # These files are now cleaned out of the results by the pipeline code.
+
+        # l.append(os.sep.join([root_dir, scan, scan + '_nonlin.nii.gz']))
+        # l.append(os.sep.join([root_dir, scan, scan + '_nonlin_norm.nii.gz']))
+        
         l.append(os.sep.join([root_dir, scan, scan + '_nonlin_norm.wdir']))
         l.append(os.sep.join([root_dir, scan, scan + '_nonlin_norm.wdir', 'log.txt']))
         l.append(os.sep.join([root_dir, scan, scan + '_nonlin_norm.wdir', 'qa.txt']))
