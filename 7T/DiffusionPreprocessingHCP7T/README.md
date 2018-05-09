@@ -40,7 +40,9 @@ Submission of XNAT-aware Processing
 		* Set up file
 		* Wall time and virtual memory limits
 	* Must activate python3 environment to run
-		* `source activate python3`
+	    * `source ${XNAT_PBS_JOBS}/shlib/utils.shlib`
+		* `set_g_python_environment` 
+	  	* `source activate \${g_python_environment}`
 
 * `SubmitDiffusionPreprocessingHCP7TBatch.ini`
 

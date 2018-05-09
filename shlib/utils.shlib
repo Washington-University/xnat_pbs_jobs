@@ -58,3 +58,16 @@ log_execution_info()
 	echo "PBS execution node: $(hostname)" >> ${filename}
 }
 
+set_g_python_environment()
+{
+	local result
+
+	conda info --envs | grep -q ccfpython3
+	result=$?
+	
+	if [ "${result}" == "0" ] ; then
+		g_python_environment=ccfpython3
+	else
+		g_python_environment=python3
+	fi
+}

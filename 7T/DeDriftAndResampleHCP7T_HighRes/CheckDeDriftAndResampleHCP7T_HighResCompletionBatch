@@ -5,6 +5,8 @@ if [ -z "${XNAT_PBS_JOBS}" ]; then
 	exit 1
 fi
 
-source activate python3 2>/dev/null
+source ${XNAT_PBS_JOBS}/shlib/utils.shlib
+set_g_python_environment
+source activate ${g_python_environment} 2>/dev/null
 ${XNAT_PBS_JOBS}/7T/DeDriftAndResampleHCP7T_HighRes/CheckDeDriftAndResampleHCP7T_HighResCompletionBatch.py $@
 source deactivate 2>/dev/null

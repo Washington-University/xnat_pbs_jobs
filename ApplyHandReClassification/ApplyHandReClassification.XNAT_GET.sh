@@ -8,6 +8,14 @@ inform()
 	echo "${g_script_name}: ${msg}"
 }
 
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	inform "ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
+source ${XNAT_PBS_JOBS}/shlib/utils.shlib
+
 usage()
 {
 	cat <<EOF
@@ -116,7 +124,9 @@ main()
 
 	# Link CinaB-style data
 	inform "Activating Python 3"
-	source activate python3 2>&1
+
+	set_g_python_environment
+	source activate ${g_python_environment} 2>&1
 
 	inform "Getting CinaB-Style 3T data"
 	${g_xnat_pbs_jobs}/lib/hcp/hcp3t/get_cinab_style_data.py \

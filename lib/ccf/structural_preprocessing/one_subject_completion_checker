@@ -1,6 +1,14 @@
 #!/bin/bash
 
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	script_name=$(basename "${0}")
+	echo "${script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
 my_path=$(dirname "${0}")
-source activate python3 2>/dev/null
+source ${XNAT_PBS_JOBS}/shlib/utils.shlib
+set_g_python_environment
+source activate ${g_python_environment} 2>/dev/null
 ${my_path}/one_subject_completion_checker.py $@
 source deactivate 2>/dev/null

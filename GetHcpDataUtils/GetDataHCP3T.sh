@@ -92,12 +92,20 @@ get_options()
 	fi
 }
 
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	inform "XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
+source ${XNAT_PBS_JOBS}/shlib/utils.shlib
+
 main()
 {
 	get_options $@
 
 	inform "Setting up to run Python 3"
-	source activate python3
+	set_g_python_environment
+	source activate ${g_python_environment}
 
 	inform "Getting CinaB-Style data"
 	${g_xnat_pbs_jobs}/lib/hcp/hcp3t/get_cinab_style_data.py \

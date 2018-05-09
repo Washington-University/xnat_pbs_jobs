@@ -5,6 +5,8 @@ if [ -z "${XNAT_PBS_JOBS}" ]; then
 	exit 1
 fi
 
+source ${XNAT_PBS_JOBS}/shlib/utils.shlib
+
 #
 # See http://docutils.sourceforge.net/docs/user/odt.html#defining-and-using-a-custom-stylesheet
 #
@@ -15,7 +17,8 @@ output_dir=generated
 mkdir -p ${output_dir}
 content_files=$(ls *.rst)
 
-source activate python3
+set_g_python_environment
+source activate ${g_python_environment}
 
 for content_file in ${content_files} ; do
 

@@ -181,7 +181,8 @@ main()
 	get_options "$@"
 
 	log_Msg "Activating Python 3"
-	source activate python3 2>&1
+	set_g_python_environment
+	source activate ${g_python_environment} 2>&1
 
 	log_file_name="$(basename ${0}).log"
 	log_Msg "log_file_name: ${log_file_name}"
