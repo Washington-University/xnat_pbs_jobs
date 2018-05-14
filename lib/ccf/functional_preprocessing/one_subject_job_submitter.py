@@ -86,6 +86,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         stdout_line = '#PBS -o ' + self.working_directory_name
         stderr_line = '#PBS -e ' + self.working_directory_name
 
+        xnat_pbs_setup_line = 'source ' + self._get_xnat_pbs_setup_script_path() + ' ' + self._get_db_name()
+
         script_line      = processing_script_dest_path
         user_line        = '  --user=' + self.username
         password_line    = '  --password=' + self.password
@@ -106,6 +108,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             script.write(resources_line + os.linesep)
             script.write(stdout_line + os.linesep)
             script.write(stderr_line + os.linesep)
+            script.write(os.linesep)
+            script.write(xnat_pbs_setup_line + os.linesep)
             script.write(os.linesep)
             script.write(script_line +      ' \\' + os.linesep)
             script.write(user_line +        ' \\' + os.linesep)

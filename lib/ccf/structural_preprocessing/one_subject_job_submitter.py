@@ -16,6 +16,7 @@ import ccf.one_subject_job_submitter as one_subject_job_submitter
 import ccf.processing_stage as ccf_processing_stage
 import ccf.subject as ccf_subject
 import utils.debug_utils as debug_utils
+import utils.os_utils as os_utils
 import utils.str_utils as str_utils
 
 # authorship information
@@ -160,6 +161,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         script.write('#PBS -q HCPput' + os.linesep)
         script.write('#PBS -o ' + self.working_directory_name + os.linesep)
         script.write('#PBS -e ' + self.working_directory_name + os.linesep)
+        script.write(os.linesep)
+        script.write('source ' + self._get_xnat_pbs_setup_script_path() + ' ' + self._get_db_name())
         script.write(os.linesep)
         script.write(self.get_data_program_path + ' \\' + os.linesep)
         script.write('  --project=' + self.project + ' \\' + os.linesep)
@@ -353,6 +356,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         stdout_line = '#PBS -o ' + self.working_directory_name
         stderr_line = '#PBS -e ' + self.working_directory_name
 
+        xnat_pbs_setup_line = 'source ' + self._get_xnat_pbs_setup_script_path() + ' ' + self._get_db_name()
+        
         script_line    = processing_script_dest_path
         user_line      = '  --user=' + self.username
         password_line  = '  --password=' + self.password
@@ -415,6 +420,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             script.write(resources_line + os.linesep)
             script.write(stdout_line + os.linesep)
             script.write(stderr_line + os.linesep)
+            script.write(os.linesep)
+            script.write(xnat_pbs_setup_line + os.linesep)
             script.write(os.linesep)
             script.write(script_line + ' \\' + os.linesep)
             script.write(user_line + ' \\' + os.linesep)
@@ -484,7 +491,8 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         script.write('#PBS -o ' + self.working_directory_name + os.linesep)
         script.write('#PBS -e ' + self.working_directory_name + os.linesep)
         script.write(os.linesep)
-
+        script.write('source ' + self._get_xnat_pbs_setup_script_path() + ' ' + self._get_db_name() + os.linesep)
+        script.write(os.linesep)
         script_line    = freesurfer_assessor_dest_path
         user_line      = '  --user='        + self.username
         password_line  = '  --password='    + self.password

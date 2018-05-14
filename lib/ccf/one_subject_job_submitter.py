@@ -307,7 +307,21 @@ class OneSubjectJobSubmitter(abc.ABC):
         name += os.sep + self.PIPELINE_NAME
         name += os.sep + self.PIPELINE_NAME + '.XNAT_GET'
         return name
-        
+
+    def _get_xnat_pbs_setup_script_path(self):
+        return '/export/HCP/bin/xnat_pbs_setup'
+    
+    def _get_db_name(self):
+        xnat_server = os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER')
+        if xnat_server == 'db.humanconnectome.org':
+            db_name = 'connectomedb'
+        elif xnat_server == 'intradb.humanconnectome.org':
+            db_name = 'intradb'
+        else:
+            raise ValueError("Unrecognized XNAT_SERVER: " + xnat_server)
+
+        return db_name
+    
     def create_get_data_job_script(self):
         """Create the script to be submitted to perform the get data job"""
         module_logger.debug(debug_utils.get_name())
@@ -324,6 +338,8 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('#PBS -q HCPput' + os.linesep)
         script.write('#PBS -o ' + self.working_directory_name + os.linesep)
         script.write('#PBS -e ' + self.working_directory_name + os.linesep)
+        script.write(os.linesep)
+        script.write('source ' + self._get_xnat_pbs_setup_script_path() + ' ' + self._get_db_name() + os.linesep)
         script.write(os.linesep)
         script.write(self.get_data_program_path + ' \\' + os.linesep)
         script.write('  --project=' + self.project + ' \\' + os.linesep)
@@ -358,7 +374,8 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('#PBS -o ' + self.log_dir + os.linesep)
         script.write('#PBS -e ' + self.log_dir + os.linesep)
         script.write(os.linesep)
-
+        script.write('source ' + self._get_xnat_pbs_setup_script_path() + ' ' + self._get_db_name() + os.linesep)
+        script.write(os.linesep)
         script.write(self.xnat_pbs_jobs_home + os.sep + 'WorkingDirPut' + os.sep + 'XNAT_working_dir_put.sh \\' + os.linesep)
         script.write('  --leave-subject-id-level \\' + os.linesep)
         script.write('  --user="' + self.username + '" \\' + os.linesep)
@@ -496,6 +513,8 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('#PBS -o ' + self.log_dir + os.linesep)
         script.write('#PBS -e ' + self.log_dir + os.linesep)
         script.write(os.linesep)
+        script.write('source ' + self._get_xnat_pbs_setup_script_path() + ' ' + self._get_db_name() + os.linesep)
+        script.write(os.linesep)
         script.write(self.check_data_program_path + ' \\' + os.linesep)
         script.write('  --user="' + self.username + '" \\' + os.linesep)
         script.write('  --password="' + self.password + '" \\' + os.linesep)
@@ -546,6 +565,8 @@ class OneSubjectJobSubmitter(abc.ABC):
         script.write('#PBS -l nodes=1:ppn=1,walltime=4:00:00,vmem=4gb' + os.linesep)
         script.write('#PBS -o ' + self.log_dir + os.linesep)
         script.write('#PBS -e ' + self.log_dir + os.linesep)
+        script.write(os.linesep)
+        script.write('source ' + self._get_xnat_pbs_setup_script_path() + ' ' + self._get_db_name() + os.linesep)
         script.write(os.linesep)
         script.write(self.mark_running_status_program_path + ' \\' + os.linesep)
         script.write('  --project=' + self.project + ' \\' + os.linesep)
