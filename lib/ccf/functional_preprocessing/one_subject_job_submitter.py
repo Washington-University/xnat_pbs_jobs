@@ -81,7 +81,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         resources_line = '#PBS -l nodes=' + str(self.WORK_NODE_COUNT)
         resources_line += ':ppn=' + str(self.WORK_PPN)
         resources_line += ',walltime=' + walltime_limit_str
-        resources_line += ',vmem=' + vmem_limit_str
+        resources_line += ',mem=' + vmem_limit_str
         
         stdout_line = '#PBS -o ' + self.working_directory_name
         stderr_line = '#PBS -e ' + self.working_directory_name
