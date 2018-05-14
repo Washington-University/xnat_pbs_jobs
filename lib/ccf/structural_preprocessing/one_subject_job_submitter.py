@@ -83,7 +83,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         if self.project == None:
             raise ValueError("project attribute must be set before template size can be determined")
 
-        if self.project in _SEVEN_MM_TEMPLATE_PROJECTS:
+        if self.project in OneSubjectJobSubmitter._SEVEN_MM_TEMPLATE_PROJECTS:
             size_str = "0.7mm"
         else:
             size_str = "0.8mm"
