@@ -512,6 +512,9 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         module_logger.debug(debug_utils.get_name())
         super().create_scripts(stage)
 
+        if OneSubjectJobSubmitter._SUPPRESS_FREESURFER_ASSESSOR_JOB:
+            return
+
         if stage >= ccf_processing_stage.ProcessingStage.PREPARE_SCRIPTS:
             self.create_freesurfer_assessor_script()
 
@@ -523,7 +526,11 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         standard_process_data_jobno, all_process_data_jobs = super().submit_process_data_jobs(stage, prior_job)
 
-        if OneSubjectJobSubmitter._SUPPRESS_FREESURFER_ASSESSOR_JOB or stage >= ccf_processing_stage.ProcessingStage.PROCESS_DATA:
+        if OneSubjectJobSubmitter._SUPPRESS_FREESURFER_ASSESSOR_JOB:
+            module_logger.info("freesufer assessor job not submitted because freesurfer assessor creation has been suppressed")
+            return standard_process_data_jobno, all_process_data_jobs
+        
+        if stage >= ccf_processing_stage.ProcessingStage.PROCESS_DATA:
             if standard_process_data_jobno:
                 fs_submit_cmd = 'qsub -W depend=afterok:' + standard_process_data_jobno + ' ' + self.freesurfer_assessor_script_name
             else:
@@ -536,7 +543,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
             return fs_job_no, all_process_data_jobs
 
         else:
-            module_logger.info("freesurfer assessor job not submitted")
+            module_logger.info("freesurfer assessor job not submitted because of requested processing stage")
             return standard_process_data_jobno, all_process_data_jobs
 
     def mark_running_status(self, stage):
