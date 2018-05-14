@@ -31,7 +31,7 @@ module_logger.setLevel(logging.WARNING)
 
 class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
-    _SEVEN_MM_TEMPLATE_PROJECTS = ('HCP_1200', 'HCP_900', 'HCP_1200')
+    _SEVEN_MM_TEMPLATE_PROJECTS = ('HCP_500', 'HCP_900', 'HCP_1200')
     _SUPPRESS_FREESURFER_ASSESSOR_JOB = True
     
     @classmethod
@@ -94,7 +94,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
     @property
     def T1W_TEMPLATE_NAME(self):
         return "MNI152_T1_" + self._template_size_str() + ".nii.gz"
-        
+
     @property
     def T1W_TEMPLATE_BRAIN_NAME(self):
         return "MNI152_T1_" + self._template_size_str() + "_brain.nii.gz"
@@ -348,7 +348,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         resources_line = '#PBS -l nodes=' + str(self.WORK_NODE_COUNT)
         resources_line += ':ppn=' + str(self.WORK_PPN)
         resources_line += ',walltime=' + walltime_limit_str
-        resources_line += ',vmem=' + vmem_limit_str
+        resources_line += ',mem=' + vmem_limit_str
 
         stdout_line = '#PBS -o ' + self.working_directory_name
         stderr_line = '#PBS -e ' + self.working_directory_name
