@@ -31,6 +31,8 @@ module_logger.setLevel(logging.WARNING)
 
 class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
+    _SEVEN_MM_TEMPLATE_PROJECTS = ('HCP_1200', 'HCP_900', 'HCP_1200')
+
     @classmethod
     def MY_PIPELINE_NAME(cls):
         return 'StructuralPreprocessing'
@@ -77,13 +79,24 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         module_logger.debug(debug_utils.get_name() + ": set to " +
                             str(self._brain_size))
 
+    def _template_size_str(self):
+        if self.project == None:
+            raise ValueError("project attribute must be set before template size can be determined")
+
+        if self.project in _SEVEN_MM_TEMPLATE_PROJECTS:
+            size_str = "0.7mm"
+        else:
+            size_str = "0.8mm"
+
+        return size_str
+    
     @property
     def T1W_TEMPLATE_NAME(self):
-        return "MNI152_T1_0.8mm.nii.gz"
-
+        return "MNI152_T1_" + self._template_size_str() + ".nii.gz"
+        
     @property
     def T1W_TEMPLATE_BRAIN_NAME(self):
-        return "MNI152_T1_0.8mm_brain.nii.gz"
+        return "MNI152_T1_" + self._template_size_str() + "_brain.nii.gz"
 
     @property
     def T1W_TEMPLATE_2MM_NAME(self):
@@ -91,11 +104,11 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     @property
     def T2W_TEMPLATE_NAME(self):
-        return "MNI152_T2_0.8mm.nii.gz"
+        return "MNI152_T2_" + self._template_size_str() + ".nii.gz"
 
     @property
     def T2W_TEMPLATE_BRAIN_NAME(self):
-        return "MNI152_T2_0.8mm_brain.nii.gz"
+        return "MNI152_T2_" + self._template_size_str() + "_brain.nii.gz"
 
     @property
     def T2W_TEMPLATE_2MM_NAME(self):
@@ -103,7 +116,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     @property
     def TEMPLATE_MASK_NAME(self):
-        return "MNI152_T1_0.8mm_brain_mask.nii.gz"
+        return "MNI152_T1_" + self._template_size_str() + "_brain_mask.nii.gz"
 
     @property
     def TEMPLATE_2MM_MASK_NAME(self):
