@@ -32,7 +32,8 @@ module_logger.setLevel(logging.WARNING)
 class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
     _SEVEN_MM_TEMPLATE_PROJECTS = ('HCP_1200', 'HCP_900', 'HCP_1200')
-
+    _SUPPRESS_FREESURFER_ASSESSOR_JOB = True
+    
     @classmethod
     def MY_PIPELINE_NAME(cls):
         return 'StructuralPreprocessing'
@@ -522,7 +523,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
         standard_process_data_jobno, all_process_data_jobs = super().submit_process_data_jobs(stage, prior_job)
 
-        if stage >= ccf_processing_stage.ProcessingStage.PROCESS_DATA:
+        if OneSubjectJobSubmitter._SUPPRESS_FREESURFER_ASSESSOR_JOB or stage >= ccf_processing_stage.ProcessingStage.PROCESS_DATA:
             if standard_process_data_jobno:
                 fs_submit_cmd = 'qsub -W depend=afterok:' + standard_process_data_jobno + ' ' + self.freesurfer_assessor_script_name
             else:
