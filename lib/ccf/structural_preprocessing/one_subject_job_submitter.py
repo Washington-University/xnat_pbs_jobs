@@ -162,7 +162,7 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
         script.write('#PBS -o ' + self.working_directory_name + os.linesep)
         script.write('#PBS -e ' + self.working_directory_name + os.linesep)
         script.write(os.linesep)
-        script.write('source ' + self._get_xnat_pbs_setup_script_path() + ' ' + self._get_db_name())
+        script.write('source ' + self._get_xnat_pbs_setup_script_path() + ' ' + self._get_db_name() + os.linesep)
         script.write(os.linesep)
         script.write(self.get_data_program_path + ' \\' + os.linesep)
         script.write('  --project=' + self.project + ' \\' + os.linesep)
