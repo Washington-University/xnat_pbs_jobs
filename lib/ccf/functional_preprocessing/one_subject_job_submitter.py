@@ -60,11 +60,11 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
 		processing_script_dest_path = self.working_directory_name
 		processing_script_dest_path += os.sep + self.PIPELINE_NAME
-		processing_script_dest_path += '.XNAT_PROCESS'
+		processing_script_dest_path += '.XNAT_PROCESS' 
 
 		shutil.copy(processing_script_source_path, processing_script_dest_path)
 		os.chmod(processing_script_dest_path, stat.S_IRWXU | stat.S_IRWXG)
-
+	   
 		# write the process data job script (that calls the .XNAT_PROCESS script)
 
 		subject_info = ccf_subject.SubjectInfo(self.project, self.subject,
@@ -100,10 +100,10 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 		dcmethod_line    = '  --dcmethod=TOPUP'
 		topupconfig_line = '  --topupconfig=b02b0.cnf'
 		gdcoeffs_line    = '  --gdcoeffs=Prisma_3T_coeff_AS82.grad'
-
+    
 		wdir_line  = '  --working-dir=' + self.working_directory_name
 		setup_line = '  --setup-script=' + self.setup_file_name
-
+		
 		with open(script_name, 'w') as script:
 			script.write(resources_line + os.linesep)
 			script.write(stdout_line + os.linesep)
@@ -125,9 +125,9 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 			script.write(gdcoeffs_line +    ' \\' + os.linesep)
 			script.write(wdir_line + ' \\' + os.linesep)
 			script.write(setup_line + os.linesep)
-
+			
 			os.chmod(script_name, stat.S_IRWXU | stat.S_IRWXG)
-
+			
 	def mark_running_status(self, stage):
 		module_logger.debug(debug_utils.get_name())
 
@@ -136,10 +136,14 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 			mark_cmd += os.sep + self.PIPELINE_NAME
 			mark_cmd += os.sep + self.PIPELINE_NAME
 			mark_cmd += '.XNAT_MARK_RUNNING_STATUS'
+			mark_cmd += ' --user=' + self.username
+			mark_cmd += ' --password=' + self.password
+			mark_cmd += ' --server=' + str_utils.get_server_name(self.put_server)
 			mark_cmd += ' --project=' + self.project
 			mark_cmd += ' --subject=' + self.subject
 			mark_cmd += ' --classifier=' + self.classifier
 			mark_cmd += ' --scan=' + self.scan
+			mark_cmd += ' --resource=RunningStatus'
 			mark_cmd += ' --queued'
 
 			completed_mark_cmd_process = subprocess.run(
@@ -147,4 +151,3 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 			print(completed_mark_cmd_process.stdout)
 
 			return
-
