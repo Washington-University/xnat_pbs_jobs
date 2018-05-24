@@ -13,5 +13,5 @@ fi
 source ${XNAT_PBS_JOBS}/shlib/utils.shlib
 set_g_python_environment
 source activate ${g_python_environment} 2>/dev/null
-${XNAT_PBS_JOBS}/lib/ccf/structural_preprocessing/SubmitStructuralPreprocessingBatch.py $@
+${XNAT_PBS_JOBS}/lib/ccf/structural_preprocessing/one_subject_prereq_checker.py $@
 source deactivate 2>/dev/null

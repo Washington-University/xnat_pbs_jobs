@@ -1,0 +1,43 @@
+#!/bin/bash
+
+#source /export/HCP/bin/xnat_pbs_setup connectomedb
+source /export/HCP/bin/xnat_pbs_setup intradb
+export PATH=/act/Anaconda3-2.3.0/bin:${PATH}
+
+if [ -z "${XNAT_PBS_JOBS}" ]; then
+	script_name=$(basename "${0}")
+	echo "${script_name}: ABORTING: XNAT_PBS_JOBS environment variable must be set"
+	exit 1
+fi
+
+#source activate python3 2>/dev/null
+source ${XNAT_PBS_JOBS}/shlib/utils.shlib
+set_g_python_environment
+source activate ${g_python_environment} 2>/dev/null
+
+#echo $SSH_ORIGINAL_COMMAND
+submitter=$(basename "${1}")
+
+case $submitter in
+	"SubmitStructuralPreprocessingPrereqHPC")
+		${XNAT_PBS_JOBS}/lib/ccf/structural_preprocessing/one_subject_prereq_checker.py "${@:2}"
+		;;
+	"SubmitStructuralPreprocessingCheckHPC")
+		${XNAT_PBS_JOBS}/lib/ccf/structural_preprocessing/one_subject_completion_checker.py "${@:2}"
+		;;
+	"SubmitStructuralPreprocessingStatusHPC")
+		${XNAT_PBS_JOBS}/lib/ccf/structural_preprocessing/one_subject_run_status_checker.py "${@:2}"
+		;;
+	"SubmitStructuralPreprocessingJobSubmitHPC")
+		${XNAT_PBS_JOBS}/lib/ccf/structural_preprocessing/one_subject_job_submitter.py "${@:2}"
+		;;		
+	*)
+		echo "This Command is Not Allowed!"
+		exit
+		;;
+esac
+
+source deactivate 2>/dev/null
+
+#   python test_pre.py --project HCP_500  --classifier 3T --subject 100307
+#   python test_pre.py --project HCP_500  --classifier 3T --subject 100307 --marked
