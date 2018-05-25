@@ -107,12 +107,15 @@ get_options()
 	fi
 }
 
+source ${XNAT_PBS_JOBS}/shlib/utils.shlib
+
 main()
 {
 	get_options $@
 
 	inform "Setting up to run Python 3"
-	source activate python3
+	set_g_python_environment
+	source activate ${g_python_environment}
 
 	inform "Getting CinaB-Style data"
 	${XNAT_PBS_JOBS}/lib/hcp/hcp7t/get_cinab_style_data.py --project=${g_project} --ref-project=${g_ref_project} --subject=${g_subject} --study-dir=${g_working_dir}

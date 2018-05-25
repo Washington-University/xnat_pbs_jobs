@@ -19,6 +19,7 @@ import ccf.structural_preprocessing.one_subject_job_submitter as one_subject_job
 import ccf.structural_preprocessing.one_subject_run_status_checker as one_subject_run_status_checker
 import ccf.subject as ccf_subject
 import utils.file_utils as file_utils
+import utils.my_argparse as my_argparse
 import utils.my_configparser as my_configparser
 import utils.os_utils as os_utils
 import utils.user_utils as user_utils
@@ -40,17 +41,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
     def __init__(self):
         super().__init__(ccf_archive.CcfArchive())
 
-    def submit_jobs(self, username, password, subject_list, config):
-        """Submit structural preprocessing jobs for the listed subjects.
-        
-        Args:
-            username (str): XNAT database username
-            password (str): XNAT database password
-            subject_list (sequence) CCF subjects
-            config: (MyConfigParser) for retrieving processing configuration
-                attributes
-
-        """
+    def submit_jobs(self, username, password, subject_list, config, force_job_submission=False):
+        """Submit structural preprocessing jobs for the listed subjects."""
 
         # create status checker and job submitter for one subject
         run_status_checker = one_subject_run_status_checker.OneSubjectRunStatusChecker()
@@ -61,8 +53,15 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
         # submit jobs for the listed subjects
         for subject in subject_list:
 
-            if self.check_already_queued(subject, run_status_checker):
-                continue
+            if not force_job_submission:
+                if run_status_checker.get_queued_or_running(subject):
+                    print("-----")
+                    print("\t NOT SUBMITTING JOBS FOR")
+                    print("\t               project: " + subject.project)
+                    print("\t               subject: " + subject.subject_id)
+                    print("\t    session classifier: " + subject.classifier)
+                    print("\t JOBS ARE ALREADY QUEUED OR RUNNING")
+                    continue
             
             put_server = 'http://intradb-shadow'
             put_server += str(self.get_and_inc_shadow_number())
@@ -76,7 +75,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             vmem_limit_gbs = config.get_value(subject.subject_id, 'VmemLimitGbs')
             output_resource_suffix = config.get_value(subject.subject_id, 'OutputResourceSuffix')
             brain_size = config.get_value(subject.subject_id, 'BrainSize')
-
+            use_prescan_normalized = config.get_bool_value(subject.subject_id, 'UsePrescanNormalized')
+            
             print("-----")
             print("\tSubmitting", submitter.PIPELINE_NAME, "jobs for:")
             print("\t               project:", subject.project)
@@ -89,7 +89,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             print("\t        vmem_limit_gbs:", vmem_limit_gbs)
             print("\toutput_resource_suffix:", output_resource_suffix)
             print("\t            brain_size:", brain_size)
-
+            print("\tuse_prescan_normalized:", use_prescan_normalized)
+            
             # configure one subject submitter
             
             # user and server information
@@ -103,7 +104,8 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter.session = subject.subject_id + '_' + subject.classifier
             submitter.classifier = subject.classifier
             submitter.brain_size = brain_size
-
+            submitter.use_prescan_normalized = use_prescan_normalized
+            
             # job parameters
             submitter.clean_output_resource_first = clean_output_first
             submitter.put_server = put_server
@@ -119,15 +121,11 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
 
             print("-----")
 
-            
-def do_submissions(userid, password, subject_list):
-    """Do the submission of jobs for a specified list of subjects.
 
-    Args:
-        userid (str): XNAT database userid/username
-        password (str): XNAT database password
-        subject_list (sequence): CCF subjects for which to submit jobs
-
+def do_submissions(userid, password, subject_list, force_job_submissions=False):
+    """
+    Read the configuration file, create a batch submitter, and use the batch
+    submitter to submit jobs for a specified list of subjects.
     """
 
     # read the configuration file
@@ -138,14 +136,28 @@ def do_submissions(userid, password, subject_list):
 
     # process the subjects in the list
     batch_submitter = BatchSubmitter()
-    batch_submitter.submit_jobs(userid, password, subject_list, config)
+    batch_submitter.submit_jobs(userid, password, subject_list, config, force_job_submissions)
     
-            
+
 if __name__ == '__main__':
 
     logging_config_file_name = file_utils.get_logging_config_file_name(__file__)
     print("Getting logging configuration from: " + logging_config_file_name)
     logging.config.fileConfig(logging_config_file_name, disable_existing_loggers=False)
+
+    parser = my_argparse.MyArgumentParser(
+        description="Batch mode submission of processing jobs for Structural Preprocessing")
+
+    # optional arguments
+    #
+    # The --force-job-submission or -f option tells this program to ignore
+    # checking to see whether a set of jobs is already submitted for a
+    # subject/session and to go ahead and submit the jobs anyhow.
+    parser.add_argument('-f', '--force-job-submission', dest='force_job_submission', action='store_true',
+                        required=False, default=False)
+    
+    # parse the command line arguments
+    args = parser.parse_args()
 
     # get Database credentials
     xnat_server = os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER')
@@ -156,4 +168,4 @@ if __name__ == '__main__':
     print("Retrieving subject list from: " + subject_file_name)
     subject_list = ccf_subject.read_subject_info_list(subject_file_name, separator=":")
 
-    do_submissions(userid, password, subject_list)
+    do_submissions(userid, password, subject_list, args.force_job_submission)

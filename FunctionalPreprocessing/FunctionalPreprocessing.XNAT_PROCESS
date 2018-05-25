@@ -235,6 +235,8 @@ main()
 	show_platform_info
 
 	get_options "$@"
+	
+	log_execution_info ${g_working_dir}/$(basename "${0}").execinfo
 
 	create_start_time_file ${g_working_dir} ${g_pipeline_name}
 	

@@ -117,7 +117,8 @@ main()
 
 	# Link CinaB-style data
 	log_Msg "Activating Python 3"
-	source activate python3 2>&1
+	set_g_python_environment
+	source activate ${g_python_environment} 2>&1
 
 	mkdir -p ${g_working_dir}/tmp
 	

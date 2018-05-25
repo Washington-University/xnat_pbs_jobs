@@ -8,5 +8,5 @@ with a particular set of libraries available.
 
 In the Washington University CHPC login environment (the HCPpipeline account), 
 the typical way to create the appropriate environment is to enter the command
-`source activate python3`, where python3 is the name of a Conda configured 
+`source activate <env>`, where <env> is the name of a Conda configured 
 Python 3 environment.
