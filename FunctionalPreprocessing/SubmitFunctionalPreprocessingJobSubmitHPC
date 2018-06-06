@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#source /export/HCP/bin/xnat_pbs_setup connectomedb
-source /export/HCP/bin/xnat_pbs_setup intradb
+source ${1}/xnat_pbs_setup ${2}
 export PATH=/act/Anaconda3-2.3.0/bin:${PATH}
 export CLUSTER="2.0"
 
@@ -14,5 +13,5 @@ fi
 source ${XNAT_PBS_JOBS}/shlib/utils.shlib
 set_g_python_environment
 source activate ${g_python_environment} 2>/dev/null
-${XNAT_PBS_JOBS}/lib/ccf/functional_preprocessing/one_subject_job_submitter.py $@
+${XNAT_PBS_JOBS}/lib/ccf/functional_preprocessing/one_subject_job_submitter.py ${@:3}
 source deactivate 2>/dev/null

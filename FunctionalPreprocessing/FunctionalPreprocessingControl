@@ -6,8 +6,13 @@ if [ -z "${XNAT_PBS_JOBS}" ]; then
 	exit 1
 fi
 
-source ${XNAT_PBS_JOBS}/shlib/utils.shlib
-set_g_python_environment
-source activate ${g_python_environment} 2>/dev/null
-${XNAT_PBS_JOBS}/lib/ccf/functional_preprocessing/FunctionalPreprocessingControl.py $@
-source deactivate 2>/dev/null
+if [ "${XNAT_PBS_REMOTE_LOCAL}" = "remote" ]; then
+	source ${XNAT_PBS_JOBS}/shlib/utils.shlib
+	set_g_python_environment
+	source activate ${g_python_environment} 2>/dev/null
+	${XNAT_PBS_JOBS}/lib/ccf/functional_preprocessing/FunctionalPreprocessingControl.py $@
+	source deactivate 2>/dev/null
+else
+	export PYTHONPATH=${XNAT_PBS_JOBS}/lib
+	${XNAT_PBS_JOBS}/lib/ccf/functional_preprocessing/FunctionalPreprocessingControl.py $@
+fi
