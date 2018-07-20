@@ -53,9 +53,9 @@ class BatchSubmitter(batch_submitter.BatchSubmitter):
             submitter = one_subject_job_submitter.OneSubjectJobSubmitter(
                 self._archive, self._archive.build_home)
 
-            put_server = 'http://intradb-shadow'
+            put_server = self.get_shadow_prefix()
             put_server += str(self.get_and_inc_shadow_number())
-            put_server += '.nrg.mir:8080'
+            put_server += self.get_shadow_suffix()
 
             # get information for the subject from the configuration
             clean_output_first = config.get_bool_value(subject.subject_id, 'CleanOutputFirst')

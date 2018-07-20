@@ -85,6 +85,20 @@ class BatchSubmitter(abc.ABC):
         else:
             return current
 
+    def get_shadow_prefix(self):
+        xnat_server = os_utils.getenv_required('XNAT_PBS_JOBS_XNAT_SERVER')
+        if xnat_server == 'db.humanconnectome.org':
+            put_server_root = 'http://db-shadow'
+        elif xnat_server == 'intradb.humanconnectome.org':
+            put_server_root = 'http://intradb-shadow'
+        else:
+            raise ValueError("Unrecognized XNAT_PBS_JOBS_XNAT_SERVER: " + xnat_server)
+
+        return put_server_root
+
+    def get_shadow_suffix(self):
+        return '.nrg.mir:8080'
+        
     @abc.abstractmethod
     def submit_jobs(self, subject_list):
         """

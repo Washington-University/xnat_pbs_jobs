@@ -318,7 +318,7 @@ class OneSubjectJobSubmitter(abc.ABC):
 		elif xnat_server == 'intradb.humanconnectome.org':
 			db_name = 'intradb'
 		else:
-			raise ValueError("Unrecognized XNAT_SERVER: " + xnat_server)
+			raise ValueError("Unrecognized XNAT_PBS_JOBS_XNAT_SERVER: " + xnat_server)
 
 		return db_name
 	
