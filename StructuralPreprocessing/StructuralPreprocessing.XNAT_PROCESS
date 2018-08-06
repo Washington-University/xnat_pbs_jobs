@@ -964,7 +964,7 @@ main()
 		PreFreeSurfer_cmd+=" --avgrdcmethod=TOPUP"
 		PreFreeSurfer_cmd+=" --SEPhaseNeg=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t1w_directory_name}/${g_se_phase_neg}"
 		PreFreeSurfer_cmd+=" --SEPhasePos=${g_working_dir}/${g_subject}/unprocessed/${g_session_classifier}/${g_first_t1w_directory_name}/${g_se_phase_pos}"
-		PreFreeSurfer_cmd+=" --echospacing=${g_first_t1w_positive_dwell_time}"
+		PreFreeSurfer_cmd+=" --seechospacing=${g_first_t1w_positive_dwell_time}"
 		PreFreeSurfer_cmd+=" --topupconfig=${HCPPIPEDIR}/global/config/${g_topupconfig}"
 		PreFreeSurfer_cmd+=" --seunwarpdir=${SEUNWARPDIR}"
 		PreFreeSurfer_cmd+=" --unwarpdir=${UNWARPDIR}"
