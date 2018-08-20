@@ -33,6 +33,8 @@ module_logger.setLevel(logging.WARNING)
 class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
 	_SEVEN_MM_TEMPLATE_PROJECTS = ('HCP_500', 'HCP_900', 'HCP_1200')
+	_CONNECTOME_SKYRA_SCANNER_PROJECTS = ('HCP_500', 'HCP_900', 'HCP_1200')
+	_PRISMA_3T_PROJECTS = ('MR_TEST', 'TestProject')
 	_SUPPRESS_FREESURFER_ASSESSOR_JOB = True
 	
 	@classmethod
@@ -393,12 +395,12 @@ class OneSubjectJobSubmitter(one_subject_job_submitter.OneSubjectJobSubmitter):
 
 		fnirtconfig_line	 = '  --fnirtconfig=' + self.FNIRT_CONFIG_FILE_NAME
 
-
-		if subject_info.project == 'HCP_1200':
+		if subject_info.project in OneSubjectJobSubmitter._CONNECTOME_SKYRA_SCANNER_PROJECTS:
 			gdcoeffs_line = '  --gdcoeffs=' + self.CONNECTOME_GDCOEFFS_FILE_NAME
-		else:
+		elif subject_info.project in OneSubjectJobSubmitter._PRISMA_3T_PROJECTS:
 			gdcoeffs_line = '  --gdcoeffs=' + self.PRISMA_3T_GDCOEFFS_FILE_NAME
-
+		else:
+			raise ValueError("Unrecognized project for setting gradient distortion coefficients file: " + subject_info.project)
 
 		topupconfig_line	 = '  --topupconfig=' + self.TOPUP_CONFIG_FILE_NAME
 
