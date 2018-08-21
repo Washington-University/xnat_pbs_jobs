@@ -27,6 +27,7 @@ PARAMETERs are [ ] = optional; < > = user supplied value
    --scan=<scan>             : XNAT scan within subject (e.g. tfMRI_CARIT_PA, rfMRI_REST1_AP, etc)
    --working-dir=<dir>       : Working directory in which to place retrieved data
                                and in which to produce results
+   --copy                    : Create copies of files instead of symbolic links
 
 EOF
 }
@@ -41,7 +42,8 @@ get_options()
 	unset g_classifier
 	unset g_scan
 	unset g_working_dir
-
+	g_copy="FALSE"
+	
 	# parse arguments
 	local num_args=${#arguments[@]}
 	local argument
@@ -73,6 +75,10 @@ get_options()
 				;;
 			--working-dir=*)
 				g_working_dir=${argument#*=}
+				index=$(( index + 1 ))
+				;;
+			--copy)
+				g_copy="TRUE"
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -114,6 +120,8 @@ get_options()
 		log_Msg "working directory: ${g_working_dir}"
 	fi
 
+	log_Msg "g_copy: ${g_copy}"
+	
 	if [ ! -z "${error_msgs}" ]; then
 		usage
 		log_Err_Abort ${error_msgs}
@@ -147,6 +155,18 @@ main()
 	
 	mv ${g_working_dir}/tmp/* ${g_working_dir}
 	rmdir ${g_working_dir}/tmp
+
+	if [ "${g_copy}" = "TRUE" ]; then
+		log_Msg "Resolving symbolic link files into copies"
+
+		pushd ${g_working_dir}
+
+		for f in $(find . -type l) ; do
+			cp --verbose --remove-destination $(readlink $f) $f
+		done
+
+		popd
+	fi
 	
 	log_Msg "Complete"
 }

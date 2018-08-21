@@ -27,6 +27,7 @@ PARAMETERs are [ ] = optional; < > = user supplied value
    --working-dir=<dir>       : Working directory in which to place retrieved data
                                and in which to produce results
    --use-prescan-normalized  : Use the prescan normalized versions of the T1w and T2w scans
+   --copy                    : Create copies of files instead of symbolic links
 
 EOF
 }
@@ -42,6 +43,7 @@ get_options()
 	unset g_working_dir
 	g_use_prescan_normalized="FALSE"
 	g_delay_seconds=0
+	g_copy="FALSE"
 	
 	# parse arguments
 	local num_args=${#arguments[@]}
@@ -80,6 +82,10 @@ get_options()
 				g_use_prescan_normalized="TRUE"
 				index=$(( index + 1 ))
 				;;
+			--copy)
+				g_copy="TRUE"
+				index=$(( index + 1 ))
+				;;
 			*)
 				usage
 				log_Err_Abort "unrecognized option ${argument}"
@@ -116,6 +122,8 @@ get_options()
 	log_Msg "g_delay_seconds: ${g_delay_seconds}"
 
 	log_Msg "g_use_prescan_normalized: ${g_use_prescan_normalized}"
+
+	log_Msg "g_copy: ${g_copy}"
 	
 	if [ ! -z "${error_msgs}" ]; then
 		usage
@@ -195,6 +203,18 @@ main()
 				ln -s OTHER_FILES/${other_file}
 			done
 			popd
+		done
+
+		popd
+	fi
+
+	if [ "${g_copy}" = "TRUE" ]; then
+		log_Msg "Resolving symbolic link files into copies"
+
+		pushd ${g_working_dir}
+
+		for f in $(find . -type l) ; do
+			cp --verbose --remove-destination $(readlink $f) $f
 		done
 
 		popd
